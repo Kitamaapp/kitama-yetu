@@ -1,1 +1,430 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitama Yetu</title>
+    
+    <!-- Mfumo wa Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- CSS (Styling) -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        header {
+            background-color: #1e3d59;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        header h1 { margin: 0; font-size: 24px; }
+        header p { margin: 5px 0 0; font-size: 14px; opacity: 0.9; }
+        
+        main { padding: 20px; padding-bottom: 60px; }
+        
+        .section { display: none; }
+        .section.active { display: block; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            font-family: inherit;
+        }
+        textarea { min-height: 100px; resize: vertical; }
+
+        .btn-primary, .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .btn-primary { background-color: #1e3d59; color: white; }
+        .btn-secondary { background-color: #e0e0e0; color: #333; }
+        .btn-danger { background-color: #d9534f; color: white; width: auto; padding: 8px 15px; font-size: 14px; margin-top: 20px;}
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .menu-item {
+            background-color: #e6f2ff;
+            border: none;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #1e3d59;
+            text-align: center;
+        }
+        
+        .card {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #1e3d59;
+        }
+        .card h4 { margin: 0 0 5px; color: #1e3d59; }
+        .card p { margin: 0; font-size: 14px; color: #555; }
+        .card small { color: #888; display: block; margin-top: 5px; }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+        .nav-item {
+            background: none; border: none; cursor: pointer; 
+            font-size: 12px; color: #666; display: flex; flex-direction: column; align-items: center;
+        }
+        .nav-item.active { color: #1e3d59; font-weight: bold; }
+        .nav-icon { font-size: 20px; margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>Kitama Yetu</h1>
+        <p>Jukwaa la Viongozi na Wananchi</p>
+    </header>
+
+    <main id="main-content">
+        
+        <!-- 1. UKURASA WA KUINGIA (LOGIN) -->
+        <div id="login-section" class="section active">
+            <h2>Karibu! Ingia kwa Namba ya Simu</h2>
+            <input type="text" id="name-input" placeholder="Jina lako kamili">
+            <input type="tel" id="phone-input" placeholder="Mfano: 0712345678">
+            <select id="village-select">
+                <option value="">-- Chagua Kijiji Chako --</option>
+                <option value="Kitama Shuleni">Kitama Shuleni</option>
+                <option value="Kitama Mjini">Kitama Mjini</option>
+                <option value="Mwenge A">Mwenge A</option>
+                <option value="Mwenge B">Mwenge B</option>
+                <option value="Namunda">Namunda</option>
+                <option value="Mitondi A">Mitondi A</option>
+                <option value="Mitondi B">Mitondi B</option>
+            </select>
+            <button onclick="loginUser()" class="btn-primary">Ingia / Jisajili</button>
+        </div>
+
+        <!-- 2. UKURASA WA NYUMBANI (MATANGAZO) -->
+        <div id="home-section" class="section">
+            <h2 id="welcome-msg"></h2>
+            <div class="menu-grid">
+                <button class="menu-item" onclick="showSection('report-section')">📢 Tuma Malalamishi</button>
+                <button class="menu-item" onclick="alert('Ukurasa wa fursa unakuja hivi karibuni!')">💼 Fursa</button>
+            </div>
+            <h3>Matangazo ya Karibuni</h3>
+            <div id="announcements-list">
+                <p>Inapakia matangazo...</p>
+            </div>
+        </div>
+
+        <!-- 3. UKURASA WA KUTUMA MALALAMISHI (REPORT) -->
+        <div id="report-section" class="section">
+            <h2>Tuma Malalamishi / Hoja</h2>
+            <p>Andika tatizo lako au hoja ya maendeleo kwa viongozi wako.</p>
+            
+            <label>Mada (Title)</label>
+            <input type="text" id="report-title" placeholder="Mfano: Bomba la maji limeharibika">
+            
+            <label>Ufafanuzi (Description)</label>
+            <textarea id="report-desc" placeholder="Eleza kwa undani..."></textarea>
+            
+            <label>Kijiji</label>
+            <select id="report-village">
+                <option value="Kitama Shuleni">Kitama Shuleni</option>
+                <option value="Kitama Mjini">Kitama Mjini</option>
+                <option value="Mwenge A">Mwenge A</option>
+                <option value="Mwenge B">Mwenge B</option>
+                <option value="Namunda">Namunda</option>
+                <option value="Mitondi A">Mitondi A</option>
+                <option value="Mitondi B">Mitondi B</option>
+            </select>
+            
+            <button onclick="submitReport()" class="btn-primary">Tuma Malalamishi</button>
+            <button onclick="showSection('home-section')" class="btn-secondary">Rudi Nyumbani</button>
+        </div>
+
+        <!-- 4. UKURASA WA MALALAMISHI YANGU (MY REPORTS) -->
+        <div id="my-reports-section" class="section">
+            <h2>Malalamishi Yangu</h2>
+            <div id="user-reports-list">
+                <p>Hujatuma malalamishi yeyote bado.</p>
+            </div>
+        </div>
+
+        <!-- 5. UKURASA WA VIONGOZI (LEADERS) -->
+        <div id="leaders-section" class="section">
+            <h2>Viongozi wa Kata ya Kitama</h2>
+            <div class="card">
+                <h4>Diwani wa Kata</h4>
+                <p>Mh. [Jina la Diwani]</p>
+                <small>Simu: 07XX XXX XXX</small>
+            </div>
+            <div class="card">
+                <h4>Mtendaji wa Kata</h4>
+                <p>Bw. [Jina la Mtendaji]</p>
+                <small>Simu: 07XX XXX XXX</small>
+            </div>
+            <p style="font-size:14px; color:#888;">Orodha kamili ya Wenyeviti na Watendaji wa vijiji vitakuwekwa hapa hivi karibuni.</p>
+            
+            <button onclick="logout()" class="btn-danger">Toka (Logout)</button>
+        </div>
+
+    </main>
+
+    <!-- MENIU YA CHINI (BOTTOM NAVIGATION) -->
+    <div class="bottom-nav" id="bottom-nav" style="display: none;">
+        <button class="nav-item active" onclick="showSection('home-section')">
+            <span class="nav-icon">🏠</span> Nyumbani
+        </button>
+        <button class="nav-item" onclick="showSection('report-section')">
+            <span class="nav-icon">📢</span> Ripoti
+        </button>
+        <button class="nav-item" onclick="showSection('my-reports-section')">
+            <span class="nav-icon">📁</span> Zangu
+        </button>
+        <button class="nav-item" onclick="showSection('leaders-section')">
+            <span class="nav-icon">👥</span> Viongozi
+        </button>
+    </div>
+</div>
+
+<!-- JAVASCRIPT (LOGIC) -->
+<script>
+    // === USAFIRISHAJI WA SUPABASE ===
+    // HAPA WEKA URL NA KEY YAKO HALISI TOKA SUPABASE DASHBOARD
+    const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
+    
+    // Kagua kama URL na Key zimebadilishwa
+    let supabase = null;
+    if (SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co' && SUPABASE_KEY !== 'YOUR_ANON_KEY') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+
+    // === LOGIC YA KUINGIA (LOGIN) ===
+    function loginUser() {
+        const name = document.getElementById('name-input').value.trim();
+        const phone = document.getElementById('phone-input').value.trim();
+        const village = document.getElementById('village-select').value;
+
+        if (!name || !phone || !village) {
+            alert("Tafadhali jaza jina, namba na uchague kijiji chako.");
+            return;
+        }
+
+        // Hifadhi kwenye Local Storage (Kwa muda, baadaye tutatumia Supabase Auth)
+        localStorage.setItem('kitama_user', JSON.stringify({ name, phone, village }));
+        
+        // Onyesha menyu ya chini na ukurasa wa nyumbani
+        document.getElementById('bottom-nav').style.display = 'flex';
+        showSection('home-section');
+        loadUserData();
+    }
+
+    // === LOGIC YA KUTOKA (LOGOUT) ===
+    function logout() {
+        localStorage.removeItem('kitama_user');
+        location.reload(); // Anza upya app
+    }
+
+    // === LOGIC YA KUBADILISHA UKURASA (NAVIGATION) ===
+    function showSection(sectionId) {
+        // Ficha sections zote
+        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+        // Onyesha section iliyochaguliwa
+        document.getElementById(sectionId).classList.add('active');
+
+        // Badilisha active state kwenye bottom nav
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        // Tafuta nav item iliyo na onclick inayoshiriki sectionId
+        document.querySelectorAll('.nav-item').forEach(nav => {
+            if(nav.getAttribute('onclick').includes(sectionId)) {
+                nav.classList.add('active');
+            }
+        });
+
+        // Loda taarifa zinazohusiana na section
+        if(sectionId === 'home-section') fetchAnnouncements();
+        if(sectionId === 'my-reports-section') fetchMyReports();
+    }
+
+    // === LOGIC YA KUPAKIA TAARIFA ZA MTUMIAJI ===
+    function loadUserData() {
+        const userStr = localStorage.getItem('kitama_user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            document.getElementById('welcome-msg').innerText = `Karibu ${user.name}`;
+            document.getElementById('report-village').value = user.village;
+            fetchAnnouncements();
+        } else {
+            document.getElementById('bottom-nav').style.display = 'none';
+        }
+    }
+
+    // === LOGIC YA KUPAKIA MATANGAZO KUTOKA SUPABASE ===
+    async function fetchAnnouncements() {
+        const listDiv = document.getElementById('announcements-list');
+        listDiv.innerHTML = '<p>Inapakia matangazo...</p>';
+
+        if (!supabase) {
+            listDiv.innerHTML = `<div class="card"><h4>Mfano wa Tangazo</h4><p>Kuna mkutano wa vijiji saba kesho Jumapili ukumbi wa Kata. Kila Mwenyeviti ahudhurie.</p><small>Tarehe: Leo</small></div>`;
+            return;
+        }
+
+        const { data, error } = await supabase
+            .from('announcements')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            listDiv.innerHTML = '<p>Kosa wakati wa kupakia matangazo.</p>';
+            return;
+        }
+        
+        if (data && data.length > 0) {
+            listDiv.innerHTML = data.map(ann => `
+                <div class="card">
+                    <h4>${ann.title}</h4>
+                    <p>${ann.content}</p>
+                    <small>Tarehe: ${new Date(ann.created_at).toLocaleDateString()}</small>
+                </div>
+            `).join('');
+        } else {
+            listDiv.innerHTML = '<p>Hakuna matangazo mapya kwa sasa.</p>';
+        }
+    }
+
+    // === LOGIC YA KUTUMA MALALAMISHI KWENYE SUPABASE ===
+    async function submitReport() {
+        const userStr = localStorage.getItem('kitama_user');
+        if (!userStr) return alert("Tafadhali ingia kwanza.");
+        const user = JSON.parse(userStr);
+
+        const title = document.getElementById('report-title').value.trim();
+        const desc = document.getElementById('report-desc').value.trim();
+        const village = document.getElementById('report-village').value;
+
+        if (!title || !desc) {
+            alert("Tafadhali jaza mada na ufafanuzi.");
+            return;
+        }
+
+        if (!supabase) {
+            alert("Hifadhidata haijawekwa. Onyo: Supabase URL na Key bado ni za default. Tafadhali zibadilishe kwenye code.");
+            return;
+        }
+
+        // Tuma kwenye database
+        const { data, error } = await supabase
+            .from('reports')
+            .insert([
+                { 
+                    title: title, 
+                    description: desc, 
+                    village: village, 
+                    // created_by: user.phone (Tutabadilisha hii kuitumia UUID baada ya kuandika Auth)
+                }
+            ]);
+
+        if (error) {
+            alert("Kosa: Malalamishi hayajatumwa. " + error.message);
+        } else {
+            alert("Malalamishi yametumwa kikamilifu! Viongozi watayapokea.");
+            document.getElementById('report-title').value = '';
+            document.getElementById('report-desc').value = '';
+            showSection('my-reports-section');
+        }
+    }
+
+    // === LOGIC YA KUPAKIA MALALAMISHI YANGU ===
+    async function fetchMyReports() {
+        const listDiv = document.getElementById('user-reports-list');
+        listDiv.innerHTML = '<p>Inapakia...</p>';
+
+        if (!supabase) {
+            listDiv.innerHTML = `<div class="card"><h4>Mfano wa Malalamishi</h4><p>Barabara ya Mwenge A imeharibika.</p><small>Status: Inashughulikiwa</small></div>`;
+            return;
+        }
+
+        const { data, error } = await supabase
+            .from('reports')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            listDiv.innerHTML = '<p>Kosa wakati wa kupakia.</p>';
+            return;
+        }
+
+        if (data && data.length > 0) {
+            listDiv.innerHTML = data.map(rep => `
+                <div class="card">
+                    <h4>${rep.title}</h4>
+                    <p>${rep.description}</p>
+                    <small>Status: ${rep.status}</small><br>
+                    <small>Kijiji: ${rep.village}</small>
+                </div>
+            `).join('');
+        } else {
+            listDiv.innerHTML = '<p>Hujatuma malalamishi yeyote bado.</p>';
+        }
+    }
+
+    // === ANGALIA KAMA MTUMIAJI YUPO KWENYE LOCAL STORAGE AKIWAJA ===
+    window.onload = () => {
+        if (localStorage.getItem('kitama_user')) {
+            document.getElementById('login-section').classList.remove('active');
+            document.getElementById('bottom-nav').style.display = 'flex';
+            showSection('home-section');
+            loadUserData();
+        }
+    };
+</script>
+
+</body>
+</html>
