@@ -9,7 +9,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #0F172A; --accent: #10B981; --accent-dark: #059669; --bg: #F1F5F9; --surface: #FFFFFF; --text: #0F172A; --text-sec: #64748B; --border: #E2E8F0; --shadow-sm: 0 1px 3px rgba(0,0,0,0.1); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1); --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1); --radius: 20px; --danger: #EF4444; }
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+               /* SPLASH SCREEN */
+        .splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary) 0%, #1E293B 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease; }
+        .splash-screen.hide { opacity: 0; visibility: hidden; }
+        .splash-logo { width: 90px; height: 90px; background: var(--accent); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+        .splash-title { color: white; font-size: 32px; font-weight: 800; margin-bottom: 5px; letter-spacing: -1px; }
+        .splash-subtitle { color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 400; margin-bottom: 40px; }
+        .splash-spinner { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.1); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s linear infinite; }
+        
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
         
         /* AUTH */
@@ -95,7 +104,15 @@
     </style>
     </head>
 <body>
-
+    <!-- SPLASH SCREEN -->
+    <div class="splash-screen" id="splash-screen">
+        <div class="splash-logo">
+            <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
+        </div>
+        <h1 class="splash-title">Kitama Yetu</h1>
+        <p class="splash-subtitle">Jukwaa Rasmi la Maendeleo</p>
+        <div class="splash-spinner"></div>
+    </div>
 <div class="toast" id="toast"></div>
 
 <div class="modal-overlay" id="modal-overlay">
@@ -519,7 +536,13 @@
         } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; }
     }
 
-    window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp(); };
+        // On Load: Onyesha Splash Screen kisha fungua App
+    window.onload = () => {
+        setTimeout(() => {
+            document.getElementById('splash-screen').classList.add('hide');
+            if(localStorage.getItem('kitama_user')) enterApp();
+        }, 2500); // Inasubiri sekunde 2.5
+    };
 </script>
 </body>
 </html>
