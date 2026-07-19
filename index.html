@@ -3,178 +3,478 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kitama Yetu</title>
+    <title>Kitama Yetu | Jukwaa Rasmi</title>
+    
+    <!-- Google Fonts (Corporate & Premium Typography) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
-        :root { --primary: #0F172A; --accent: #10B981; --bg: #F8FAFC; --text: #1E293B; --text-light: #64748B; --border: #E2E8F0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
-        .login-wrapper { width: 100%; max-width: 480px; background: var(--primary); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 40px 30px; }
-        .login-header { text-align: center; margin-bottom: 40px; color: white; }
-        .logo-badge { width: 70px; height: 70px; background: var(--accent); border-radius: 16px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4); }
-        .login-header h1 { font-size: 28px; font-weight: 600; }
-        .login-header p { opacity: 0.7; font-weight: 300; font-size: 14px; margin-top: 5px; }
-        .auth-card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-light); margin-bottom: 8px; }
-        input, select { width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-family: 'Poppins', sans-serif; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; background: var(--accent); color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+        :root {
+            --primary: #0F172A; /* Deep Navy Blue (Corporate) */
+            --accent: #059669; /* Emerald Green (Development) */
+            --accent-light: #D1FAE5;
+            --bg: #F1F5F9;
+            --surface: #FFFFFF;
+            --text: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
+
+        /* ==================== AUTH SECTION (LOGIN / SIGNUP) ==================== */
+        .auth-container {
+            width: 100%; max-width: 480px; min-height: 100vh;
+            background: var(--surface);
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+        .auth-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #1E293B 100%);
+            padding: 60px 30px 40px; color: white;
+            border-bottom-left-radius: 40px; border-bottom-right-radius: 40px;
+            position: relative;
+        }
+        .auth-hero::before {
+            content: ''; position: absolute; top: -40px; right: -40px;
+            width: 180px; height: 180px; background: var(--accent); opacity: 0.2; border-radius: 50%;
+        }
+        .auth-logo {
+            width: 50px; height: 50px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(5, 150, 105, 0.4);
+        }
+        .auth-hero h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 5px; }
+        .auth-hero p { opacity: 0.8; font-size: 14px; font-weight: 300; }
+
+        .auth-content { padding: 30px; flex: 1; }
         
-        .app-container { width: 100%; max-width: 480px; background: var(--bg); min-height: 100vh; padding-bottom: 90px; display:none; }
-        .app-header { background: white; padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-        .user-badge { background: var(--bg); padding: 8px 12px; border-radius: 20px; font-size: 12px; border: 1px solid var(--border); }
+        .auth-tabs { display: flex; background: var(--bg); padding: 5px; border-radius: 12px; margin-bottom: 30px; }
+        .auth-tab {
+            flex: 1; text-align: center; padding: 12px; border: none; background: transparent;
+            font-weight: 600; font-size: 14px; color: var(--text-secondary); cursor: pointer; border-radius: 8px; transition: all 0.3s;
+        }
+        .auth-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .input-wrapper { position: relative; }
+        .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
+        input, select {
+            width: 100%; padding: 16px 16px 16px 48px; border: 1px solid var(--border);
+            border-radius: 12px; font-size: 15px; font-family: inherit; background: var(--bg); transition: all 0.2s;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1); }
+
+        .btn-primary {
+            width: 100%; padding: 16px; background: var(--primary); color: white; border: none;
+            border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+        }
+        .btn-primary:hover { background: #1E293B; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ==================== APP MAIN DASHBOARD ==================== */
+        .app-container { width: 100%; max-width: 480px; background: var(--bg); min-height: 100vh; padding-bottom: 80px; display: none; }
+        
+        .app-header { 
+            background: var(--surface); padding: 20px; border-bottom: 1px solid var(--border); 
+            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50;
+        }
+        .header-left p { font-size: 12px; color: var(--text-secondary); }
+        .header-left h3 { font-size: 18px; font-weight: 700; }
+        .header-avatar {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white;
+            display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; cursor: pointer;
+            border: 2px solid var(--accent);
+        }
+
         main { padding: 20px; }
-        .section { display: none; } .section.active { display: block; }
-        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .dash-card { background: white; padding: 20px; border-radius: 16px; box-shadow: var(--shadow); cursor: pointer; border: 1px solid var(--border); }
-        .list-card { background: white; padding: 16px; border-radius: 14px; margin-bottom: 12px; box-shadow: var(--shadow); border-left: 4px solid var(--accent); }
-        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; }
-        .nav-item { background: none; border: none; cursor: pointer; font-size: 11px; color: var(--text-light); }
-        .nav-item.active { color: var(--accent); font-weight: bold; }
+        .section { display: none; animation: slideUp 0.4s ease; }
+        .section.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .section-header h2 { font-size: 20px; font-weight: 700; }
+        .section-header span { font-size: 13px; color: var(--accent); font-weight: 600; }
+
+        /* Quick Action Grid */
+        .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .action-card {
+            background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow-sm);
+            cursor: pointer; transition: all 0.2s; border: 1px solid var(--border);
+            display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+        }
+        .action-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--accent); }
+        .action-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .action-card h4 { font-size: 15px; font-weight: 700; }
+        .action-card p { font-size: 12px; color: var(--text-secondary); }
+
+        /* List Cards (Announcements & Reports) */
+        .list-item {
+            background: var(--surface); padding: 16px; border-radius: var(--radius); margin-bottom: 12px;
+            box-shadow: var(--shadow-sm); border-left: 4px solid var(--accent);
+        }
+        .list-item h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .list-item p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+        .list-meta { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-pending { background: #FEF3C7; color: #D97706; }
+        .badge-progress { background: #DBEAFE; color: #2563EB; }
+        .badge-resolved { background: #D1FAE5; color: #059669; }
+        .badge-info { background: #F1F5F9; color: #64748B; }
+        .date-text { font-size: 11px; color: var(--text-secondary); }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px;
+            background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around;
+            padding: 12px 0 20px 0; z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
+        }
+        .nav-btn { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-secondary); transition: all 0.2s; }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn span { font-size: 11px; font-weight: 500; }
+
+        /* Profile Page */
+        .profile-header { text-align: center; padding: 30px 20px; background: var(--surface); border-radius: var(--radius); margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+        .profile-avatar-lg { width: 80px; height: 80px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; margin: 0 auto 15px; border: 3px solid var(--accent); }
+        .profile-header h3 { font-size: 20px; font-weight: 700; }
+        .profile-header p { color: var(--text-secondary); font-size: 14px; }
+        
+        .info-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--surface); border-radius: 12px; margin-bottom: 10px; box-shadow: var(--shadow-sm); }
+        .info-row div { display: flex; align-items: center; gap: 12px; }
+        .info-icon { width: 36px; height: 36px; background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); }
+        .info-row h5 { font-size: 12px; color: var(--text-secondary); margin-bottom: 2px; }
+        .info-row p { font-size: 14px; font-weight: 600; }
+        
+        .btn-danger-outline { width: 100%; padding: 14px; background: transparent; color: #EF4444; border: 1px solid #FCA5A5; border-radius: 12px; font-weight: 600; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-<div class="login-wrapper" id="login-section">
-    <div class="login-header">
-        <div class="logo-badge">
-            <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
+<!-- ================================= -->
+<!--       UKURASA WA KUINGIA          -->
+<!-- ================================= -->
+<div class="auth-container" id="auth-container">
+    <div class="auth-hero">
+        <div class="auth-logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
         </div>
-        <h1>Kitama Yetu</h1>
-        <p>Jukwaa Rasmi la Mawasiliano</p>
+        <h1>Karibu Kitama Yetu</h1>
+        <p>Jukwaa rasmi la mawasiliano na maendeleo kwa viongozi na wananchi.</p>
     </div>
-    <div class="auth-card">
-        <div class="form-group">
-            <label class="form-label">Jina Kamili</label>
-            <input type="text" id="name-input" placeholder="Mfano: Juma Hamisi">
+
+    <div class="auth-content">
+        <!-- Tabs za Login na Sign Up -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Ingia</button>
+            <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Jisajili</button>
         </div>
-        <div class="form-group">
-            <label class="form-label">Namba ya Simu</label>
-            <input type="tel" id="phone-input" placeholder="0712345678">
+
+        <!-- Fomu ya Login -->
+        <div id="login-form">
+            <div class="form-group">
+                <label class="form-label">Namba ya Simu</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+                    <input type="tel" id="login-phone" placeholder="0712345678">
+                </div>
+            </div>
+            <button onclick="handleLogin()" class="btn-primary" id="btn-login">Ingia Kwenye Akaunti</button>
         </div>
-        <div class="form-group">
-            <label class="form-label">Kijiji</label>
-            <select id="village-select">
-                <option value="">-- Chagua --</option>
-                <option value="Kitama Shuleni">Kitama Shuleni</option>
-                <option value="Kitama Mjini">Kitama Mjini</option>
-                <option value="Mwenge A">Mwenge A</option>
-                <option value="Mwenge B">Mwenge B</option>
-                <option value="Namunda">Namunda</option>
-                <option value="Mitondi A">Mitondi A</option>
-                <option value="Mitondi B">Mitondi B</option>
-            </select>
+
+        <!-- Fomu ya Sign Up -->
+        <div id="signup-form" style="display: none;">
+            <div class="form-group">
+                <label class="form-label">Jina Kamili</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                    <input type="text" id="signup-name" placeholder="Mfano: Juma Hamisi">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Namba ya Simu</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+                    <input type="tel" id="signup-phone" placeholder="0712345678">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kijiji Chako</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg></span>
+                    <select id="signup-village">
+                        <option value="">-- Chagua Kijiji --</option>
+                        <option value="Kitama Shuleni">Kitama Shuleni</option>
+                        <option value="Kitama Mjini">Kitama Mjini</option>
+                        <option value="Mwenge A">Mwenge A</option>
+                        <option value="Mwenge B">Mwenge B</option>
+                        <option value="Namunda">Namunda</option>
+                        <option value="Mitondi A">Mitondi A</option>
+                        <option value="Mitondi B">Mitondi B</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="handleSignup()" class="btn-primary" id="btn-signup">Tengeneza Akaunti</button>
         </div>
-        <button onclick="handleAuth()" class="btn" id="auth-btn">Ingia / Jisajili</button>
     </div>
 </div>
 
+<!-- ================================= -->
+<!--        APP MAIN (DASHBOARD)       -->
+<!-- ================================= -->
 <div class="app-container" id="app-container">
     <header class="app-header">
-        <div>
-            <p style="font-size:12px; color:var(--text-light);">Karibu</p>
-            <h2 id="welcome-msg">Mtumiaji</h2>
+        <div class="header-left">
+            <p>Karibu</p>
+            <h3 id="welcome-name">Mtumiaji</h3>
         </div>
-        <div class="user-badge" id="village-badge">Kijiji</div>
+        <div class="header-avatar" onclick="showSection('profile-section')" id="user-initial">U</div>
     </header>
+
     <main>
+        <!-- 1. HOME -->
         <div id="home-section" class="section active">
-            <div class="dash-grid">
-                <div class="dash-card" onclick="showSection('report-section')"><h4>Tuma Ripoti</h4></div>
-                <div class="dash-card" onclick="showSection('my-reports-section')"><h4>Ripoti Zangu</h4></div>
-                <div class="dash-card" onclick="showSection('announcements-section')"><h4>Matangazo</h4></div>
-                <div class="dash-card" onclick="showSection('leaders-section')"><h4>Viongozi</h4></div>
+            <div class="section-header">
+                <h2>Huduma za Kata</h2>
+                <span>Kitama</span>
+            </div>
+            <div class="quick-actions">
+                <div class="action-card" onclick="showSection('report-section')">
+                    <div class="action-icon" style="background:#FEF3C7;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                    <div><h4>Tuma Ripoti</h4><p>Malalamishi & Hoja</p></div>
+                </div>
+                <div class="action-card" onclick="showSection('announcements-section')">
+                    <div class="action-icon" style="background:#DBEAFE;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></div>
+                    <div><h4>Matangazo</h4><p>Ya Viongozi</p></div>
+                </div>
+                <div class="action-card" onclick="showSection('my-reports-section')">
+                    <div class="action-icon" style="background:#D1FAE5;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+                    <div><h4>Ripoti Zangu</h4><p>Fuatilia Hatua</p></div>
+                </div>
+                <div class="action-card" onclick="showSection('leaders-section')">
+                    <div class="action-icon" style="background:#E0E7FF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+                    <div><h4>Viongozi</h4><p>Macontacts</p></div>
+                </div>
             </div>
         </div>
+
+        <!-- 2. REPORT FORM -->
         <div id="report-section" class="section">
-            <h3>Tuma Malalamishi</h3>
-            <input type="text" id="report-title" placeholder="Mada" style="margin-bottom:10px; width:100%; padding:10px;">
-            <textarea id="report-desc" placeholder="Ufafanuzi" style="width:100%; padding:10px; margin-bottom:10px; min-height:100px;"></textarea>
-            <button onclick="submitReport()" class="btn">Tuma</button>
+            <div class="section-header"><h2>Tuma Sauti Yako</h2></div>
+            <p style="color:var(--text-secondary); margin-bottom:20px; font-size:14px;">Andika tatizo au hoja ya maendeleo kwa ufasaha.</p>
+            <div class="form-group">
+                <label class="form-label">Mada Kuu</label>
+                <input type="text" id="report-title" placeholder="Mfano: Barabara imeharibika" style="padding-left:16px;">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ufafanuzi</label>
+                <textarea id="report-desc" placeholder="Eleza kwa undani..." style="padding-left:16px; min-height:120px; resize:vertical; font-family:inherit;"></textarea>
+            </div>
+            <button onclick="submitReport()" class="btn-primary" id="btn-submit-report">Tuma Ripoti</button>
         </div>
-        <div id="my-reports-section" class="section"><h3>Ripoti Zangu</h3><div id="user-reports-list"></div></div>
-        <div id="announcements-section" class="section"><h3>Matangazo</h3><div id="announcements-list"></div></div>
-        <div id="leaders-section" class="section"><h3>Viongozi</h3><button onclick="handleLogout()" class="btn" style="background:red;">Toka (Logout)</button></div>
+
+        <!-- 3. MY REPORTS -->
+        <div id="my-reports-section" class="section">
+            <div class="section-header"><h2>Ripoti Zangu</h2><span onclick="fetchMyReports()" style="cursor:pointer;">Refresh</span></div>
+            <div id="user-reports-list"></div>
+        </div>
+
+        <!-- 4. ANNOUNCEMENTS -->
+        <div id="announcements-section" class="section">
+            <div class="section-header"><h2>Matangazo</h2><span onclick="fetchAnnouncements()" style="cursor:pointer;">Refresh</span></div>
+            <div id="announcements-list"></div>
+        </div>
+
+        <!-- 5. LEADERS -->
+        <div id="leaders-section" class="section">
+            <div class="section-header"><h2>Viongozi wa Kata</h2></div>
+            <div class="list-item">
+                <h4>Diwani wa Kata</h4>
+                <p>Mh. [Jina la Diwani]</p>
+                <div class="list-meta">
+                    <span class="badge badge-info">Mawasiliano</span>
+                    <span class="date-text">07XX XXX XXX</span>
+                </div>
+            </div>
+            <div class="list-item">
+                <h4>Mtendaji wa Kata</h4>
+                <p>Bw. [Jina la Mtendaji]</p>
+                <div class="list-meta">
+                    <span class="badge badge-info">Mawasiliano</span>
+                    <span class="date-text">07XX XXX XXX</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. PROFILE -->
+        <div id="profile-section" class="section">
+            <div class="section-header"><h2>Akaunti Yangu</h2></div>
+            
+            <div class="profile-header">
+                <div class="profile-avatar-lg" id="profile-avatar">U</div>
+                <h3 id="profile-name">Jina la Mtumiaji</h3>
+                <p id="profile-village">Kijiji</p>
+            </div>
+
+            <div class="info-row">
+                <div>
+                    <div class="info-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+                    <div><h5>Namba ya Simu</h5><p id="profile-phone">Namba</p></div>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div>
+                    <div class="info-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                    <div><h5>Hadhi ya Mtumiaji</h5><p>Mwananchi</p></div>
+                </div>
+            </div>
+
+            <button onclick="handleLogout()" class="btn-danger-outline">Toka Kwenye Akaunti</button>
+        </div>
     </main>
+
+    <!-- BOTTOM NAV -->
     <div class="bottom-nav">
-        <button class="nav-item active" onclick="showSection('home-section')">Nyumbani</button>
-        <button class="nav-item" onclick="showSection('report-section')">Ripoti</button>
-        <button class="nav-item" onclick="showSection('announcements-section')">Matangazo</button>
-        <button class="nav-item" onclick="showSection('leaders-section')">Viongozi</button>
+        <button class="nav-btn active" onclick="showSection('home-section')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>Nyumbani</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('report-section')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Tuma</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('announcements-section')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"/></svg>
+            <span>Matangazo</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('profile-section')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Akaunti</span>
+        </button>
     </div>
 </div>
 
 <script>
-    // 1. SUPABASE CONFIG (Tumie jina 'sb' badala ya 'supabase')
+    // 1. SUPABASE CONFIG (Tumia 'sb' kama variable)
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
-    
-    let sb;
-    try {
-        sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    } catch (e) {
-        alert("HATARI: Supabase imeshindwa kuanzishwa! " + e.message);
+    let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 2. AUTH TAB SWITCHING
+    function switchAuthTab(tab) {
+        const loginTab = document.getElementById('tab-login');
+        const signupTab = document.getElementById('tab-signup');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+
+        if (tab === 'login') {
+            loginTab.classList.add('active'); signupTab.classList.remove('active');
+            loginForm.style.display = 'block'; signupForm.style.display = 'none';
+        } else {
+            loginTab.classList.remove('active'); signupTab.classList.add('active');
+            loginForm.style.display = 'none'; signupForm.style.display = 'block';
+        }
     }
 
-    // 2. LOGIN FUNCTION
-    async function handleAuth() {
-        const name = document.getElementById('name-input').value.trim();
-        const phone = document.getElementById('phone-input').value.trim();
-        const village = document.getElementById('village-select').value;
-
-        if (!name || !phone || !village) {
-            alert("Tafadhali jaza jina, namba na uchague kijiji.");
-            return;
-        }
-
-        const btn = document.getElementById('auth-btn');
-        btn.innerHTML = 'Inasajili...';
+    // 3. LOGIN LOGIC
+    async function handleLogin() {
+        const phone = document.getElementById('login-phone').value.trim();
+        const btn = document.getElementById('btn-login');
+        
+        if (!phone) { alert("Tafadhali andika namba ya simu."); return; }
+        
+        btn.innerHTML = '<div class="spinner"></div> Inangalia...';
         btn.disabled = true;
 
         try {
-            // Tafuta mtumiaji kwa kutumia 'sb'
-            const { data: existingUser, error: fetchError } = await sb
+            const { data: user, error } = await sb
                 .from('users')
                 .select('*')
                 .eq('phone_number', phone)
                 .maybeSingle();
 
-            if (fetchError) throw fetchError;
+            if (error) throw error;
 
-            if (existingUser) {
-                alert("Karibu tena " + existingUser.full_name + "! Akaunti yako ipo.");
-                localStorage.setItem('kitama_user', JSON.stringify(existingUser));
+            if (user) {
+                localStorage.setItem('kitama_user', JSON.stringify(user));
                 enterApp();
             } else {
-                alert("Akaunti mpya inatengenezwa...");
-                const { data: newUser, error: insertError } = await sb
-                    .from('users')
-                    .insert([{ full_name: name, phone_number: phone, village: village }])
-                    .select()
-                    .single();
-
-                if (insertError) throw insertError;
-
-                alert("Umefanikiwa kujisajili!");
-                localStorage.setItem('kitama_user', JSON.stringify(newUser));
-                enterApp();
+                alert("Akaunti haijapatikana. Tafadhali jisajili kwanza.");
+                switchAuthTab('signup');
+                document.getElementById('signup-phone').value = phone;
+                document.getElementById('login-phone').value = '';
             }
         } catch (error) {
-            alert("KUMEKUWA NA KOSA: \n" + error.message + "\n\nTafadhali hakikisha ume-run SQL script kwenye Supabase kufungua ruhusa.");
-            btn.innerHTML = 'Ingia / Jisajili';
+            alert("Kosa: " + error.message);
+        } finally {
+            btn.innerHTML = 'Ingia Kwenye Akaunti';
             btn.disabled = false;
         }
     }
 
+    // 4. SIGNUP LOGIC
+    async function handleSignup() {
+        const name = document.getElementById('signup-name').value.trim();
+        const phone = document.getElementById('signup-phone').value.trim();
+        const village = document.getElementById('signup-village').value;
+        const btn = document.getElementById('btn-signup');
+
+        if (!name || !phone || !village) {
+            alert("Tafadhali jaza jina, namba, na uchague kijiji.");
+            return;
+        }
+
+        btn.innerHTML = '<div class="spinner"></div> Inasajili...';
+        btn.disabled = true;
+
+        try {
+            const { data: newUser, error } = await sb
+                .from('users')
+                .insert([{ full_name: name, phone_number: phone, village: village }])
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            localStorage.setItem('kitama_user', JSON.stringify(newUser));
+            enterApp();
+        } catch (error) {
+            alert("Kosa wakati wa kujisajili: " + error.message);
+        } finally {
+            btn.innerHTML = 'Tengeneza Akaunti';
+            btn.disabled = false;
+        }
+    }
+
+    // 5. APP ENTRY & PROFILE SETUP
     function enterApp() {
-        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('auth-container').style.display = 'none';
         document.getElementById('app-container').style.display = 'block';
+        
         const user = JSON.parse(localStorage.getItem('kitama_user'));
-        document.getElementById('welcome-msg').innerText = user.full_name;
-        document.getElementById('village-badge').innerText = user.village;
+        
+        // Setup Header
+        document.getElementById('welcome-name').innerText = user.full_name.split(' ')[0];
+        document.getElementById('user-initial').innerText = user.full_name.charAt(0).toUpperCase();
+        
+        // Setup Profile Page
+        document.getElementById('profile-name').innerText = user.full_name;
+        document.getElementById('profile-village').innerText = user.village;
+        document.getElementById('profile-phone').innerText = user.phone_number;
+        document.getElementById('profile-avatar').innerText = user.full_name.charAt(0).toUpperCase();
     }
 
     function handleLogout() {
@@ -182,53 +482,109 @@
         location.reload();
     }
 
+    // 6. NAVIGATION
     function showSection(sectionId) {
         document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
         document.getElementById(sectionId).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(nav => {
+        document.querySelectorAll('.nav-btn').forEach(nav => nav.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(nav => {
             if(nav.getAttribute('onclick').includes(sectionId)) nav.classList.add('active');
         });
+
+        // Load data dynamically
+        if(sectionId === 'announcements-section') fetchAnnouncements();
+        if(sectionId === 'my-reports-section') fetchMyReports();
     }
 
-    async function submitReport() {
-        const user = JSON.parse(localStorage.getItem('kitama_user'));
-        const title = document.getElementById('report-title').value;
-        const desc = document.getElementById('report-desc').value;
-        
-        if(!title || !desc) { alert("Jaza mada na ufafanuzi"); return; }
-
+    // 7. FETCH ANNOUNCEMENTS
+    async function fetchAnnouncements() {
+        const listDiv = document.getElementById('announcements-list');
+        listDiv.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">Inapakia...</p>';
         try {
-            const { data, error } = await sb.from('reports').insert([{ title, description: desc, village: user.village }]);
+            const { data, error } = await sb.from('announcements').select('*').order('created_at', { ascending: false });
             if(error) throw error;
-            alert("Ripoti imetumwa!");
-            document.getElementById('report-title').value = '';
-            document.getElementById('report-desc').value = '';
-            showSection('my-reports-section');
-            fetchMyReports();
+            
+            if(data.length > 0) {
+                listDiv.innerHTML = data.map(ann => `
+                    <div class="list-item">
+                        <h4>${ann.title}</h4>
+                        <p>${ann.content}</p>
+                        <div class="list-meta">
+                            <span class="badge ${ann.category === 'emergency' ? 'badge-pending' : 'badge-info'}">${ann.category === 'emergency' ? 'Dharura' : 'Tangazo'}</span>
+                            <span class="date-text">${new Date(ann.created_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                listDiv.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">Hakuna matangazo kwa sasa.</p>';
+            }
         } catch(e) {
-            alert("Kosa: " + e.message);
+            listDiv.innerHTML = `<p style="color:red;">Kosa: ${e.message}</p>`;
         }
     }
 
+    // 8. SUBMIT REPORT
+    async function submitReport() {
+        const user = JSON.parse(localStorage.getItem('kitama_user'));
+        const title = document.getElementById('report-title').value.trim();
+        const desc = document.getElementById('report-desc').value.trim();
+        const btn = document.getElementById('btn-submit-report');
+        
+        if(!title || !desc) { alert("Jaza mada na ufafanuzi."); return; }
+
+        btn.innerHTML = '<div class="spinner"></div> Inatuma...';
+        btn.disabled = true;
+
+        try {
+            const { error } = await sb.from('reports').insert([{ title, description: desc, village: user.village }]);
+            if(error) throw error;
+            
+            document.getElementById('report-title').value = '';
+            document.getElementById('report-desc').value = '';
+            alert("Ripoti imetumwa kikamilifu!");
+            showSection('my-reports-section');
+        } catch(e) {
+            alert("Kosa: " + e.message);
+        } finally {
+            btn.innerHTML = 'Tuma Ripoti';
+            btn.disabled = false;
+        }
+    }
+
+    // 9. FETCH MY REPORTS
     async function fetchMyReports() {
         const user = JSON.parse(localStorage.getItem('kitama_user'));
         const listDiv = document.getElementById('user-reports-list');
-        listDiv.innerHTML = '<p>Inapakia...</p>';
+        listDiv.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">Inapakia...</p>';
+        
         try {
             const { data, error } = await sb.from('reports').select('*').eq('village', user.village).order('created_at', { ascending: false });
             if(error) throw error;
             
             if(data.length > 0) {
-                listDiv.innerHTML = data.map(r => `<div class="list-card"><h4>${r.title}</h4><p>${r.description}</p></div>`).join('');
+                listDiv.innerHTML = data.map(r => {
+                    let statusClass = r.status === 'pending' ? 'badge-pending' : r.status === 'in_progress' ? 'badge-progress' : 'badge-resolved';
+                    let statusText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika';
+                    return `
+                        <div class="list-item">
+                            <h4>${r.title}</h4>
+                            <p>${r.description}</p>
+                            <div class="list-meta">
+                                <span class="badge ${statusClass}">${statusText}</span>
+                                <span class="date-text">${r.village} • ${new Date(r.created_at).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             } else {
-                listDiv.innerHTML = '<p>Hakuna ripoti.</p>';
+                listDiv.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">Hujatuma ripoti yoyote bado.</p>';
             }
         } catch(e) {
-            listDiv.innerHTML = '<p style="color:red;">Kosa: ' + e.message + '</p>';
+            listDiv.innerHTML = `<p style="color:red;">Kosa: ${e.message}</p>`;
         }
     }
 
+    // ON LOAD CHECK
     window.onload = () => {
         if (localStorage.getItem('kitama_user')) {
             enterApp();
@@ -236,4 +592,4 @@
     };
 </script>
 </body>
-</html>
+    </html>
