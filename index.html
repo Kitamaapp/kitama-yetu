@@ -57,7 +57,8 @@
         .nav-b.active { color: var(--accent); }
         .nav-b span { font-size: 11px; font-weight: 500; }
         .btn-out { width: 100%; padding: 14px; background: transparent; color: var(--danger); border: 1px solid #FCA5A5; border-radius: 12px; font-weight: 600; cursor: pointer; margin-top: 20px; }
-        .sos-btn { width: 100%; padding: 20px; background: var(--danger); color: white; border: none; border-radius: var(--radius); font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(239,68,68,0.3); margin-bottom: 20px; }
+        .sos-btn { width: 100%; padding: 20px; background: var(--danger); color: white; border: none; border-radius: var(--radius); font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(239,68,68,0.3); margin-bottom: 20px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 70% { box-shadow: 0 0 0 15px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
         .report-img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-top: 10px; }
         .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 12px 20px; border-radius: 8px; box-shadow: var(--shadow); z-index: 200; display: none; font-size: 14px; }
     </style>
@@ -95,7 +96,7 @@
                 <option value="mtendaji_kata">Mtendaji Kata</option>
                 <option value="diwani">Diwani</option>
             </select></div>
-            <div class="form-g" id="pin-box" style="display:none;"><label class="form-l">PIN ya Kiongozi</label><input type="password" id="leader-pin" placeholder="Weka PIN" style="padding-left:16px;"></div>
+            <div class="form-g" id="pin-box" style="display:none;"><label class="form-l">PIN ya Kiongozi</label><input type="password" id="leader-pin" placeholder="Weka PIN ya Cheo Chako" style="padding-left:16px;"></div>
             <button onclick="handleSignup()" class="btn-p" id="btn-signup">Tengeneza Akaunti</button>
         </div>
     </div>
@@ -172,8 +173,18 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // --- PIN TOFAUTI KWA KILA CHEO ---
+    const LEADER_PINS = {
+        'mwenyekiti_kitongoji': '5005',
+        'mwenyekiti_kijiji': '4004',
+        'mtendaji_kijiji': '3003',
+        'mtendaji_kata': '2002',
+        'diwani': '1001'
+    };
+
     if ('Notification' in window) { Notification.requestPermission(); }
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+    function notify(title, body) { if (Notification.permission === 'granted') { new Notification(title, { body: body }); } }
 
     function switchTab(t) { 
         if(t==='login'){document.getElementById('login-form').style.display='block';document.getElementById('signup-form').style.display='none';document.getElementsByClassName('auth-tab')[0].classList.add('active');document.getElementsByClassName('auth-tab')[1].classList.remove('active');} 
@@ -198,7 +209,16 @@
         const village = document.getElementById('su-village').value;
         const role = document.getElementById('su-role').value;
         if(!name||!phone||!village) return alert("Jaza maswali yote");
-        if(role!=='citizen' && document.getElementById('leader-pin').value !== '1234') return alert("PIN ya Kiongozi sio sahihi");
+        
+        // Kukagua PIN kulingana na Cheo
+        if(role !== 'citizen') {
+            const enteredPin = document.getElementById('leader-pin').value.trim();
+            const expectedPin = LEADER_PINS[role]; 
+            if(!expectedPin || enteredPin !== expectedPin) {
+                return alert(`PIN ya ${role.replace(/_/g, ' ')} si sahihi. Wasiliana na Msimamizi.`);
+            }
+        }
+
         const btn = document.getElementById('btn-signup'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
         try {
             const { data: u, error } = await sb.from('users').insert([{ full_name:name, phone_number:phone, village:village, role:role }]).select().single();
@@ -210,7 +230,6 @@
         document.getElementById('auth-c').style.display='none'; 
         document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
-        
         document.getElementById('w-name').innerText = u.full_name.split(' ')[0];
         document.getElementById('u-initial').innerText = u.full_name.charAt(0).toUpperCase();
         document.getElementById('p-name').innerText = u.full_name;
@@ -218,7 +237,6 @@
         document.getElementById('p-phone').innerText = u.phone_number;
         document.getElementById('p-role').innerText = u.role.replace(/_/g, ' ');
         document.getElementById('p-ava').innerText = u.full_name.charAt(0).toUpperCase();
-        
         setupDashboard(u);
     }
 
@@ -305,7 +323,7 @@
         
         try {
             let query = sb.from('reports').select('*').order('created_at', { ascending:false });
-            // Hierarchy Filter: Diwani & Mtendaji Kata waona yote. Wengine waona ya kijiji chao tu.
+            // Hierarchy Filter
             if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') {
                 query = query.eq('village', u.village);
             }
@@ -318,7 +336,8 @@
                 let nextS = r.status === 'pending' ? 'in_progress' : r.status === 'in_progress' ? 'resolved' : 'pending';
                 let btnT = r.status === 'pending' ? 'Anza Kushughulikia' : r.status === 'in_progress' ? 'Kamilisha' : 'Fungua Tena';
                 let imgHtml = r.image_url ? `<img src="${r.image_url}" class="report-img">` : '';
-                return `<div class="list-i"><h4>${r.title}</h4><p>${r.description}</p>${imgHtml}<div class="list-meta"><span class="badge b-info">${r.category}</span><span class="badge ${sClass}">${sText}</span><span class="badge b-warn">${r.village}</span></div><button class="btn-p" style="margin-top:10px; padding:8px; font-size:12px; background:var(--bg); color:var(--primary);" onclick="updateStatus('${r.id}','${nextS}')">${btnT}</button></div>`;
+                let sosBadge = r.is_emergency ? `<span class="badge b-err">DHARURA</span>` : '';
+                return `<div class="list-i" style="border-left-color:${r.is_emergency ? '#EF4444' : '#059669'}"><h4>${sosBadge} ${r.title}</h4><p>${r.description}</p>${imgHtml}<div class="list-meta"><span class="badge b-info">${r.category}</span><span class="badge ${sClass}">${sText}</span><span class="badge b-warn">${r.village}</span></div><button class="btn-p" style="margin-top:10px; padding:8px; font-size:12px; background:var(--bg); color:var(--primary);" onclick="updateStatus('${r.id}','${nextS}')">${btnT}</button></div>`;
             }).join('') : '<p>Hakuna malalamishi kwa sasa.</p>';
         } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
     }
@@ -328,7 +347,6 @@
         try {
             const { data, error } = await sb.from('reports').select('*').order('created_at', { ascending:false });
             if(error) throw error;
-            // Public view: show all, but hide specific citizen names if needed. Here we just show the progress.
             div.innerHTML = data.length > 0 ? data.map(r => {
                 let sClass = r.status === 'pending' ? 'b-warn' : r.status === 'in_progress' ? 'b-info' : 'b-succ';
                 let sText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika';
@@ -370,4 +388,4 @@
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp(); };
 </script>
 </body>
-    </html>
+</html>
