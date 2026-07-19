@@ -3,102 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kitama Yetu</title>
+    <title>Kitama Yetu | Jukwaa Rasmi</title>
+    
+    <!-- Google Fonts (Premium Typography) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Mfumo wa Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- CSS (Styling) -->
     <style>
+        :root {
+            --primary: #0F172A; /* Deep Navy */
+            --accent: #10B981; /* Emerald Green */
+            --accent-dark: #059669;
+            --bg: #F8FAFC;
+            --text: #1E293B;
+            --text-light: #64748B;
+            --border: #E2E8F0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
             display: flex;
             justify-content: center;
+            min-height: 100vh;
         }
+
+        /* --- LOGIN SECTION (Premium Glassmorphism) --- */
+        .login-wrapper {
+            width: 100%;
+            max-width: 480px;
+            background: linear-gradient(135deg, var(--primary) 0%, #1E293B 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 200px; height: 200px;
+            background: var(--accent);
+            opacity: 0.1;
+            border-radius: 50%;
+        }
+        .login-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: -50px; left: -50px;
+            width: 150px; height: 150px;
+            background: var(--accent);
+            opacity: 0.1;
+            border-radius: 50%;
+        }
+        
+        .login-header { text-align: center; margin-bottom: 40px; color: white; z-index: 1; }
+        .login-header .logo-badge {
+            width: 70px; height: 70px;
+            background: var(--accent);
+            border-radius: 16px;
+            margin: 0 auto 15px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+        .login-header h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }
+        .login-header p { opacity: 0.7; font-weight: 300; font-size: 14px; margin-top: 5px; }
+
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1;
+        }
+        
+        /* --- APP CONTAINER --- */
         .app-container {
             width: 100%;
             max-width: 480px;
-            background-color: white;
+            background: var(--bg);
             min-height: 100vh;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
             position: relative;
+            padding-bottom: 90px;
         }
-        header {
-            background-color: #1e3d59;
-            color: white;
+        
+        .app-header {
+            background: white;
             padding: 20px;
-            text-align: center;
-            border-radius: 0 0 20px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 50;
         }
-        header h1 { margin: 0; font-size: 24px; }
-        header p { margin: 5px 0 0; font-size: 14px; opacity: 0.9; }
-        
-        main { padding: 20px; padding-bottom: 60px; }
-        
-        .section { display: none; }
+        .app-header h2 { font-size: 20px; font-weight: 600; }
+        .app-header .user-badge {
+            background: var(--bg);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-light);
+            border: 1px solid var(--border);
+        }
+
+        main { padding: 20px; }
+        .section { display: none; animation: fadeIn 0.3s ease; }
         .section.active { display: block; }
 
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-light); margin-bottom: 8px; }
+        
         input, select, textarea {
             width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 16px;
-            font-family: inherit;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.2s;
+            background: white;
         }
-        textarea { min-height: 100px; resize: vertical; }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        textarea { min-height: 120px; resize: vertical; }
 
-        .btn-primary, .btn-secondary {
+        .btn {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .btn-primary { background-color: #1e3d59; color: white; }
-        .btn-secondary { background-color: #e0e0e0; color: #333; }
-        .btn-danger { background-color: #d9534f; color: white; width: auto; padding: 8px 15px; font-size: 14px; margin-top: 20px;}
+        .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+        .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
+        .btn-outline { background: transparent; color: var(--text-light); border: 1px solid var(--border); margin-top: 10px; }
+        .btn-danger { background: #FEE2E2; color: #EF4444; width: auto; padding: 10px 20px; font-size: 14px; border-radius: 8px; margin-top: 30px;}
 
-        .menu-grid {
+        .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- DASHBOARD GRID --- */
+        .dash-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin: 20px 0;
+            margin-bottom: 30px;
         }
-        .menu-item {
-            background-color: #e6f2ff;
-            border: none;
+        .dash-card {
+            background: white;
             padding: 20px;
-            border-radius: 12px;
-            font-size: 14px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
             cursor: pointer;
-            font-weight: bold;
-            color: #1e3d59;
-            text-align: center;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            border: 1px solid var(--border);
         }
-        
-        .card {
-            background: #f9f9f9;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border-left: 4px solid #1e3d59;
-        }
-        .card h4 { margin: 0 0 5px; color: #1e3d59; }
-        .card p { margin: 0; font-size: 14px; color: #555; }
-        .card small { color: #888; display: block; margin-top: 5px; }
+        .dash-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .dash-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+        .dash-card h4 { font-size: 16px; font-weight: 600; }
+        .dash-card p { font-size: 12px; color: var(--text-light); margin-top: 4px; }
 
+        .section-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        /* --- LISTS & CARDS --- */
+        .list-card {
+            background: white;
+            padding: 16px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--accent);
+        }
+        .list-card h4 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+        .list-card p { font-size: 14px; color: var(--text-light); line-height: 1.5; }
+        .list-card .meta { display: flex; gap: 10px; margin-top: 10px; font-size: 12px; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-weight: 500; }
+        .badge-pending { background: #FEF3C7; color: #D97706; }
+        .badge-progress { background: #DBEAFE; color: #2563EB; }
+        .badge-resolved { background: #D1FAE5; color: #059669; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+        .empty-state svg { width: 50px; height: 50px; margin-bottom: 10px; opacity: 0.5; }
+
+        /* --- BOTTOM NAVIGATION --- */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -107,37 +224,66 @@
             width: 100%;
             max-width: 480px;
             background: white;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid var(--border);
             display: flex;
             justify-content: space-around;
-            padding: 10px 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            padding: 10px 0 15px 0;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
         }
         .nav-item {
             background: none; border: none; cursor: pointer; 
-            font-size: 12px; color: #666; display: flex; flex-direction: column; align-items: center;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            font-size: 11px; font-weight: 500; color: var(--text-light);
+            transition: all 0.2s;
         }
-        .nav-item.active { color: #1e3d59; font-weight: bold; }
-        .nav-icon { font-size: 20px; margin-bottom: 2px; }
+        .nav-item.active { color: var(--accent); }
+        .nav-item.active svg { filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3)); }
+
+        .leader-card {
+            background: white;
+            padding: 16px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; }
+        .leader-info h4 { font-size: 16px; margin-bottom: 4px; }
+        .leader-info p { font-size: 13px; color: var(--text-light); }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <header>
+<!-- ================================= -->
+<!--     UKURASA WA KUINGIA (LOGIN)    -->
+<!-- ================================= -->
+<div class="login-wrapper" id="login-section">
+    <div class="login-header">
+        <div class="logo-badge">
+            <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/>
+            </svg>
+        </div>
         <h1>Kitama Yetu</h1>
-        <p>Jukwaa la Viongozi na Wananchi</p>
-    </header>
+        <p>Jukwaa Rasmi la Mawasiliano na Maendeleo</p>
+    </div>
 
-    <main id="main-content">
-        
-        <!-- 1. UKURASA WA KUINGIA (LOGIN) -->
-        <div id="login-section" class="section active">
-            <h2>Karibu! Ingia kwa Namba ya Simu</h2>
-            <input type="text" id="name-input" placeholder="Jina lako kamili">
-            <input type="tel" id="phone-input" placeholder="Mfano: 0712345678">
+    <div class="auth-card">
+        <div class="form-group">
+            <label class="form-label">Jina Kamili</label>
+            <input type="text" id="name-input" placeholder="Mfano: Shadafi Saidi">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Namba ya Simu</label>
+            <input type="tel" id="phone-input" placeholder="Mfano: 0613367354">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Kijiji Chako</label>
             <select id="village-select">
-                <option value="">-- Chagua Kijiji Chako --</option>
+                <option value="">-- Chagua Kijiji --</option>
                 <option value="Kitama Shuleni">Kitama Shuleni</option>
                 <option value="Kitama Mjini">Kitama Mjini</option>
                 <option value="Mwenge A">Mwenge A</option>
@@ -146,200 +292,272 @@
                 <option value="Mitondi A">Mitondi A</option>
                 <option value="Mitondi B">Mitondi B</option>
             </select>
-            <button onclick="loginUser()" class="btn-primary">Ingia / Jisajili</button>
         </div>
-
-        <!-- 2. UKURASA WA NYUMBANI (MATANGAZO) -->
-        <div id="home-section" class="section">
-            <h2 id="welcome-msg"></h2>
-            <div class="menu-grid">
-                <button class="menu-item" onclick="showSection('report-section')">📢 Tuma Malalamishi</button>
-                <button class="menu-item" onclick="alert('Ukurasa wa fursa unakuja hivi karibuni!')">💼 Fursa</button>
-            </div>
-            <h3>Matangazo ya Karibuni</h3>
-            <div id="announcements-list">
-                <p>Inapakia matangazo...</p>
-            </div>
-        </div>
-
-        <!-- 3. UKURASA WA KUTUMA MALALAMISHI (REPORT) -->
-        <div id="report-section" class="section">
-            <h2>Tuma Malalamishi / Hoja</h2>
-            <p>Andika tatizo lako au hoja ya maendeleo kwa viongozi wako.</p>
-            
-            <label>Mada (Title)</label>
-            <input type="text" id="report-title" placeholder="Mfano: Bomba la maji limeharibika">
-            
-            <label>Ufafanuzi (Description)</label>
-            <textarea id="report-desc" placeholder="Eleza kwa undani..."></textarea>
-            
-            <label>Kijiji</label>
-            <select id="report-village">
-                <option value="Kitama Shuleni">Kitama Shuleni</option>
-                <option value="Kitama Mjini">Kitama Mjini</option>
-                <option value="Mwenge A">Mwenge A</option>
-                <option value="Mwenge B">Mwenge B</option>
-                <option value="Namunda">Namunda</option>
-                <option value="Mitondi A">Mitondi A</option>
-                <option value="Mitondi B">Mitondi B</option>
-            </select>
-            
-            <button onclick="submitReport()" class="btn-primary">Tuma Malalamishi</button>
-            <button onclick="showSection('home-section')" class="btn-secondary">Rudi Nyumbani</button>
-        </div>
-
-        <!-- 4. UKURASA WA MALALAMISHI YANGU (MY REPORTS) -->
-        <div id="my-reports-section" class="section">
-            <h2>Malalamishi Yangu</h2>
-            <div id="user-reports-list">
-                <p>Hujatuma malalamishi yeyote bado.</p>
-            </div>
-        </div>
-
-        <!-- 5. UKURASA WA VIONGOZI (LEADERS) -->
-        <div id="leaders-section" class="section">
-            <h2>Viongozi wa Kata ya Kitama</h2>
-            <div class="card">
-                <h4>Diwani wa Kata</h4>
-                <p>Mh. [Jina la Diwani]</p>
-                <small>Simu: 07XX XXX XXX</small>
-            </div>
-            <div class="card">
-                <h4>Mtendaji wa Kata</h4>
-                <p>Bw. [Jina la Mtendaji]</p>
-                <small>Simu: 07XX XXX XXX</small>
-            </div>
-            <p style="font-size:14px; color:#888;">Orodha kamili ya Wenyeviti na Watendaji wa vijiji vitakuwekwa hapa hivi karibuni.</p>
-            
-            <button onclick="logout()" class="btn-danger">Toka (Logout)</button>
-        </div>
-
-    </main>
-
-    <!-- MENIU YA CHINI (BOTTOM NAVIGATION) -->
-    <div class="bottom-nav" id="bottom-nav" style="display: none;">
-        <button class="nav-item active" onclick="showSection('home-section')">
-            <span class="nav-icon">🏠</span> Nyumbani
-        </button>
-        <button class="nav-item" onclick="showSection('report-section')">
-            <span class="nav-icon">📢</span> Ripoti
-        </button>
-        <button class="nav-item" onclick="showSection('my-reports-section')">
-            <span class="nav-icon">📁</span> Zangu
-        </button>
-        <button class="nav-item" onclick="showSection('leaders-section')">
-            <span class="nav-icon">👥</span> Viongozi
+        <button onclick="handleAuth()" class="btn btn-primary" id="auth-btn">
+            Ingia / Jisajili
         </button>
     </div>
 </div>
 
-<!-- JAVASCRIPT (LOGIC) -->
+<!-- ================================= -->
+<!--       UKURASA WA APP (MAIN)       -->
+<!-- ================================= -->
+<div class="app-container" id="app-container" style="display: none;">
+    <header class="app-header">
+        <div>
+            <p style="font-size:12px; color:var(--text-light); margin-bottom:2px; font-weight:400;">Karibu</p>
+            <h2 id="welcome-msg">Mtanongwa</h2>
+        </div>
+        <div class="user-badge" id="village-badge">Kijiji</div>
+    </header>
+
+    <main>
+        <!-- 1. HOME / DASHBOARD -->
+        <div id="home-section" class="section active">
+            <div class="dash-grid">
+                <div class="dash-card" onclick="showSection('report-section')">
+                    <div class="dash-icon" style="background:#FEF3C7;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <h4>Tuma Ripoti</h4>
+                    <p>Malalamishi & Hoja</p>
+                </div>
+                <div class="dash-card" onclick="showSection('my-reports-section')">
+                    <div class="dash-icon" style="background:#DBEAFE;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </div>
+                    <h4>Ripoti Zangu</h4>
+                    <p>Fuatilia maendeleo</p>
+                </div>
+                <div class="dash-card" onclick="showSection('announcements-section')">
+                    <div class="dash-icon" style="background:#D1FAE5;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                    </div>
+                    <h4>Matangazo</h4>
+                    <p>Yanayotoka kwa viongozi</p>
+                </div>
+                <div class="dash-card" onclick="showSection('leaders-section')">
+                    <div class="dash-icon" style="background:#E0E7FF;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <h4>Viongozi</h4>
+                    <p>Mawasiliano yao</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. REPORT FORM -->
+        <div id="report-section" class="section">
+            <h3 class="section-title">Tuma Malalamishi / Hoja</h3>
+            <p style="color:var(--text-light); margin-bottom:20px; font-size:14px;">Andika tatizo lako au hoja ya maendeleo kwa ufasaha.</p>
+            
+            <div class="form-group">
+                <label class="form-label">Mada (Kichwa cha habari)</label>
+                <input type="text" id="report-title" placeholder="Mfano: Barabara imeharibika">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ufafanuzi</label>
+                <textarea id="report-desc" placeholder="Eleza kwa undani tatizo au hoja yako..."></textarea>
+            </div>
+            <button onclick="submitReport()" class="btn btn-primary" id="submit-report-btn">
+                Tuma Sauti Yako
+            </button>
+            <button onclick="showSection('home-section')" class="btn btn-outline">Rudi Nyumbani</button>
+        </div>
+
+        <!-- 3. MY REPORTS -->
+        <div id="my-reports-section" class="section">
+            <h3 class="section-title">Ripoti Zangu</h3>
+            <div id="user-reports-list">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <p>Inapakia au bado hujatuma ripoti...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. ANNOUNCEMENTS -->
+        <div id="announcements-section" class="section">
+            <h3 class="section-title">Matangazo ya Kata</h3>
+            <div id="announcements-list">
+                <div class="empty-state">
+                    <p>Inapakia matangazo...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. LEADERS -->
+        <div id="leaders-section" class="section">
+            <h3 class="section-title">Viongozi wa Kata ya Kitama</h3>
+            
+            <div class="leader-card">
+                <div class="avatar">D</div>
+                <div class="leader-info">
+                    <h4>Diwani wa Kata</h4>
+                    <p>Mh. [Jina la Diwani]</p>
+                    <p style="color: var(--accent); font-weight: 600; margin-top:4px;">07XX XXX XXX</p>
+                </div>
+            </div>
+            
+            <div class="leader-card">
+                <div class="avatar">M</div>
+                <div class="leader-info">
+                    <h4>Mtendaji wa Kata</h4>
+                    <p>Bw. [Jina la Mtendaji]</p>
+                    <p style="color: var(--accent); font-weight: 600; margin-top:4px;">07XX XXX XXX</p>
+                </div>
+            </div>
+
+            <button onclick="handleLogout()" class="btn btn-danger">Toka Kwenye Akaunti</button>
+        </div>
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="showSection('home-section')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Nyumbani
+        </button>
+        <button class="nav-item" onclick="showSection('report-section')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Ripoti
+        </button>
+        <button class="nav-item" onclick="showSection('announcements-section')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"/></svg>
+            Matangazo
+        </button>
+        <button class="nav-item" onclick="showSection('leaders-section')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Viongozi
+        </button>
+    </div>
+</div>
+
 <script>
-    // === USAFIRISHAJI WA SUPABASE ===
-    // HAPA WEKA URL NA KEY YAKO HALISI TOKA SUPABASE DASHBOARD
+    // === SUPABASE CONFIGURATION (ZAKO HALISI) ===
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
-    
-    // Kagua kama URL na Key zimebadilishwa
-    let supabase = null;
-    if (SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co' && SUPABASE_KEY !== 'YOUR_ANON_KEY') {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    }
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // === LOGIC YA KUINGIA (LOGIN) ===
-    function loginUser() {
+    // === REKEBISHO LA ASILI (KUFANYA KAZI KWA KIASI KUBWA) ===
+    // Kama table ya users haipo, code haitasimama, itaendelea na announcements na reports.
+
+    // === LOGIC YA KUINGIA (LOGIN / SIGNUP KWENYE SUPABASE) ===
+    async function handleAuth() {
         const name = document.getElementById('name-input').value.trim();
         const phone = document.getElementById('phone-input').value.trim();
         const village = document.getElementById('village-select').value;
+        const btn = document.getElementById('auth-btn');
 
         if (!name || !phone || !village) {
             alert("Tafadhali jaza jina, namba na uchague kijiji chako.");
             return;
         }
 
-        // Hifadhi kwenye Local Storage (Kwa muda, baadaye tutatumia Supabase Auth)
-        localStorage.setItem('kitama_user', JSON.stringify({ name, phone, village }));
-        
-        // Onyesha menyu ya chini na ukurasa wa nyumbani
-        document.getElementById('bottom-nav').style.display = 'flex';
-        showSection('home-section');
+        // Onyesha loading spinner
+        btn.innerHTML = '<div class="spinner"></div> Inasajili...';
+        btn.disabled = true;
+
+        // 1. Angalia kama mtumiaji yupo kwenye database
+        const { data: existingUser, error: fetchError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('phone_number', phone)
+            .maybeSingle();
+
+        if (existingUser) {
+            // Mtumiaji yupo, mwingie tu
+            localStorage.setItem('kitama_user', JSON.stringify(existingUser));
+            enterApp();
+        } else {
+            // Mtumiaji hayupo, mumsajili
+            const { data: newUser, error: insertError } = await supabase
+                .from('users')
+                .insert([{ full_name: name, phone_number: phone, village: village }])
+                .select()
+                .single();
+
+            if (insertError) {
+                alert("Kosa wakati wa kusajili: " + insertError.message);
+                btn.innerHTML = 'Ingia / Jisajili';
+                btn.disabled = false;
+            } else {
+                localStorage.setItem('kitama_user', JSON.stringify(newUser));
+                enterApp();
+            }
+        }
+    }
+
+    function enterApp() {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
         loadUserData();
     }
 
-    // === LOGIC YA KUTOKA (LOGOUT) ===
-    function logout() {
+    function handleLogout() {
         localStorage.removeItem('kitama_user');
-        location.reload(); // Anza upya app
+        location.reload();
     }
 
-    // === LOGIC YA KUBADILISHA UKURASA (NAVIGATION) ===
-    function showSection(sectionId) {
-        // Ficha sections zote
-        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-        // Onyesha section iliyochaguliwa
-        document.getElementById(sectionId).classList.add('active');
-
-        // Badilisha active state kwenye bottom nav
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-        // Tafuta nav item iliyo na onclick inayoshiriki sectionId
-        document.querySelectorAll('.nav-item').forEach(nav => {
-            if(nav.getAttribute('onclick').includes(sectionId)) {
-                nav.classList.add('active');
-            }
-        });
-
-        // Loda taarifa zinazohusiana na section
-        if(sectionId === 'home-section') fetchAnnouncements();
-        if(sectionId === 'my-reports-section') fetchMyReports();
-    }
-
-    // === LOGIC YA KUPAKIA TAARIFA ZA MTUMIAJI ===
     function loadUserData() {
         const userStr = localStorage.getItem('kitama_user');
         if (userStr) {
             const user = JSON.parse(userStr);
-            document.getElementById('welcome-msg').innerText = `Karibu ${user.name}`;
-            document.getElementById('report-village').value = user.village;
+            document.getElementById('welcome-msg').innerText = user.full_name;
+            document.getElementById('village-badge').innerText = user.village;
             fetchAnnouncements();
-        } else {
-            document.getElementById('bottom-nav').style.display = 'none';
         }
     }
 
-    // === LOGIC YA KUPAKIA MATANGAZO KUTOKA SUPABASE ===
+    // === LOGIC YA KUBADILISHA UKURASA ===
+    function showSection(sectionId) {
+        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(nav => {
+            if(nav.getAttribute('onclick').includes(sectionId)) nav.classList.add('active');
+        });
+
+        if(sectionId === 'home-section') fetchAnnouncements(); // Reload data on home visit
+        if(sectionId === 'my-reports-section') fetchMyReports();
+        if(sectionId === 'announcements-section') fetchAnnouncements();
+    }
+
+    // === KUPAKIA MATANGAZO ===
     async function fetchAnnouncements() {
         const listDiv = document.getElementById('announcements-list');
-        listDiv.innerHTML = '<p>Inapakia matangazo...</p>';
-
-        if (!supabase) {
-            listDiv.innerHTML = `<div class="card"><h4>Mfano wa Tangazo</h4><p>Kuna mkutano wa vijiji saba kesho Jumapili ukumbi wa Kata. Kila Mwenyeviti ahudhurie.</p><small>Tarehe: Leo</small></div>`;
-            return;
-        }
+        listDiv.innerHTML = '<div class="empty-state"><p>Inapakia matangazo...</p></div>';
 
         const { data, error } = await supabase
             .from('announcements')
             .select('*')
             .order('created_at', { ascending: false });
 
-        if (error) {
-            listDiv.innerHTML = '<p>Kosa wakati wa kupakia matangazo.</p>';
+        if (error || !data) {
+            listDiv.innerHTML = `<div class="empty-state"><p style="color:red;">Haikuweza kupakia matangazo. Kagua RLS kwenye Supabase.</p></div>`;
             return;
         }
         
-        if (data && data.length > 0) {
+        if (data.length > 0) {
             listDiv.innerHTML = data.map(ann => `
-                <div class="card">
+                <div class="list-card">
                     <h4>${ann.title}</h4>
                     <p>${ann.content}</p>
-                    <small>Tarehe: ${new Date(ann.created_at).toLocaleDateString()}</small>
+                    <div class="meta">
+                        <span class="badge ${ann.category === 'emergency' ? 'badge-pending' : 'badge-resolved'}">
+                            ${ann.category === 'emergency' ? 'Dharura' : 'Tangazo'}
+                        </span>
+                        <span style="color:var(--text-light); align-self:center;">${new Date(ann.created_at).toLocaleDateString()}</span>
+                    </div>
                 </div>
             `).join('');
         } else {
-            listDiv.innerHTML = '<p>Hakuna matangazo mapya kwa sasa.</p>';
+            listDiv.innerHTML = '<div class="empty-state"><p>Hakuna matangazo mapya kwa sasa.</p></div>';
         }
     }
 
-    // === LOGIC YA KUTUMA MALALAMISHI KWENYE SUPABASE ===
+    // === KUTUMA MALALAMISHI ===
     async function submitReport() {
         const userStr = localStorage.getItem('kitama_user');
         if (!userStr) return alert("Tafadhali ingia kwanza.");
@@ -347,81 +565,81 @@
 
         const title = document.getElementById('report-title').value.trim();
         const desc = document.getElementById('report-desc').value.trim();
-        const village = document.getElementById('report-village').value;
+        const btn = document.getElementById('submit-report-btn');
 
         if (!title || !desc) {
             alert("Tafadhali jaza mada na ufafanuzi.");
             return;
         }
 
-        if (!supabase) {
-            alert("Hifadhidata haijawekwa. Onyo: Supabase URL na Key bado ni za default. Tafadhali zibadilishe kwenye code.");
-            return;
-        }
+        btn.innerHTML = '<div class="spinner"></div> Inatuma...';
+        btn.disabled = true;
 
-        // Tuma kwenye database
         const { data, error } = await supabase
             .from('reports')
-            .insert([
-                { 
-                    title: title, 
-                    description: desc, 
-                    village: village, 
-                    // created_by: user.phone (Tutabadilisha hii kuitumia UUID baada ya kuandika Auth)
-                }
-            ]);
+            .insert([{ 
+                title: title, 
+                description: desc, 
+                village: user.village
+            }]);
 
         if (error) {
-            alert("Kosa: Malalamishi hayajatumwa. " + error.message);
+            alert("Kosa: Ripoti haijatumwa. " + error.message);
+            btn.innerHTML = 'Tuma Sauti Yako';
+            btn.disabled = false;
         } else {
-            alert("Malalamishi yametumwa kikamilifu! Viongozi watayapokea.");
+            // Tumefanikiwa
             document.getElementById('report-title').value = '';
             document.getElementById('report-desc').value = '';
-            showSection('my-reports-section');
+            btn.innerHTML = 'Tuma Sauti Yako';
+            btn.disabled = false;
+            showSection('my-reports-section'); // Nenda kwenye orodha
         }
     }
 
-    // === LOGIC YA KUPAKIA MALALAMISHI YANGU ===
+    // === KUPAKIA RIPOTI ZANGU ===
     async function fetchMyReports() {
         const listDiv = document.getElementById('user-reports-list');
-        listDiv.innerHTML = '<p>Inapakia...</p>';
+        const userStr = localStorage.getItem('kitama_user');
+        const user = JSON.parse(userStr || '{}');
 
-        if (!supabase) {
-            listDiv.innerHTML = `<div class="card"><h4>Mfano wa Malalamishi</h4><p>Barabara ya Mwenge A imeharibika.</p><small>Status: Inashughulikiwa</small></div>`;
-            return;
-        }
+        listDiv.innerHTML = '<div class="empty-state"><p>Inapakia ripoti zako...</p></div>';
 
         const { data, error } = await supabase
             .from('reports')
             .select('*')
+            .eq('village', user.village) // Tunapakia zote za kijiji chake kwanza ili apate kuona
             .order('created_at', { ascending: false });
 
-        if (error) {
-            listDiv.innerHTML = '<p>Kosa wakati wa kupakia.</p>';
+        if (error || !data) {
+            listDiv.innerHTML = `<div class="empty-state"><p style="color:red;">Kosa la kupakia. Kagua RLS kwenye Supabase.</p></div>`;
             return;
         }
 
-        if (data && data.length > 0) {
-            listDiv.innerHTML = data.map(rep => `
-                <div class="card">
-                    <h4>${rep.title}</h4>
-                    <p>${rep.description}</p>
-                    <small>Status: ${rep.status}</small><br>
-                    <small>Kijiji: ${rep.village}</small>
-                </div>
-            `).join('');
+        if (data.length > 0) {
+            listDiv.innerHTML = data.map(rep => {
+                let statusClass = rep.status === 'pending' ? 'badge-pending' : rep.status === 'in_progress' ? 'badge-progress' : 'badge-resolved';
+                let statusText = rep.status === 'pending' ? 'Inasubiri' : rep.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika';
+                return `
+                    <div class="list-card">
+                        <h4>${rep.title}</h4>
+                        <p>${rep.description}</p>
+                        <div class="meta">
+                            <span class="badge ${statusClass}">${statusText}</span>
+                            <span style="color:var(--text-light); align-self:center;">${rep.village}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         } else {
-            listDiv.innerHTML = '<p>Hujatuma malalamishi yeyote bado.</p>';
+            listDiv.innerHTML = '<div class="empty-state"><p>Hujatuma ripoti yoyote bado.</p></div>';
         }
     }
 
-    // === ANGALIA KAMA MTUMIAJI YUPO KWENYE LOCAL STORAGE AKIWAJA ===
+    // === KUANGALIA MTUMIAJI ANAPOINGIA KWENYE APP ===
     window.onload = () => {
         if (localStorage.getItem('kitama_user')) {
-            document.getElementById('login-section').classList.remove('active');
-            document.getElementById('bottom-nav').style.display = 'flex';
-            showSection('home-section');
-            loadUserData();
+            enterApp();
         }
     };
 </script>
