@@ -8,43 +8,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --primary: #0F172A; --accent: #10B981; --accent-dark: #059669;
-            --bg: #F1F5F9; --surface: #FFFFFF; --text: #0F172A; --text-sec: #64748B;
-            --border: #E2E8F0; --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
-            --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-            --radius: 20px; --danger: #EF4444;
-        }
+        :root { --primary: #0F172A; --accent: #10B981; --accent-dark: #059669; --bg: #F1F5F9; --surface: #FFFFFF; --text: #0F172A; --text-sec: #64748B; --border: #E2E8F0; --shadow-sm: 0 1px 3px rgba(0,0,0,0.1); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1); --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1); --radius: 20px; --danger: #EF4444; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
         
-        /* PREMIUM AUTH */
+        /* AUTH */
         .auth-c { width: 100%; max-width: 480px; min-height: 100vh; background: var(--surface); display: flex; flex-direction: column; }
         .auth-hero { background: linear-gradient(135deg, var(--primary) 0%, #1E293B 100%); padding: 60px 30px 50px; color: white; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px; position: relative; overflow: hidden; }
         .auth-hero::after { content: ''; position: absolute; top: -30px; right: -30px; width: 150px; height: 150px; background: var(--accent); opacity: 0.2; border-radius: 50%; }
-        .auth-logo { width: 60px; height: 60px; background: var(--accent); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3); }
-        .auth-hero h1 { font-size: 28px; font-weight: 800; margin-bottom: 5px; }
-        .auth-hero p { opacity: 0.8; font-size: 14px; font-weight: 400; }
+        .auth-logo { width: 60px; height: 60px; background: var(--accent); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; }
         .auth-content { padding: 40px 30px; flex: 1; }
         .auth-tabs { display: flex; background: var(--bg); padding: 6px; border-radius: 14px; margin-bottom: 35px; }
-        .auth-tab { flex: 1; text-align: center; padding: 12px; border: none; background: transparent; font-weight: 700; font-size: 14px; color: var(--text-sec); cursor: pointer; border-radius: 10px; transition: all 0.3s; }
+        .auth-tab { flex: 1; text-align: center; padding: 12px; border: none; background: transparent; font-weight: 700; font-size: 14px; color: var(--text-sec); cursor: pointer; border-radius: 10px; }
         .auth-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
         .form-g { margin-bottom: 20px; }
         .form-l { display: block; font-size: 12px; font-weight: 700; color: var(--text-sec); margin-bottom: 8px; padding-left: 4px; }
         .in-wrap { position: relative; }
         .in-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-sec); }
-        input, select, textarea { width: 100%; padding: 16px 16px 16px 48px; border: 1px solid var(--border); border-radius: 14px; font-size: 15px; font-family: inherit; background: var(--bg); transition: all 0.2s; }
+        input, select, textarea { width: 100%; padding: 16px 16px 16px 48px; border: 1px solid var(--border); border-radius: 14px; font-size: 15px; font-family: inherit; background: var(--bg); }
         textarea { padding: 16px; min-height: 100px; resize: vertical; }
         input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
-        .btn-p { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; transition: transform 0.1s; }
-        .btn-p:active { transform: scale(0.98); }
+        .btn-p { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; }
         .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* PREMIUM APP DASHBOARD */
+        /* APP */
         .app-c { width: 100%; max-width: 480px; background: var(--bg); min-height: 100vh; padding-bottom: 90px; display: none; }
-        .app-h { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+        .app-h { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
         .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid var(--accent); cursor: pointer; }
         main { padding: 25px 20px; }
         .sec { display: none; animation: slide 0.4s ease; }
@@ -52,15 +42,12 @@
         @keyframes slide { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .sec-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .sec-h h2 { font-size: 22px; font-weight: 800; }
-        .sec-h span { font-size: 13px; color: var(--accent); font-weight: 700; cursor: pointer; }
         .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .qa-card { background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow-sm); cursor: pointer; border: 1px solid var(--border); transition: all 0.2s; }
-        .qa-card:active { transform: scale(0.97); }
+        .qa-card { background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow-sm); cursor: pointer; border: 1px solid var(--border); }
         .qa-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
-        .qa-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .qa-card h4 { font-size: 15px; font-weight: 700; }
         .qa-card p { font-size: 12px; color: var(--text-sec); }
         
-        /* LIST & INTERACTION */
         .list-i { background: var(--surface); padding: 18px; border-radius: var(--radius); margin-bottom: 15px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
         .list-i h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
         .list-i p { font-size: 14px; color: var(--text-sec); line-height: 1.6; }
@@ -70,25 +57,19 @@
         .b-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0 25px 0; z-index: 100; }
         .nav-b { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-sec); }
         .nav-b.active { color: var(--accent); }
-        .nav-b span { font-size: 11px; font-weight: 600; }
         .btn-out { width: 100%; padding: 14px; background: transparent; color: var(--danger); border: 1px solid #FCA5A5; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 30px; }
-        .sos-btn { width: 100%; padding: 18px; background: var(--danger); color: white; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 800; cursor: pointer; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(239,68,68,0.3); }
+        .sos-btn { width: 100%; padding: 18px; background: var(--danger); color: white; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 800; cursor: pointer; margin-bottom: 25px; }
         .report-img { width: 100%; height: 180px; object-fit: cover; border-radius: 12px; margin-top: 12px; }
-        
-        /* INTERACTION BAR */
         .interaction-bar { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 12px; }
-        .int-btn { background: var(--bg); border: none; padding: 8px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; color: var(--text-sec); display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
-        .int-btn:active { background: #e2e8f0; transform: scale(0.95); }
+        .int-btn { background: var(--bg); border: none; padding: 8px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; color: var(--text-sec); display: flex; align-items: center; gap: 6px; }
+        .int-btn-accent { background: #D1FAE5; color: var(--accent-dark); }
         .comment-box { background: var(--bg); padding: 12px; border-radius: 12px; margin-top: 12px; display: none; }
         .comment-list { margin-bottom: 10px; max-height: 200px; overflow-y: auto; }
         .comment-item { background: var(--surface); padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; border: 1px solid var(--border); }
         .comment-item b { color: var(--primary); font-size: 12px; display: block; margin-bottom: 2px; }
-        .comment-item small { color: var(--text-sec); font-size: 10px; }
-
-        /* TOAST */
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 12px 24px; border-radius: 30px; box-shadow: var(--shadow-lg); z-index: 200; display: none; font-size: 14px; font-weight: 600; }
-
-        /* CUSTOM MODAL */
+        
+        /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .modal-box { background: white; width: 100%; max-width: 380px; border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: pop 0.3s ease; }
         @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -99,29 +80,34 @@
         .m-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 14px; }
         .m-btn-primary { background: var(--accent); color: white; }
         .m-btn-secondary { background: var(--bg); color: var(--text-sec); }
+
+        /* CHAT */
+        .chat-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 80px; }
+        .chat-msg { background: var(--surface); padding: 12px 16px; border-radius: 16px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+        .chat-msg b { font-size: 12px; color: var(--accent-dark); display: block; margin-bottom: 4px; }
+        .chat-msg p { font-size: 14px; color: var(--text); }
+        .chat-msg small { font-size: 10px; color: var(--text-sec); margin-top: 5px; display: block; text-align: right; }
+        .shared-card { background: #F1F5F9; border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 8px; margin-top: 8px; font-size: 13px; }
+        .chat-input-box { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--surface); padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .chat-input-box input { flex: 1; padding: 12px 16px; border-radius: 20px; background: var(--bg); }
     </style>
 </head>
 <body>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay">
     <div class="modal-box">
         <h3 class="modal-title" id="modal-title">Title</h3>
         <p class="modal-text" id="modal-text">Text</p>
-        <div id="modal-input-container" style="display:none;">
-            <textarea class="modal-input" id="modal-input" placeholder="Andika hapa..."></textarea>
-        </div>
+        <div id="modal-input-container" style="display:none;"><textarea class="modal-input" id="modal-input" placeholder="Andika hapa..."></textarea></div>
         <div class="modal-btns">
             <button class="m-btn m-btn-secondary" id="modal-cancel" onclick="closeModal()">Funga</button>
-            <button class="m-btn m-btn-primary" id="modal-ok" onclick="">Sawa</button>
+            <button class="m-btn m-btn-primary" id="modal-ok">Sawa</button>
         </div>
     </div>
 </div>
 
-<!-- AUTH -->
 <div class="auth-c" id="auth-c">
     <div class="auth-hero">
         <div class="auth-logo"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg></div>
@@ -156,7 +142,6 @@
     </div>
 </div>
 
-<!-- APP -->
 <div class="app-c" id="app-c">
     <header class="app-h">
         <div><p style="font-size:12px; color:var(--text-sec);">Karibu</p><h3 id="w-name" style="font-size:18px; font-weight:800;">Mtumiaji</h3></div>
@@ -169,6 +154,18 @@
         <div id="progress-sec" class="sec"><div class="sec-h"><h2>Maendeleo ya Kata</h2><span onclick="fetchPublicProgress()">Refresh</span></div><div id="progress-list"></div></div>
         <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div>
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
+        
+        <!-- LEADER CHAT ROOM -->
+        <div id="leader-chat-sec" class="sec">
+            <div class="sec-h"><h2>Chumba cha Viongozi</h2></div>
+            <p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Jadiliana na viongozi wengine naombeni utaratibu kwa pamoja.</p>
+            <div class="chat-container" id="chat-list"></div>
+            <div class="chat-input-box">
+                <input type="text" id="chat-input" placeholder="Andika ujumbe...">
+                <button onclick="postChat()" style="padding:12px 20px; background:var(--primary); color:white; border:none; border-radius:20px; font-weight:700;">Tuma</button>
+            </div>
+        </div>
+
         <div id="profile-sec" class="sec"><div class="sec-h"><h2>Akaunti Yangu</h2></div><div style="text-align:center; margin-bottom:20px;"><div class="avatar" style="width:80px; height:80px; font-size:28px; margin:0 auto 15px;" id="p-ava">U</div><h3 id="p-name">Jina</h3><p id="p-village" style="color:var(--text-sec);">Kijiji</p></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px;"><strong>Namba:</strong> <span id="p-phone"></span></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px;"><strong>Hadh:</strong> <span id="p-role"></span></div><button onclick="handleLogout()" class="btn-out">Toka (Logout)</button></div>
     </main>
     <div class="b-nav" id="b-nav"></div>
@@ -178,10 +175,8 @@
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
     const LEADER_PINS = { 'mwenyekiti_kitongoji': '5005', 'mwenyekiti_kijiji': '4004', 'mtendaji_kijiji': '3003', 'mtendaji_kata': '2002', 'diwani': '1001' };
     
-    // --- PREMIUM UI HELPERS ---
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
     function openModal(title, text, isPrompt, callback) {
         document.getElementById('modal-title').innerText = title;
@@ -210,17 +205,14 @@
         try {
             const { data: u, error } = await sb.from('users').select('*').eq('phone_number', phone).maybeSingle();
             if(u) { localStorage.setItem('kitama_user', JSON.stringify(u)); enterApp(); }
-            else { openModal("Akaunti Haijapatikana", "Namba hii haijasajiliwa. Tafadhali nenda kwenye 'Jisajili'.", false, () => switchTab('signup')); }
+            else { openModal("Akaunti Haijapatikana", "Namba hii haijasajiliwa.", false, () => switchTab('signup')); }
         } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML='Ingia'; btn.disabled=false; }
     }
 
     async function handleSignup() {
         const name = document.getElementById('su-name').value.trim(), phone = document.getElementById('su-phone').value.trim(), village = document.getElementById('su-village').value, role = document.getElementById('su-role').value;
         if(!name||!phone||!village) return openModal("Taarifa", "Tafadhali jaza jina, namba, na uchague kijiji.");
-        if(role !== 'citizen') {
-            const enteredPin = document.getElementById('leader-pin').value.trim();
-            if(enteredPin !== LEADER_PINS[role]) return openModal("Kosa la PIN", "PIN si sahihi kwa cheo ulichochagua.");
-        }
+        if(role !== 'citizen' && document.getElementById('leader-pin').value.trim() !== LEADER_PINS[role]) return openModal("Kosa la PIN", "PIN si sahihi kwa cheo hicho.");
         const btn = document.getElementById('btn-signup'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
         try {
             const { data: u, error } = await sb.from('users').insert([{ full_name:name, phone_number:phone, village:village, role:role }]).select().single();
@@ -256,6 +248,7 @@
         } else {
             title.innerText = "Dashibodi ya " + u.role.replace(/_/g, ' ');
             gridHtml = `<div class="qa-card" onclick="showSec('leader-reports-sec')"><div class="qa-icon" style="background:#FEF3C7;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><h4>Malalamishi</h4><p>Ya wananchi</p></div>
+            <div class="qa-card" onclick="showSec('leader-chat-sec')"><div class="qa-icon" style="background:#D1FAE5;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Chumba cha Viongozi</h4><p>Jadiliana na Viongozi</p></div>
             <div class="qa-card" onclick="showSec('market-sec')"><div class="qa-icon" style="background:#DBEAFE;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg></div><h4>Soko</h4><p>La wananchi</p></div>`;
             navHtml += `<button class="nav-b" onclick="showSec('leader-reports-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>Kazi</span></button><button class="nav-b" onclick="showSec('profile-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
         }
@@ -272,6 +265,7 @@
         if(id==='market-sec') fetchMarket();
         if(id==='progress-sec') fetchPublicProgress();
         if(id==='leader-reports-sec') fetchLeaderReports();
+        if(id==='leader-chat-sec') fetchLeaderChat();
     }
 
     async function triggerSOS() {
@@ -293,7 +287,7 @@
             if(!upErr) { imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; }
         }
         try {
-            const { error } = await sb.from('reports').insert([{ title, description:desc, village:u.village, category:cat, image_url:imgUrl, created_by_name: u.full_name }]);
+            const { error } = await sb.from('reports').insert([{ title, description:desc, village:u.village, category:cat, image_url:imgUrl, created_by_name: u.full_name, created_by_phone: u.phone_number }]);
             if(error) throw error;
             showToast("Ripoti imetumwa!");
             document.getElementById('rep-title').value = ''; document.getElementById('rep-desc').value = ''; if(fileInput) fileInput.value = '';
@@ -309,6 +303,21 @@
         let resImgHtml = r.resolution_image ? `<img src="${r.resolution_image}" class="report-img" style="border:2px solid var(--accent);">` : '';
         let resNoteHtml = r.resolution_note ? `<div style="background:#D1FAE5; padding:12px; border-radius:8px; margin-top:12px; font-size:13px;"><b>Uthibitisho wa Kiongozi:</b> ${r.resolution_note} <br> <small>- ${r.resolved_by_name || 'Kiongozi'}</small></div>` : '';
         
+        // Interaction Logic: Upvotes only for other citizens. Share button only for leaders.
+        let interactionHtml = '';
+        if(!isLeader) {
+            if(u.phone_number !== r.created_by_phone) {
+                interactionHtml = `<div class="interaction-bar"><button class="int-btn" onclick="upvote('${r.id}', ${r.upvotes})">👍 Nakubaliana (${r.upvotes})</button><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button></div>`;
+            } else {
+                interactionHtml = `<div class="interaction-bar"><span class="int-btn" style="opacity:0.6; cursor:default;">👍 Wamekubaliana (${r.upvotes})</span><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button></div>`;
+            }
+        } else {
+            interactionHtml = `<div class="interaction-bar">
+                <button class="int-btn int-btn-accent" onclick="shareToLeaders('${r.id}', '${r.title.replace(/'/g, "")}')">📤 Shiriki Kwa Viongozi</button>
+                <button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button>
+            </div>`;
+        }
+
         let actionBtn = '';
         if(isLeader) {
             if(r.status === 'pending') actionBtn = `<button class="btn-p" style="margin-top:12px; padding:10px; font-size:13px; background:var(--bg); color:var(--primary);" onclick="updateStatus('${r.id}','in_progress')">Anza Kushughulikia</button>`;
@@ -325,10 +334,7 @@
                 <span class="badge b-info">${r.category}</span><span class="badge ${sClass}">${sText}</span><span class="badge b-warn">${r.village}</span>
                 <span style="font-size:11px; color:var(--text-sec);">Imetumwa na: ${r.created_by_name || 'Mwananchi'}</span>
             </div>
-            <div class="interaction-bar">
-                <button class="int-btn" onclick="upvote('${r.id}', ${r.upvotes})">👍 Nakubaliana (${r.upvotes})</button>
-                <button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button>
-            </div>
+            ${interactionHtml}
             <div class="comment-box" id="comments-${r.id}">
                 <div class="comment-list" id="comment-list-${r.id}"><p style="font-size:12px; color:var(--text-sec);">Inapakia maoni...</p></div>
                 <div style="display:flex; gap:5px;">
@@ -341,17 +347,11 @@
     }
 
     async function upvote(id, currentVotes) {
-        try { 
-            await sb.from('reports').update({ upvotes: currentVotes + 1 }).eq('id', id); 
-            showToast("Umekubaliana na hoja hii!"); 
-            refreshActiveList(); 
-        } catch(e) { openModal("Kosa", e.message); }
+        try { await sb.from('reports').update({ upvotes: currentVotes + 1 }).eq('id', id); showToast("Umekubaliana na hoja hii!"); refreshActiveList(); } catch(e) { openModal("Kosa", e.message); }
     }
 
     function refreshActiveList() {
-        const activeSec = document.querySelector('.sec.active');
-        if(!activeSec) return;
-        const id = activeSec.id;
+        const id = document.querySelector('.sec.active').id;
         if(id === 'leader-reports-sec') fetchLeaderReports();
         if(id === 'progress-sec') fetchPublicProgress();
     }
@@ -427,6 +427,51 @@
         });
     }
 
+    // --- LEADER CHAT LOGIC ---
+    async function shareToLeaders(reportId, title) {
+        openModal("Shiriki kwa Viongozi", `Una uhakika unataka kushiriki ripoti hii kwenye Chumba cha Viongozi kwa ajili ya majadiliano?`, false, async () => {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            try {
+                await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: `Naomba msaada/maoni kuhusu ripoti hii: "${title}"`, shared_report_id: reportId }]);
+                showToast("Imeshirikiwa kwenye Chumba cha Viongozi!");
+                showSec('leader-chat-sec');
+            } catch(e) { openModal("Kosa", e.message); }
+        });
+    }
+
+    async function fetchLeaderChat() {
+        const div = document.getElementById('chat-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia majadiliano...</p>';
+        try {
+            const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending:true }).limit(50);
+            if(error) throw error;
+            div.innerHTML = data.length > 0 ? data.map(c => {
+                let sharedHtml = c.shared_report_id ? `<div class="shared-card"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : '';
+                return `<div class="chat-msg"><b>${c.sender_name} (${c.sender_role.replace(/_/g,' ')})</b><p>${c.content}</p>${sharedHtml}<small>${new Date(c.created_at).toLocaleString()}</small></div>`;
+            }).join('') : '<p style="color:var(--text-sec);">Hakuna majadiliano bado.</p>';
+            div.scrollTop = div.scrollHeight;
+        } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; }
+    }
+
+    async function viewSharedReport(id) {
+        try {
+            const { data: r, error } = await sb.from('reports').select('*').eq('id', id).single();
+            if(error) throw error;
+            openModal(r.title, `${r.description}<br><br><small>Status: ${r.status}</small><br><small>Kijiji: ${r.village}</small>`, false);
+        } catch(e) { openModal("Kosa", e.message); }
+    }
+
+    async function postChat() {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const content = document.getElementById('chat-input').value.trim();
+        if(!content) return;
+        try {
+            await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content }]);
+            document.getElementById('chat-input').value = '';
+            fetchLeaderChat();
+        } catch(e) { openModal("Kosa", e.message); }
+    }
+
+    // --- MARKETPLACE ---
     async function postItem() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim();
