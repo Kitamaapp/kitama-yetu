@@ -81,17 +81,19 @@
         .m-btn-primary { background: var(--accent); color: white; }
         .m-btn-secondary { background: var(--bg); color: var(--text-sec); }
 
-        /* CHAT */
+                /* CHAT */
         .chat-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 80px; }
-        .chat-msg { background: var(--surface); padding: 12px 16px; border-radius: 16px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+        .chat-msg { background: var(--surface); padding: 12px 16px; border-radius: 16px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); align-self: flex-start; }
+        .chat-msg.self { align-self: flex-end; background: #D1FAE5; border-color: #A7F3D0; }
         .chat-msg b { font-size: 12px; color: var(--accent-dark); display: block; margin-bottom: 4px; }
+        .chat-msg.self b { text-align: right; }
         .chat-msg p { font-size: 14px; color: var(--text); }
         .chat-msg small { font-size: 10px; color: var(--text-sec); margin-top: 5px; display: block; text-align: right; }
-        .shared-card { background: #F1F5F9; border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 8px; margin-top: 8px; font-size: 13px; }
+        .shared-card { background: rgba(255,255,255,0.5); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 8px; margin-top: 8px; font-size: 13px; }
         .chat-input-box { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--surface); padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
         .chat-input-box input { flex: 1; padding: 12px 16px; border-radius: 20px; background: var(--bg); }
     </style>
-</head>
+    </head>
 <body>
 
 <div class="toast" id="toast"></div>
@@ -439,18 +441,27 @@
         });
     }
 
-    async function fetchLeaderChat() {
+        async function fetchLeaderChat() {
+        const u = JSON.parse(localStorage.getItem('kitama_user')); // Pata mtumiaji wa sasa
         const div = document.getElementById('chat-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia majadiliano...</p>';
         try {
             const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending:true }).limit(50);
             if(error) throw error;
             div.innerHTML = data.length > 0 ? data.map(c => {
+                // Kagua kama ujumbe umetumwa na mtumiaji wa sasa
+                const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role);
                 let sharedHtml = c.shared_report_id ? `<div class="shared-card"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : '';
-                return `<div class="chat-msg"><b>${c.sender_name} (${c.sender_role.replace(/_/g,' ')})</b><p>${c.content}</p>${sharedHtml}<small>${new Date(c.created_at).toLocaleString()}</small></div>`;
+                
+                return `<div class="chat-msg ${isSelf ? 'self' : ''}">
+                            <b>${isSelf ? 'Wewe' : c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')'}</b>
+                            <p>${c.content}</p>
+                            ${sharedHtml}
+                            <small>${new Date(c.created_at).toLocaleString()}</small>
+                        </div>`;
             }).join('') : '<p style="color:var(--text-sec);">Hakuna majadiliano bado.</p>';
             div.scrollTop = div.scrollHeight;
         } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; }
-    }
+        }
 
         async function viewSharedReport(id) {
         try {
