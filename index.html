@@ -51,14 +51,12 @@
         .sec.active { display: block; }
         @keyframes slide { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* HERO BANNER */
         .hero-banner { background: linear-gradient(135deg, var(--primary) 0%, #1E293B 100%); color: white; padding: 25px; border-radius: 24px; margin-bottom: 25px; position: relative; overflow: hidden; }
         .hero-banner::after { content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: var(--accent); opacity: 0.2; border-radius: 50%; }
         .hero-banner h2 { font-size: 20px; font-weight: 800; margin-bottom: 5px; position: relative; z-index: 1; }
         .hero-banner p { font-size: 13px; opacity: 0.8; position: relative; z-index: 1; }
         .hero-sos { background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid #EF4444; padding: 10px 15px; border-radius: 12px; margin-top: 15px; font-weight: 700; font-size: 13px; width: 100%; text-align: left; cursor: pointer; position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
         
-        /* PRO GRID & CARDS */
         .sec-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .sec-h h2 { font-size: 18px; font-weight: 800; }
         .sec-h span { font-size: 13px; color: var(--accent); font-weight: 700; cursor: pointer; }
@@ -91,7 +89,6 @@
         
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 12px 24px; border-radius: 30px; box-shadow: var(--shadow-lg); z-index: 200; display: none; font-size: 14px; font-weight: 600; }
         
-        /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .modal-box { background: white; width: 100%; max-width: 380px; border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: pop 0.3s ease; }
         @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -103,7 +100,6 @@
         .m-btn-primary { background: var(--accent); color: white; }
         .m-btn-secondary { background: var(--bg); color: var(--text-sec); }
 
-        /* CHAT */
         .chat-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 80px; }
         .chat-msg { background: var(--surface); padding: 12px 16px; border-radius: 16px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); align-self: flex-start; }
         .chat-msg.self { align-self: flex-end; background: #D1FAE5; border-color: #A7F3D0; }
@@ -161,7 +157,7 @@
             <div class="form-g"><label class="form-l">Namba ya Simu</label><div class="in-wrap"><span class="in-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><input type="tel" id="su-phone" placeholder="0712345678"></div></div>
             
             <div class="form-g" id="village-form-g"><label class="form-l">Kijiji</label><div class="in-wrap"><span class="in-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg></span>
-                <select id="su-village" onchange="checkVillageExec()"><option value="">Chagua Kijiji</option><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div></div>
+                <select id="su-village"><option value="">Chagua Kijiji</option><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div></div>
             
             <div class="form-g"><label class="form-l">Hadhi Yako</label><select id="su-role" onchange="toggleLeaderFields()" style="padding-left:16px;">
                 <option value="citizen">Mwananchi</option>
@@ -173,7 +169,7 @@
             </select></div>
             
             <div class="form-g" id="sub-village-box" style="display:none;"><label class="form-l">Kitongoji</label><input type="text" id="su-sub-village" placeholder="Mfano: Mjini A" style="padding-left:16px;"></div>
-            <div class="form-g" id="pin-box" style="display:none;"><label class="form-l">PIN ya Kiongozi</label><input type="password" id="leader-pin" placeholder="Weka PIN" style="padding-left:16px;"></div>
+            <div class="form-g" id="pin-box" style="display:none;"><label class="form-l">PIN ya Kiongozi</label><input type="password" id="leader-pin" placeholder="Weka PIN iliyoupatiwa" style="padding-left:16px;"></div>
             
             <button onclick="handleSignup()" class="btn-p" id="btn-signup">Tengeneza Akaunti</button>
         </div>
@@ -193,8 +189,12 @@
         <div id="progress-sec" class="sec"><div class="sec-h"><h2>Maendeleo ya Kata</h2><span onclick="fetchPublicProgress()">Refresh</span></div><div id="progress-list"></div></div>
         <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div>
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
-        <div id="leader-chat-sec" class="sec"><div class="sec-h"><h2>Chumba cha Viongozi</h2></div><div class="chat-container" id="chat-list"></div><div class="chat-input-box"><input type="text" id="chat-input" placeholder="Andika ujumbe..."><button onclick="postChat()" style="padding:12px 20px; background:var(--primary); color:white; border:none; border-radius:20px; font-weight:700;">Tuma</button></div></div>
-        <div id="manage-villages-sec" class="sec"><div class="sec-h"><h2>Weka Kitongoji</h2></div><div class="form-g"><input type="text" id="sub-v-name" style="padding-left:16px;" placeholder="Jina la Kitongoji"></div><button onclick="addSubVillage()" class="btn-p">Ongeza Kitongoji</button><div id="sub-villages-list" style="margin-top:20px;"></div></div>
+        <div id="leader-chat-sec" class="sec"><div class="sec-h"><h2>Chumb cha Viongozi</h2></div><div class="chat-container" id="chat-list"></div><div class="chat-input-box"><input type="text" id="chat-input" placeholder="Andika ujumbe..."><button onclick="postChat()" style="padding:12px 20px; background:var(--primary); color:white; border:none; border-radius:20px; font-weight:700;">Tuma</button></div></div>
+        
+        <div id="manage-villages-sec" class="sec"><div class="sec-h"><h2>Weka Kitongoji</h2></div><div class="form-g"><select id="sub-v-village" style="padding-left:16px;"><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div><div class="form-g"><input type="text" id="sub-v-name" style="padding-left:16px;" placeholder="Jina la Kitongoji"></div><button onclick="addSubVillage()" class="btn-p">Ongeza Kitongoji</button><div id="sub-villages-list" style="margin-top:20px;"></div></div>
+        
+        <div id="admin-pins-sec" class="sec"><div class="sec-h"><h2>PIN za Viongozi</h2></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Badilisha PIN za viongozi wakati wowote. PIN mpya itatumika mara moja.</p><div class="form-g"><select id="pin-role" onchange="togglePinVillage()" style="padding-left:16px;"><option value="diwani">Diwani</option><option value="mtendaji_kata">Mtendaji Kata</option><option value="mtendaji_kijiji">Mtendaji Kijiji</option><option value="mwenyekiti_kijiji">Mwenyekiti Kijiji</option><option value="mwenyekiti_kitongoji">Mwenyekiti Kitongoji</option></select></div><div class="form-g" id="pin-village-box" style="display:none;"><select id="pin-village" style="padding-left:16px;"><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div><div class="form-g"><input type="text" id="pin-value" style="padding-left:16px;" placeholder="Weka PIN mpya (Mfano: 9999)"></div><button onclick="updatePin()" class="btn-p">Hifadhi PIN</button><div id="pins-list" style="margin-top:20px;"></div></div>
+
         <div id="profile-sec" class="sec"><div class="sec-h"><h2>Akaunti Yangu</h2></div><div style="text-align:center; margin-bottom:20px;"><div class="avatar" style="width:80px; height:80px; font-size:28px; margin:0 auto 15px;" id="p-ava">U</div><h3 id="p-name">Jina</h3><p id="p-village" style="color:var(--text-sec);">Kijiji</p></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px;"><strong>Namba:</strong> <span id="p-phone"></span></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px;"><strong>Hadh:</strong> <span id="p-role"></span></div><button onclick="handleLogout()" class="btn-out">Toka (Logout)</button></div>
     </main>
     <div class="b-nav" id="b-nav"></div>
@@ -204,13 +204,6 @@
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    // PINS ZA VIONGOZI 
-    const LEADER_PINS = { 
-        'mwenyekiti_kitongoji': '5005', 'mwenyekiti_kijiji': '4004', 'mtendaji_kata': '2002', 'diwani': '1001',
-        'mtendaji_kijiji_Kitama Shuleni': '3001', 'mtendaji_kijiji_Kitama Mjini': '3002', 'mtendaji_kijiji_Mwenge A': '3003', 
-        'mtendaji_kijiji_Mwenge B': '3004', 'mtendaji_kijiji_Namunda': '3005', 'mtendaji_kijiji_Mitondi A': '3006', 'mtendaji_kijiji_Mitondi B': '3007'
-    };
     
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
     function openModal(title, text, isPrompt, callback) {
@@ -268,10 +261,14 @@
         
         if(role !== 'citizen') {
             const enteredPin = document.getElementById('leader-pin').value.trim();
-            let expectedPin = LEADER_PINS[role];
-            if(role === 'mtendaji_kijiji') expectedPin = LEADER_PINS[`mtendaji_kijiji_${village}`];
+            // Check PIN from Database
+            let pinQuery = sb.from('leader_pins').select('*').eq('role', role);
+            if(role === 'mtendaji_kijiji') pinQuery = pinQuery.eq('village', village);
+            else pinQuery = pinQuery.is('village', null);
             
-            if(enteredPin !== expectedPin) return openModal("Kosa la PIN", "PIN si sahihi kwa cheo/kijiji ulichochagua.");
+            const { data: pinData, error: pinError } = await pinQuery.maybeSingle();
+            if(pinError) return openModal("Kosa", pinError.message);
+            if(!pinData || pinData.pin !== enteredPin) return openModal("Kosa la PIN", "PIN si sahihi au haijawekwa na Mtendaji Kata.");
         }
 
         const btn = document.getElementById('btn-signup'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
@@ -311,11 +308,13 @@
         } else {
             html += `</div><div class="sec-h"><h2>Vitufe vya Haraka</h2></div><div class="qa-grid">
                 <div class="qa-card" onclick="showSec('leader-reports-sec')"><div class="qa-icon" style="background:#FEF3C7;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><h4>Malalamishi</h4><p>Ya wananchi</p></div>
-                <div class="qa-card" onclick="showSec('leader-chat-sec')"><div class="qa-icon" style="background:#D1FAE5;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Chumba cha Viongozi</h4><p>Jadiliana na Viongozi</p></div>
+                <div class="qa-card" onclick="showSec('leader-chat-sec')"><div class="qa-icon" style="background:#D1FAE5;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Chumb cha Viongozi</h4><p>Jadiliana na Viongozi</p></div>
                 <div class="qa-card" onclick="showSec('market-sec')"><div class="qa-icon" style="background:#DBEAFE;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg></div><h4>Soko</h4><p>La wananchi</p></div>`;
                 
-            if(u.role === 'mtendaji_kijiji' || u.role === 'mtendaji_kata' || u.role === 'diwani') {
+            // VITONGOJI NA PIN NI KWA MTENDAJI KATA TU
+            if(u.role === 'mtendaji_kata') {
                 html += `<div class="qa-card" onclick="showSec('manage-villages-sec')"><div class="qa-icon" style="background:#E0E7FF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h4>Weka Kitongoji</h4><p>Ongeza maeneo ya kijiji</p></div>`;
+                html += `<div class="qa-card" onclick="showSec('admin-pins-sec')"><div class="qa-icon" style="background:#FEE2E2;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h4>PIN za Viongozi</h4><p>Badilisha PIN</p></div>`;
             }
             html += `</div>`;
             navHtml += `<button class="nav-b" onclick="showSec('leader-reports-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>Kazi</span></button><button class="nav-b" onclick="showSec('profile-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
@@ -335,6 +334,7 @@
         if(id==='leader-reports-sec') fetchLeaderReports();
         if(id==='leader-chat-sec') fetchLeaderChat();
         if(id==='manage-villages-sec') fetchSubVillages();
+        if(id==='admin-pins-sec') fetchPins();
     }
 
     async function triggerSOS() {
@@ -409,45 +409,52 @@
     async function fetchPublicProgress() { const div = document.getElementById('progress-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia maendeleo...</p>'; try { const { data, error } = await sb.from('reports').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec);">Hakuna taarifa kwa sasa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
     async function updateStatus(id, newStatus) { try { await sb.from('reports').update({ status: newStatus }).eq('id', id); showToast("Status imebadilishwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }
     async function promptResolution(id, leaderName) { openModal("Uthibitisho wa Kazi", "Andika kile ulichokifanya (Uthibitisho). Kisha utachagua picha ya mradi uliokamilisha.", true, async (note) => { if(!note) return openModal("Taarifa", "Lazima uandike uthibitisho."); const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.click(); fileInput.onchange = async () => { let imgUrl = null; if(fileInput.files.length > 0) { const fileName = `resolution_${Date.now()}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { await sb.from('reports').update({ status: 'resolved', resolution_note: note, resolution_image: imgUrl, resolved_by_name: leaderName }).eq('id', id); showToast("Umekamilisha kazi na kuweka uthibitisho!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }; }); }
-    async function shareToLeaders(reportId, title) { openModal("Shiriki kwa Viongozi", `Una uhakika unataka kushiriki ripoti hii kwenye Chumba cha Viongozi?`, false, async () => { const u = JSON.parse(localStorage.getItem('kitama_user')); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: `Naomba msaada/maoni kuhusu ripoti hii: "${title}"`, shared_report_id: reportId }]); showToast("Imeshirikiwa kwenye Chumba cha Viongozi!"); showSec('leader-chat-sec'); } catch(e) { openModal("Kosa", e.message); } }); }
+    async function shareToLeaders(reportId, title) { openModal("Shiriki kwa Viongozi", `Una uhakika unataka kushiriki ripoti hii kwenye Chumb cha Viongozi?`, false, async () => { const u = JSON.parse(localStorage.getItem('kitama_user')); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: `Naomba msaada/maoni kuhusu ripoti hii: "${title}"`, shared_report_id: reportId }]); showToast("Imeshirikiwa kwenye Chumb cha Viongozi!"); showSec('leader-chat-sec'); } catch(e) { openModal("Kosa", e.message); } }); }
     async function fetchLeaderChat() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('chat-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia majadiliano...</p>'; try { const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending:true }).limit(50); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(c => { const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); let sharedHtml = c.shared_report_id ? `<div class="shared-card"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; return `<div class="chat-msg ${isSelf ? 'self' : ''}"><b>${isSelf ? 'Wewe' : c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')'}</b><p>${c.content}</p>${sharedHtml}<small>${new Date(c.created_at).toLocaleString()}</small></div>`; }).join('') : '<p style="color:var(--text-sec);">Hakuna majadiliano bado.</p>'; div.scrollTop = div.scrollHeight; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
     async function viewSharedReport(id) { try { const { data: r, error } = await sb.from('reports').select('*').eq('id', id).single(); if(error) throw error; let statusText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika'; let imgHtml = r.image_url ? `<img src="${r.image_url}" style="width:100%; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">` : ''; let modalContent = `${r.description}<br><br><div style="display:flex; gap:5px; flex-wrap:wrap;"><span style="background:#DBEAFE; color:#2563EB; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.category}</span><span style="background:#F1F5F9; color:#64748B; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${statusText}</span><span style="background:#FEF3C7; color:#D97706; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.village}</span></div>${imgHtml}`; openModal(r.title, modalContent, false); } catch(e) { openModal("Kosa", e.message); } }
     async function postChat() { const u = JSON.parse(localStorage.getItem('kitama_user')); const content = document.getElementById('chat-input').value.trim(); if(!content) return; try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content }]); document.getElementById('chat-input').value = ''; fetchLeaderChat(); } catch(e) { openModal("Kosa", e.message); } }
 
     // VITONGOJI LOGIC
     async function addSubVillage() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const name = document.getElementById('sub-v-name').value.trim();
+        const village = document.getElementById('sub-v-village').value, name = document.getElementById('sub-v-name').value.trim();
         if(!name) return openModal("Taarifa", "Weka jina la kitongoji.");
+        try { await sb.from('sub_villages').insert([{ village: village, sub_village_name: name }]); showToast("Kitongoji kimeongezwa!"); document.getElementById('sub-v-name').value = ''; fetchSubVillages(); } catch(e) { openModal("Kosa", e.message); }
+    }
+    async function fetchSubVillages() { const div = document.getElementById('sub-villages-list'); div.innerHTML = '<p>Inapakia...</p>'; try { const { data, error } = await sb.from('sub_villages').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(v => `<div class="list-i" style="padding:12px;"><strong>${v.sub_village_name}</strong><br><small style="color:var(--text-sec);">Kijiji: ${v.village}</small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna vitongoji vilivyoongezwa bado.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+
+    // ADMIN PIN LOGIC
+    function togglePinVillage() {
+        document.getElementById('pin-village-box').style.display = document.getElementById('pin-role').value === 'mtendaji_kijiji' ? 'block' : 'none';
+    }
+    async function updatePin() {
+        const role = document.getElementById('pin-role').value, village = document.getElementById('pin-village').value, pin = document.getElementById('pin-value').value.trim();
+        if(!pin) return openModal("Taarifa", "Weka PIN mpya.");
         try {
-            await sb.from('sub_villages').insert([{ village: u.village, sub_village_name: name }]);
-            showToast("Kitongoji kimeongezwa!");
-            document.getElementById('sub-v-name').value = '';
-            fetchSubVillages();
+            let query = sb.from('leader_pins').select('*').eq('role', role);
+            if(role === 'mtendaji_kijiji') query = query.eq('village', village);
+            else query = query.is('village', null);
+            const { data: existing } = await query.maybeSingle();
+
+            if(existing) {
+                await sb.from('leader_pins').update({ pin: pin }).eq('id', existing.id);
+            } else {
+                await sb.from('leader_pins').insert([{ role: role, village: role === 'mtendaji_kijiji' ? village : null, pin: pin }]);
+            }
+            showToast("PIN imehifadhiwa!");
+            document.getElementById('pin-value').value = '';
+            fetchPins();
         } catch(e) { openModal("Kosa", e.message); }
     }
-
-    async function fetchSubVillages() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const div = document.getElementById('sub-villages-list'); div.innerHTML = '<p>Inapakia...</p>';
-        try {
-            const { data, error } = await sb.from('sub_villages').select('*').eq('village', u.village).order('created_at', { ascending:false });
-            if(error) throw error;
-            div.innerHTML = data.length > 0 ? data.map(v => `<div class="list-i" style="padding:12px;"><strong>${v.sub_village_name}</strong><br><small style="color:var(--text-sec);">Kijiji: ${v.village}</small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna vitongoji vilivyoongezwa bado.</p>';
-        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+    async function fetchPins() {
+        const div = document.getElementById('pins-list'); div.innerHTML = '<p>Inapakia...</p>';
+        try { const { data, error } = await sb.from('leader_pins').select('*').order('role', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => `<div class="list-i" style="padding:12px;"><strong>${p.role.replace(/_/g,' ')}</strong>${p.village ? ' - '+p.village : ''}<br><small style="color:var(--text-sec);">PIN: <b>${p.pin}</b></small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna PIN zilizowekwa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
     }
 
     // MARKETPLACE
     async function postItem() { const u = JSON.parse(localStorage.getItem('kitama_user')); const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim(); if(!name) return openModal("Taarifa", "Weka jina la bidhaa."); try { const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village }]); if(error) throw error; showToast("Bidhaa imetangazwa!"); document.getElementById('item-name').value=''; document.getElementById('item-desc').value=''; document.getElementById('item-price').value=''; showSec('market-sec'); } catch(e) { openModal("Kosa", e.message); } }
     async function fetchMarket() { const div = document.getElementById('market-list'); div.innerHTML='<p style="color:var(--text-sec);">Inapakia soko...</p>'; try { const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(m => `<div class="list-i"><h4>${m.item_name}</h4><p>${m.description || ''}</p><div class="list-meta"><span class="badge b-succ">Bei: ${m.price || 'Agana'}</span><span class="badge b-info">${m.village}</span></div><p style="margin-top:8px; font-size:14px; color:var(--primary); font-weight:700;">📞 ${m.phone}</p></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna bidhaa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
 
-    // ON LOAD
-    window.onload = () => {
-        setTimeout(() => {
-            document.getElementById('splash-screen').classList.add('hide');
-            if(localStorage.getItem('kitama_user')) enterApp();
-        }, 2500);
-    };
+    window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
 </body>
-</html>
+    </html>
