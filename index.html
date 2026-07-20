@@ -194,7 +194,7 @@
         <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div>
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
         <div id="leader-chat-sec" class="sec"><div class="sec-h"><h2>Chumba cha Viongozi</h2></div><div class="chat-container" id="chat-list"></div><div class="chat-input-box"><input type="text" id="chat-input" placeholder="Andika ujumbe..."><button onclick="postChat()" style="padding:12px 20px; background:var(--primary); color:white; border:none; border-radius:20px; font-weight:700;">Tuma</button></div></div>
-        <div id="manage-villages-sec" class="sec"><div class="sec-h"><h2>Add Vitongoji</h2></div><div class="form-g"><input type="text" id="sub-v-name" style="padding-left:16px;" placeholder="Jina la Kitongoji"></div><button onclick="addSubVillage()" class="btn-p">Ongeza Kitongoji</button><div id="sub-villages-list" style="margin-top:20px;"></div></div>
+        <div id="manage-villages-sec" class="sec"><div class="sec-h"><h2>Weka Kitongoji</h2></div><div class="form-g"><input type="text" id="sub-v-name" style="padding-left:16px;" placeholder="Jina la Kitongoji"></div><button onclick="addSubVillage()" class="btn-p">Ongeza Kitongoji</button><div id="sub-villages-list" style="margin-top:20px;"></div></div>
         <div id="profile-sec" class="sec"><div class="sec-h"><h2>Akaunti Yangu</h2></div><div style="text-align:center; margin-bottom:20px;"><div class="avatar" style="width:80px; height:80px; font-size:28px; margin:0 auto 15px;" id="p-ava">U</div><h3 id="p-name">Jina</h3><p id="p-village" style="color:var(--text-sec);">Kijiji</p></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px;"><strong>Namba:</strong> <span id="p-phone"></span></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px;"><strong>Hadh:</strong> <span id="p-role"></span></div><button onclick="handleLogout()" class="btn-out">Toka (Logout)</button></div>
     </main>
     <div class="b-nav" id="b-nav"></div>
@@ -205,7 +205,7 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     
-    // PINS ZA VIONGOZI (Mtendaji Kijiji ana PIN kulingana na Kijiji chake)
+    // PINS ZA VIONGOZI 
     const LEADER_PINS = { 
         'mwenyekiti_kitongoji': '5005', 'mwenyekiti_kijiji': '4004', 'mtendaji_kata': '2002', 'diwani': '1001',
         'mtendaji_kijiji_Kitama Shuleni': '3001', 'mtendaji_kijiji_Kitama Mjini': '3002', 'mtendaji_kijiji_Mwenge A': '3003', 
@@ -240,7 +240,6 @@
         
         subVillageBox.style.display = role === 'mwenyekiti_kitongoji' ? 'block' : 'none';
         
-        // Diwani na Mtendaji Kata hawachagi kijiji
         if(role === 'diwani' || role === 'mtendaji_kata') {
             villageBox.style.display = 'none';
             document.getElementById('su-village').value = 'Kata Yote';
@@ -310,13 +309,13 @@
             </div>`;
             navHtml += `<button class="nav-b" onclick="showSec('market-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button><button class="nav-b" onclick="showSec('profile-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
         } else {
-            html += `</div><div class="sec-h"><h2>Quick Actions</h2></div><div class="qa-grid">
+            html += `</div><div class="sec-h"><h2>Vitufe vya Haraka</h2></div><div class="qa-grid">
                 <div class="qa-card" onclick="showSec('leader-reports-sec')"><div class="qa-icon" style="background:#FEF3C7;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><h4>Malalamishi</h4><p>Ya wananchi</p></div>
                 <div class="qa-card" onclick="showSec('leader-chat-sec')"><div class="qa-icon" style="background:#D1FAE5;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Chumba cha Viongozi</h4><p>Jadiliana na Viongozi</p></div>
                 <div class="qa-card" onclick="showSec('market-sec')"><div class="qa-icon" style="background:#DBEAFE;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg></div><h4>Soko</h4><p>La wananchi</p></div>`;
                 
             if(u.role === 'mtendaji_kijiji' || u.role === 'mtendaji_kata' || u.role === 'diwani') {
-                html += `<div class="qa-card" onclick="showSec('manage-villages-sec')"><div class="qa-icon" style="background:#E0E7FF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h4>Add Vitongoji</h4><p>Dhibiti maeneo</p></div>`;
+                html += `<div class="qa-card" onclick="showSec('manage-villages-sec')"><div class="qa-icon" style="background:#E0E7FF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h4>Weka Kitongoji</h4><p>Ongeza maeneo ya kijiji</p></div>`;
             }
             html += `</div>`;
             navHtml += `<button class="nav-b" onclick="showSec('leader-reports-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>Kazi</span></button><button class="nav-b" onclick="showSec('profile-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
