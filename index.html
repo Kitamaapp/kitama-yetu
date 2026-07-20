@@ -132,6 +132,11 @@
         .chat-msg.self p { color: white; }
         .chat-msg small { font-size: 10px; color: var(--text-sec); margin-top: 5px; display: block; text-align: right; }
         .chat-msg.self small { color: rgba(255,255,255,0.7); }
+                .reply-quote { background: rgba(0,0,0,0.1); padding: 5px 10px; border-radius: 8px; margin-bottom: 5px; font-size: 12px; border-left: 3px solid var(--accent); }
+        .chat-msg.self .reply-quote { background: rgba(255,255,255,0.2); border-left-color: white; }
+        .chat-actions { display: flex; gap: 15px; margin-top: 5px; justify-content: flex-end; }
+        .chat-action-btn { background: none; border: none; color: var(--text-sec); cursor: pointer; font-size: 11px; font-weight: 600; padding: 0; }
+        .chat-msg.self .chat-action-btn { color: rgba(255,255,255,0.8); }
         .shared-card { background: rgba(255,255,255,0.2); border-left: 3px solid white; padding: 8px 12px; border-radius: 8px; margin-top: 8px; font-size: 13px; }
         .chat-msg:not(.self) .shared-card { background: var(--bg); border-left-color: var(--accent); }
         .chat-input-box { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: var(--surface); padding: 10px; border-radius: 20px; display: flex; gap: 10px; box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
@@ -321,8 +326,18 @@
         <div id="progress-sec" class="sec"><div class="sec-h"><h2>Maendeleo ya Kata</h2><span onclick="fetchPublicProgress()">Refresh</span></div><div id="progress-list"></div></div>
         <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div>
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
-        <div id="leader-chat-sec" class="sec"><div class="sec-h"><h2>Chumb cha Viongozi</h2></div><div class="chat-container" id="chat-list"></div><div class="chat-input-box"><input type="text" id="chat-input" placeholder="Andika ujumbe..."><button onclick="postChat()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:20px; font-weight:700;">Tuma</button></div></div>
-        
+                <div id="leader-chat-sec" class="sec">
+            <div class="sec-h"><h2>Chumb cha Viongozi</h2></div>
+            <div class="chat-container" id="chat-list"></div>
+            <div id="leader-reply-context" style="display:none; padding:10px 15px; background:var(--bg); border-radius:10px 10px 0 0; font-size:12px; color:var(--text-sec); margin-bottom:-5px; width:calc(100% - 40px); max-width: 440px; bottom: 130px; left: 50%; transform: translateX(-50%); position: fixed; border:1px solid var(--border); border-bottom:none;">
+                <span id="leader-reply-text"></span>
+                <button onclick="cancelLeaderReply()" style="float:right; background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button>
+            </div>
+            <div class="chat-input-box">
+                <input type="text" id="chat-input" placeholder="Andika ujumbe...">
+                <button onclick="postChat()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:20px; font-weight:700;">Tuma</button>
+            </div>
+                </div>
         <div id="campaign-sec" class="sec"><div class="sec-h"><h2>Kampeni & Miradi</h2><span onclick="fetchProjects()">Refresh</span></div><div id="project-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="proj-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Mradi/Mkakati"></div><div class="form-g"><textarea id="proj-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Maelezo ya Mradi (Dira)"></textarea></div><div class="form-g"><select id="proj-status" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option value="planned">Inapaswa kutekelezwa</option><option value="ongoing">Inaendelea</option><option value="stalled">Imekatika</option><option value="completed">Imekamilika</option></select></div><button onclick="postProject()" class="btn-p">Weka Mradi</button></div><div id="projects-list"></div></div>
 
         <div id="solidarity-sec" class="sec"><div class="sec-h"><h2>Andamana (Ajenda)</h2><span onclick="fetchCauses()">Refresh</span></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Andamana na wananchi wengine kuleta mabadiliko. Tuma ajeda na uwaombe wengine wakuunge mkono.</p><div id="cause-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="cause-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Kichwa cha Ajenda"></div><div class="form-g"><textarea id="cause-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Eleza ajenda yako..."></textarea></div><button onclick="postCause()" class="btn-p">Tuma Ajenda</button></div><div id="causes-list"></div></div>
@@ -458,6 +473,7 @@
                 <div class="qa-card active" onclick="showSec('solidarity-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4zM6 1v3M10 1v3M14 1v3"/></svg></div><h4>Andamana</h4><p>Unganishwa na Ajenda</p></div>
                 <div class="qa-card active" onclick="showSec('events-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h4>Matukio</h4><p>Kalenda ya Kata</p></div>
             </div>`;
+                            html += `<div class="qa-card active" onclick="showSec('citizen-chat-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Mazungumzo</h4><p>Ongea na Wananchi</p></div>`;
         } else {
             html += `</div>`;
             
@@ -530,7 +546,8 @@
         if(id==='pending-users-sec') fetchPendingUsers();
         if(id==='campaign-sec') fetchProjects();
         if(id==='solidarity-sec') fetchCauses();
-        if(id==='events-sec') fetchEvents();
+        if(id==='events-sec') fetchEvents();       
+        if(id==='citizen-chat-sec') fetchCitizenChat();
 
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(id==='campaign-sec' && (u.role === 'mtendaji_kata' || u.role === 'diwani')) document.getElementById('project-form-box').style.display = 'block';
@@ -609,10 +626,92 @@
     async function updateStatus(id, newStatus) { try { await sb.from('reports').update({ status: newStatus }).eq('id', id); showToast("Status imebadilishwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }
     async function promptResolution(id, leaderName) { openModal("Uthibitisho wa Kazi", "Andika kile ulichokifanya (Uthibitisho). Kisha utachagua picha ya mradi uliokamilisha.", true, async (note) => { if(!note) return openModal("Taarifa", "Lazima uandike uthibitisho."); const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.click(); fileInput.onchange = async () => { let imgUrl = null; if(fileInput.files.length > 0) { const fileName = `resolution_${Date.now()}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { await sb.from('reports').update({ status: 'resolved', resolution_note: note, resolution_image: imgUrl, resolved_by_name: leaderName }).eq('id', id); showToast("Umekamilisha kazi na kuweka uthibitisho!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }; }); }
     async function shareToLeaders(reportId, title) { openModal("Shiriki kwa Viongozi", `Una uhakika unataka kushiriki ripoti hii kwenye Chumb cha Viongozi?`, false, async () => { const u = JSON.parse(localStorage.getItem('kitama_user')); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: `Naomba msaada/maoni kuhusu ripoti hii: "${title}"`, shared_report_id: reportId }]); showToast("Imeshirikiwa kwenye Chumb cha Viongozi!"); showSec('leader-chat-sec'); } catch(e) { openModal("Kosa", e.message); } }); }
-    async function fetchLeaderChat() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('chat-list'); div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending:true }).limit(50); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(c => { const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); let sharedHtml = c.shared_report_id ? `<div class="shared-card"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; return `<div class="chat-msg ${isSelf ? 'self' : ''}"><b>${isSelf ? 'Wewe' : c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')'}</b><p>${c.content}</p>${sharedHtml}<small>${new Date(c.created_at).toLocaleString()}</small></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna majadiliano bado.</p>'; div.scrollTop = div.scrollHeight; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
-    async function viewSharedReport(id) { try { const { data: r, error } = await sb.from('reports').select('*').eq('id', id).single(); if(error) throw error; let statusText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika'; let imgHtml = r.image_url ? `<img src="${r.image_url}" style="width:100%; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">` : ''; let modalContent = `${r.description}<br><br><div style="display:flex; gap:5px; flex-wrap:wrap;"><span style="background:rgba(37,99,235,0.1); color:#2563EB; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.category}</span><span style="background:rgba(100,116,139,0.1); color:#64748B; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${statusText}</span><span style="background:rgba(217,119,6,0.1); color:#D97706; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.village}</span></div>${imgHtml}`; openModal(r.title, modalContent, false); } catch(e) { openModal("Kosa", e.message); } }
-    async function postChat() { const u = JSON.parse(localStorage.getItem('kitama_user')); const content = document.getElementById('chat-input').value.trim(); if(!content) return; if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa. Tafadhali waheshimu viongozi wenzako."); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content }]); document.getElementById('chat-input').value = ''; fetchLeaderChat(); } catch(e) { openModal("Kosa", e.message); } }
+        // --- LEADER CHAT LOGIC (With Edit, Delete, Reply) ---
+    let leaderReplyTo = null;
+    function setLeaderReply(id, text) {
+        leaderReplyTo = id;
+        document.getElementById('leader-reply-context').style.display = 'block';
+        document.getElementById('leader-reply-text').innerText = "Unajibu: " + text.substring(0, 30) + "...";
+    }
+    function cancelLeaderReply() {
+        leaderReplyTo = null;
+        document.getElementById('leader-reply-context').style.display = 'none';
+    }
 
+    async function fetchLeaderChat() { 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('chat-list'); div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>'; 
+        try { 
+            const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending:true }).limit(50); 
+            if(error) throw error; 
+            div.innerHTML = data.length > 0 ? data.map(c => { 
+                const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); 
+                let sharedHtml = c.shared_report_id ? `<div class="shared-card"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
+                let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
+                let actionsHtml = `<div class="chat-actions">
+                    <button class="chat-action-btn" onclick="setLeaderReply('${c.id}', \`${c.content.replace(/`/g, "'")}\`)">↩️ Reply</button>
+                    ${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', \`${c.content.replace(/`/g, "'")}\`)">✏️ Edit</button><button class="chat-action-btn" onclick="deleteLeaderChat('${c.id}')">🗑️ Delete</button>` : ''}
+                </div>`;
+                return `<div class="chat-msg ${isSelf ? 'self' : ''}"><b>${isSelf ? 'Wewe' : c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')'}</b>${replyHtml}<p>${c.content}</p>${sharedHtml}<small>${new Date(c.created_at).toLocaleString()}</small>${actionsHtml}</div>`; 
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna majadiliano bado.</p>'; 
+            div.scrollTop = div.scrollHeight; 
+        } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } 
+    }
+
+    async function postChat() { 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        const content = document.getElementById('chat-input').value.trim(); 
+        if(!content) return; 
+        if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa."); 
+        try { 
+            await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content, reply_to: leaderReplyTo }]); 
+            document.getElementById('chat-input').value = ''; 
+            cancelLeaderReply();
+            fetchLeaderChat(); 
+        } catch(e) { openModal("Kosa", e.message); } 
+    }
+
+    async function editLeaderChat(id, oldText) {
+        openModal("Hariri Ujumbe", "Badilisha ujumbe wako hapa chini.", true, async (newText) => {
+            if(!newText || newText === oldText) return;
+            try { await sb.from('leader_chat').update({ content: newText }).eq('id', id); showToast("Ujumbe umehaririwa!"); fetchLeaderChat(); } catch(e) { openModal("Kosa", e.message); }
+        });
+        document.getElementById('modal-input').value = oldText;
+    }
+
+    async function deleteLeaderChat(id) {
+        openModal("Futa Ujumbe", "Una uhakika unataka kufuta ujumbe huu?", false, async () => {
+            try { await sb.from('leader_chat').delete().eq('id', id); showToast("Ujumbe umefutwa!"); fetchLeaderChat(); } catch(e) { openModal("Kosa", e.message); }
+        });
+    }
+
+    // --- CITIZEN CHAT LOGIC ---
+    async function fetchCitizenChat() {
+        const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('citizen-chat-list'); div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>';
+        try {
+            const { data, error } = await sb.from('citizen_chat').select('*').order('created_at', { ascending:true }).limit(50);
+            if(error) throw error;
+            div.innerHTML = data.length > 0 ? data.map(c => {
+                const isSelf = (u.full_name === c.sender_name);
+                return `<div class="chat-msg ${isSelf ? 'self' : ''}"><b>${isSelf ? 'Wewe' : c.sender_name + ' (' + c.sender_village + ')'}</b><p>${c.content}</p><small>${new Date(c.created_at).toLocaleString()}</small></div>`;
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna majadiliano bado.</p>';
+            div.scrollTop = div.scrollHeight;
+        } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; }
+    }
+
+    async function postCitizenChat() {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
+        const content = document.getElementById('citizen-chat-input').value.trim();
+        if(!content) return;
+        if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+        try {
+            await sb.from('citizen_chat').insert([{ sender_name: u.full_name, sender_village: u.village, content: content }]);
+            document.getElementById('citizen-chat-input').value = '';
+            fetchCitizenChat();
+        } catch(e) { openModal("Kosa", e.message); }
+      }
+    async function viewSharedReport(id) { try { const { data: r, error } = await sb.from('reports').select('*').eq('id', id).single(); if(error) throw error; let statusText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika'; let imgHtml = r.image_url ? `<img src="${r.image_url}" style="width:100%; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">` : ''; let modalContent = `${r.description}<br><br><div style="display:flex; gap:5px; flex-wrap:wrap;"><span style="background:rgba(37,99,235,0.1); color:#2563EB; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.category}</span><span style="background:rgba(100,116,139,0.1); color:#64748B; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${statusText}</span><span style="background:rgba(217,119,6,0.1); color:#D97706; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.village}</span></div>${imgHtml}`; openModal(r.title, modalContent, false); } catch(e) { openModal("Kosa", e.message); } }
+    
     // HUB (Activity Feed)
     async function fetchHub() {
         const div = document.getElementById('hub-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div><div class="skeleton" style="height:100px; margin-bottom:15px;"></div>';
