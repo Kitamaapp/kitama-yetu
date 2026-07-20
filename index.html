@@ -146,6 +146,23 @@
         .stat-card { background: var(--surface); padding: 15px; border-radius: 16px; text-align: center; border: 1px solid var(--border); }
         .stat-card h3 { font-size: 22px; font-weight: 800; color: var(--accent); }
         .stat-card p { font-size: 11px; color: var(--text-sec); font-weight: 600; }
+                /* PREMIUM MARKETPLACE */
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .market-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; position: relative; }
+        .market-img-box { width: 100%; height: 130px; background: var(--bg); position: relative; }
+        .market-img { width: 100%; height: 100%; object-fit: cover; }
+        .market-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-sec); }
+        .sold-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.7); display: flex; align-items: center; justify-content: center; }
+        .sold-badge { background: var(--danger); color: white; padding: 5px 15px; border-radius: 8px; font-weight: 800; font-size: 12px; transform: rotate(-15deg); }
+        .market-body { padding: 12px; }
+        .market-body h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .market-price { color: var(--accent); font-weight: 800; font-size: 15px; margin-bottom: 8px; }
+        .market-actions { display: flex; gap: 5px; }
+        .market-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .btn-call { background: var(--accent); color: white; }
+        .btn-wa { background: #D1FAE5; color: var(--accent-dark); }
+        .filter-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .filter-row input, .filter-row select { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; }
     </style>
 </head>
 <body>
@@ -223,8 +240,32 @@
     <main>
         <div id="home-sec" class="sec active"><div id="home-content"></div></div>
         <div id="hub-sec" class="sec"><div class="sec-h"><h2>Mchanganyiko wa Habari</h2><span onclick="fetchHub()">Refresh</span></div><div id="hub-list"></div></div>
-        <div id="market-sec" class="sec"><div class="sec-h"><h2>Soko la Kitama</h2><span onclick="showSec('add-item-sec')">+ Tangaza</span></div><input type="text" id="market-search" placeholder="Tafuta bidhaa..." style="margin-bottom:15px; padding:10px 16px; border-radius:12px; border:1px solid var(--border); background:var(--surface); color:var(--text);" oninput="fetchMarket()"><div id="market-list"></div></div>
-        <div id="add-item-sec" class="sec"><div class="sec-h"><h2>Tangaza Bidhaa</h2></div><div class="form-g"><input type="text" id="item-name" style="padding-left:16px;" placeholder="Jina la Bidhaa"></div><div class="form-g"><textarea id="item-desc" placeholder="Maelezo"></textarea></div><div class="form-g"><input type="text" id="item-price" style="padding-left:16px;" placeholder="Bei"></div><button onclick="postItem()" class="btn-p">Weka Tangazo</button></div>
+                <div id="market-sec" class="sec">
+            <div class="sec-h"><h2>Soko la Kitama</h2><span onclick="showSec('add-item-sec')">+ Tangaza</span></div>
+            <div class="filter-row">
+                <input type="text" id="market-search" placeholder="🔍 Tafuta bidhaa..." oninput="fetchMarket()">
+                <select id="market-cat" onchange="fetchMarket()">
+                    <option value="all">Zote</option>
+                    <option value="Mazao">Mazao</option>
+                    <option value="Mifugo">Mifugo</option>
+                    <option value="Ardhi">Ardhi</option>
+                    <option value="Maduka">Maduka</option>
+                    <option value="Huduma">Huduma/Kazi</option>
+                    <option value="Mengineyo">Mengineyo</option>
+                </select>
+            </div>
+            <div id="market-list" class="market-grid"></div>
+        </div>
+        
+        <div id="add-item-sec" class="sec">
+            <div class="sec-h"><h2>Tangaza Bidhaa</h2></div>
+            <div class="form-g"><input type="text" id="item-name" style="padding-left:16px;" placeholder="Jina la Bidhaa"></div>
+            <div class="form-g"><select id="item-cat" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option>Mazao</option><option>Mifugo</option><option>Ardhi</option><option>Maduka</option><option>Huduma/Kazi</option><option>Mengineyo</option></select></div>
+            <div class="form-g"><textarea id="item-desc" placeholder="Maelezo (Mfano: Mzima, afya njema)"></textarea></div>
+            <div class="form-g"><input type="text" id="item-price" style="padding-left:16px;" placeholder="Bei (Mfano: 50,000 Tsh)"></div>
+            <div class="form-g"><input type="file" id="item-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
+            <button onclick="postItem()" class="btn-p" id="btn-item">Weka Tangazo</button>
+        </div>
         <div id="progress-sec" class="sec"><div class="sec-h"><h2>Maendeleo ya Kata</h2><span onclick="fetchPublicProgress()">Refresh</span></div><div id="progress-list"></div></div>
         <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div>
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
@@ -252,7 +293,7 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     
-    const BAD_WORDS = ['mbwa', 'kuma', 'matako', 'ushenzi', 'pumbavu', 'mavi', 'mbulu', 'uliye'];
+    const BAD_WORDS = ['kumamayo', 'kuma', 'matako', 'litongo', 'vanakutomba', 'unatombwa', 'unafilwa', 'unafirwa', 'vanikutomba wako', 'vanakutomba wako', 'pumbu', 'pumbu zako', 'kamfire mama yako', 'kanfile mamayo', 'kamfile mama yako', 'ushenzi', 'pumbavu', 'litoko', 'mpyanda', 'msenge'];
     function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
     
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
@@ -579,10 +620,73 @@
         }
     }
 
-    // MARKETPLACE
-    async function postItem() { const u = JSON.parse(localStorage.getItem('kitama_user')); if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado."); const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim(); if(!name) return openModal("Taarifa", "Weka jina la bidhaa."); if(containsBadWords(name) || containsBadWords(desc)) return openModal("Onyo", "Maelezo yako yana maneno yasiyoruhusiwa."); try { const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village }]); if(error) throw error; showToast("Bidhaa imetangazwa!"); document.getElementById('item-name').value=''; document.getElementById('item-desc').value=''; document.getElementById('item-price').value=''; showSec('market-sec'); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchMarket() { const div = document.getElementById('market-list'); const search = document.getElementById('market-search').value.toLowerCase(); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending:false }); if(error) throw error; const filtered = search ? data.filter(m => m.item_name.toLowerCase().includes(search)) : data; div.innerHTML = filtered.length > 0 ? filtered.map(m => `<div class="list-i"><h4>${m.item_name}</h4><p>${m.description || ''}</p><div class="list-meta"><span class="badge b-succ">Bei: ${m.price || 'Agana'}</span><span class="badge b-info">${m.village}</span></div><p style="margin-top:8px; font-size:14px; color:var(--accent); font-weight:700;">📞 ${m.phone}</p></div>`).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna bidhaa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
+        // MARKETPLACE PREMIUM LOGIC
+    async function postItem() { 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado."); 
+        const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim(), cat = document.getElementById('item-cat').value, fileInput = document.getElementById('item-image'); 
+        if(!name) return openModal("Taarifa", "Weka jina la bidhaa."); 
+        if(containsBadWords(name) || containsBadWords(desc)) return openModal("Onyo", "Maelezo yako yana maneno yasiyoruhusiwa."); 
+        
+        const btn = document.getElementById('btn-item'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true;
+        let imgUrl = null;
+        if(fileInput.files.length > 0) {
+            const fileName = `market_${Date.now()}.jpg`;
+            const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]);
+            if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
+        }
 
+        try { 
+            const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village, category:cat, image_url:imgUrl, status:'active' }]); 
+            if(error) throw error; 
+            showToast("Bidhaa imetangazwa!"); 
+            document.getElementById('item-name').value=''; document.getElementById('item-desc').value=''; document.getElementById('item-price').value=''; if(fileInput) fileInput.value = '';
+            showSec('market-sec'); 
+        } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML = 'Weka Tangazo'; btn.disabled = false; }
+    }
+
+    async function fetchMarket() { 
+        const div = document.getElementById('market-list'); 
+        const search = document.getElementById('market-search').value.toLowerCase(); 
+        const cat = document.getElementById('market-cat').value;
+        div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div><div class="skeleton" style="height:200px; border-radius:16px;"></div>'; 
+        try { 
+            const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending:false }); 
+            if(error) throw error; 
+            let filtered = data;
+            if(search) filtered = filtered.filter(m => m.item_name.toLowerCase().includes(search));
+            if(cat !== 'all') filtered = filtered.filter(m => m.category === cat);
+            
+            div.innerHTML = filtered.length > 0 ? filtered.map(m => {
+                let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" onerror="this.style.display='none'">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
+                let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZA</span></div>` : '';
+                let waPhone = m.phone.replace(/^0/, '255'); // Convert 07XX to 2557XX for WhatsApp
+                let actionBtns = m.status === 'sold' ? '' : `<a href="tel:${m.phone}" class="market-btn btn-call">📞 Piga</a><a href="https://wa.me/${waPhone}" target="_blank" class="market-btn btn-wa">💬 WhatsApp</a>`;
+                let markSoldBtn = JSON.parse(localStorage.getItem('kitama_user')).phone_number === m.phone && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" style="width:100%; margin-top:5px; padding:5px; background:var(--bg); color:var(--text-sec); border:1px solid var(--border); border-radius:8px; font-size:10px; font-weight:700; cursor:pointer;">Lelemsha kama Imeuza</button>` : '';
+                
+                return `<div class="market-card">
+                    <div class="market-img-box">${imgHtml}${soldHtml}</div>
+                    <div class="market-body">
+                        <h4>${m.item_name}</h4>
+                        <div class="market-price">${m.price || 'Agana'}</div>
+                        <div class="list-meta" style="margin-top:0; margin-bottom:8px;">
+                            <span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span>
+                            <span class="badge b-warn" style="font-size:9px;">${m.village}</span>
+                        </div>
+                        <div class="market-actions">${actionBtns}</div>
+                        ${markSoldBtn}
+                    </div>
+                </div>`;
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; grid-column:span 2;">Hakuna bidhaa zilizotangazwa kwenye kategoria hii.</p>'; 
+        } catch(e) { div.innerHTML=`<p style="color:red; grid-column:span 2;">${e.message}</p>`; } 
+    }
+
+    async function markAsSold(id) {
+        openModal("Imeuza Bidhaa", "Una uhakika unataka kuweka alama ya 'Imeuza' kwenye bidhaa hii?", false, async () => {
+            try { await sb.from('marketplace').update({ status: 'sold' }).eq('id', id); showToast("Bidhaa imelemashwa kama Imeuza!"); fetchMarket(); } catch(e) { openModal("Kosa", e.message); }
+        });
+    }
+    
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
 </body>
