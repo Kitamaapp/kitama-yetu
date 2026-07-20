@@ -3,17 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kitama Yetu | Super App</title>
+    <title>Kitama Yetu | Civic Tech Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #0F172A; --accent: #10B981; --accent-dark: #059669; --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-sec: #64748B; --border: #E2E8F0; --shadow-sm: 0 1px 3px rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1); --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1); --radius: 20px; --danger: #EF4444; }
+        :root {
+            --primary: #0F172A; --accent: #10B981; --accent-dark: #059669;
+            --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-sec: #64748B;
+            --border: #E2E8F0; --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1); --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1);
+            --radius: 24px; --danger: #EF4444;
+        }
+        [data-theme="dark"] {
+            --primary: #F8FAFC; --accent: #10B981; --accent-dark: #34D399;
+            --bg: #0F172A; --surface: #1E293B; --text: #F8FAFC; --text-sec: #94A3B8;
+            --border: #334155; --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4); --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.5);
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; transition: background 0.3s, color 0.3s; }
         
         /* SPLASH */
-        .splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary) 0%, #1E293B 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease; }
+        .splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease; }
         .splash-screen.hide { opacity: 0; visibility: hidden; }
         .splash-logo { width: 90px; height: 90px; background: var(--accent); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4); animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
@@ -24,42 +36,43 @@
 
         /* AUTH */
         .auth-c { width: 100%; max-width: 480px; min-height: 100vh; background: var(--surface); display: flex; flex-direction: column; }
-        .auth-hero { background: linear-gradient(135deg, var(--primary) 0%, #1E293B 100%); padding: 60px 30px 50px; color: white; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px; position: relative; overflow: hidden; }
+        .auth-hero { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); padding: 60px 30px 50px; color: white; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px; position: relative; overflow: hidden; }
         .auth-hero::after { content: ''; position: absolute; top: -30px; right: -30px; width: 150px; height: 150px; background: var(--accent); opacity: 0.2; border-radius: 50%; }
         .auth-logo { width: 60px; height: 60px; background: var(--accent); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; }
         .auth-content { padding: 40px 30px; flex: 1; }
         .auth-tabs { display: flex; background: var(--bg); padding: 6px; border-radius: 14px; margin-bottom: 35px; }
         .auth-tab { flex: 1; text-align: center; padding: 12px; border: none; background: transparent; font-weight: 700; font-size: 14px; color: var(--text-sec); cursor: pointer; border-radius: 10px; transition: all 0.3s; }
-        .auth-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
+        .auth-tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
         .form-g { margin-bottom: 20px; }
         .form-l { display: block; font-size: 12px; font-weight: 700; color: var(--text-sec); margin-bottom: 8px; padding-left: 4px; }
         .in-wrap { position: relative; }
         .in-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-sec); }
-        input, select, textarea { width: 100%; padding: 16px 16px 16px 48px; border: 1px solid var(--border); border-radius: 14px; font-size: 15px; font-family: inherit; background: var(--bg); transition: all 0.2s; }
+        input, select, textarea { width: 100%; padding: 16px 16px 16px 48px; border: 1px solid var(--border); border-radius: 14px; font-size: 15px; font-family: inherit; background: var(--bg); color: var(--text); transition: all 0.2s; }
         textarea { padding: 16px; min-height: 100px; resize: vertical; }
         input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
-        .btn-p { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; transition: transform 0.1s; }
+        .btn-p { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; transition: transform 0.1s; }
         .btn-p:active { transform: scale(0.98); }
         .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s linear infinite; }
 
         /* ULTRA PRO APP DASHBOARD */
-        .app-c { width: 100%; max-width: 480px; background: var(--bg); min-height: 100vh; padding-bottom: 90px; display: none; }
-        .app-h { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
-        .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid var(--accent); cursor: pointer; }
+        .app-c { width: 100%; max-width: 480px; background: var(--bg); min-height: 100vh; padding-bottom: 100px; display: none; }
+        .app-h { background: rgba(255,255,255,0.8); backdrop-filter: blur(15px); padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+        [data-theme="dark"] .app-h { background: rgba(30,41,59,0.8); }
+        .theme-toggle { background: var(--bg); border: none; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; color: var(--text); display: flex; align-items: center; justify-content: center; }
         main { padding: 20px; }
         .sec { display: none; animation: slide 0.4s ease; }
         .sec.active { display: block; }
         @keyframes slide { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         
-        .hero-banner { background: linear-gradient(135deg, var(--primary) 0%, #1E293B 100%); color: white; padding: 25px; border-radius: 24px; margin-bottom: 25px; position: relative; overflow: hidden; }
-        .hero-banner::after { content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: var(--accent); opacity: 0.2; border-radius: 50%; }
-        .hero-banner h2 { font-size: 20px; font-weight: 800; margin-bottom: 5px; position: relative; z-index: 1; }
-        .hero-banner p { font-size: 13px; opacity: 0.8; position: relative; z-index: 1; }
-        .hero-sos { background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid #EF4444; padding: 10px 15px; border-radius: 12px; margin-top: 15px; font-weight: 700; font-size: 13px; width: 100%; text-align: left; cursor: pointer; position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
+        .hero-banner { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: white; padding: 25px; border-radius: 24px; margin-bottom: 25px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(16,185,129,0.2); }
+        .hero-banner::after { content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+        .hero-banner h2 { font-size: 22px; font-weight: 800; margin-bottom: 5px; position: relative; z-index: 1; }
+        .hero-banner p { font-size: 13px; opacity: 0.9; position: relative; z-index: 1; }
+        .hero-sos { background: rgba(239, 68, 68, 0.9); color: white; border: none; padding: 12px 15px; border-radius: 12px; margin-top: 15px; font-weight: 700; font-size: 13px; width: 100%; text-align: left; cursor: pointer; position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
         .warning-box { background: #FEF3C7; color: #D97706; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; font-weight: 600; border: 1px solid #FBBF24; }
         
         .sec-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .sec-h h2 { font-size: 18px; font-weight: 800; }
+        .sec-h h2 { font-size: 20px; font-weight: 800; }
         .sec-h span { font-size: 13px; color: var(--accent); font-weight: 700; cursor: pointer; }
         .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .qa-card { background: var(--surface); padding: 20px; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: 1px solid var(--border); transition: all 0.2s; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; opacity: 0.5; pointer-events: none; }
@@ -75,45 +88,64 @@
         .list-meta { display: flex; gap: 8px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
         .badge { padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
         .b-warn { background: #FEF3C7; color: #D97706; } .b-info { background: #DBEAFE; color: #2563EB; } .b-succ { background: #D1FAE5; color: #059669; } .b-err { background: #FEE2E2; color: #EF4444; }
-        .b-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0 25px 0; z-index: 100; }
-        .nav-b { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-sec); transition: all 0.2s; }
-        .nav-b.active { color: var(--accent); transform: translateY(-2px); }
+        
+        /* FLOATING NAV */
+        .b-nav { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: rgba(255,255,255,0.9); backdrop-filter: blur(15px); border: 1px solid var(--border); border-radius: 30px; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; box-shadow: var(--shadow-lg); }
+        [data-theme="dark"] .b-nav { background: rgba(30,41,59,0.9); }
+        .nav-b { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-sec); transition: all 0.2s; padding: 5px 15px; border-radius: 20px; }
+        .nav-b.active { color: var(--accent); background: rgba(16,185,129,0.1); }
         .nav-b span { font-size: 11px; font-weight: 600; }
+        
         .btn-out { width: 100%; padding: 14px; background: transparent; color: var(--danger); border: 1px solid #FCA5A5; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 30px; }
         .report-img { width: 100%; height: 180px; object-fit: cover; border-radius: 12px; margin-top: 12px; background: var(--bg); }
         .interaction-bar { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 12px; }
         .int-btn { background: var(--bg); border: none; padding: 8px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; color: var(--text-sec); display: flex; align-items: center; gap: 6px; }
-        .int-btn-accent { background: #D1FAE5; color: var(--accent-dark); }
-        .int-btn-danger { background: #FEE2E2; color: #EF4444; margin-left: auto; padding: 8px 10px; }
+        .int-btn-accent { background: rgba(16,185,129,0.1); color: var(--accent); }
+        .int-btn-danger { background: rgba(239,68,68,0.1); color: var(--danger); margin-left: auto; padding: 8px 10px; }
         .comment-box { background: var(--bg); padding: 12px; border-radius: 12px; margin-top: 12px; display: none; }
         .comment-list { margin-bottom: 10px; max-height: 200px; overflow-y: auto; }
         .comment-item { background: var(--surface); padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; border: 1px solid var(--border); }
-        .comment-item b { color: var(--primary); font-size: 12px; display: block; margin-bottom: 2px; }
+        .comment-item b { color: var(--text); font-size: 12px; display: block; margin-bottom: 2px; }
         
-        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 12px 24px; border-radius: 30px; box-shadow: var(--shadow-lg); z-index: 200; display: none; font-size: 14px; font-weight: 600; }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 12px 24px; border-radius: 30px; box-shadow: var(--shadow-lg); z-index: 200; display: none; font-size: 14px; font-weight: 600; }
         
+        /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-        .modal-box { background: white; width: 100%; max-width: 380px; border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: pop 0.3s ease; }
+        .modal-box { background: var(--surface); width: 100%; max-width: 380px; border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: pop 0.3s ease; }
         @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--primary); }
+        .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--text); }
         .modal-text { font-size: 14px; color: var(--text-sec); margin-bottom: 20px; line-height: 1.5; }
-        .modal-input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 15px; font-family: inherit; font-size: 14px; }
+        .modal-input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 15px; font-family: inherit; font-size: 14px; background: var(--bg); color: var(--text); }
         .modal-btns { display: flex; gap: 10px; }
         .m-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 14px; }
         .m-btn-primary { background: var(--accent); color: white; }
         .m-btn-danger { background: var(--danger); color: white; }
         .m-btn-secondary { background: var(--bg); color: var(--text-sec); }
 
+        /* CHAT */
         .chat-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 80px; }
-        .chat-msg { background: var(--surface); padding: 12px 16px; border-radius: 16px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); align-self: flex-start; }
-        .chat-msg.self { align-self: flex-end; background: #D1FAE5; border-color: #A7F3D0; }
-        .chat-msg b { font-size: 12px; color: var(--accent-dark); display: block; margin-bottom: 4px; }
-        .chat-msg.self b { text-align: right; }
+        .chat-msg { background: var(--surface); padding: 12px 16px; border-radius: 16px 16px 16px 4px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); align-self: flex-start; }
+        .chat-msg.self { align-self: flex-end; background: var(--accent); color: white; border-radius: 16px 16px 4px 16px; border: none; }
+        .chat-msg b { font-size: 12px; color: var(--accent); display: block; margin-bottom: 4px; }
+        .chat-msg.self b { color: rgba(255,255,255,0.9); text-align: right; }
         .chat-msg p { font-size: 14px; color: var(--text); }
+        .chat-msg.self p { color: white; }
         .chat-msg small { font-size: 10px; color: var(--text-sec); margin-top: 5px; display: block; text-align: right; }
-        .shared-card { background: rgba(255,255,255,0.5); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 8px; margin-top: 8px; font-size: 13px; }
-        .chat-input-box { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--surface); padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
-        .chat-input-box input { flex: 1; padding: 12px 16px; border-radius: 20px; background: var(--bg); }
+        .chat-msg.self small { color: rgba(255,255,255,0.7); }
+        .shared-card { background: rgba(255,255,255,0.2); border-left: 3px solid white; padding: 8px 12px; border-radius: 8px; margin-top: 8px; font-size: 13px; }
+        .chat-msg:not(.self) .shared-card { background: var(--bg); border-left-color: var(--accent); }
+        .chat-input-box { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: var(--surface); padding: 10px; border-radius: 20px; display: flex; gap: 10px; box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
+        .chat-input-box input { flex: 1; padding: 10px 16px; border-radius: 20px; background: var(--bg); border: none; color: var(--text); }
+        
+        /* SKELETON LOADER */
+        .skeleton { background: linear-gradient(90deg, var(--bg) 25%, var(--border) 50%, var(--bg) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        
+        /* STATS CARD */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: var(--surface); padding: 15px; border-radius: 16px; text-align: center; border: 1px solid var(--border); }
+        .stat-card h3 { font-size: 22px; font-weight: 800; color: var(--accent); }
+        .stat-card p { font-size: 11px; color: var(--text-sec); font-weight: 600; }
     </style>
 </head>
 <body>
@@ -159,10 +191,8 @@
         <div id="signup-form" style="display:none;">
             <div class="form-g"><label class="form-l">Jina Kamili</label><div class="in-wrap"><span class="in-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><input type="text" id="su-name" placeholder="Juma Hamisi"></div></div>
             <div class="form-g"><label class="form-l">Namba ya Simu</label><div class="in-wrap"><span class="in-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><input type="tel" id="su-phone" placeholder="0712345678"></div></div>
-            
             <div class="form-g" id="village-form-g"><label class="form-l">Kijiji</label><div class="in-wrap"><span class="in-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg></span>
                 <select id="su-village"><option value="">Chagua Kijiji</option><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div></div>
-            
             <div class="form-g"><label class="form-l">Hadhi Yako</label><select id="su-role" onchange="toggleLeaderFields()" style="padding-left:16px;">
                 <option value="citizen">Mwananchi</option>
                 <option value="mwenyekiti_kitongoji">Mwenyekiti Kitongoji</option>
@@ -171,10 +201,8 @@
                 <option value="mtendaji_kata">Mtendaji Kata</option>
                 <option value="diwani">Diwani</option>
             </select></div>
-            
             <div class="form-g" id="sub-village-box" style="display:none;"><label class="form-l">Kitongoji</label><input type="text" id="su-sub-village" placeholder="Mfano: Mjini A" style="padding-left:16px;"></div>
             <div class="form-g" id="pin-box" style="display:none;"><label class="form-l">PIN ya Kiongozi</label><input type="password" id="leader-pin" placeholder="Weka PIN iliyoupatiwa" style="padding-left:16px;"></div>
-            
             <button onclick="handleSignup()" class="btn-p" id="btn-signup">Tengeneza Akaunti</button>
         </div>
     </div>
@@ -183,31 +211,38 @@
 <!-- APP -->
 <div class="app-c" id="app-c">
     <header class="app-h">
-        <div><p style="font-size:12px; color:var(--text-sec);">Karibu</p><h3 id="w-name" style="font-size:18px; font-weight:800;">Mtumiaji</h3></div>
-        <div class="avatar" onclick="showSec('profile-sec')" id="u-initial">U</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <img id="h-avatar" src="" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); display:none;">
+            <div id="h-initial" style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">U</div>
+            <div><p style="font-size:11px; color:var(--text-sec);">Karibu</p><h3 id="w-name" style="font-size:16px; font-weight:800;">Mtumiaji</h3></div>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
     </header>
     <main>
         <div id="home-sec" class="sec active"><div id="home-content"></div></div>
-        <div id="market-sec" class="sec"><div class="sec-h"><h2>Soko la Kitama</h2><span onclick="showSec('add-item-sec')">+ Tangaza</span></div><div id="market-list"></div></div>
+        <div id="hub-sec" class="sec"><div class="sec-h"><h2>Mchanganyiko wa Habari</h2><span onclick="fetchHub()">Refresh</span></div><div id="hub-list"></div></div>
+        <div id="market-sec" class="sec"><div class="sec-h"><h2>Soko la Kitama</h2><span onclick="showSec('add-item-sec')">+ Tangaza</span></div><input type="text" id="market-search" placeholder="Tafuta bidhaa..." style="margin-bottom:15px; padding:10px 16px; border-radius:12px; border:1px solid var(--border); background:var(--surface); color:var(--text);" oninput="fetchMarket()"><div id="market-list"></div></div>
         <div id="add-item-sec" class="sec"><div class="sec-h"><h2>Tangaza Bidhaa</h2></div><div class="form-g"><input type="text" id="item-name" style="padding-left:16px;" placeholder="Jina la Bidhaa"></div><div class="form-g"><textarea id="item-desc" placeholder="Maelezo"></textarea></div><div class="form-g"><input type="text" id="item-price" style="padding-left:16px;" placeholder="Bei"></div><button onclick="postItem()" class="btn-p">Weka Tangazo</button></div>
         <div id="progress-sec" class="sec"><div class="sec-h"><h2>Maendeleo ya Kata</h2><span onclick="fetchPublicProgress()">Refresh</span></div><div id="progress-list"></div></div>
-        <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div>
+        <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div>
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
-        <div id="leader-chat-sec" class="sec"><div class="sec-h"><h2>Chumb cha Viongozi</h2></div><div class="chat-container" id="chat-list"></div><div class="chat-input-box"><input type="text" id="chat-input" placeholder="Andika ujumbe..."><button onclick="postChat()" style="padding:12px 20px; background:var(--primary); color:white; border:none; border-radius:20px; font-weight:700;">Tuma</button></div></div>
+        <div id="leader-chat-sec" class="sec"><div class="sec-h"><h2>Chumb cha Viongozi</h2></div><div class="chat-container" id="chat-list"></div><div class="chat-input-box"><input type="text" id="chat-input" placeholder="Andika ujumbe..."><button onclick="postChat()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:20px; font-weight:700;">Tuma</button></div></div>
         
-        <!-- KAMPENI & MIRADI -->
-        <div id="campaign-sec" class="sec"><div class="sec-h"><h2>Kampeni & Miradi</h2><span onclick="fetchProjects()">Refresh</span></div><div id="project-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="proj-title" style="padding-left:16px;" placeholder="Jina la Mradi/Mkakati"></div><div class="form-g"><textarea id="proj-desc" placeholder="Maelezo ya Mradi (Dira)"></textarea></div><div class="form-g"><select id="proj-status" style="padding-left:16px;"><option value="planned">Inapaswa kutekelezwa</option><option value="ongoing">Inaendelea</option><option value="stalled">Imekatika</option><option value="completed">Imekamilika</option></select></div><button onclick="postProject()" class="btn-p">Weka Mradi</button></div><div id="projects-list"></div></div>
+        <div id="campaign-sec" class="sec"><div class="sec-h"><h2>Kampeni & Miradi</h2><span onclick="fetchProjects()">Refresh</span></div><div id="project-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="proj-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Mradi/Mkakati"></div><div class="form-g"><textarea id="proj-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Maelezo ya Mradi (Dira)"></textarea></div><div class="form-g"><select id="proj-status" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option value="planned">Inapaswa kutekelezwa</option><option value="ongoing">Inaendelea</option><option value="stalled">Imekatika</option><option value="completed">Imekamilika</option></select></div><button onclick="postProject()" class="btn-p">Weka Mradi</button></div><div id="projects-list"></div></div>
 
-        <!-- ANDAMANA (SOLIDARITY) -->
-        <div id="solidarity-sec" class="sec"><div class="sec-h"><h2>Andamana (Ajenda)</h2><span onclick="fetchCauses()">Refresh</span></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Andamana na wananchi wengine kuleta mabadiliko. Tuma ajeda na uwaombe wengine wakuunge mkono.</p><div id="cause-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="cause-title" style="padding-left:16px;" placeholder="Kichwa cha Ajenda"></div><div class="form-g"><textarea id="cause-desc" placeholder="Eleza ajenda yako..."></textarea></div><button onclick="postCause()" class="btn-p">Tuma Ajenda</button></div><div id="causes-list"></div></div>
+        <div id="solidarity-sec" class="sec"><div class="sec-h"><h2>Andamana (Ajenda)</h2><span onclick="fetchCauses()">Refresh</span></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Andamana na wananchi wengine kuleta mabadiliko. Tuma ajeda na uwaombe wengine wakuunge mkono.</p><div id="cause-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="cause-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Kichwa cha Ajenda"></div><div class="form-g"><textarea id="cause-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Eleza ajenda yako..."></textarea></div><button onclick="postCause()" class="btn-p">Tuma Ajenda</button></div><div id="causes-list"></div></div>
 
-        <div id="manage-villages-sec" class="sec"><div class="sec-h"><h2>Weka Kitongoji</h2></div><div class="form-g"><select id="sub-v-village" style="padding-left:16px;"><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div><div class="form-g"><input type="text" id="sub-v-name" style="padding-left:16px;" placeholder="Jina la Kitongoji"></div><button onclick="addSubVillage()" class="btn-p">Ongeza Kitongoji</button><div id="sub-villages-list" style="margin-top:20px;"></div></div>
+        <div id="events-sec" class="sec"><div class="sec-h"><h2>Kalenda ya Matukio</h2><span onclick="fetchEvents()">Refresh</span></div><div id="event-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="event-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Tukio (Mfano: Mkutano)"></div><div class="form-g"><input type="date" id="event-date" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div><div class="form-g"><input type="text" id="event-location" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Mahali"></div><div class="form-g"><textarea id="event-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Maelezo ya tukio"></textarea></div><button onclick="postEvent()" class="btn-p">Weka Tukio</button></div><div id="events-list"></div></div>
+
+        <div id="manage-villages-sec" class="sec"><div class="sec-h"><h2>Weka Kitongoji</h2></div><div class="form-g"><select id="sub-v-village" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div><div class="form-g"><input type="text" id="sub-v-name" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Kitongoji"></div><button onclick="addSubVillage()" class="btn-p">Ongeza Kitongoji</button><div id="sub-villages-list" style="margin-top:20px;"></div></div>
         
-        <div id="admin-pins-sec" class="sec"><div class="sec-h"><h2>PIN za Viongozi</h2></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Badilisha PIN za viongozi wakati wowote. PIN mpya itatumika mara moja.</p><div class="form-g"><select id="pin-role" onchange="togglePinVillage()" style="padding-left:16px;"><option value="diwani">Diwani</option><option value="mtendaji_kata">Mtendaji Kata</option><option value="mtendaji_kijiji">Mtendaji Kijiji</option><option value="mwenyekiti_kijiji">Mwenyekiti Kijiji</option><option value="mwenyekiti_kitongoji">Mwenyekiti Kitongoji</option></select></div><div class="form-g" id="pin-village-box" style="display:none;"><select id="pin-village" style="padding-left:16px;"><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div><div class="form-g"><input type="text" id="pin-value" style="padding-left:16px;" placeholder="Weka PIN mpya (Mfano: 9999)"></div><button onclick="updatePin()" class="btn-p">Hifadhi PIN</button><div id="pins-list" style="margin-top:20px;"></div></div>
+        <div id="admin-pins-sec" class="sec"><div class="sec-h"><h2>PIN za Viongozi</h2></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Badilisha PIN za viongozi wakati wowote. PIN mpya itatumika mara moja.</p><div class="form-g"><select id="pin-role" onchange="togglePinVillage()" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option value="diwani">Diwani</option><option value="mtendaji_kata">Mtendaji Kata</option><option value="mtendaji_kijiji">Mtendaji Kijiji</option><option value="mwenyekiti_kijiji">Mwenyekiti Kijiji</option><option value="mwenyekiti_kitongoji">Mwenyekiti Kitongoji</option></select></div><div class="form-g" id="pin-village-box" style="display:none;"><select id="pin-village" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div><div class="form-g"><input type="text" id="pin-value" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Weka PIN mpya (Mfano: 9999)"></div><button onclick="updatePin()" class="btn-p">Hifadhi PIN</button><div id="pins-list" style="margin-top:20px;"></div></div>
 
         <div id="pending-users-sec" class="sec"><div class="sec-h"><h2>Watu Wapya (Wanaosubiri)</h2></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Hawa ni watu waliojisajili. Kagua majina yao, kisha kubali au kataza.</p><div id="pending-list"></div></div>
 
-        <div id="profile-sec" class="sec"><div class="sec-h"><h2>Akaunti Yangu</h2></div><div style="text-align:center; margin-bottom:20px;"><div class="avatar" style="width:80px; height:80px; font-size:28px; margin:0 auto 15px;" id="p-ava">U</div><h3 id="p-name">Jina</h3><p id="p-village" style="color:var(--text-sec);">Kijiji</p></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px;"><strong>Namba:</strong> <span id="p-phone"></span></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px;"><strong>Hadh:</strong> <span id="p-role"></span></div><button onclick="handleLogout()" class="btn-out">Toka (Logout)</button></div>
+        <div id="profile-sec" class="sec"><div class="sec-h"><h2>Akaunti Yangu</h2></div><div style="text-align:center; margin-bottom:20px;"><img id="p-ava-img" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--accent); margin:0 auto 15px; display:none;"><div id="p-ava" style="width:80px; height:80px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; margin:0 auto 15px;">U</div><h3 id="p-name">Jina</h3><p id="p-village" style="color:var(--text-sec);">Kijiji</p><button onclick="document.getElementById('avatar-upload').click()" style="margin-top:10px; background:var(--bg); color:var(--text); border:1px solid var(--border); padding:8px 16px; border-radius:10px; font-weight:600; cursor:pointer;">Badilisha Picha</button><input type="file" id="avatar-upload" accept="image/*" style="display:none;" onchange="uploadAvatar()"></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Namba:</strong> <span id="p-phone"></span></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Hadh:</strong> <span id="p-role"></span></div><button onclick="handleLogout()" class="btn-out">Toka (Logout)</button></div>
     </main>
     <div class="b-nav" id="b-nav"></div>
 </div>
@@ -217,7 +252,7 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     
-    const BAD_WORDS = ['mbwa', 'kuma', 'matako', 'ushenzi', 'pumbavu', 'mavi', 'kuma', 'mbulu', 'uliye'];
+    const BAD_WORDS = ['mbwa', 'kuma', 'matako', 'ushenzi', 'pumbavu', 'mavi', 'mbulu', 'uliye'];
     function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
     
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
@@ -235,6 +270,20 @@
         document.getElementById('modal-overlay').style.display = 'flex';
     }
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+    // THEME TOGGLE
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('kitama_theme', newTheme);
+        document.getElementById('theme-icon').innerHTML = newTheme === 'dark' ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>' : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    }
+    (function() {
+        const savedTheme = localStorage.getItem('kitama_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        if(savedTheme === 'dark') document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    })();
 
     function switchTab(t) { 
         if(t==='login'){document.getElementById('login-form').style.display='block';document.getElementById('signup-form').style.display='none';document.getElementsByClassName('auth-tab')[0].classList.add('active');document.getElementsByClassName('auth-tab')[1].classList.remove('active');} 
@@ -286,45 +335,73 @@
         document.getElementById('auth-c').style.display='none'; document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         document.getElementById('w-name').innerText = u.full_name.split(' ')[0];
-        document.getElementById('u-initial').innerText = u.full_name.charAt(0).toUpperCase();
         document.getElementById('p-name').innerText = u.full_name;
         document.getElementById('p-village').innerText = u.village + (u.sub_village ? ` (${u.sub_village})` : '');
         document.getElementById('p-phone').innerText = u.phone_number;
         document.getElementById('p-role').innerText = u.role.replace(/_/g, ' ');
-        document.getElementById('p-ava').innerText = u.full_name.charAt(0).toUpperCase();
+        
+        if(u.avatar_url) {
+            document.getElementById('h-avatar').src = u.avatar_url; document.getElementById('h-avatar').style.display = 'block'; document.getElementById('h-initial').style.display = 'none';
+            document.getElementById('p-ava-img').src = u.avatar_url; document.getElementById('p-ava-img').style.display = 'block'; document.getElementById('p-ava').style.display = 'none';
+        } else {
+            document.getElementById('h-avatar').style.display = 'none'; document.getElementById('h-initial').style.display = 'flex'; document.getElementById('h-initial').innerText = u.full_name.charAt(0).toUpperCase();
+            document.getElementById('p-ava-img').style.display = 'none'; document.getElementById('p-ava').style.display = 'flex'; document.getElementById('p-ava').innerText = u.full_name.charAt(0).toUpperCase();
+        }
         setupDashboard(u);
     }
 
     function setupDashboard(u) {
         const content = document.getElementById('home-content'), nav = document.getElementById('b-nav');
-        let navHtml = `<button class="nav-b active" onclick="showSec('home-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button>`;
+        let navHtml = `<button class="nav-b active" onclick="showSec('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button><button class="nav-b" onclick="showSec('hub-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Habari</span></button><button class="nav-b" onclick="showSec('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button><button class="nav-b" onclick="showSec('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
         let html = `<div class="hero-banner"><h2>Habari, ${u.full_name.split(' ')[0]}</h2><p>${u.role === 'citizen' ? 'Karibu kwenye huduma za Kata ya Kitama' : 'Dashibodi ya ' + u.role.replace(/_/g, ' ')}</p>`;
         
         if(u.role === 'citizen') {
-            if(u.status === 'pending') { html += `<div class="warning-box">⚠️ Akaunti yako inasubiri kuidhinishwa na Kiongozi. Hauwezi kutuma ripoti kwa sasa.</div></div>`; } 
+            if(u.status === 'pending') { html += `<div class="warning-box" style="margin:15px 0 0 0;">⚠️ Akaunti yako inasubiri kuidhinishwa na Kiongozi. Hauwezi kutuma ripoti kwa sasa.</div></div>`; } 
             else { html += `<button class="hero-sos" onclick="triggerSOS()">🆘 Tuma Arhi ya Dharura</button></div>`; }
             const isPending = u.status === 'pending';
-            html += `<div class="sec-h"><h2>Huduma Za Kata</h2></div><div class="qa-grid">
-                <div class="qa-card ${isPending ? '' : 'active'}" onclick="showSec('report-sec')"><div class="qa-icon" style="background:#FEF3C7;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h4>Tuma Ripoti</h4><p>Na Picha</p></div>
-                <div class="qa-card active" onclick="showSec('campaign-sec')"><div class="qa-icon" style="background:#E0E7FF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h4>Kampeni & Miradi</h4><p>Dira yetu</p></div>
-                <div class="qa-card active" onclick="showSec('solidarity-sec')"><div class="qa-icon" style="background:#FEE2E2;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4zM6 1v3M10 1v3M14 1v3"/></svg></div><h4>Andamana</h4><p>Unganishwa na Ajenda</p></div>
-                <div class="qa-card active" onclick="showSec('progress-sec')"><div class="qa-icon" style="background:#D1FAE5;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></div><h4>Maendeleo</h4><p>Fuatilia Ripoti</p></div>
+            html += `<div class="qa-grid" style="margin-top:20px;">
+                <div class="qa-card ${isPending ? '' : 'active'}" onclick="showSec('report-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h4>Tuma Ripoti</h4><p>Na Picha</p></div>
+                <div class="qa-card active" onclick="showSec('campaign-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h4>Miradi & Dira</h4><p>Fuatilia kampeni</p></div>
+                <div class="qa-card active" onclick="showSec('solidarity-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4zM6 1v3M10 1v3M14 1v3"/></svg></div><h4>Andamana</h4><p>Unganishwa na Ajenda</p></div>
+                <div class="qa-card active" onclick="showSec('events-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h4>Matukio</h4><p>Kalenda ya Kata</p></div>
             </div>`;
-            navHtml += `<button class="nav-b" onclick="showSec('campaign-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Miradi</span></button><button class="nav-b" onclick="showSec('profile-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
         } else {
-            html += `</div><div class="sec-h"><h2>Vitufe vya Haraka</h2></div><div class="qa-grid">
-                <div class="qa-card active" onclick="showSec('leader-reports-sec')"><div class="qa-icon" style="background:#FEF3C7;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><h4>Malalamishi</h4><p>Ya wananchi</p></div>
-                <div class="qa-card active" onclick="showSec('campaign-sec')"><div class="qa-icon" style="background:#E0E7FF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h4>Miradi & Dira</h4><p>Weka/Tangaza</p></div>
-                <div class="qa-card active" onclick="showSec('pending-users-sec')"><div class="qa-icon" style="background:#FEE2E2;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><h4>Watu Wapya</h4><p>Waidhinishe</p></div>
-                <div class="qa-card active" onclick="showSec('leader-chat-sec')"><div class="qa-icon" style="background:#D1FAE5;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Chumb cha Viongozi</h4><p>Jadiliana</p></div>`;
+            html += `</div>`;
+            
+            // Leader Stats Dashboard
+            html += `<div class="stats-grid"><div class="stat-card"><h3 id="stat-pending">0</h3><p>Wanaosubiri</p></div><div class="stat-card"><h3 id="stat-reports">0</h3><p>Malalamishi</p></div><div class="stat-card"><h3 id="stat-resolved">0</h3><p>Yaliyokamilika</p></div></div>`;
+            
+            html += `<div class="qa-grid">
+                <div class="qa-card active" onclick="showSec('leader-reports-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><h4>Malalamishi</h4><p>Ya wananchi</p></div>
+                <div class="qa-card active" onclick="showSec('campaign-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h4>Miradi & Dira</h4><p>Weka/Tangaza</p></div>
+                <div class="qa-card active" onclick="showSec('events-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h4>Matukio</h4><p>Tangaza mikutano</p></div>
+                <div class="qa-card active" onclick="showSec('pending-users-sec')"><div class="qa-icon" style="background:rgba(217,119,6,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg></div><h4>Watu Wapya</h4><p>Waidhinishe</p></div>
+                <div class="qa-card active" onclick="showSec('leader-chat-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Chumb cha Viongozi</h4><p>Jadiliana</p></div>`;
             if(u.role === 'mtendaji_kata') {
-                html += `<div class="qa-card active" onclick="showSec('manage-villages-sec')"><div class="qa-icon" style="background:#E0E7FF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h4>Weka Kitongoji</h4><p>Ongeza maeneo</p></div>`;
-                html += `<div class="qa-card active" onclick="showSec('admin-pins-sec')"><div class="qa-icon" style="background:#FEE2E2;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h4>PIN za Viongozi</h4><p>Badilisha PIN</p></div>`;
+                html += `<div class="qa-card active" onclick="showSec('manage-villages-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h4>Vitongoji</h4><p>Ongeza maeneo</p></div>`;
+                html += `<div class="qa-card active" onclick="showSec('admin-pins-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><h4>PIN za Viongozi</h4><p>Badilisha PIN</p></div>`;
             }
             html += `</div>`;
-            navHtml += `<button class="nav-b" onclick="showSec('leader-reports-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>Kazi</span></button><button class="nav-b" onclick="showSec('profile-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
+            fetchLeaderStats(u);
         }
         content.innerHTML = html; nav.innerHTML = navHtml; showSec('home-sec');
+    }
+
+    async function fetchLeaderStats(u) {
+        try {
+            const { count: pendingCount } = await sb.from('users').select('*', { count: 'exact' }).eq('status', 'pending');
+            document.getElementById('stat-pending').innerText = pendingCount || 0;
+            
+            let repQuery = sb.from('reports').select('*', { count: 'exact' });
+            if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') repQuery = repQuery.eq('village', u.village);
+            const { count: repCount } = await repQuery;
+            document.getElementById('stat-reports').innerText = repCount || 0;
+            
+            let resQuery = sb.from('reports').select('*', { count: 'exact' }).eq('status', 'resolved');
+            if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') resQuery = resQuery.eq('village', u.village);
+            const { count: resCount } = await resQuery;
+            document.getElementById('stat-resolved').innerText = resCount || 0;
+        } catch(e) { console.error(e); }
     }
 
     function handleLogout() { localStorage.removeItem('kitama_user'); location.reload(); }
@@ -334,6 +411,7 @@
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-b').forEach(n => n.classList.remove('active'));
         document.querySelectorAll('.nav-b').forEach(n => { if(n.getAttribute('onclick').includes(id)) n.classList.add('active'); });
+        if(id==='hub-sec') fetchHub();
         if(id==='market-sec') fetchMarket();
         if(id==='progress-sec') fetchPublicProgress();
         if(id==='leader-reports-sec') fetchLeaderReports();
@@ -343,15 +421,12 @@
         if(id==='pending-users-sec') fetchPendingUsers();
         if(id==='campaign-sec') fetchProjects();
         if(id==='solidarity-sec') fetchCauses();
+        if(id==='events-sec') fetchEvents();
 
-        // Show forms for leaders
         const u = JSON.parse(localStorage.getItem('kitama_user'));
-        if(id==='campaign-sec' && (u.role === 'mtendaji_kata' || u.role === 'diwani')) {
-            document.getElementById('project-form-box').style.display = 'block';
-        }
-        if(id==='solidarity-sec' && u.role === 'citizen' && u.status === 'active') {
-            document.getElementById('cause-form-box').style.display = 'block';
-        }
+        if(id==='campaign-sec' && (u.role === 'mtendaji_kata' || u.role === 'diwani')) document.getElementById('project-form-box').style.display = 'block';
+        if(id==='solidarity-sec' && u.role === 'citizen' && u.status === 'active') document.getElementById('cause-form-box').style.display = 'block';
+        if(id==='events-sec' && u.role !== 'citizen') document.getElementById('event-form-box').style.display = 'block';
     }
 
     async function triggerSOS() {
@@ -385,96 +460,128 @@
         let sText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika';
         let imgHtml = r.image_url ? `<img src="${r.image_url}" class="report-img" onerror="this.style.display='none'">` : '';
         let resImgHtml = r.resolution_image ? `<img src="${r.resolution_image}" class="report-img" style="border:2px solid var(--accent);" onerror="this.style.display='none'">` : '';
-        let resNoteHtml = r.resolution_note ? `<div style="background:#D1FAE5; padding:12px; border-radius:8px; margin-top:12px; font-size:13px;"><b>Uthibitisho wa Kiongozi:</b> ${r.resolution_note} <br> <small>- ${r.resolved_by_name || 'Kiongozi'}</small></div>` : '';
+        let resNoteHtml = r.resolution_note ? `<div style="background:rgba(16,185,129,0.1); padding:12px; border-radius:8px; margin-top:12px; font-size:13px; border-left:3px solid var(--accent);"><b>Uthibitisho:</b> ${r.resolution_note} <br> <small>- ${r.resolved_by_name || 'Kiongozi'}</small></div>` : '';
         let interactionHtml = '';
         if(!isLeader) {
-            if(u.phone_number !== r.created_by_phone) { interactionHtml = `<div class="interaction-bar"><button class="int-btn" onclick="upvote('${r.id}', ${r.upvotes})">👍 Nakubaliana (${r.upvotes})</button><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button></div>`; } 
+            const hasUpvoted = r.upvoted_by && r.upvoted_by.includes(u.phone_number);
+            if(u.phone_number !== r.created_by_phone) { interactionHtml = `<div class="interaction-bar"><button class="int-btn ${hasUpvoted ? 'int-btn-accent' : ''}" onclick="upvote('${r.id}', ${r.upvotes})">👍 Nakubaliana (${r.upvotes})</button><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button></div>`; } 
             else { interactionHtml = `<div class="interaction-bar"><span class="int-btn" style="opacity:0.6; cursor:default;">👍 Wamekubaliana (${r.upvotes})</span><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button></div>`; }
-        } else {
-            interactionHtml = `<div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="shareToLeaders('${r.id}', '${r.title.replace(/'/g, "")}')">📤 Shiriki</button><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button><button class="int-btn int-btn-danger" onclick="deleteReport('${r.id}')">🗑️ Futa</button></div>`;
-        }
+        } else { interactionHtml = `<div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="shareToLeaders('${r.id}', '${r.title.replace(/'/g, "")}')">📤 Shiriki</button><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button><button class="int-btn int-btn-danger" onclick="deleteReport('${r.id}')">🗑️ Futa</button></div>`; }
         let actionBtn = '';
         if(isLeader) {
-            if(r.status === 'pending') actionBtn = `<button class="btn-p" style="margin-top:12px; padding:10px; font-size:13px; background:var(--bg); color:var(--primary);" onclick="updateStatus('${r.id}','in_progress')">Anza Kushughulikia</button>`;
-            else if(r.status === 'in_progress') actionBtn = `<button class="btn-p" style="margin-top:12px; padding:10px; font-size:13px; background:var(--accent); color:white;" onclick="promptResolution('${r.id}', '${u.full_name}')">Kamilisha (Weka Uthibitisho)</button>`;
+            if(r.status === 'pending') actionBtn = `<button class="btn-p" style="margin-top:12px; padding:10px; font-size:13px; background:var(--bg); color:var(--text);" onclick="updateStatus('${r.id}','in_progress')">Anza Kushughulikia</button>`;
+            else if(r.status === 'in_progress') actionBtn = `<button class="btn-p" style="margin-top:12px; padding:10px; font-size:13px;" onclick="promptResolution('${r.id}', '${u.full_name}')">Kamilisha (Weka Uthibitisho)</button>`;
         }
-        return `<div class="list-i"><h4>${r.title}</h4><p>${r.description}</p>${imgHtml}${resImgHtml}${resNoteHtml}<div class="list-meta"><span class="badge b-info">${r.category}</span><span class="badge ${sClass}">${sText}</span><span class="badge b-warn">${r.village}</span><span style="font-size:11px; color:var(--text-sec);">Imetumwa na: ${r.created_by_name || 'Mwananchi'}</span></div>${interactionHtml}<div class="comment-box" id="comments-${r.id}"><div class="comment-list" id="comment-list-${r.id}"><p style="font-size:12px; color:var(--text-sec);">Inapakia maoni...</p></div><div style="display:flex; gap:5px;"><input type="text" id="comment-input-${r.id}" placeholder="Ongeza maoni yako..." style="padding:8px 12px; font-size:13px; border-radius:6px; flex:1; border:1px solid var(--border);"><button onclick="postComment('${r.id}')" style="padding:8px 12px; background:var(--primary); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700;">Tuma</button></div></div>${actionBtn}</div>`;
+        return `<div class="list-i"><h4>${r.title}</h4><p>${r.description}</p>${imgHtml}${resImgHtml}${resNoteHtml}<div class="list-meta"><span class="badge b-info">${r.category}</span><span class="badge ${sClass}">${sText}</span><span class="badge b-warn">${r.village}</span><span style="font-size:11px; color:var(--text-sec);">Imetumwa na: ${r.created_by_name || 'Mwananchi'}</span></div>${interactionHtml}<div class="comment-box" id="comments-${r.id}"><div class="comment-list" id="comment-list-${r.id}"><div class="skeleton" style="height:20px; width:100%; margin-bottom:5px;"></div><div class="skeleton" style="height:20px; width:80%;"></div></div><div style="display:flex; gap:5px;"><input type="text" id="comment-input-${r.id}" placeholder="Ongeza maoni yako..." style="padding:8px 12px; font-size:13px; border-radius:6px; flex:1; border:1px solid var(--border); background:var(--surface); color:var(--text);"><button onclick="postComment('${r.id}')" style="padding:8px 12px; background:var(--accent); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700;">Tuma</button></div></div>${actionBtn}</div>`;
     }
 
     async function deleteReport(id) { openModal("Futa Ripoti", "Una uhakika unataka kufuta ripoti hii kabisa?", false, async () => { try { await sb.from('reports').delete().eq('id', id); showToast("Ripoti imefutwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }); }
-    async function upvote(id, currentVotes) { try { await sb.from('reports').update({ upvotes: currentVotes + 1 }).eq('id', id); showToast("Umekubaliana na hoja hii!"); refreshActiveList(); } catch(e) { openModal("Kosa", e.message); } }
+    async function upvote(id, currentVotes) { 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        try { 
+            const { data: r } = await sb.from('reports').select('upvoted_by').eq('id', id).single();
+            let votedBy = r.upvoted_by || [];
+            if(votedBy.includes(u.phone_number)) { showToast("Umekubaliana tayari!"); return; }
+            votedBy.push(u.phone_number);
+            await sb.from('reports').update({ upvotes: currentVotes + 1, upvoted_by: votedBy }).eq('id', id); 
+            showToast("Umekubaliana na hoja hii!"); refreshActiveList(); 
+        } catch(e) { openModal("Kosa", e.message); } 
+    }
     function refreshActiveList() { const id = document.querySelector('.sec.active').id; if(id === 'leader-reports-sec') fetchLeaderReports(); if(id === 'progress-sec') fetchPublicProgress(); }
     function toggleComments(id) { const box = document.getElementById(`comments-${id}`); if(box.style.display === 'block') { box.style.display = 'none'; } else { box.style.display = 'block'; fetchComments(id); } }
     async function fetchComments(id) { try { const { data, error } = await sb.from('comments').select('*').eq('report_id', id).order('created_at', { ascending:true }); if(error) throw error; document.getElementById(`comment-list-${id}`).innerHTML = data.length > 0 ? data.map(c => `<div class="comment-item"><b>${c.author_name} (${c.author_role.replace(/_/g,' ')})</b>${c.content}<br><small>${new Date(c.created_at).toLocaleString()}</small></div>`).join('') : '<p style="font-size:12px; color:var(--text-sec);">Hakuna maoni bado.</p>'; } catch(e) { console.error(e); } }
     async function postComment(id) { const u = JSON.parse(localStorage.getItem('kitama_user')); if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado."); const content = document.getElementById(`comment-input-${id}`).value.trim(); if(!content) return; if(containsBadWords(content)) return openModal("Onyo", "Maoni yako yana maneno yasiyoruhusiwa."); try { await sb.from('comments').insert([{ report_id: id, author_name: u.full_name, author_role: u.role, content: content }]); document.getElementById(`comment-input-${id}`).value = ''; fetchComments(id); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchLeaderReports() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('leader-rep-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia...</p>'; document.getElementById('leader-rep-title').innerText = u.role === 'diwani' || u.role === 'mtendaji_kata' ? "Malalamishi ya Kata Yote" : "Malalamishi ya " + u.village; try { let query = sb.from('reports').select('*').order('created_at', { ascending:false }); if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village); const { data, error } = await query; if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, true)).join('') : '<p style="color:var(--text-sec);">Hakuna malalamishi kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
-    async function fetchPublicProgress() { const div = document.getElementById('progress-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia maendeleo...</p>'; try { const { data, error } = await sb.from('reports').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec);">Hakuna taarifa kwa sasa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
+    
+    async function fetchLeaderReports() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('leader-rep-list'); div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; document.getElementById('leader-rep-title').innerText = u.role === 'diwani' || u.role === 'mtendaji_kata' ? "Malalamishi ya Kata Yote" : "Malalamishi ya " + u.village; try { let query = sb.from('reports').select('*').order('created_at', { ascending:false }); if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village); const { data, error } = await query; if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, true)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna malalamishi kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    async function fetchPublicProgress() { const div = document.getElementById('progress-list'); div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('reports').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna taarifa kwa sasa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
     async function updateStatus(id, newStatus) { try { await sb.from('reports').update({ status: newStatus }).eq('id', id); showToast("Status imebadilishwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }
     async function promptResolution(id, leaderName) { openModal("Uthibitisho wa Kazi", "Andika kile ulichokifanya (Uthibitisho). Kisha utachagua picha ya mradi uliokamilisha.", true, async (note) => { if(!note) return openModal("Taarifa", "Lazima uandike uthibitisho."); const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.click(); fileInput.onchange = async () => { let imgUrl = null; if(fileInput.files.length > 0) { const fileName = `resolution_${Date.now()}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { await sb.from('reports').update({ status: 'resolved', resolution_note: note, resolution_image: imgUrl, resolved_by_name: leaderName }).eq('id', id); showToast("Umekamilisha kazi na kuweka uthibitisho!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }; }); }
     async function shareToLeaders(reportId, title) { openModal("Shiriki kwa Viongozi", `Una uhakika unataka kushiriki ripoti hii kwenye Chumb cha Viongozi?`, false, async () => { const u = JSON.parse(localStorage.getItem('kitama_user')); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: `Naomba msaada/maoni kuhusu ripoti hii: "${title}"`, shared_report_id: reportId }]); showToast("Imeshirikiwa kwenye Chumb cha Viongozi!"); showSec('leader-chat-sec'); } catch(e) { openModal("Kosa", e.message); } }); }
-    async function fetchLeaderChat() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('chat-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia majadiliano...</p>'; try { const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending:true }).limit(50); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(c => { const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); let sharedHtml = c.shared_report_id ? `<div class="shared-card"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; return `<div class="chat-msg ${isSelf ? 'self' : ''}"><b>${isSelf ? 'Wewe' : c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')'}</b><p>${c.content}</p>${sharedHtml}<small>${new Date(c.created_at).toLocaleString()}</small></div>`; }).join('') : '<p style="color:var(--text-sec);">Hakuna majadiliano bado.</p>'; div.scrollTop = div.scrollHeight; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
-    async function viewSharedReport(id) { try { const { data: r, error } = await sb.from('reports').select('*').eq('id', id).single(); if(error) throw error; let statusText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika'; let imgHtml = r.image_url ? `<img src="${r.image_url}" style="width:100%; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">` : ''; let modalContent = `${r.description}<br><br><div style="display:flex; gap:5px; flex-wrap:wrap;"><span style="background:#DBEAFE; color:#2563EB; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.category}</span><span style="background:#F1F5F9; color:#64748B; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${statusText}</span><span style="background:#FEF3C7; color:#D97706; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.village}</span></div>${imgHtml}`; openModal(r.title, modalContent, false); } catch(e) { openModal("Kosa", e.message); } }
+    async function fetchLeaderChat() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('chat-list'); div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending:true }).limit(50); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(c => { const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); let sharedHtml = c.shared_report_id ? `<div class="shared-card"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; return `<div class="chat-msg ${isSelf ? 'self' : ''}"><b>${isSelf ? 'Wewe' : c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')'}</b><p>${c.content}</p>${sharedHtml}<small>${new Date(c.created_at).toLocaleString()}</small></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna majadiliano bado.</p>'; div.scrollTop = div.scrollHeight; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
+    async function viewSharedReport(id) { try { const { data: r, error } = await sb.from('reports').select('*').eq('id', id).single(); if(error) throw error; let statusText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika'; let imgHtml = r.image_url ? `<img src="${r.image_url}" style="width:100%; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">` : ''; let modalContent = `${r.description}<br><br><div style="display:flex; gap:5px; flex-wrap:wrap;"><span style="background:rgba(37,99,235,0.1); color:#2563EB; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.category}</span><span style="background:rgba(100,116,139,0.1); color:#64748B; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${statusText}</span><span style="background:rgba(217,119,6,0.1); color:#D97706; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.village}</span></div>${imgHtml}`; openModal(r.title, modalContent, false); } catch(e) { openModal("Kosa", e.message); } }
     async function postChat() { const u = JSON.parse(localStorage.getItem('kitama_user')); const content = document.getElementById('chat-input').value.trim(); if(!content) return; if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa. Tafadhali waheshimu viongozi wenzako."); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content }]); document.getElementById('chat-input').value = ''; fetchLeaderChat(); } catch(e) { openModal("Kosa", e.message); } }
 
-    // UIDHINISHAJI WA WATU WAPYA (PENDING USERS)
-    async function fetchPendingUsers() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('pending-list'); div.innerHTML = '<p>Inapakia...</p>'; try { let query = sb.from('users').select('*').eq('status', 'pending'); if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village); const { data, error } = await query; if(error) throw error; div.innerHTML = data.length > 0 ? data.map(u => `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center;"><div><strong>${u.full_name}</strong><br><small>${u.phone_number} - ${u.village}</small></div><div style="display:flex; gap:5px;"><button class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:12px;" onclick="approveUser('${u.id}')">Kubali</button><button class="m-btn m-btn-danger" style="flex:none; padding:8px 12px; font-size:12px;" onclick="rejectUser('${u.id}')">Kataza</button></div></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna watu wapya wanaosubiri kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    // HUB (Activity Feed)
+    async function fetchHub() {
+        const div = document.getElementById('hub-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div><div class="skeleton" style="height:100px; margin-bottom:15px;"></div>';
+        try {
+            const { data: reps } = await sb.from('reports').select('*').order('created_at', { ascending:false }).limit(3);
+            const { data: anns } = await sb.from('announcements').select('*').order('created_at', { ascending:false }).limit(2);
+            const { data: projs } = await sb.from('projects').select('*').order('created_at', { ascending:false }).limit(2);
+            
+            let feed = [];
+            reps.forEach(r => feed.push({ type: 'Ripoti', title: r.title, desc: r.description, date: r.created_at, badge: r.status }));
+            anns.forEach(a => feed.push({ type: 'Tangazo', title: a.title, desc: a.content, date: a.created_at, badge: 'tangazo' }));
+            projs.forEach(p => feed.push({ type: 'Mradi', title: p.title, desc: p.description, date: p.created_at, badge: p.status }));
+            
+            feed.sort((a,b) => new Date(b.date) - new Date(a.date));
+            
+            div.innerHTML = feed.length > 0 ? feed.map(f => {
+                let bClass = f.badge === 'pending' ? 'b-warn' : f.badge === 'resolved' ? 'b-succ' : f.badge === 'ongoing' ? 'b-info' : 'b-err';
+                let bText = f.badge === 'pending' ? 'Inasubiri' : f.badge === 'resolved' ? 'Imekamilika' : f.badge === 'ongoing' ? 'Inaendelea' : f.badge === 'tangazo' ? 'Tangazo' : f.badge;
+                return `<div class="list-i"><div class="list-meta"><span class="badge b-info">${f.type}</span><span class="badge ${bClass}">${bText}</span></div><h4 style="margin-top:8px;">${f.title}</h4><p>${f.desc}</p><small style="color:var(--text-sec); display:block; margin-top:8px; text-align:right;">${new Date(f.date).toLocaleString()}</small></div>`;
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna taarifa mpya.</p>';
+        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+    }
+
+    // UIDHINISHAJI
+    async function fetchPendingUsers() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('pending-list'); div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>'; try { let query = sb.from('users').select('*').eq('status', 'pending'); if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village); const { data, error } = await query; if(error) throw error; div.innerHTML = data.length > 0 ? data.map(u => `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center;"><div><strong>${u.full_name}</strong><br><small>${u.phone_number} - ${u.village}</small></div><div style="display:flex; gap:5px;"><button class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:12px;" onclick="approveUser('${u.id}')">Kubali</button><button class="m-btn m-btn-danger" style="flex:none; padding:8px 12px; font-size:12px;" onclick="rejectUser('${u.id}')">Kataza</button></div></div>`).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna watu wapya wanaosubiri kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
     async function approveUser(id) { try { await sb.from('users').update({ status: 'active' }).eq('id', id); showToast("Mtumiaji amekubaliwa!"); fetchPendingUsers(); } catch(e) { openModal("Kosa", e.message); } }
     async function rejectUser(id) { openModal("Kataza Mtumiaji", "Una uhakika unataka kumkataza mtumiaji huyu? Akaunti yake itafutwa kabisa.", false, async () => { try { await sb.from('users').delete().eq('id', id); showToast("Mtumiaji amekataliwa na kufutwa!"); fetchPendingUsers(); } catch(e) { openModal("Kosa", e.message); } }); }
 
-    // VITONGOJI LOGIC
+    // VITONGOJI
     async function addSubVillage() { const village = document.getElementById('sub-v-village').value, name = document.getElementById('sub-v-name').value.trim(); if(!name) return openModal("Taarifa", "Weka jina la kitongoji."); try { await sb.from('sub_villages').insert([{ village: village, sub_village_name: name }]); showToast("Kitongoji kimeongezwa!"); document.getElementById('sub-v-name').value = ''; fetchSubVillages(); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchSubVillages() { const div = document.getElementById('sub-villages-list'); div.innerHTML = '<p>Inapakia...</p>'; try { const { data, error } = await sb.from('sub_villages').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(v => `<div class="list-i" style="padding:12px;"><strong>${v.sub_village_name}</strong><br><small style="color:var(--text-sec);">Kijiji: ${v.village}</small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna vitongoji vilivyoongezwa bado.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    async function fetchSubVillages() { const div = document.getElementById('sub-villages-list'); div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('sub_villages').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(v => `<div class="list-i" style="padding:12px;"><strong>${v.sub_village_name}</strong><br><small style="color:var(--text-sec);">Kijiji: ${v.village}</small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna vitongoji vilivyoongezwa bado.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
 
-    // ADMIN PIN LOGIC
+    // PIN LOGIC
     function togglePinVillage() { document.getElementById('pin-village-box').style.display = document.getElementById('pin-role').value === 'mtendaji_kijiji' ? 'block' : 'none'; }
     async function updatePin() { const role = document.getElementById('pin-role').value, village = document.getElementById('pin-village').value, pin = document.getElementById('pin-value').value.trim(); if(!pin) return openModal("Taarifa", "Weka PIN mpya."); try { let query = sb.from('leader_pins').select('*').eq('role', role); if(role === 'mtendaji_kijiji') query = query.eq('village', village); else query = query.is('village', null); const { data: existing } = await query.maybeSingle(); if(existing) { await sb.from('leader_pins').update({ pin: pin }).eq('id', existing.id); } else { await sb.from('leader_pins').insert([{ role: role, village: role === 'mtendaji_kijiji' ? village : null, pin: pin }]); } showToast("PIN imehifadhiwa!"); document.getElementById('pin-value').value = ''; fetchPins(); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchPins() { const div = document.getElementById('pins-list'); div.innerHTML = '<p>Inapakia...</p>'; try { const { data, error } = await sb.from('leader_pins').select('*').order('role', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => `<div class="list-i" style="padding:12px;"><strong>${p.role.replace(/_/g,' ')}</strong>${p.village ? ' - '+p.village : ''}<br><small style="color:var(--text-sec);">PIN: <b>${p.pin}</b></small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna PIN zilizowekwa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    async function fetchPins() { const div = document.getElementById('pins-list'); div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('leader_pins').select('*').order('role', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => `<div class="list-i" style="padding:12px;"><strong>${p.role.replace(/_/g,' ')}</strong>${p.village ? ' - '+p.village : ''}<br><small style="color:var(--text-sec);">PIN: <b>${p.pin}</b></small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna PIN zilizowekwa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
 
-    // KAMPENI NA MIRADI LOGIC
-    async function postProject() {
-        const title = document.getElementById('proj-title').value.trim(), desc = document.getElementById('proj-desc').value.trim(), status = document.getElementById('proj-status').value;
-        if(!title||!desc) return openModal("Taarifa", "Jaza jina na maelezo ya mradi.");
-        try { await sb.from('projects').insert([{ title, description: desc, status }]); showToast("Mradi umewekwa!"); document.getElementById('proj-title').value=''; document.getElementById('proj-desc').value=''; fetchProjects(); } catch(e) { openModal("Kosa", e.message); }
+    // MIRADI & KAMPENI
+    async function postProject() { const title = document.getElementById('proj-title').value.trim(), desc = document.getElementById('proj-desc').value.trim(), status = document.getElementById('proj-status').value; if(!title||!desc) return openModal("Taarifa", "Jaza jina na maelezo ya mradi."); try { await sb.from('projects').insert([{ title, description: desc, status }]); showToast("Mradi umewekwa!"); document.getElementById('proj-title').value=''; document.getElementById('proj-desc').value=''; fetchProjects(); } catch(e) { openModal("Kosa", e.message); } }
+    async function fetchProjects() { const div = document.getElementById('projects-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('projects').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => { let sClass = p.status === 'planned' ? 'b-info' : p.status === 'ongoing' ? 'b-warn' : p.status === 'stalled' ? 'b-err' : 'b-succ'; let sText = p.status === 'planned' ? 'Inapaswa kutekelezwa' : p.status === 'ongoing' ? 'Inaendelea' : p.status === 'stalled' ? 'Imekatika' : 'Imekamilika'; return `<div class="list-i"><h4>${p.title}</h4><p>${p.description}</p><div class="list-meta"><span class="badge ${sClass}">${sText}</span></div></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna miradi iliyowekwa kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+
+    // ANDAMANA
+    async function postCause() { const u = JSON.parse(localStorage.getItem('kitama_user')); const title = document.getElementById('cause-title').value.trim(), desc = document.getElementById('cause-desc').value.trim(); if(!title||!desc) return openModal("Taarifa", "Jaza kichwa na maelezo ya ajenda."); if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa."); try { await sb.from('causes').insert([{ title, description: desc, created_by_name: u.full_name, created_by_phone: u.phone_number }]); showToast("Ajenda imetumwa! Wengine wataikuunga mkono."); document.getElementById('cause-title').value=''; document.getElementById('cause-desc').value=''; fetchCauses(); } catch(e) { openModal("Kosa", e.message); } }
+    async function fetchCauses() { const div = document.getElementById('causes-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('causes').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(c => { let sBadge = c.status === 'addressed' ? '<span class="badge b-succ">Imekubaliwa na Viongozi</span>' : '<span class="badge b-warn">Inasubiri</span>'; return `<div class="list-i"><h4>${c.title}</h4><p>${c.description}</p><div class="list-meta"><span class="badge b-info">Imetumwa na: ${c.created_by_name}</span>${sBadge}</div><div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="supportCause('${c.id}', ${c.supporters})">✊ Niandamanye (${c.supporters})</button></div></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna ajeda kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    async function supportCause(id, currentSupporters) { try { await sb.from('causes').update({ supporters: currentSupporters + 1 }).eq('id', id); showToast("Umeiunga mkono ajenda hii!"); fetchCauses(); } catch(e) { openModal("Kosa", e.message); } }
+
+    // EVENTS (MATUKIO)
+    async function postEvent() {
+        const title = document.getElementById('event-title').value.trim(), date = document.getElementById('event-date').value, location = document.getElementById('event-location').value.trim(), desc = document.getElementById('event-desc').value.trim();
+        if(!title||!date) return openModal("Taarifa", "Weka jina la tukio na tarehe.");
+        try { await sb.from('events').insert([{ title, description: desc, event_date: date, location: location }]); showToast("Tukio limewekwa!"); document.getElementById('event-title').value=''; document.getElementById('event-date').value=''; document.getElementById('event-location').value=''; document.getElementById('event-desc').value=''; fetchEvents(); } catch(e) { openModal("Kosa", e.message); }
     }
-    async function fetchProjects() {
-        const div = document.getElementById('projects-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia miradi...</p>';
+    async function fetchEvents() {
+        const div = document.getElementById('events-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>';
         try {
-            const { data, error } = await sb.from('projects').select('*').order('created_at', { ascending:false });
+            const { data, error } = await sb.from('events').select('*').order('event_date', { ascending:true });
             if(error) throw error;
-            div.innerHTML = data.length > 0 ? data.map(p => {
-                let sClass = p.status === 'planned' ? 'b-info' : p.status === 'ongoing' ? 'b-warn' : p.status === 'stalled' ? 'b-err' : 'b-succ';
-                let sText = p.status === 'planned' ? 'Inapaswa kutekelezwa' : p.status === 'ongoing' ? 'Inaendelea' : p.status === 'stalled' ? 'Imekatika' : 'Imekamilika';
-                return `<div class="list-i"><h4>${p.title}</h4><p>${p.description}</p><div class="list-meta"><span class="badge ${sClass}">${sText}</span></div></div>`;
-            }).join('') : '<p style="color:var(--text-sec);">Hakuna miradi iliyowekwa kwa sasa.</p>';
+            div.innerHTML = data.length > 0 ? data.map(e => `<div class="list-i"><div style="display:flex; justify-content:space-between; align-items:center;"><h4>${e.title}</h4><span class="badge b-succ">${new Date(e.event_date).toLocaleDateString()}</span></div><p>${e.description || ''}</p>${e.location ? `<div class="list-meta"><span class="badge b-info">📍 ${e.location}</span></div>` : ''}</div>`).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna matukio yaliyowekwa kwa sasa.</p>';
         } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
     }
 
-    // ANDAMANA (CAUSES) LOGIC
-    async function postCause() {
+    // AVATAR UPLOAD
+    async function uploadAvatar() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const title = document.getElementById('cause-title').value.trim(), desc = document.getElementById('cause-desc').value.trim();
-        if(!title||!desc) return openModal("Taarifa", "Jaza kichwa na maelezo ya ajenda.");
-        if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa.");
-        try { await sb.from('causes').insert([{ title, description: desc, created_by_name: u.full_name, created_by_phone: u.phone_number }]); showToast("Ajenda imetumwa! Wengine wataikuunga mkono."); document.getElementById('cause-title').value=''; document.getElementById('cause-desc').value=''; fetchCauses(); } catch(e) { openModal("Kosa", e.message); }
-    }
-    async function fetchCauses() {
-        const div = document.getElementById('causes-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia ajenda...</p>';
-        try {
-            const { data, error } = await sb.from('causes').select('*').order('created_at', { ascending:false });
-            if(error) throw error;
-            div.innerHTML = data.length > 0 ? data.map(c => {
-                let sBadge = c.status === 'addressed' ? '<span class="badge b-succ">Imekubaliwa na Viongozi</span>' : '<span class="badge b-warn">Inasubiri</span>';
-                return `<div class="list-i"><h4>${c.title}</h4><p>${c.description}</p><div class="list-meta"><span class="badge b-info">Imetumwa na: ${c.created_by_name}</span>${sBadge}</div><div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="supportCause('${c.id}', ${c.supporters})">✊ Niandamanye (${c.supporters})</button></div></div>`;
-            }).join('') : '<p style="color:var(--text-sec);">Hakuna ajeda kwa sasa.</p>';
-        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
-    }
-    async function supportCause(id, currentSupporters) {
-        try { await sb.from('causes').update({ supporters: currentSupporters + 1 }).eq('id', id); showToast("Umeiunga mkono ajenda hii!"); fetchCauses(); } catch(e) { openModal("Kosa", e.message); }
+        const fileInput = document.getElementById('avatar-upload');
+        if(fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const fileName = `avatar_${u.phone_number}.jpg`;
+            try {
+                await sb.storage.from('kitama-images').upload(fileName, file, { upsert: true });
+                const url = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
+                await sb.from('users').update({ avatar_url: url }).eq('id', u.id);
+                u.avatar_url = url; localStorage.setItem('kitama_user', JSON.stringify(u));
+                enterApp(); showToast("Picha imewekwa!");
+            } catch(e) { openModal("Kosa", e.message); }
+        }
     }
 
     // MARKETPLACE
     async function postItem() { const u = JSON.parse(localStorage.getItem('kitama_user')); if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado."); const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim(); if(!name) return openModal("Taarifa", "Weka jina la bidhaa."); if(containsBadWords(name) || containsBadWords(desc)) return openModal("Onyo", "Maelezo yako yana maneno yasiyoruhusiwa."); try { const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village }]); if(error) throw error; showToast("Bidhaa imetangazwa!"); document.getElementById('item-name').value=''; document.getElementById('item-desc').value=''; document.getElementById('item-price').value=''; showSec('market-sec'); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchMarket() { const div = document.getElementById('market-list'); div.innerHTML='<p style="color:var(--text-sec);">Inapakia soko...</p>'; try { const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(m => `<div class="list-i"><h4>${m.item_name}</h4><p>${m.description || ''}</p><div class="list-meta"><span class="badge b-succ">Bei: ${m.price || 'Agana'}</span><span class="badge b-info">${m.village}</span></div><p style="margin-top:8px; font-size:14px; color:var(--primary); font-weight:700;">📞 ${m.phone}</p></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna bidhaa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
+    async function fetchMarket() { const div = document.getElementById('market-list'); const search = document.getElementById('market-search').value.toLowerCase(); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending:false }); if(error) throw error; const filtered = search ? data.filter(m => m.item_name.toLowerCase().includes(search)) : data; div.innerHTML = filtered.length > 0 ? filtered.map(m => `<div class="list-i"><h4>${m.item_name}</h4><p>${m.description || ''}</p><div class="list-meta"><span class="badge b-succ">Bei: ${m.price || 'Agana'}</span><span class="badge b-info">${m.village}</span></div><p style="margin-top:8px; font-size:14px; color:var(--accent); font-weight:700;">📞 ${m.phone}</p></div>`).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna bidhaa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
 
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
