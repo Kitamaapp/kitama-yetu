@@ -56,13 +56,15 @@
         .hero-banner h2 { font-size: 20px; font-weight: 800; margin-bottom: 5px; position: relative; z-index: 1; }
         .hero-banner p { font-size: 13px; opacity: 0.8; position: relative; z-index: 1; }
         .hero-sos { background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid #EF4444; padding: 10px 15px; border-radius: 12px; margin-top: 15px; font-weight: 700; font-size: 13px; width: 100%; text-align: left; cursor: pointer; position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
+        .warning-box { background: #FEF3C7; color: #D97706; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; font-weight: 600; border: 1px solid #FBBF24; }
         
         .sec-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .sec-h h2 { font-size: 18px; font-weight: 800; }
         .sec-h span { font-size: 13px; color: var(--accent); font-weight: 700; cursor: pointer; }
         .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .qa-card { background: var(--surface); padding: 20px; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: 1px solid var(--border); transition: all 0.2s; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+        .qa-card { background: var(--surface); padding: 20px; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: 1px solid var(--border); transition: all 0.2s; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; opacity: 0.5; pointer-events: none; }
         .qa-card:active { transform: scale(0.97); }
+        .qa-card.active { opacity: 1; pointer-events: auto; }
         .qa-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
         .qa-card h4 { font-size: 15px; font-weight: 700; }
         .qa-card p { font-size: 12px; color: var(--text-sec); }
@@ -82,6 +84,7 @@
         .interaction-bar { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 12px; }
         .int-btn { background: var(--bg); border: none; padding: 8px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; color: var(--text-sec); display: flex; align-items: center; gap: 6px; }
         .int-btn-accent { background: #D1FAE5; color: var(--accent-dark); }
+        .int-btn-danger { background: #FEE2E2; color: #EF4444; margin-left: auto; padding: 8px 10px; }
         .comment-box { background: var(--bg); padding: 12px; border-radius: 12px; margin-top: 12px; display: none; }
         .comment-list { margin-bottom: 10px; max-height: 200px; overflow-y: auto; }
         .comment-item { background: var(--surface); padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; border: 1px solid var(--border); }
@@ -98,6 +101,7 @@
         .modal-btns { display: flex; gap: 10px; }
         .m-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 14px; }
         .m-btn-primary { background: var(--accent); color: white; }
+        .m-btn-danger { background: var(--danger); color: white; }
         .m-btn-secondary { background: var(--bg); color: var(--text-sec); }
 
         .chat-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 80px; }
@@ -195,6 +199,8 @@
         
         <div id="admin-pins-sec" class="sec"><div class="sec-h"><h2>PIN za Viongozi</h2></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Badilisha PIN za viongozi wakati wowote. PIN mpya itatumika mara moja.</p><div class="form-g"><select id="pin-role" onchange="togglePinVillage()" style="padding-left:16px;"><option value="diwani">Diwani</option><option value="mtendaji_kata">Mtendaji Kata</option><option value="mtendaji_kijiji">Mtendaji Kijiji</option><option value="mwenyekiti_kijiji">Mwenyekiti Kijiji</option><option value="mwenyekiti_kitongoji">Mwenyekiti Kitongoji</option></select></div><div class="form-g" id="pin-village-box" style="display:none;"><select id="pin-village" style="padding-left:16px;"><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div><div class="form-g"><input type="text" id="pin-value" style="padding-left:16px;" placeholder="Weka PIN mpya (Mfano: 9999)"></div><button onclick="updatePin()" class="btn-p">Hifadhi PIN</button><div id="pins-list" style="margin-top:20px;"></div></div>
 
+        <div id="pending-users-sec" class="sec"><div class="sec-h"><h2>Watu Wapya (Wanaosubiri)</h2></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Hawa ni watu waliojisajili. Kagua majina yao, kisha kubali au kataza.</p><div id="pending-list"></div></div>
+
         <div id="profile-sec" class="sec"><div class="sec-h"><h2>Akaunti Yangu</h2></div><div style="text-align:center; margin-bottom:20px;"><div class="avatar" style="width:80px; height:80px; font-size:28px; margin:0 auto 15px;" id="p-ava">U</div><h3 id="p-name">Jina</h3><p id="p-village" style="color:var(--text-sec);">Kijiji</p></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px;"><strong>Namba:</strong> <span id="p-phone"></span></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px;"><strong>Hadh:</strong> <span id="p-role"></span></div><button onclick="handleLogout()" class="btn-out">Toka (Logout)</button></div>
     </main>
     <div class="b-nav" id="b-nav"></div>
@@ -204,6 +210,13 @@
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    // MANENO YA KUKATAZA (Profanity Filter)
+    const BAD_WORDS = ['mbwa', 'kuma', 'matako', 'ushenzi', 'pumbavu', 'mavi', 'kuma', 'mbulu', 'uliye'];
+    function containsBadWords(text) {
+        const lowerText = text.toLowerCase();
+        return BAD_WORDS.some(word => lowerText.includes(word));
+    }
     
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
     function openModal(title, text, isPrompt, callback) {
@@ -216,6 +229,7 @@
             else { closeModal(); if(callback) callback(); }
         };
         document.getElementById('modal-cancel').style.display = isPrompt ? 'block' : 'none';
+        document.getElementById('modal-ok').className = 'm-btn m-btn-primary';
         document.getElementById('modal-overlay').style.display = 'flex';
     }
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
@@ -250,7 +264,13 @@
         const btn = document.getElementById('btn-login'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
         try {
             const { data: u, error } = await sb.from('users').select('*').eq('phone_number', phone).maybeSingle();
-            if(u) { localStorage.setItem('kitama_user', JSON.stringify(u)); enterApp(); }
+            if(u) { 
+                localStorage.setItem('kitama_user', JSON.stringify(u)); 
+                enterApp(); 
+                if(u.status === 'pending' && u.role === 'citizen') {
+                    openModal("Akaunti Inasubiri", "Akaunti yako ipo sawa, lakini bado haijaidhinishwa na Kiongozi wako. Unaweza kusoma tu kwa sasa.", false);
+                }
+            }
             else { openModal("Akaunti Haijapatikana", "Namba hii haijasajiliwa.", false, () => switchTab('signup')); }
         } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML='Ingia'; btn.disabled=false; }
     }
@@ -261,7 +281,6 @@
         
         if(role !== 'citizen') {
             const enteredPin = document.getElementById('leader-pin').value.trim();
-            // Check PIN from Database
             let pinQuery = sb.from('leader_pins').select('*').eq('role', role);
             if(role === 'mtendaji_kijiji') pinQuery = pinQuery.eq('village', village);
             else pinQuery = pinQuery.is('village', null);
@@ -273,8 +292,14 @@
 
         const btn = document.getElementById('btn-signup'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
         try {
-            const { data: u, error } = await sb.from('users').insert([{ full_name:name, phone_number:phone, village:village, role:role, sub_village: subVillage }]).select().single();
-            if(u) { localStorage.setItem('kitama_user', JSON.stringify(u)); enterApp(); }
+            // Wananchi wanakuwa 'pending', Viongozi wanakuwa 'active' moja kwa moja
+            const status = role === 'citizen' ? 'pending' : 'active';
+            const { data: u, error } = await sb.from('users').insert([{ full_name:name, phone_number:phone, village:village, role:role, sub_village: subVillage, status: status }]).select().single();
+            if(u) { 
+                localStorage.setItem('kitama_user', JSON.stringify(u)); 
+                enterApp(); 
+                if(status === 'pending') openModal("Karibu!", "Umefanikiwa kujisajili. Akaunti yakoinasubiri kuidhinishwa na Kiongozi wako. Tafadhali subiri.", false);
+            }
         } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML='Tengeneza Akaunti'; btn.disabled=false; }
     }
 
@@ -297,24 +322,30 @@
         let html = `<div class="hero-banner"><h2>Habari, ${u.full_name.split(' ')[0]}</h2><p>${u.role === 'citizen' ? 'Karibu kwenye huduma za Kata ya Kitama' : 'Dashibodi ya ' + u.role.replace(/_/g, ' ')}</p>`;
         
         if(u.role === 'citizen') {
-            html += `<button class="hero-sos" onclick="triggerSOS()">🆘 Tuma Arhi ya Dharura</button></div>`;
+            if(u.status === 'pending') {
+                html += `<div class="warning-box">⚠️ Akaunti yako inasubiri kuidhinishwa na Kiongozi. Hauwezi kutuma ripoti kwa sasa.</div></div>`;
+            } else {
+                html += `<button class="hero-sos" onclick="triggerSOS()">🆘 Tuma Arhi ya Dharura</button></div>`;
+            }
+            
+            const isPending = u.status === 'pending';
             html += `<div class="sec-h"><h2>Huduma Za Kata</h2></div><div class="qa-grid">
-                <div class="qa-card" onclick="showSec('report-sec')"><div class="qa-icon" style="background:#FEF3C7;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h4>Tuma Ripoti</h4><p>Na Picha</p></div>
-                <div class="qa-card" onclick="showSec('market-sec')"><div class="qa-icon" style="background:#DBEAFE;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div><h4>Soko la Kitama</h4><p>Tangaza bidhaa</p></div>
-                <div class="qa-card" onclick="showSec('progress-sec')"><div class="qa-icon" style="background:#D1FAE5;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></div><h4>Maendeleo</h4><p>Shiriki & Piga Maoni</p></div>
-                <div class="qa-card" onclick="showSec('profile-sec')"><div class="qa-icon" style="background:#E0E7FF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg></div><h4>Akaunti Yangu</h4><p>Profile yako</p></div>
+                <div class="qa-card ${isPending ? '' : 'active'}" onclick="showSec('report-sec')"><div class="qa-icon" style="background:#FEF3C7;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h4>Tuma Ripoti</h4><p>Na Picha</p></div>
+                <div class="qa-card active" onclick="showSec('market-sec')"><div class="qa-icon" style="background:#DBEAFE;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div><h4>Soko la Kitama</h4><p>Tangaza bidhaa</p></div>
+                <div class="qa-card active" onclick="showSec('progress-sec')"><div class="qa-icon" style="background:#D1FAE5;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></div><h4>Maendeleo</h4><p>Shiriki & Piga Maoni</p></div>
+                <div class="qa-card active" onclick="showSec('profile-sec')"><div class="qa-icon" style="background:#E0E7FF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg></div><h4>Akaunti Yangu</h4><p>Profile yako</p></div>
             </div>`;
             navHtml += `<button class="nav-b" onclick="showSec('market-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button><button class="nav-b" onclick="showSec('profile-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
         } else {
             html += `</div><div class="sec-h"><h2>Vitufe vya Haraka</h2></div><div class="qa-grid">
-                <div class="qa-card" onclick="showSec('leader-reports-sec')"><div class="qa-icon" style="background:#FEF3C7;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><h4>Malalamishi</h4><p>Ya wananchi</p></div>
-                <div class="qa-card" onclick="showSec('leader-chat-sec')"><div class="qa-icon" style="background:#D1FAE5;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Chumb cha Viongozi</h4><p>Jadiliana na Viongozi</p></div>
-                <div class="qa-card" onclick="showSec('market-sec')"><div class="qa-icon" style="background:#DBEAFE;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg></div><h4>Soko</h4><p>La wananchi</p></div>`;
+                <div class="qa-card active" onclick="showSec('leader-reports-sec')"><div class="qa-icon" style="background:#FEF3C7;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><h4>Malalamishi</h4><p>Ya wananchi</p></div>
+                <div class="qa-card active" onclick="showSec('leader-chat-sec')"><div class="qa-icon" style="background:#D1FAE5;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Chumb cha Viongozi</h4><p>Jadiliana na Viongozi</p></div>
+                <div class="qa-card active" onclick="showSec('pending-users-sec')"><div class="qa-icon" style="background:#FEE2E2;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><h4>Watu Wapya</h4><p>Waidhinishe</p></div>
+                <div class="qa-card active" onclick="showSec('market-sec')"><div class="qa-icon" style="background:#DBEAFE;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg></div><h4>Soko</h4><p>La wananchi</p></div>`;
                 
-            // VITONGOJI NA PIN NI KWA MTENDAJI KATA TU
             if(u.role === 'mtendaji_kata') {
-                html += `<div class="qa-card" onclick="showSec('manage-villages-sec')"><div class="qa-icon" style="background:#E0E7FF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h4>Weka Kitongoji</h4><p>Ongeza maeneo ya kijiji</p></div>`;
-                html += `<div class="qa-card" onclick="showSec('admin-pins-sec')"><div class="qa-icon" style="background:#FEE2E2;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h4>PIN za Viongozi</h4><p>Badilisha PIN</p></div>`;
+                html += `<div class="qa-card active" onclick="showSec('manage-villages-sec')"><div class="qa-icon" style="background:#E0E7FF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h4>Weka Kitongoji</h4><p>Ongeza maeneo</p></div>`;
+                html += `<div class="qa-card active" onclick="showSec('admin-pins-sec')"><div class="qa-icon" style="background:#FEE2E2;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h4>PIN za Viongozi</h4><p>Badilisha PIN</p></div>`;
             }
             html += `</div>`;
             navHtml += `<button class="nav-b" onclick="showSec('leader-reports-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>Kazi</span></button><button class="nav-b" onclick="showSec('profile-sec')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
@@ -335,19 +366,26 @@
         if(id==='leader-chat-sec') fetchLeaderChat();
         if(id==='manage-villages-sec') fetchSubVillages();
         if(id==='admin-pins-sec') fetchPins();
+        if(id==='pending-users-sec') fetchPendingUsers();
     }
 
     async function triggerSOS() {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
         openModal("Arhi ya Dharura", "Una uhakika unataka kutuma arhi ya dharura kwa viongozi?", false, async () => {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
             try { await sb.from('reports').insert([{ title: "🚨 DHARURA (SOS)!", description: "Mwananchi anahitaji msaada haraka!", village: u.village, category:"Usalama", is_emergency: true }]); showToast("Arhi imetumwa!"); } catch(e) { openModal("Kosa", e.message); }
         });
     }
 
     async function submitReport() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
+        
         const cat = document.getElementById('rep-cat').value, title = document.getElementById('rep-title').value.trim(), desc = document.getElementById('rep-desc').value.trim(), fileInput = document.getElementById('rep-image');
         if(!title||!desc) return openModal("Taarifa", "Tafadhali jaza mada na ufafanuzi.");
+        
+        if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa. Tafadhali andika kwa heshima.");
+        
         const btn = document.getElementById('btn-rep'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true;
         let imgUrl = null;
         if(fileInput.files.length > 0) {
@@ -380,7 +418,7 @@
                 interactionHtml = `<div class="interaction-bar"><span class="int-btn" style="opacity:0.6; cursor:default;">👍 Wamekubaliana (${r.upvotes})</span><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button></div>`;
             }
         } else {
-            interactionHtml = `<div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="shareToLeaders('${r.id}', '${r.title.replace(/'/g, "")}')">📤 Shiriki Kwa Viongozi</button><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button></div>`;
+            interactionHtml = `<div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="shareToLeaders('${r.id}', '${r.title.replace(/'/g, "")}')">📤 Shiriki</button><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button><button class="int-btn int-btn-danger" onclick="deleteReport('${r.id}')">🗑️ Futa</button></div>`;
         }
 
         let actionBtn = '';
@@ -400,11 +438,24 @@
         </div>`;
     }
 
+    async function deleteReport(id) {
+        openModal("Futa Ripoti", "Una uhakika unataka kufuta ripoti hii kabisa? Hii itatumika kama ripoti haingii au ina maneno ya kipumbavu.", false, async () => {
+            try { await sb.from('reports').delete().eq('id', id); showToast("Ripoti imefutwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); }
+        });
+    }
+
     async function upvote(id, currentVotes) { try { await sb.from('reports').update({ upvotes: currentVotes + 1 }).eq('id', id); showToast("Umekubaliana na hoja hii!"); refreshActiveList(); } catch(e) { openModal("Kosa", e.message); } }
     function refreshActiveList() { const id = document.querySelector('.sec.active').id; if(id === 'leader-reports-sec') fetchLeaderReports(); if(id === 'progress-sec') fetchPublicProgress(); }
     function toggleComments(id) { const box = document.getElementById(`comments-${id}`); if(box.style.display === 'block') { box.style.display = 'none'; } else { box.style.display = 'block'; fetchComments(id); } }
     async function fetchComments(id) { try { const { data, error } = await sb.from('comments').select('*').eq('report_id', id).order('created_at', { ascending:true }); if(error) throw error; document.getElementById(`comment-list-${id}`).innerHTML = data.length > 0 ? data.map(c => `<div class="comment-item"><b>${c.author_name} (${c.author_role.replace(/_/g,' ')})</b>${c.content}<br><small>${new Date(c.created_at).toLocaleString()}</small></div>`).join('') : '<p style="font-size:12px; color:var(--text-sec);">Hakuna maoni bado.</p>'; } catch(e) { console.error(e); } }
-    async function postComment(id) { const u = JSON.parse(localStorage.getItem('kitama_user')); const content = document.getElementById(`comment-input-${id}`).value.trim(); if(!content) return; try { await sb.from('comments').insert([{ report_id: id, author_name: u.full_name, author_role: u.role, content: content }]); document.getElementById(`comment-input-${id}`).value = ''; fetchComments(id); } catch(e) { openModal("Kosa", e.message); } }
+    async function postComment(id) { 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
+        const content = document.getElementById(`comment-input-${id}`).value.trim(); 
+        if(!content) return; 
+        if(containsBadWords(content)) return openModal("Onyo", "Maoni yako yana maneno yasiyoruhusiwa.");
+        try { await sb.from('comments').insert([{ report_id: id, author_name: u.full_name, author_role: u.role, content: content }]); document.getElementById(`comment-input-${id}`).value = ''; fetchComments(id); } catch(e) { openModal("Kosa", e.message); } 
+    }
     async function fetchLeaderReports() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('leader-rep-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia...</p>'; document.getElementById('leader-rep-title').innerText = u.role === 'diwani' || u.role === 'mtendaji_kata' ? "Malalamishi ya Kata Yote" : "Malalamishi ya " + u.village; try { let query = sb.from('reports').select('*').order('created_at', { ascending:false }); if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village); const { data, error } = await query; if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, true)).join('') : '<p style="color:var(--text-sec);">Hakuna malalamishi kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
     async function fetchPublicProgress() { const div = document.getElementById('progress-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia maendeleo...</p>'; try { const { data, error } = await sb.from('reports').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec);">Hakuna taarifa kwa sasa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
     async function updateStatus(id, newStatus) { try { await sb.from('reports').update({ status: newStatus }).eq('id', id); showToast("Status imebadilishwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }
@@ -412,7 +463,34 @@
     async function shareToLeaders(reportId, title) { openModal("Shiriki kwa Viongozi", `Una uhakika unataka kushiriki ripoti hii kwenye Chumb cha Viongozi?`, false, async () => { const u = JSON.parse(localStorage.getItem('kitama_user')); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: `Naomba msaada/maoni kuhusu ripoti hii: "${title}"`, shared_report_id: reportId }]); showToast("Imeshirikiwa kwenye Chumb cha Viongozi!"); showSec('leader-chat-sec'); } catch(e) { openModal("Kosa", e.message); } }); }
     async function fetchLeaderChat() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('chat-list'); div.innerHTML = '<p style="color:var(--text-sec);">Inapakia majadiliano...</p>'; try { const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending:true }).limit(50); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(c => { const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); let sharedHtml = c.shared_report_id ? `<div class="shared-card"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; return `<div class="chat-msg ${isSelf ? 'self' : ''}"><b>${isSelf ? 'Wewe' : c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')'}</b><p>${c.content}</p>${sharedHtml}<small>${new Date(c.created_at).toLocaleString()}</small></div>`; }).join('') : '<p style="color:var(--text-sec);">Hakuna majadiliano bado.</p>'; div.scrollTop = div.scrollHeight; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
     async function viewSharedReport(id) { try { const { data: r, error } = await sb.from('reports').select('*').eq('id', id).single(); if(error) throw error; let statusText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika'; let imgHtml = r.image_url ? `<img src="${r.image_url}" style="width:100%; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">` : ''; let modalContent = `${r.description}<br><br><div style="display:flex; gap:5px; flex-wrap:wrap;"><span style="background:#DBEAFE; color:#2563EB; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.category}</span><span style="background:#F1F5F9; color:#64748B; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${statusText}</span><span style="background:#FEF3C7; color:#D97706; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.village}</span></div>${imgHtml}`; openModal(r.title, modalContent, false); } catch(e) { openModal("Kosa", e.message); } }
-    async function postChat() { const u = JSON.parse(localStorage.getItem('kitama_user')); const content = document.getElementById('chat-input').value.trim(); if(!content) return; try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content }]); document.getElementById('chat-input').value = ''; fetchLeaderChat(); } catch(e) { openModal("Kosa", e.message); } }
+    async function postChat() { 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        const content = document.getElementById('chat-input').value.trim(); 
+        if(!content) return; 
+        if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa. Tafadhali waheshimu viongozi wenzako.");
+        try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content }]); document.getElementById('chat-input').value = ''; fetchLeaderChat(); } catch(e) { openModal("Kosa", e.message); } 
+    }
+
+    // UIDHINISHAJI WA WATU WAPYA (PENDING USERS)
+    async function fetchPendingUsers() {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const div = document.getElementById('pending-list'); div.innerHTML = '<p>Inapakia...</p>';
+        try {
+            let query = sb.from('users').select('*').eq('status', 'pending');
+            if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village);
+            const { data, error } = await query;
+            if(error) throw error;
+            div.innerHTML = data.length > 0 ? data.map(u => `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center;"><div><strong>${u.full_name}</strong><br><small>${u.phone_number} - ${u.village}</small></div><div style="display:flex; gap:5px;"><button class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:12px;" onclick="approveUser('${u.id}')">Kubali</button><button class="m-btn m-btn-danger" style="flex:none; padding:8px 12px; font-size:12px;" onclick="rejectUser('${u.id}')">Kataza</button></div></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna watu wapya wanaosubiri kwa sasa.</p>';
+        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+    }
+    async function approveUser(id) {
+        try { await sb.from('users').update({ status: 'active' }).eq('id', id); showToast("Mtumiaji amekubaliwa!"); fetchPendingUsers(); } catch(e) { openModal("Kosa", e.message); }
+    }
+    async function rejectUser(id) {
+        openModal("Kataza Mtumiaji", "Una uhakika unataka kumkataza mtumiaji huyu? Akaunti yake itafutwa kabisa.", false, async () => {
+            try { await sb.from('users').delete().eq('id', id); showToast("Mtumiaji amekataliwa na kufutwa!"); fetchPendingUsers(); } catch(e) { openModal("Kosa", e.message); }
+        });
+    }
 
     // VITONGOJI LOGIC
     async function addSubVillage() {
@@ -423,9 +501,7 @@
     async function fetchSubVillages() { const div = document.getElementById('sub-villages-list'); div.innerHTML = '<p>Inapakia...</p>'; try { const { data, error } = await sb.from('sub_villages').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(v => `<div class="list-i" style="padding:12px;"><strong>${v.sub_village_name}</strong><br><small style="color:var(--text-sec);">Kijiji: ${v.village}</small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna vitongoji vilivyoongezwa bado.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
 
     // ADMIN PIN LOGIC
-    function togglePinVillage() {
-        document.getElementById('pin-village-box').style.display = document.getElementById('pin-role').value === 'mtendaji_kijiji' ? 'block' : 'none';
-    }
+    function togglePinVillage() { document.getElementById('pin-village-box').style.display = document.getElementById('pin-role').value === 'mtendaji_kijiji' ? 'block' : 'none'; }
     async function updatePin() {
         const role = document.getElementById('pin-role').value, village = document.getElementById('pin-village').value, pin = document.getElementById('pin-value').value.trim();
         if(!pin) return openModal("Taarifa", "Weka PIN mpya.");
@@ -435,26 +511,25 @@
             else query = query.is('village', null);
             const { data: existing } = await query.maybeSingle();
 
-            if(existing) {
-                await sb.from('leader_pins').update({ pin: pin }).eq('id', existing.id);
-            } else {
-                await sb.from('leader_pins').insert([{ role: role, village: role === 'mtendaji_kijiji' ? village : null, pin: pin }]);
-            }
-            showToast("PIN imehifadhiwa!");
-            document.getElementById('pin-value').value = '';
-            fetchPins();
+            if(existing) { await sb.from('leader_pins').update({ pin: pin }).eq('id', existing.id); } 
+            else { await sb.from('leader_pins').insert([{ role: role, village: role === 'mtendaji_kijiji' ? village : null, pin: pin }]); }
+            showToast("PIN imehifadhiwa!"); document.getElementById('pin-value').value = ''; fetchPins();
         } catch(e) { openModal("Kosa", e.message); }
     }
-    async function fetchPins() {
-        const div = document.getElementById('pins-list'); div.innerHTML = '<p>Inapakia...</p>';
-        try { const { data, error } = await sb.from('leader_pins').select('*').order('role', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => `<div class="list-i" style="padding:12px;"><strong>${p.role.replace(/_/g,' ')}</strong>${p.village ? ' - '+p.village : ''}<br><small style="color:var(--text-sec);">PIN: <b>${p.pin}</b></small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna PIN zilizowekwa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
-    }
+    async function fetchPins() { const div = document.getElementById('pins-list'); div.innerHTML = '<p>Inapakia...</p>'; try { const { data, error } = await sb.from('leader_pins').select('*').order('role', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => `<div class="list-i" style="padding:12px;"><strong>${p.role.replace(/_/g,' ')}</strong>${p.village ? ' - '+p.village : ''}<br><small style="color:var(--text-sec);">PIN: <b>${p.pin}</b></small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna PIN zilizowekwa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
 
     // MARKETPLACE
-    async function postItem() { const u = JSON.parse(localStorage.getItem('kitama_user')); const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim(); if(!name) return openModal("Taarifa", "Weka jina la bidhaa."); try { const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village }]); if(error) throw error; showToast("Bidhaa imetangazwa!"); document.getElementById('item-name').value=''; document.getElementById('item-desc').value=''; document.getElementById('item-price').value=''; showSec('market-sec'); } catch(e) { openModal("Kosa", e.message); } }
+    async function postItem() { 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
+        const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim(); 
+        if(!name) return openModal("Taarifa", "Weka jina la bidhaa."); 
+        if(containsBadWords(name) || containsBadWords(desc)) return openModal("Onyo", "Maelezo yako yana maneno yasiyoruhusiwa.");
+        try { const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village }]); if(error) throw error; showToast("Bidhaa imetangazwa!"); document.getElementById('item-name').value=''; document.getElementById('item-desc').value=''; document.getElementById('item-price').value=''; showSec('market-sec'); } catch(e) { openModal("Kosa", e.message); } 
+    }
     async function fetchMarket() { const div = document.getElementById('market-list'); div.innerHTML='<p style="color:var(--text-sec);">Inapakia soko...</p>'; try { const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(m => `<div class="list-i"><h4>${m.item_name}</h4><p>${m.description || ''}</p><div class="list-meta"><span class="badge b-succ">Bei: ${m.price || 'Agana'}</span><span class="badge b-info">${m.village}</span></div><p style="margin-top:8px; font-size:14px; color:var(--primary); font-weight:700;">📞 ${m.phone}</p></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna bidhaa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
 
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
 </body>
-    </html>
+</html>
