@@ -467,15 +467,19 @@
             html += `</div>`;
             fetchLeaderStats(u);
         }
-                content.innerHTML = html; nav.innerHTML = navHtml; showSec('home-sec');
+                        content.innerHTML = html; nav.innerHTML = navHtml; showSec('home-sec');
         
-        // --- HATUA YA 6: KUONGEZA KITufe CHA DUKA KWENYE HOME ---
-        if(u.role === 'citizen') {
+        // --- DUKA MENU LOGIC ---
+        if(u.role === 'citizen' || u.role === 'mtendaji_kata' || u.role === 'diwani' || u.role === 'mtendaji_kijiji' || u.role === 'mwenyekiti_kijiji') {
             sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle().then(({ data: shop }) => {
-                if(shop) {
-                    const grid = document.querySelector('#home-sec .qa-grid');
-                    if(grid) {
+                const grid = document.querySelector('#home-sec .qa-grid');
+                if(grid) {
+                    if(shop) {
+                        // Kama ana duka, onyesha "Duka Langu"
                         grid.innerHTML += `<div class="qa-card active" onclick="viewMyShop()"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div><h4>Duka Langu</h4><p>${shop.shop_name}</p></div>`;
+                    } else {
+                        // Kama hana duka, onyesha "Fungua Duka"
+                        grid.innerHTML += `<div class="qa-card active" onclick="showSec('create-shop-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div><h4>Fungua Duka</h4><p>Tangaza biashara yako</p></div>`;
                     }
                 }
             });
