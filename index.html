@@ -797,26 +797,42 @@
         }
     }
 
-    async function trackCitizen(phone) {
+        async function trackCitizen(phone) {
+        if(!phone) return openModal("Taarifa", "Tatizo: Namba ya simu ya mtumiaji haijarekodiwa kwenye ripoti hii (huenda ni ripoti ya zamani).", false);
+        
+        openModal("Inatafuta...", "Subiri kidogo tunapakia eneo la mwananchi.", false);
+        
         try {
             const { data: u, error } = await sb.from('users').select('lat, lng, full_name').eq('phone_number', phone).single();
             if(error) throw error;
-            if(!u.lat || !u.lng) return openModal("Taarifa", "Mwananchi huyu hajawasha/amrukusu location kwenye simu yake.", false);
             
-            openModal("📍 Location ya Mwananchi", `Hii ni eneo la ${u.full_name} kwa wakati huu.`, false);
+            if(!u.lat || !u.lng) {
+                document.getElementById('modal-title').innerText = "Taarifa";
+                document.getElementById('modal-text').innerHTML = "Mwananchi huyu hajawasha/amrukusu location kwenye simu yake, au bado hajafungua app tangu sasa.";
+                document.getElementById('map-container').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('modal-title').innerText = "📍 Location ya Mwananchi";
+            document.getElementById('modal-text').innerHTML = `Hii ni eneo la <b>${u.full_name}</b> kwa wakati huu.`;
             document.getElementById('map-container').style.display = 'block';
             
-            if(mapInstance) mapInstance.remove(); // Futa map ya zamani
+            if(mapInstance) mapInstance.remove();
+            
             setTimeout(() => {
                 mapInstance = L.map('map-container').setView([u.lat, u.lng], 16);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
-                
-                // Onyesha Blinking Dot
                 const blinkIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot"></div>', iconSize: [20, 20]});
                 L.marker([u.lat, u.lng], {icon: blinkIcon}).addTo(mapInstance);
-            }, 200);
-        } catch(e) { openModal("Kosa", e.message); }
-    }
+                setTimeout(() => { if(mapInstance) mapInstance.invalidateSize(); }, 300);
+            }, 300);
+            
+        } catch(e) { 
+            document.getElementById('modal-title').innerText = "Kosa";
+            document.getElementById('modal-text').innerHTML = e.message + "<br><small>(Kama kosa linasema 'lat column does not exist', tafadhali run SQL ya kuongeza lat/lng kwenye Supabase).</small>";
+            document.getElementById('map-container').style.display = 'none';
+        }
+        }
 
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
