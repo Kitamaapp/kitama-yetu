@@ -67,7 +67,6 @@
         .hero-banner::after { content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; }
         .hero-banner h2 { font-size: 22px; font-weight: 800; margin-bottom: 5px; position: relative; z-index: 1; }
         .hero-banner p { font-size: 13px; opacity: 0.9; position: relative; z-index: 1; }
-        .hero-sos { background: rgba(239, 68, 68, 0.9); color: white; border: none; padding: 12px 15px; border-radius: 12px; margin-top: 15px; font-weight: 700; font-size: 13px; width: 100%; text-align: left; cursor: pointer; position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
         .warning-box { background: #FEF3C7; color: #D97706; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; font-weight: 600; border: 1px solid #FBBF24; }
         
         .sec-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -443,7 +442,7 @@
         } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML='Tengeneza Akaunti'; btn.disabled=false; }
     }
 
-        function enterApp() {
+    function enterApp() {
         document.getElementById('auth-c').style.display='none'; 
         document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -461,13 +460,44 @@
             document.getElementById('p-ava-img').style.display = 'none'; document.getElementById('p-ava').style.display = 'flex'; document.getElementById('p-ava').innerText = u.full_name.charAt(0).toUpperCase();
         }
         
-        // Gatekeeper check kwa wananchi tu
         if(u.role === 'citizen' && u.status === 'active') {
             enforceCitizenLocation(u);
         } else {
             setupDashboard(u);
         }
+    }
+
+    function enforceCitizenLocation(u) {
+        if (!navigator.geolocation) {
+            openModal("Kosa", "Simu yako haitumiki GPS. App haitaweza kufanya kazi.", false, () => {
+                localStorage.removeItem('kitama_user'); location.reload();
+            });
+            return;
         }
+        
+        setupDashboard(u); // Fungua app mara moja
+        
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                try { await sb.from('users').update({ lat: lat, lng: lng }).eq('id', u.id); } catch(e) {}
+                
+                navigator.geolocation.watchPosition(
+                    async (pos) => {
+                        try { await sb.from('users').update({ lat: pos.coords.latitude, lng: pos.coords.longitude }).eq('id', u.id); } catch(e) {}
+                    }, (err) => {}, { enableHighAccuracy: true }
+                );
+            },
+            (error) => {
+                openModal("Onyo", "Ukikataa kuwasha Location, viongozi hawataweza kukuonia unapohitaji msaada.", false, () => {
+                    localStorage.removeItem('kitama_user');
+                    location.reload();
+                });
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
 
     function setupDashboard(u) {
         const content = document.getElementById('home-content'), nav = document.getElementById('b-nav');
@@ -475,7 +505,7 @@
         let html = `<div class="hero-banner"><h2>Habari, ${u.full_name.split(' ')[0]}</h2><p>${u.role === 'citizen' ? 'Karibu kwenye huduma za Kata ya Kitama' : 'Dashibodi ya ' + u.role.replace(/_/g, ' ')}</p>`;
         
         if(u.role === 'citizen') {
-        if(u.status === 'pending') { html += `<div class="warning-box" style="margin:15px 0 0 0;">⚠️ Akaunti yako inasubiri kuidhinishwa. Kwa sasa unaweza kuona Soko, Habari na Matukio tu.</div></div>`; } 
+            if(u.status === 'pending') { html += `<div class="warning-box" style="margin:15px 0 0 0;">⚠️ Akaunti yako inasubiri kuidhinishwa. Kwa sasa unaweza kuona Soko, Habari na Matukio tu.</div></div>`; } 
             else { html += `</div>`; }
             
             const isPending = u.status === 'pending';
@@ -611,7 +641,7 @@
             interactionHtml = `<div class="interaction-bar">
                 <button class="int-btn int-btn-accent" onclick="shareToLeaders('${r.id}', '${r.title.replace(/'/g, "")}')">📤 Shiriki</button>
                 <button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button>
-                ${r.created_by_phone ? `<button class="int-btn" onclick="trackCitizen('${r.created_by_phone}')" style="background:rgba(37,99,235,0.1); color:#2563EB;">📍 Location</button>` : ''}
+                <button class="int-btn" onclick="trackCitizen('${r.created_by_phone || ''}')" style="background:rgba(37,99,235,0.1); color:#2563EB;">📍 Location</button>
                 <button class="int-btn int-btn-danger" onclick="deleteReport('${r.id}')">🗑️ Futa</button>
             </div>`; 
         }
@@ -646,7 +676,7 @@
         try { 
             let query = sb.from('reports').select('*').order('created_at', { ascending:false }); 
             if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village);
-            if(u.role === 'diwani' || u.role === 'mtendaji_kata') query = query.neq('visibility', 'local_only'); // Ficha Dharura za kijiji
+            if(u.role === 'diwani' || u.role === 'mtendaji_kata') query = query.neq('visibility', 'local_only');
             const { data, error } = await query; 
             if(error) throw error; 
             div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, true)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna malalamishi kwa sasa.</p>'; 
@@ -774,18 +804,7 @@
     async function markAsSold(id) { openModal("Imeuza Bidhaa", "Una uhakika unataka kuweka alama ya 'Imeuza' kwenye bidhaa hii?", false, async () => { try { await sb.from('marketplace').update({ status: 'sold' }).eq('id', id); showToast("Bidhaa imewekwa kama Imeuza!"); fetchMarket(); } catch(e) { openModal("Kosa", e.message); } }); }
 
     // GEOLOCATION TRACKING
-    async function updateMyLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                const u = JSON.parse(localStorage.getItem('kitama_user'));
-                try {
-                    await sb.from('users').update({ lat: position.coords.latitude, lng: position.coords.longitude }).eq('id', u.id);
-                } catch(e) { console.error("Loc update failed", e); }
-            }, (error) => { console.log("Location access denied"); }, { enableHighAccuracy: true });
-        }
-    }
-
-            async function trackCitizen(phone) {
+    async function trackCitizen(phone) {
         if(!phone) return openModal("Taarifa", "Tatizo: Namba ya simu ya mtumiaji haijarekodiwa kwenye ripoti hii (huenda ni ripoti ya zamani).", false);
         
         openModal("Inatafuta...", "Subiri kidogo tunapakia eneo la mwananchi.", false);
@@ -808,16 +827,11 @@
             if(mapInstance) mapInstance.remove();
             
             setTimeout(() => {
-                // Zoom 18 ni kwa ajili ya kuona nyumba na mitaa kwa undani
                 mapInstance = L.map('map-container').setView([u.lat, u.lng], 18);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 20
-                }).addTo(mapInstance);
-                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(mapInstance);
                 const blinkIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot"></div>', iconSize: [20, 20]});
                 const marker = L.marker([u.lat, u.lng], {icon: blinkIcon}).addTo(mapInstance);
                 marker.bindPopup(`<b>${u.full_name}</b> yupo hapa sasa.`).openPopup();
-                
                 setTimeout(() => { if(mapInstance) mapInstance.invalidateSize(); }, 300);
             }, 300);
             
@@ -826,53 +840,9 @@
             document.getElementById('modal-text').innerHTML = e.message + "<br><small>(Kama kosa linasema 'lat column does not exist', tafadhali run SQL ya kuongeza lat/lng kwenye Supabase).</small>";
             document.getElementById('map-container').style.display = 'none';
         }
-            }
-    
-            function enforceCitizenLocation(u) {
-        if (!navigator.geolocation) {
-            openModal("Kosa", "Simu yako haitumiki GPS. App haitaweza kufanya kazi.", false, () => {
-                localStorage.removeItem('kitama_user'); location.reload();
-            });
-            return;
-        }
-        
-        document.getElementById('app-c').style.display = 'none';
-        document.getElementById('splash-screen').classList.remove('hide');
-        document.getElementById('splash-title').innerText = "Inakagua Location...";
-        document.getElementById('splash-subtitle').innerText = "Tafadhali ruhusu GPS kufungua App";
-        
-        navigator.geolocation.watchPosition(
-            async (position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                
-                try {
-                    await sb.from('users').update({ lat: lat, lng: lng }).eq('id', u.id);
-                } catch(e) { console.error("Loc update failed", e); }
-                
-                if(document.getElementById('app-c').style.display === 'none') {
-                    document.getElementById('splash-title').innerText = "Kitama Yetu";
-                    document.getElementById('splash-subtitle').innerText = "Jukwaa Rasmi la Maendeleo";
-                    document.getElementById('splash-screen').classList.add('hide');
-                    document.getElementById('app-c').style.display = 'block';
-                    setupDashboard(u);
-                }
-            },
-            (error) => {
-                document.getElementById('splash-title').innerText = "🚫 GPS Imezimwa";
-                document.getElementById('splash-subtitle').innerText = "App inahitaji uwezekwaho Location. Ruhusu GPS kwenye settings ya simu yako.";
-                
-                setTimeout(() => {
-                    localStorage.removeItem('kitama_user');
-                    location.reload();
-                }, 4000);
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-            }
-    
+    }
 
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
 </body>
-    </html>
+</html>
