@@ -467,7 +467,7 @@
     let shopsIsLoading = false;
     let shopsHasMore = true;
     
-    const BAD_WORDS = ['mbwa', 'kuma', 'matako', 'ushenzi', 'pumbavu', 'mavi', 'mbulu', 'uliye', 'msenge'];
+    const BAD_WORDS = ['litoko', 'kuma', 'matako', 'ushenzi', 'pumbu', 'mpumbavu', 'pumbavu', 'nikutombe', 'kumamako', 'kumamayo', 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumamyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge'];
     function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
     
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
