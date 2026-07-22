@@ -583,7 +583,7 @@
         } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML='Tuma Ripoti'; btn.disabled=false; }
     }
 
-    function renderReportCard(r, isLeader) {
+        function renderReportCard(r, isLeader) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         let sClass = r.status === 'pending' ? 'b-warn' : r.status === 'in_progress' ? 'b-info' : 'b-succ';
         let sText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika';
@@ -595,14 +595,21 @@
             const hasUpvoted = r.upvoted_by && r.upvoted_by.includes(u.phone_number);
             if(u.phone_number !== r.created_by_phone) { interactionHtml = `<div class="interaction-bar"><button class="int-btn ${hasUpvoted ? 'int-btn-accent' : ''}" onclick="upvote('${r.id}', ${r.upvotes})">👍 Nakubaliana (${r.upvotes})</button><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button></div>`; } 
             else { interactionHtml = `<div class="interaction-bar"><span class="int-btn" style="opacity:0.6; cursor:default;">👍 Wamekubaliana (${r.upvotes})</span><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button></div>`; }
-        } else { interactionHtml = `<div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="shareToLeaders('${r.id}', '${r.title.replace(/'/g, "")}')">📤 Shiriki</button><button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button><button class="int-btn int-btn-danger" onclick="deleteReport('${r.id}')">🗑️ Futa</button></div>`; }
+        } else { 
+            interactionHtml = `<div class="interaction-bar">
+                <button class="int-btn int-btn-accent" onclick="shareToLeaders('${r.id}', '${r.title.replace(/'/g, "")}')">📤 Shiriki</button>
+                <button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button>
+                <button class="int-btn" onclick="trackCitizen('${r.created_by_phone || ''}')" style="background:rgba(37,99,235,0.1); color:#2563EB;">📍 Location</button>
+                <button class="int-btn int-btn-danger" onclick="deleteReport('${r.id}')">🗑️ Futa</button>
+            </div>`; 
+        }
         let actionBtn = '';
         if(isLeader) {
             if(r.status === 'pending') actionBtn = `<button class="btn-p" style="margin-top:12px; padding:10px; font-size:13px; background:var(--bg); color:var(--text);" onclick="updateStatus('${r.id}','in_progress')">Anza Kushughulikia</button>`;
             else if(r.status === 'in_progress') actionBtn = `<button class="btn-p" style="margin-top:12px; padding:10px; font-size:13px;" onclick="promptResolution('${r.id}', '${u.full_name}')">Kamilisha (Weka Uthibitisho)</button>`;
         }
         return `<div class="list-i"><h4>${r.title}</h4><p>${r.description}</p>${imgHtml}${resImgHtml}${resNoteHtml}<div class="list-meta"><span class="badge b-info">${r.category}</span><span class="badge ${sClass}">${sText}</span><span class="badge b-warn">${r.village}</span><span style="font-size:11px; color:var(--text-sec);">Imetumwa na: ${r.created_by_name || 'Mwananchi'}</span></div>${interactionHtml}<div class="comment-box" id="comments-${r.id}"><div class="comment-list" id="comment-list-${r.id}"><div class="skeleton" style="height:20px; width:100%; margin-bottom:5px;"></div><div class="skeleton" style="height:20px; width:80%;"></div></div><div style="display:flex; gap:5px;"><input type="text" id="comment-input-${r.id}" placeholder="Ongeza maoni yako..." style="padding:8px 12px; font-size:13px; border-radius:6px; flex:1; border:1px solid var(--border); background:var(--surface); color:var(--text);"><button onclick="postComment('${r.id}')" style="padding:8px 12px; background:var(--accent); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700;">Tuma</button></div></div>${actionBtn}</div>`;
-    }
+        }
 
     async function deleteReport(id) { openModal("Futa Ripoti", "Una uhakika unataka kufuta ripoti hii kabisa?", false, async () => { try { await sb.from('reports').delete().eq('id', id); showToast("Ripoti imefutwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }); }
     async function upvote(id, currentVotes) { 
