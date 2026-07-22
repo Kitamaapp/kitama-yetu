@@ -833,6 +833,55 @@
             document.getElementById('map-container').style.display = 'none';
         }
         }
+        function enforceCitizenLocation(u) {
+        if (!navigator.geolocation) {
+            openModal("Kosa", "Simu yako haitumiki GPS. App haitaweza kufanya kazi.", false, () => {
+                localStorage.removeItem('kitama_user'); location.reload();
+            });
+            return;
+        }
+        
+        // Onyesha Splash Screen wakati inakagua
+        document.getElementById('app-c').style.display = 'none';
+        document.getElementById('splash-screen').classList.remove('hide');
+        document.getElementById('splash-title').innerText = "Inakagua Location...";
+        document.getElementById('splash-subtitle').innerText = "Tafadhali ruhusu GPS kufungua App";
+        
+        // Tumia watchPosition kufuatilia mwananchi kila wakati anapobadilika eneo
+        navigator.geolocation.watchPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                try {
+                    // Sasisha location yake kwenye database kila anapohama
+                    await sb.from('users').update({ lat: lat, lng: lng }).eq('id', u.id);
+                } catch(e) { console.error("Loc update failed", e); }
+                
+                // Fungua app baada ya kupata location ya kwanza
+                if(document.getElementById('app-c').style.display === 'none') {
+                    document.getElementById('splash-title').innerText = "Kitama Yetu";
+                    document.getElementById('splash-subtitle').innerText = "Jukwaa Rasmi la Maendeleo";
+                    document.getElementById('splash-screen').classList.add('hide');
+                    document.getElementById('app-c').style.display = 'block';
+                    setupDashboard(u);
+                }
+            },
+            (error) => {
+                // Error: Alikataza au akawasha mtoa huduma (Fake GPS)
+                document.getElementById('splash-title').innerText = "🚫 GPS Imezimwa";
+                document.getElementById('splash-subtitle').innerText = "App inahitaji uwezekwaho Location. Ruhusu GPS kwenye settings ya simu yako.";
+                
+                // Mfumo umegundua hakuna ruhusa, mtoke app
+                setTimeout(() => {
+                    localStorage.removeItem('kitama_user');
+                    location.reload();
+                }, 4000);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+        }
+    
 
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
