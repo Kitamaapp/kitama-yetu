@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
             --primary: #0F172A; --accent: #10B981; --accent-dark: #059669;
@@ -24,7 +26,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; transition: background 0.3s, color 0.3s; }
         
-        /* SPLASH */
         .splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease; }
         .splash-screen.hide { opacity: 0; visibility: hidden; }
         .splash-logo { width: 90px; height: 90px; background: var(--accent); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4); animation: pulse 2s infinite; }
@@ -34,7 +35,6 @@
         .splash-spinner { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.1); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* AUTH */
         .auth-c { width: 100%; max-width: 480px; min-height: 100vh; background: var(--surface); display: flex; flex-direction: column; }
         .auth-hero { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); padding: 60px 30px 50px; color: white; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px; position: relative; overflow: hidden; }
         .auth-hero::after { content: ''; position: absolute; top: -30px; right: -30px; width: 150px; height: 150px; background: var(--accent); opacity: 0.2; border-radius: 50%; }
@@ -54,7 +54,6 @@
         .btn-p:active { transform: scale(0.98); }
         .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s linear infinite; }
 
-        /* ULTRA PRO APP DASHBOARD */
         .app-c { width: 100%; max-width: 480px; background: var(--bg); min-height: 100vh; padding-bottom: 100px; display: none; }
         .app-h { background: rgba(255,255,255,0.8); backdrop-filter: blur(15px); padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
         [data-theme="dark"] .app-h { background: rgba(30,41,59,0.8); }
@@ -89,7 +88,6 @@
         .badge { padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
         .b-warn { background: #FEF3C7; color: #D97706; } .b-info { background: #DBEAFE; color: #2563EB; } .b-succ { background: #D1FAE5; color: #059669; } .b-err { background: #FEE2E2; color: #EF4444; }
         
-        /* FLOATING NAV */
         .b-nav { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: rgba(255,255,255,0.9); backdrop-filter: blur(15px); border: 1px solid var(--border); border-radius: 30px; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; box-shadow: var(--shadow-lg); }
         [data-theme="dark"] .b-nav { background: rgba(30,41,59,0.9); }
         .nav-b { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-sec); transition: all 0.2s; padding: 5px 15px; border-radius: 20px; }
@@ -98,7 +96,7 @@
         
         .btn-out { width: 100%; padding: 14px; background: transparent; color: var(--danger); border: 1px solid #FCA5A5; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 30px; }
         .report-img { width: 100%; height: 180px; object-fit: cover; border-radius: 12px; margin-top: 12px; background: var(--bg); }
-        .interaction-bar { display: flex; gap: 8px; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 12px; flex-wrap: wrap; }
+        .interaction-bar { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 12px; }
         .int-btn { background: var(--bg); border: none; padding: 8px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; color: var(--text-sec); display: flex; align-items: center; gap: 6px; }
         .int-btn-accent { background: rgba(16,185,129,0.1); color: var(--accent); }
         .int-btn-danger { background: rgba(239,68,68,0.1); color: var(--danger); margin-left: auto; padding: 8px 10px; }
@@ -109,9 +107,8 @@
         
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 12px 24px; border-radius: 30px; box-shadow: var(--shadow-lg); z-index: 200; display: none; font-size: 14px; font-weight: 600; }
         
-        /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-        .modal-box { background: var(--surface); width: 100%; max-width: 380px; border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: pop 0.3s ease; }
+        .modal-box { background: var(--surface); width: 100%; max-width: 380px; border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: pop 0.3s ease; max-height: 90vh; overflow-y: auto; }
         @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--text); }
         .modal-text { font-size: 14px; color: var(--text-sec); margin-bottom: 20px; line-height: 1.5; }
@@ -122,7 +119,6 @@
         .m-btn-danger { background: var(--danger); color: white; }
         .m-btn-secondary { background: var(--bg); color: var(--text-sec); }
 
-        /* CHAT */
         .chat-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 80px; }
         .chat-msg { background: var(--surface); padding: 12px 16px; border-radius: 16px 16px 16px 4px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); align-self: flex-start; }
         .chat-msg.self { align-self: flex-end; background: var(--accent); color: white; border-radius: 16px 16px 4px 16px; border: none; }
@@ -132,26 +128,19 @@
         .chat-msg.self p { color: white; }
         .chat-msg small { font-size: 10px; color: var(--text-sec); margin-top: 5px; display: block; text-align: right; }
         .chat-msg.self small { color: rgba(255,255,255,0.7); }
-                .reply-quote { background: rgba(0,0,0,0.1); padding: 5px 10px; border-radius: 8px; margin-bottom: 5px; font-size: 12px; border-left: 3px solid var(--accent); }
-        .chat-msg.self .reply-quote { background: rgba(255,255,255,0.2); border-left-color: white; }
-        .chat-actions { display: flex; gap: 15px; margin-top: 5px; justify-content: flex-end; }
-        .chat-action-btn { background: none; border: none; color: var(--text-sec); cursor: pointer; font-size: 11px; font-weight: 600; padding: 0; }
-        .chat-msg.self .chat-action-btn { color: rgba(255,255,255,0.8); }
         .shared-card { background: rgba(255,255,255,0.2); border-left: 3px solid white; padding: 8px 12px; border-radius: 8px; margin-top: 8px; font-size: 13px; }
         .chat-msg:not(.self) .shared-card { background: var(--bg); border-left-color: var(--accent); }
         .chat-input-box { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: var(--surface); padding: 10px; border-radius: 20px; display: flex; gap: 10px; box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
         .chat-input-box input { flex: 1; padding: 10px 16px; border-radius: 20px; background: var(--bg); border: none; color: var(--text); }
         
-        /* SKELETON LOADER */
         .skeleton { background: linear-gradient(90deg, var(--bg) 25%, var(--border) 50%, var(--bg) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         
-        /* STATS CARD */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-card { background: var(--surface); padding: 15px; border-radius: 16px; text-align: center; border: 1px solid var(--border); }
         .stat-card h3 { font-size: 22px; font-weight: 800; color: var(--accent); }
         .stat-card p { font-size: 11px; color: var(--text-sec); font-weight: 600; }
-                /* PREMIUM MARKETPLACE */
+
         .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .market-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; position: relative; }
         .market-img-box { width: 100%; height: 130px; background: var(--bg); position: relative; }
@@ -163,17 +152,27 @@
         .market-body h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .market-price { color: var(--accent); font-weight: 800; font-size: 15px; margin-bottom: 8px; }
         .market-actions { display: flex; gap: 5px; }
-        .market-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .market-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; text-decoration: none; }
         .btn-call { background: var(--accent); color: white; }
         .btn-wa { background: #D1FAE5; color: var(--accent-dark); }
         .filter-row { display: flex; gap: 10px; margin-bottom: 15px; }
         .filter-row input, .filter-row select { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; }
         .shop-badge { background: var(--primary); color: white; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+        
+        .reply-quote { background: rgba(0,0,0,0.1); padding: 5px 10px; border-radius: 8px; margin-bottom: 5px; font-size: 12px; border-left: 3px solid var(--accent); }
+        .chat-msg.self .reply-quote { background: rgba(255,255,255,0.2); border-left-color: white; }
+        .chat-actions { display: flex; gap: 15px; margin-top: 5px; justify-content: flex-end; }
+        .chat-action-btn { background: none; border: none; color: var(--text-sec); cursor: pointer; font-size: 11px; font-weight: 600; padding: 0; }
+        .chat-msg.self .chat-action-btn { color: rgba(255,255,255,0.8); }
+
+        #map-container { height: 250px; border-radius: 12px; margin-bottom: 15px; display: none; z-index: 1; }
+        .blink-marker { display: flex; align-items: center; justify-content: center; }
+        .blink-dot { width: 15px; height: 15px; background: #EF4444; border-radius: 50%; box-shadow: 0 0 10px rgba(239, 68, 68, 0.8); animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.5); } 100% { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
 
-<!-- SPLASH SCREEN -->
 <div class="splash-screen" id="splash-screen">
     <div class="splash-logo"><svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg></div>
     <h1 class="splash-title">Kitama Yetu</h1>
@@ -186,6 +185,7 @@
 <div class="modal-overlay" id="modal-overlay">
     <div class="modal-box">
         <h3 class="modal-title" id="modal-title">Title</h3>
+        <div id="map-container"></div>
         <div class="modal-text" id="modal-text">Text</div>
         <div id="modal-input-container" style="display:none;"><textarea class="modal-input" id="modal-input" placeholder="Andika hapa..."></textarea></div>
         <div class="modal-btns">
@@ -195,7 +195,6 @@
     </div>
 </div>
 
-<!-- AUTH -->
 <div class="auth-c" id="auth-c">
     <div class="auth-hero">
         <div class="auth-logo"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg></div>
@@ -231,7 +230,6 @@
     </div>
 </div>
 
-<!-- APP -->
 <div class="app-c" id="app-c">
     <header class="app-h">
         <div style="display:flex; align-items:center; gap:10px;">
@@ -246,7 +244,7 @@
     <main>
         <div id="home-sec" class="sec active"><div id="home-content"></div></div>
         <div id="hub-sec" class="sec"><div class="sec-h"><h2>Mchanganyiko wa Habari</h2><span onclick="fetchHub()">Refresh</span></div><div id="hub-list"></div></div>
-                  <!-- CREATE SHOP -->
+        
         <div id="create-shop-sec" class="sec">
             <div class="sec-h"><h2>Fungua Duka Lako</h2></div>
             <p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Kwa wafanyabiashara wenye bidhaa nyingi. Tangaza duka lako hapa.</p>
@@ -256,7 +254,6 @@
             <button onclick="createShop()" class="btn-p" id="btn-shop">Fungua Duka</button>
         </div>
 
-        <!-- MY SHOP (Owner View) -->
         <div id="my-shop-sec" class="sec">
             <div style="text-align:center; margin-bottom:20px;">
                 <img id="my-shop-logo" src="" style="width:80px; height:80px; border-radius:20px; object-fit:cover; border:3px solid var(--accent); margin:0 auto 10px; display:none;">
@@ -269,17 +266,6 @@
             <div id="my-shop-products" class="market-grid"></div>
         </div>
 
-        <!-- VIEW SHOP (Public View) -->
-                <!-- CITIZEN CHAT (Public) -->
-        <div id="citizen-chat-sec" class="sec">
-            <div class="sec-h"><h2>Mazungumzo ya Wananchi</h2></div>
-            <p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Jadiliana na wawananchi wengine kwa heshima na ustawi wa kijamii.</p>
-            <div class="chat-container" id="citizen-chat-list"></div>
-            <div class="chat-input-box">
-                <input type="text" id="citizen-chat-input" placeholder="Andika ujumbe...">
-                <button onclick="postCitizenChat()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:20px; font-weight:700;">Tuma</button>
-            </div>
-        </div>
         <div id="view-shop-sec" class="sec">
             <div style="text-align:center; margin-bottom:20px;">
                 <img id="view-shop-logo" src="" style="width:80px; height:80px; border-radius:20px; object-fit:cover; border:3px solid var(--accent); margin:0 auto 10px; display:none;">
@@ -291,8 +277,19 @@
             <div class="sec-h"><h2>Bidhaa Zilizopo</h2></div>
             <div id="view-shop-products" class="market-grid"></div>
         </div>      
+        
+        <div id="citizen-chat-sec" class="sec">
+            <div class="sec-h"><h2>Mazungumzo ya Wananchi</h2></div>
+            <p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Jadiliana na wawananchi wengine kwa heshima na ustawi wa kijamii.</p>
+            <div class="chat-container" id="citizen-chat-list"></div>
+            <div class="chat-input-box">
+                <input type="text" id="citizen-chat-input" placeholder="Andika ujumbe...">
+                <button onclick="postCitizenChat()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:20px; font-weight:700;">Tuma</button>
+            </div>
+        </div>
+
         <div id="market-sec" class="sec">
-            <div class="sec-h"><h2>Soko la Kitama</h2><span onclick="showSec('add-item-sec')">+ Tangaza</span></div>
+            <div class="sec-h"><h2>Soko la Kitama</h2><span id="market-add-btn" onclick="handleNav('add-item-sec')" style="cursor:pointer; color:var(--accent); font-size:13px; font-weight:700;">+ Tangaza</span></div>
             <div class="filter-row">
                 <input type="text" id="market-search" placeholder="🔍 Tafuta bidhaa..." oninput="fetchMarket()">
                 <select id="market-cat" onchange="fetchMarket()">
@@ -308,7 +305,7 @@
             <div id="market-list" class="market-grid"></div>
         </div>
         
-                <div id="add-item-sec" class="sec">
+        <div id="add-item-sec" class="sec">
             <div class="sec-h"><h2>Tangaza Bidhaa</h2></div>
             <div class="form-g" id="shop-select-box" style="display:none;">
                 <label class="form-l">Chagua Duka (Ikiwa ni biashara yako)</label>
@@ -322,11 +319,13 @@
             <div class="form-g"><input type="text" id="item-price" style="padding-left:16px;" placeholder="Bei (Mfano: 50,000 Tsh)"></div>
             <div class="form-g"><input type="file" id="item-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
             <button onclick="postItem()" class="btn-p" id="btn-item">Weka Tangazo</button>
-            </div>
+        </div>
+
         <div id="progress-sec" class="sec"><div class="sec-h"><h2>Maendeleo ya Kata</h2><span onclick="fetchPublicProgress()">Refresh</span></div><div id="progress-list"></div></div>
         <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div>
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
-                <div id="leader-chat-sec" class="sec">
+        
+        <div id="leader-chat-sec" class="sec">
             <div class="sec-h"><h2>Chumb cha Viongozi</h2></div>
             <div class="chat-container" id="chat-list"></div>
             <div id="leader-reply-context" style="display:none; padding:10px 15px; background:var(--bg); border-radius:10px 10px 0 0; font-size:12px; color:var(--text-sec); margin-bottom:-5px; width:calc(100% - 40px); max-width: 440px; bottom: 130px; left: 50%; transform: translateX(-50%); position: fixed; border:1px solid var(--border); border-bottom:none;">
@@ -337,7 +336,8 @@
                 <input type="text" id="chat-input" placeholder="Andika ujumbe...">
                 <button onclick="postChat()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:20px; font-weight:700;">Tuma</button>
             </div>
-                </div>
+        </div>
+        
         <div id="campaign-sec" class="sec"><div class="sec-h"><h2>Kampeni & Miradi</h2><span onclick="fetchProjects()">Refresh</span></div><div id="project-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="proj-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Mradi/Mkakati"></div><div class="form-g"><textarea id="proj-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Maelezo ya Mradi (Dira)"></textarea></div><div class="form-g"><select id="proj-status" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option value="planned">Inapaswa kutekelezwa</option><option value="ongoing">Inaendelea</option><option value="stalled">Imekatika</option><option value="completed">Imekamilika</option></select></div><button onclick="postProject()" class="btn-p">Weka Mradi</button></div><div id="projects-list"></div></div>
 
         <div id="solidarity-sec" class="sec"><div class="sec-h"><h2>Andamana (Ajenda)</h2><span onclick="fetchCauses()">Refresh</span></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Andamana na wananchi wengine kuleta mabadiliko. Tuma ajeda na uwaombe wengine wakuunge mkono.</p><div id="cause-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="cause-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Kichwa cha Ajenda"></div><div class="form-g"><textarea id="cause-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Eleza ajenda yako..."></textarea></div><button onclick="postCause()" class="btn-p">Tuma Ajenda</button></div><div id="causes-list"></div></div>
@@ -359,8 +359,9 @@
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let mapInstance = null;
     
-    const BAD_WORDS = ['kumamayo', 'kuma', 'matako', 'litongo', 'vanakutomba', 'unatombwa', 'unafilwa', 'unafirwa', 'vanikutomba wako', 'vanakutomba wako', 'pumbu', 'pumbu zako', 'kamfire mama yako', 'kanfile mamayo', 'kamfile mama yako', 'ushenzi', 'pumbavu', 'litoko', 'mpyanda', 'msenge'];
+    const BAD_WORDS = ['mbwa', 'kuma', 'matako', 'ushenzi', 'pumbavu', 'mavi', 'mbulu', 'uliye', 'msenge'];
     function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
     
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
@@ -377,9 +378,12 @@
         document.getElementById('modal-ok').className = 'm-btn m-btn-primary';
         document.getElementById('modal-overlay').style.display = 'flex';
     }
-    function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+    function closeModal() { 
+        document.getElementById('modal-overlay').style.display = 'none'; 
+        document.getElementById('map-container').style.display = 'none'; 
+        document.getElementById('map-container').innerHTML = ''; 
+    }
 
-    // THEME TOGGLE
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -435,7 +439,7 @@
         try {
             const status = role === 'citizen' ? 'pending' : 'active';
             const { data: u, error } = await sb.from('users').insert([{ full_name:name, phone_number:phone, village:village, role:role, sub_village: subVillage, status: status }]).select().single();
-            if(u) { localStorage.setItem('kitama_user', JSON.stringify(u)); enterApp(); if(status === 'pending') openModal("Karibu!", "Umefanikiwa kujisajili. Akaunti yakoinasubiri kuidhinishwa na Kiongozi wako. Tafadhali subiri.", false); }
+            if(u) { localStorage.setItem('kitama_user', JSON.stringify(u)); enterApp(); if(status === 'pending') openModal("Karibu!", "Umefanikiwa kujisajili. Akaunti yako inasubiri kuidhinishwa na Kiongozi wako. Tafadhali subiri.", false); }
         } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML='Tengeneza Akaunti'; btn.disabled=false; }
     }
 
@@ -456,56 +460,54 @@
             document.getElementById('p-ava-img').style.display = 'none'; document.getElementById('p-ava').style.display = 'flex'; document.getElementById('p-ava').innerText = u.full_name.charAt(0).toUpperCase();
         }
         setupDashboard(u);
+        if(u.role === 'citizen' && u.status === 'active') updateMyLocation();
     }
 
     function setupDashboard(u) {
         const content = document.getElementById('home-content'), nav = document.getElementById('b-nav');
-        let navHtml = `<button class="nav-b active" onclick="showSec('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button><button class="nav-b" onclick="showSec('hub-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Habari</span></button><button class="nav-b" onclick="showSec('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button><button class="nav-b" onclick="showSec('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
+        let navHtml = `<button class="nav-b active" onclick="handleNav('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button><button class="nav-b" onclick="handleNav('hub-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Habari</span></button><button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button><button class="nav-b" onclick="handleNav('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
         let html = `<div class="hero-banner"><h2>Habari, ${u.full_name.split(' ')[0]}</h2><p>${u.role === 'citizen' ? 'Karibu kwenye huduma za Kata ya Kitama' : 'Dashibodi ya ' + u.role.replace(/_/g, ' ')}</p>`;
         
         if(u.role === 'citizen') {
-            if(u.status === 'pending') { html += `<div class="warning-box" style="margin:15px 0 0 0;">⚠️ Akaunti yako inasubiri kuidhinishwa na Kiongozi. Hauwezi kutuma ripoti kwa sasa.</div></div>`; } 
+            if(u.status === 'pending') { html += `<div class="warning-box" style="margin:15px 0 0 0;">⚠️ Akaunti yako inasubiri kuidhinishwa. Kwa sasa unaweza kuona Soko, Habari na Matukio tu.</div></div>`; } 
             else { html += `<button class="hero-sos" onclick="triggerSOS()">🆘 Tuma tahadhari ya Dharura</button></div>`; }
+            
             const isPending = u.status === 'pending';
             html += `<div class="qa-grid" style="margin-top:20px;">
-                <div class="qa-card ${isPending ? '' : 'active'}" onclick="showSec('report-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h4>Tuma Ripoti</h4><p>Na Picha</p></div>
-                <div class="qa-card active" onclick="showSec('campaign-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h4>Miradi & Dira</h4><p>Fuatilia kampeni</p></div>
-                <div class="qa-card active" onclick="showSec('solidarity-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4zM6 1v3M10 1v3M14 1v3"/></svg></div><h4>Andamana</h4><p>Unganishwa na Ajenda</p></div>
-                <div class="qa-card active" onclick="showSec('events-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h4>Matukio</h4><p>Kalenda ya Kata</p></div>
+                <div class="qa-card ${isPending ? '' : 'active'}" onclick="handleNav('report-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h4>Tuma Ripoti</h4><p>Na Picha</p></div>
+                <div class="qa-card ${isPending ? '' : 'active'}" onclick="handleNav('campaign-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h4>Miradi & Dira</h4><p>Fuatilia kampeni</p></div>
+                <div class="qa-card ${isPending ? '' : 'active'}" onclick="handleNav('solidarity-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4zM6 1v3M10 1v3M14 1v3"/></svg></div><h4>Andamana</h4><p>Unganishwa na Ajenda</p></div>
+                <div class="qa-card active" onclick="handleNav('events-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h4>Matukio</h4><p>Kalenda ya Kata</p></div>
+                <div class="qa-card active" onclick="handleNav('market-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div><h4>Soko la Kitama</h4><p>Angalia bidhaa</p></div>
+                <div class="qa-card ${isPending ? '' : 'active'}" onclick="handleNav('citizen-chat-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Mazungumzo</h4><p>Ongea na Wananchi</p></div>
             </div>`;
-                            html += `<div class="qa-card active" onclick="showSec('citizen-chat-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Mazungumzo</h4><p>Ongea na Wananchi</p></div>`;
         } else {
             html += `</div>`;
-            
-            // Leader Stats Dashboard
             html += `<div class="stats-grid"><div class="stat-card"><h3 id="stat-pending">0</h3><p>Wanaosubiri</p></div><div class="stat-card"><h3 id="stat-reports">0</h3><p>Malalamishi</p></div><div class="stat-card"><h3 id="stat-resolved">0</h3><p>Yaliyokamilika</p></div></div>`;
-            
             html += `<div class="qa-grid">
-                <div class="qa-card active" onclick="showSec('leader-reports-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><h4>Malalamishi</h4><p>Ya wananchi</p></div>
-                <div class="qa-card active" onclick="showSec('campaign-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h4>Miradi & Dira</h4><p>Weka/Tangaza</p></div>
-                <div class="qa-card active" onclick="showSec('events-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h4>Matukio</h4><p>Tangaza mikutano</p></div>
-                <div class="qa-card active" onclick="showSec('pending-users-sec')"><div class="qa-icon" style="background:rgba(217,119,6,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg></div><h4>Watu Wapya</h4><p>Waidhinishe</p></div>
-                <div class="qa-card active" onclick="showSec('leader-chat-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Chumb cha Viongozi</h4><p>Jadiliana</p></div>`;
+                <div class="qa-card active" onclick="handleNav('leader-reports-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><h4>Malalamishi</h4><p>Ya wananchi</p></div>
+                <div class="qa-card active" onclick="handleNav('campaign-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h4>Miradi & Dira</h4><p>Weka/Tangaza</p></div>
+                <div class="qa-card active" onclick="handleNav('events-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h4>Matukio</h4><p>Tangaza mikutano</p></div>
+                <div class="qa-card active" onclick="handleNav('pending-users-sec')"><div class="qa-icon" style="background:rgba(217,119,6,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg></div><h4>Watu Wapya</h4><p>Waidhinishe</p></div>
+                <div class="qa-card active" onclick="handleNav('leader-chat-sec')"><div class="qa-icon" style="background:rgba(16,185,129,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>Chumb cha Viongozi</h4><p>Jadiliana</p></div>`;
             if(u.role === 'mtendaji_kata') {
-                html += `<div class="qa-card active" onclick="showSec('manage-villages-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h4>Vitongoji</h4><p>Ongeza maeneo</p></div>`;
-                html += `<div class="qa-card active" onclick="showSec('admin-pins-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><h4>PIN za Viongozi</h4><p>Badilisha PIN</p></div>`;
+                html += `<div class="qa-card active" onclick="handleNav('manage-villages-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h4>Vitongoji</h4><p>Ongeza maeneo</p></div>`;
+                html += `<div class="qa-card active" onclick="handleNav('admin-pins-sec')"><div class="qa-icon" style="background:rgba(239,68,68,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><h4>PIN za Viongozi</h4><p>Badilisha PIN</p></div>`;
             }
             html += `</div>`;
             fetchLeaderStats(u);
         }
-                        content.innerHTML = html; nav.innerHTML = navHtml; showSec('home-sec');
+        content.innerHTML = html; nav.innerHTML = navHtml; showSec('home-sec');
         
-        // --- DUKA MENU LOGIC ---
         if(u.role === 'citizen' || u.role === 'mtendaji_kata' || u.role === 'diwani' || u.role === 'mtendaji_kijiji' || u.role === 'mwenyekiti_kijiji') {
             sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle().then(({ data: shop }) => {
                 const grid = document.querySelector('#home-sec .qa-grid');
                 if(grid) {
+                    const isPending = u.status === 'pending';
                     if(shop) {
-                        // Kama ana duka, onyesha "Duka Langu"
-                        grid.innerHTML += `<div class="qa-card active" onclick="viewMyShop()"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div><h4>Duka Langu</h4><p>${shop.shop_name}</p></div>`;
+                        grid.innerHTML += `<div class="qa-card ${isPending ? '' : 'active'}" onclick="handleNav('my-shop-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div><h4>Duka Langu</h4><p>${shop.shop_name}</p></div>`;
                     } else {
-                        // Kama hana duka, onyesha "Fungua Duka"
-                        grid.innerHTML += `<div class="qa-card active" onclick="showSec('create-shop-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div><h4>Fungua Duka</h4><p>Tangaza biashara yako</p></div>`;
+                        grid.innerHTML += `<div class="qa-card ${isPending ? '' : 'active'}" onclick="handleNav('create-shop-sec')"><div class="qa-icon" style="background:rgba(79,70,229,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div><h4>Fungua Duka</h4><p>Tangaza biashara yako</p></div>`;
                     }
                 }
             });
@@ -515,21 +517,29 @@
     async function fetchLeaderStats(u) {
         try {
             const { count: pendingCount } = await sb.from('users').select('*', { count: 'exact' }).eq('status', 'pending');
-            document.getElementById('stat-pending').innerText = pendingCount || 0;
-            
+            if(document.getElementById('stat-pending')) document.getElementById('stat-pending').innerText = pendingCount || 0;
             let repQuery = sb.from('reports').select('*', { count: 'exact' });
             if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') repQuery = repQuery.eq('village', u.village);
             const { count: repCount } = await repQuery;
-            document.getElementById('stat-reports').innerText = repCount || 0;
-            
+            if(document.getElementById('stat-reports')) document.getElementById('stat-reports').innerText = repCount || 0;
             let resQuery = sb.from('reports').select('*', { count: 'exact' }).eq('status', 'resolved');
             if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') resQuery = resQuery.eq('village', u.village);
             const { count: resCount } = await resQuery;
-            document.getElementById('stat-resolved').innerText = resCount || 0;
+            if(document.getElementById('stat-resolved')) document.getElementById('stat-resolved').innerText = resCount || 0;
         } catch(e) { console.error(e); }
     }
 
     function handleLogout() { localStorage.removeItem('kitama_user'); location.reload(); }
+
+    function handleNav(sec) {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const allowedForPending = ['home-sec', 'hub-sec', 'events-sec', 'profile-sec', 'market-sec'];
+        if(u.status === 'pending' && !allowedForPending.includes(sec)) {
+            openModal("Akaunti Inasubiri", "Huduma hii inahitaji akaunti yako kuidhinishwa na Kiongozi wako kwanza. Tafadhali subiri.");
+            return;
+        }
+        showSec(sec);
+    }
 
     function showSec(id) {
         document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
@@ -541,28 +551,42 @@
         if(id==='progress-sec') fetchPublicProgress();
         if(id==='leader-reports-sec') fetchLeaderReports();
         if(id==='leader-chat-sec') fetchLeaderChat();
+        if(id==='citizen-chat-sec') fetchCitizenChat();
         if(id==='manage-villages-sec') fetchSubVillages();
         if(id==='admin-pins-sec') fetchPins();
         if(id==='pending-users-sec') fetchPendingUsers();
         if(id==='campaign-sec') fetchProjects();
         if(id==='solidarity-sec') fetchCauses();
-        if(id==='events-sec') fetchEvents();       
-        if(id==='citizen-chat-sec') fetchCitizenChat();
+        if(id==='events-sec') fetchEvents();
 
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(id==='campaign-sec' && (u.role === 'mtendaji_kata' || u.role === 'diwani')) document.getElementById('project-form-box').style.display = 'block';
         if(id==='solidarity-sec' && u.role === 'citizen' && u.status === 'active') document.getElementById('cause-form-box').style.display = 'block';
-                if(id==='events-sec' && u.role !== 'citizen') document.getElementById('event-form-box').style.display = 'block';
+        if(id==='events-sec' && u.role !== 'citizen') document.getElementById('event-form-box').style.display = 'block';
         
-        // --- HATUA YA 6: KUKAGUA DUKA ANAPOONGEZA BIDHAA ---
+        const marketAddBtn = document.getElementById('market-add-btn');
+        if(marketAddBtn) {
+            if(u.status === 'pending' || u.role !== 'citizen') marketAddBtn.style.display = 'none';
+            else marketAddBtn.style.display = 'block';
+        }
         if(id==='add-item-sec') checkUserShop();
     }
 
     async function triggerSOS() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
-        openModal("Arhi ya Dharura", "Una uhakika unataka kutuma arhi ya dharura kwa viongozi?", false, async () => {
-            try { await sb.from('reports').insert([{ title: "🚨 DHARURA (SOS)!", description: "Mwananchi anahitaji msaada haraka!", village: u.village, category:"Usalama", is_emergency: true }]); showToast("Arhi imetumwa!"); } catch(e) { openModal("Kosa", e.message); }
+        openModal("Arhi ya Dharura", "Una uhakika unataka kutuma arhi ya dharura kwa viongozi wa kijiji chako?", false, async () => {
+            try { 
+                await sb.from('reports').insert([{ 
+                    title: "🚨 DHARURA (SOS)!", 
+                    description: "Mwananchi anahitaji msaada haraka!", 
+                    village: u.village, 
+                    category:"Usalama", 
+                    is_emergency: true,
+                    visibility: 'local_only' // Siri kwa wakuu wa kata
+                }]); 
+                showToast("Arhi imetumwa kwa viongozi wa kijiji!"); 
+            } catch(e) { openModal("Kosa", e.message); }
         });
     }
 
@@ -583,7 +607,7 @@
         } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML='Tuma Ripoti'; btn.disabled=false; }
     }
 
-        function renderReportCard(r, isLeader) {
+    function renderReportCard(r, isLeader) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         let sClass = r.status === 'pending' ? 'b-warn' : r.status === 'in_progress' ? 'b-info' : 'b-succ';
         let sText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika';
@@ -599,7 +623,7 @@
             interactionHtml = `<div class="interaction-bar">
                 <button class="int-btn int-btn-accent" onclick="shareToLeaders('${r.id}', '${r.title.replace(/'/g, "")}')">📤 Shiriki</button>
                 <button class="int-btn" onclick="toggleComments('${r.id}')">💬 Maoni</button>
-                <button class="int-btn" onclick="trackCitizen('${r.created_by_phone || ''}')" style="background:rgba(37,99,235,0.1); color:#2563EB;">📍 Location</button>
+                ${r.created_by_phone ? `<button class="int-btn" onclick="trackCitizen('${r.created_by_phone}')" style="background:rgba(37,99,235,0.1); color:#2563EB;">📍 Location</button>` : ''}
                 <button class="int-btn int-btn-danger" onclick="deleteReport('${r.id}')">🗑️ Futa</button>
             </div>`; 
         }
@@ -609,7 +633,7 @@
             else if(r.status === 'in_progress') actionBtn = `<button class="btn-p" style="margin-top:12px; padding:10px; font-size:13px;" onclick="promptResolution('${r.id}', '${u.full_name}')">Kamilisha (Weka Uthibitisho)</button>`;
         }
         return `<div class="list-i"><h4>${r.title}</h4><p>${r.description}</p>${imgHtml}${resImgHtml}${resNoteHtml}<div class="list-meta"><span class="badge b-info">${r.category}</span><span class="badge ${sClass}">${sText}</span><span class="badge b-warn">${r.village}</span><span style="font-size:11px; color:var(--text-sec);">Imetumwa na: ${r.created_by_name || 'Mwananchi'}</span></div>${interactionHtml}<div class="comment-box" id="comments-${r.id}"><div class="comment-list" id="comment-list-${r.id}"><div class="skeleton" style="height:20px; width:100%; margin-bottom:5px;"></div><div class="skeleton" style="height:20px; width:80%;"></div></div><div style="display:flex; gap:5px;"><input type="text" id="comment-input-${r.id}" placeholder="Ongeza maoni yako..." style="padding:8px 12px; font-size:13px; border-radius:6px; flex:1; border:1px solid var(--border); background:var(--surface); color:var(--text);"><button onclick="postComment('${r.id}')" style="padding:8px 12px; background:var(--accent); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700;">Tuma</button></div></div>${actionBtn}</div>`;
-        }
+    }
 
     async function deleteReport(id) { openModal("Futa Ripoti", "Una uhakika unataka kufuta ripoti hii kabisa?", false, async () => { try { await sb.from('reports').delete().eq('id', id); showToast("Ripoti imefutwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }); }
     async function upvote(id, currentVotes) { 
@@ -628,23 +652,27 @@
     async function fetchComments(id) { try { const { data, error } = await sb.from('comments').select('*').eq('report_id', id).order('created_at', { ascending:true }); if(error) throw error; document.getElementById(`comment-list-${id}`).innerHTML = data.length > 0 ? data.map(c => `<div class="comment-item"><b>${c.author_name} (${c.author_role.replace(/_/g,' ')})</b>${c.content}<br><small>${new Date(c.created_at).toLocaleString()}</small></div>`).join('') : '<p style="font-size:12px; color:var(--text-sec);">Hakuna maoni bado.</p>'; } catch(e) { console.error(e); } }
     async function postComment(id) { const u = JSON.parse(localStorage.getItem('kitama_user')); if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado."); const content = document.getElementById(`comment-input-${id}`).value.trim(); if(!content) return; if(containsBadWords(content)) return openModal("Onyo", "Maoni yako yana maneno yasiyoruhusiwa."); try { await sb.from('comments').insert([{ report_id: id, author_name: u.full_name, author_role: u.role, content: content }]); document.getElementById(`comment-input-${id}`).value = ''; fetchComments(id); } catch(e) { openModal("Kosa", e.message); } }
     
-    async function fetchLeaderReports() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('leader-rep-list'); div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; document.getElementById('leader-rep-title').innerText = u.role === 'diwani' || u.role === 'mtendaji_kata' ? "Malalamishi ya Kata Yote" : "Malalamishi ya " + u.village; try { let query = sb.from('reports').select('*').order('created_at', { ascending:false }); if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village); const { data, error } = await query; if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, true)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna malalamishi kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
-    async function fetchPublicProgress() { const div = document.getElementById('progress-list'); div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('reports').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna taarifa kwa sasa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
+    async function fetchLeaderReports() { 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('leader-rep-list'); div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; 
+        document.getElementById('leader-rep-title').innerText = u.role === 'diwani' || u.role === 'mtendaji_kata' ? "Malalamishi ya Kata Yote" : "Malalamishi ya " + u.village; 
+        try { 
+            let query = sb.from('reports').select('*').order('created_at', { ascending:false }); 
+            if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village);
+            if(u.role === 'diwani' || u.role === 'mtendaji_kata') query = query.neq('visibility', 'local_only'); // Ficha Dharura za kijiji
+            const { data, error } = await query; 
+            if(error) throw error; 
+            div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, true)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna malalamishi kwa sasa.</p>'; 
+        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } 
+    }
+    async function fetchPublicProgress() { const div = document.getElementById('progress-list'); div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('reports').select('*').neq('visibility', 'local_only').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna taarifa kwa sasa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
     async function updateStatus(id, newStatus) { try { await sb.from('reports').update({ status: newStatus }).eq('id', id); showToast("Status imebadilishwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }
     async function promptResolution(id, leaderName) { openModal("Uthibitisho wa Kazi", "Andika kile ulichokifanya (Uthibitisho). Kisha utachagua picha ya mradi uliokamilisha.", true, async (note) => { if(!note) return openModal("Taarifa", "Lazima uandike uthibitisho."); const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.click(); fileInput.onchange = async () => { let imgUrl = null; if(fileInput.files.length > 0) { const fileName = `resolution_${Date.now()}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { await sb.from('reports').update({ status: 'resolved', resolution_note: note, resolution_image: imgUrl, resolved_by_name: leaderName }).eq('id', id); showToast("Umekamilisha kazi na kuweka uthibitisho!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }; }); }
     async function shareToLeaders(reportId, title) { openModal("Shiriki kwa Viongozi", `Una uhakika unataka kushiriki ripoti hii kwenye Chumb cha Viongozi?`, false, async () => { const u = JSON.parse(localStorage.getItem('kitama_user')); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: `Naomba msaada/maoni kuhusu ripoti hii: "${title}"`, shared_report_id: reportId }]); showToast("Imeshirikiwa kwenye Chumb cha Viongozi!"); showSec('leader-chat-sec'); } catch(e) { openModal("Kosa", e.message); } }); }
-        // --- LEADER CHAT LOGIC (With Edit, Delete, Reply) ---
-    let leaderReplyTo = null;
-    function setLeaderReply(id, text) {
-        leaderReplyTo = id;
-        document.getElementById('leader-reply-context').style.display = 'block';
-        document.getElementById('leader-reply-text').innerText = "Unajibu: " + text.substring(0, 30) + "...";
-    }
-    function cancelLeaderReply() {
-        leaderReplyTo = null;
-        document.getElementById('leader-reply-context').style.display = 'none';
-    }
 
+    // LEADER CHAT
+    let leaderReplyTo = null;
+    function setLeaderReply(id, text) { leaderReplyTo = id; document.getElementById('leader-reply-context').style.display = 'block'; document.getElementById('leader-reply-text').innerText = "Unajibu: " + text.substring(0, 30) + "..."; }
+    function cancelLeaderReply() { leaderReplyTo = null; document.getElementById('leader-reply-context').style.display = 'none'; }
     async function fetchLeaderChat() { 
         const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('chat-list'); div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>'; 
         try { 
@@ -654,29 +682,16 @@
                 const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); 
                 let sharedHtml = c.shared_report_id ? `<div class="shared-card"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
                 let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
-                let actionsHtml = `<div class="chat-actions">
-                    <button class="chat-action-btn" onclick="setLeaderReply('${c.id}', \`${c.content.replace(/`/g, "'")}\`)">↩️ Reply</button>
-                    ${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', \`${c.content.replace(/`/g, "'")}\`)">✏️ Edit</button><button class="chat-action-btn" onclick="deleteLeaderChat('${c.id}')">🗑️ Delete</button>` : ''}
-                </div>`;
+                let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', \`${c.content.replace(/`/g, "'")}\`)">↩️ Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', \`${c.content.replace(/`/g, "'")}\`)">✏️ Edit</button><button class="chat-action-btn" onclick="deleteLeaderChat('${c.id}')">🗑️ Delete</button>` : ''}</div>`;
                 return `<div class="chat-msg ${isSelf ? 'self' : ''}"><b>${isSelf ? 'Wewe' : c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')'}</b>${replyHtml}<p>${c.content}</p>${sharedHtml}<small>${new Date(c.created_at).toLocaleString()}</small>${actionsHtml}</div>`; 
             }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna majadiliano bado.</p>'; 
             div.scrollTop = div.scrollHeight; 
         } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } 
     }
-
     async function postChat() { 
-        const u = JSON.parse(localStorage.getItem('kitama_user')); 
-        const content = document.getElementById('chat-input').value.trim(); 
-        if(!content) return; 
-        if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa."); 
-        try { 
-            await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content, reply_to: leaderReplyTo }]); 
-            document.getElementById('chat-input').value = ''; 
-            cancelLeaderReply();
-            fetchLeaderChat(); 
-        } catch(e) { openModal("Kosa", e.message); } 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); const content = document.getElementById('chat-input').value.trim(); if(!content) return; if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa."); 
+        try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content, reply_to: leaderReplyTo }]); document.getElementById('chat-input').value = ''; cancelLeaderReply(); fetchLeaderChat(); } catch(e) { openModal("Kosa", e.message); } 
     }
-
     async function editLeaderChat(id, oldText) {
         openModal("Hariri Ujumbe", "Badilisha ujumbe wako hapa chini.", true, async (newText) => {
             if(!newText || newText === oldText) return;
@@ -684,14 +699,14 @@
         });
         document.getElementById('modal-input').value = oldText;
     }
-
     async function deleteLeaderChat(id) {
         openModal("Futa Ujumbe", "Una uhakika unataka kufuta ujumbe huu?", false, async () => {
             try { await sb.from('leader_chat').delete().eq('id', id); showToast("Ujumbe umefutwa!"); fetchLeaderChat(); } catch(e) { openModal("Kosa", e.message); }
         });
     }
+    async function viewSharedReport(id) { try { const { data: r, error } = await sb.from('reports').select('*').eq('id', id).single(); if(error) throw error; let statusText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika'; let imgHtml = r.image_url ? `<img src="${r.image_url}" style="width:100%; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">` : ''; let modalContent = `${r.description}<br><br><div style="display:flex; gap:5px; flex-wrap:wrap;"><span style="background:rgba(37,99,235,0.1); color:#2563EB; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.category}</span><span style="background:rgba(100,116,139,0.1); color:#64748B; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${statusText}</span><span style="background:rgba(217,119,6,0.1); color:#D97706; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.village}</span></div>${imgHtml}`; openModal(r.title, modalContent, false); } catch(e) { openModal("Kosa", e.message); } }
 
-    // --- CITIZEN CHAT LOGIC ---
+    // CITIZEN CHAT
     async function fetchCitizenChat() {
         const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('citizen-chat-list'); div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>';
         try {
@@ -704,7 +719,6 @@
             div.scrollTop = div.scrollHeight;
         } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; }
     }
-
     async function postCitizenChat() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
@@ -716,24 +730,19 @@
             document.getElementById('citizen-chat-input').value = '';
             fetchCitizenChat();
         } catch(e) { openModal("Kosa", e.message); }
-      }
-    async function viewSharedReport(id) { try { const { data: r, error } = await sb.from('reports').select('*').eq('id', id).single(); if(error) throw error; let statusText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : 'Imekamilika'; let imgHtml = r.image_url ? `<img src="${r.image_url}" style="width:100%; border-radius:8px; margin-top:10px;" onerror="this.style.display='none'">` : ''; let modalContent = `${r.description}<br><br><div style="display:flex; gap:5px; flex-wrap:wrap;"><span style="background:rgba(37,99,235,0.1); color:#2563EB; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.category}</span><span style="background:rgba(100,116,139,0.1); color:#64748B; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${statusText}</span><span style="background:rgba(217,119,6,0.1); color:#D97706; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">${r.village}</span></div>${imgHtml}`; openModal(r.title, modalContent, false); } catch(e) { openModal("Kosa", e.message); } }
-    
-    // HUB (Activity Feed)
+    }
+
     async function fetchHub() {
         const div = document.getElementById('hub-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div><div class="skeleton" style="height:100px; margin-bottom:15px;"></div>';
         try {
-            const { data: reps } = await sb.from('reports').select('*').order('created_at', { ascending:false }).limit(3);
+            const { data: reps } = await sb.from('reports').select('*').neq('visibility', 'local_only').order('created_at', { ascending:false }).limit(3);
             const { data: anns } = await sb.from('announcements').select('*').order('created_at', { ascending:false }).limit(2);
             const { data: projs } = await sb.from('projects').select('*').order('created_at', { ascending:false }).limit(2);
-            
             let feed = [];
-            reps.forEach(r => feed.push({ type: 'Ripoti', title: r.title, desc: r.description, date: r.created_at, badge: r.status }));
-            anns.forEach(a => feed.push({ type: 'Tangazo', title: a.title, desc: a.content, date: a.created_at, badge: 'tangazo' }));
-            projs.forEach(p => feed.push({ type: 'Mradi', title: p.title, desc: p.description, date: p.created_at, badge: p.status }));
-            
+            if(reps) reps.forEach(r => feed.push({ type: 'Ripoti', title: r.title, desc: r.description, date: r.created_at, badge: r.status }));
+            if(anns) anns.forEach(a => feed.push({ type: 'Tangazo', title: a.title, desc: a.content, date: a.created_at, badge: 'tangazo' }));
+            if(projs) projs.forEach(p => feed.push({ type: 'Mradi', title: p.title, desc: p.description, date: p.created_at, badge: p.status }));
             feed.sort((a,b) => new Date(b.date) - new Date(a.date));
-            
             div.innerHTML = feed.length > 0 ? feed.map(f => {
                 let bClass = f.badge === 'pending' ? 'b-warn' : f.badge === 'resolved' ? 'b-succ' : f.badge === 'ongoing' ? 'b-info' : 'b-err';
                 let bText = f.badge === 'pending' ? 'Inasubiri' : f.badge === 'resolved' ? 'Imekamilika' : f.badge === 'ongoing' ? 'Inaendelea' : f.badge === 'tangazo' ? 'Tangazo' : f.badge;
@@ -742,213 +751,73 @@
         } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
     }
 
-    // UIDHINISHAJI
     async function fetchPendingUsers() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('pending-list'); div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>'; try { let query = sb.from('users').select('*').eq('status', 'pending'); if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village); const { data, error } = await query; if(error) throw error; div.innerHTML = data.length > 0 ? data.map(u => `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center;"><div><strong>${u.full_name}</strong><br><small>${u.phone_number} - ${u.village}</small></div><div style="display:flex; gap:5px;"><button class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:12px;" onclick="approveUser('${u.id}')">Kubali</button><button class="m-btn m-btn-danger" style="flex:none; padding:8px 12px; font-size:12px;" onclick="rejectUser('${u.id}')">Kataza</button></div></div>`).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna watu wapya wanaosubiri kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
     async function approveUser(id) { try { await sb.from('users').update({ status: 'active' }).eq('id', id); showToast("Mtumiaji amekubaliwa!"); fetchPendingUsers(); } catch(e) { openModal("Kosa", e.message); } }
     async function rejectUser(id) { openModal("Kataza Mtumiaji", "Una uhakika unataka kumkataza mtumiaji huyu? Akaunti yake itafutwa kabisa.", false, async () => { try { await sb.from('users').delete().eq('id', id); showToast("Mtumiaji amekataliwa na kufutwa!"); fetchPendingUsers(); } catch(e) { openModal("Kosa", e.message); } }); }
 
-    // VITONGOJI
     async function addSubVillage() { const village = document.getElementById('sub-v-village').value, name = document.getElementById('sub-v-name').value.trim(); if(!name) return openModal("Taarifa", "Weka jina la kitongoji."); try { await sb.from('sub_villages').insert([{ village: village, sub_village_name: name }]); showToast("Kitongoji kimeongezwa!"); document.getElementById('sub-v-name').value = ''; fetchSubVillages(); } catch(e) { openModal("Kosa", e.message); } }
     async function fetchSubVillages() { const div = document.getElementById('sub-villages-list'); div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('sub_villages').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(v => `<div class="list-i" style="padding:12px;"><strong>${v.sub_village_name}</strong><br><small style="color:var(--text-sec);">Kijiji: ${v.village}</small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna vitongoji vilivyoongezwa bado.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
 
-    // PIN LOGIC
     function togglePinVillage() { document.getElementById('pin-village-box').style.display = document.getElementById('pin-role').value === 'mtendaji_kijiji' ? 'block' : 'none'; }
     async function updatePin() { const role = document.getElementById('pin-role').value, village = document.getElementById('pin-village').value, pin = document.getElementById('pin-value').value.trim(); if(!pin) return openModal("Taarifa", "Weka PIN mpya."); try { let query = sb.from('leader_pins').select('*').eq('role', role); if(role === 'mtendaji_kijiji') query = query.eq('village', village); else query = query.is('village', null); const { data: existing } = await query.maybeSingle(); if(existing) { await sb.from('leader_pins').update({ pin: pin }).eq('id', existing.id); } else { await sb.from('leader_pins').insert([{ role: role, village: role === 'mtendaji_kijiji' ? village : null, pin: pin }]); } showToast("PIN imehifadhiwa!"); document.getElementById('pin-value').value = ''; fetchPins(); } catch(e) { openModal("Kosa", e.message); } }
     async function fetchPins() { const div = document.getElementById('pins-list'); div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('leader_pins').select('*').order('role', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => `<div class="list-i" style="padding:12px;"><strong>${p.role.replace(/_/g,' ')}</strong>${p.village ? ' - '+p.village : ''}<br><small style="color:var(--text-sec);">PIN: <b>${p.pin}</b></small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna PIN zilizowekwa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
 
-    // MIRADI & KAMPENI
     async function postProject() { const title = document.getElementById('proj-title').value.trim(), desc = document.getElementById('proj-desc').value.trim(), status = document.getElementById('proj-status').value; if(!title||!desc) return openModal("Taarifa", "Jaza jina na maelezo ya mradi."); try { await sb.from('projects').insert([{ title, description: desc, status }]); showToast("Mradi umewekwa!"); document.getElementById('proj-title').value=''; document.getElementById('proj-desc').value=''; fetchProjects(); } catch(e) { openModal("Kosa", e.message); } }
     async function fetchProjects() { const div = document.getElementById('projects-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('projects').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => { let sClass = p.status === 'planned' ? 'b-info' : p.status === 'ongoing' ? 'b-warn' : p.status === 'stalled' ? 'b-err' : 'b-succ'; let sText = p.status === 'planned' ? 'Inapaswa kutekelezwa' : p.status === 'ongoing' ? 'Inaendelea' : p.status === 'stalled' ? 'Imekatika' : 'Imekamilika'; return `<div class="list-i"><h4>${p.title}</h4><p>${p.description}</p><div class="list-meta"><span class="badge ${sClass}">${sText}</span></div></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna miradi iliyowekwa kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
 
-    // ANDAMANA
     async function postCause() { const u = JSON.parse(localStorage.getItem('kitama_user')); const title = document.getElementById('cause-title').value.trim(), desc = document.getElementById('cause-desc').value.trim(); if(!title||!desc) return openModal("Taarifa", "Jaza kichwa na maelezo ya ajenda."); if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa."); try { await sb.from('causes').insert([{ title, description: desc, created_by_name: u.full_name, created_by_phone: u.phone_number }]); showToast("Ajenda imetumwa! Wengine wataikuunga mkono."); document.getElementById('cause-title').value=''; document.getElementById('cause-desc').value=''; fetchCauses(); } catch(e) { openModal("Kosa", e.message); } }
     async function fetchCauses() { const div = document.getElementById('causes-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('causes').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(c => { let sBadge = c.status === 'addressed' ? '<span class="badge b-succ">Imekubaliwa na Viongozi</span>' : '<span class="badge b-warn">Inasubiri</span>'; return `<div class="list-i"><h4>${c.title}</h4><p>${c.description}</p><div class="list-meta"><span class="badge b-info">Imetumwa na: ${c.created_by_name}</span>${sBadge}</div><div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="supportCause('${c.id}', ${c.supporters})">✊ Niandamanye (${c.supporters})</button></div></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna ajeda kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
     async function supportCause(id, currentSupporters) { try { await sb.from('causes').update({ supporters: currentSupporters + 1 }).eq('id', id); showToast("Umeiunga mkono ajenda hii!"); fetchCauses(); } catch(e) { openModal("Kosa", e.message); } }
 
-    // EVENTS (MATUKIO)
-    async function postEvent() {
-        const title = document.getElementById('event-title').value.trim(), date = document.getElementById('event-date').value, location = document.getElementById('event-location').value.trim(), desc = document.getElementById('event-desc').value.trim();
-        if(!title||!date) return openModal("Taarifa", "Weka jina la tukio na tarehe.");
-        try { await sb.from('events').insert([{ title, description: desc, event_date: date, location: location }]); showToast("Tukio limewekwa!"); document.getElementById('event-title').value=''; document.getElementById('event-date').value=''; document.getElementById('event-location').value=''; document.getElementById('event-desc').value=''; fetchEvents(); } catch(e) { openModal("Kosa", e.message); }
-    }
-    async function fetchEvents() {
-        const div = document.getElementById('events-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>';
-        try {
-            const { data, error } = await sb.from('events').select('*').order('event_date', { ascending:true });
-            if(error) throw error;
-            div.innerHTML = data.length > 0 ? data.map(e => `<div class="list-i"><div style="display:flex; justify-content:space-between; align-items:center;"><h4>${e.title}</h4><span class="badge b-succ">${new Date(e.event_date).toLocaleDateString()}</span></div><p>${e.description || ''}</p>${e.location ? `<div class="list-meta"><span class="badge b-info">📍 ${e.location}</span></div>` : ''}</div>`).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna matukio yaliyowekwa kwa sasa.</p>';
-        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
-    }
+    async function postEvent() { const title = document.getElementById('event-title').value.trim(), date = document.getElementById('event-date').value, location = document.getElementById('event-location').value.trim(), desc = document.getElementById('event-desc').value.trim(); if(!title||!date) return openModal("Taarifa", "Weka jina la tukio na tarehe."); try { await sb.from('events').insert([{ title, description: desc, event_date: date, location: location }]); showToast("Tukio limewekwa!"); document.getElementById('event-title').value=''; document.getElementById('event-date').value=''; document.getElementById('event-location').value=''; document.getElementById('event-desc').value=''; fetchEvents(); } catch(e) { openModal("Kosa", e.message); } }
+    async function fetchEvents() { const div = document.getElementById('events-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('events').select('*').order('event_date', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(e => `<div class="list-i"><div style="display:flex; justify-content:space-between; align-items:center;"><h4>${e.title}</h4><span class="badge b-succ">${new Date(e.event_date).toLocaleDateString()}</span></div><p>${e.description || ''}</p>${e.location ? `<div class="list-meta"><span class="badge b-info">📍 ${e.location}</span></div>` : ''}</div>`).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna matukio yaliyowekwa kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
 
-    // AVATAR UPLOAD
-    async function uploadAvatar() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const fileInput = document.getElementById('avatar-upload');
-        if(fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            const fileName = `avatar_${u.phone_number}.jpg`;
-            try {
-                await sb.storage.from('kitama-images').upload(fileName, file, { upsert: true });
-                const url = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
-                await sb.from('users').update({ avatar_url: url }).eq('id', u.id);
-                u.avatar_url = url; localStorage.setItem('kitama_user', JSON.stringify(u));
-                enterApp(); showToast("Picha imewekwa!");
-            } catch(e) { openModal("Kosa", e.message); }
+    async function uploadAvatar() { const u = JSON.parse(localStorage.getItem('kitama_user')); const fileInput = document.getElementById('avatar-upload'); if(fileInput.files.length > 0) { const file = fileInput.files[0]; const fileName = `avatar_${u.phone_number}.jpg`; try { await sb.storage.from('kitama-images').upload(fileName, file, { upsert: true }); const url = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; await sb.from('users').update({ avatar_url: url }).eq('id', u.id); u.avatar_url = url; localStorage.setItem('kitama_user', JSON.stringify(u)); enterApp(); showToast("Picha imewekwa!"); } catch(e) { openModal("Kosa", e.message); } } }
+
+    // SHOPS & MARKETPLACE
+    async function createShop() { const u = JSON.parse(localStorage.getItem('kitama_user')); const name = document.getElementById('shop-name').value.trim(), desc = document.getElementById('shop-desc').value.trim(), fileInput = document.getElementById('shop-logo'); if(!name) return openModal("Taarifa", "Weka jina la duka."); const btn = document.getElementById('btn-shop'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true; let logoUrl = null; if(fileInput.files.length > 0) { const fileName = `shop_${u.phone_number}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0], { upsert: true }); if(!upErr) logoUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { const { data, error } = await sb.from('shops').insert([{ owner_phone: u.phone_number, shop_name: name, description: desc, logo_url: logoUrl, village: u.village }]).select().single(); if(error) throw error; showToast("Duka limefunguliwa!"); enterApp(); } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML = 'Fungua Duka'; btn.disabled = false; } }
+    async function checkUserShop() { const u = JSON.parse(localStorage.getItem('kitama_user')); try { const { data: shop } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle(); if(shop) { document.getElementById('shop-select-box').style.display = 'block'; const select = document.getElementById('item-shop'); select.innerHTML = `<option value="">- Ni bidhaa ya kibinafsi -</option><option value="${shop.id}|${shop.shop_name}">${shop.shop_name}</option>`; } } catch(e) { console.error(e); } }
+    async function viewMyShop() { const u = JSON.parse(localStorage.getItem('kitama_user')); try { const { data: shop, error } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle(); if(error) throw error; if(shop) { document.getElementById('my-shop-name').innerText = shop.shop_name; document.getElementById('my-shop-desc').innerText = shop.description || ''; if(shop.logo_url) { document.getElementById('my-shop-logo').src = shop.logo_url; document.getElementById('my-shop-logo').style.display = 'block'; document.getElementById('my-shop-initial').style.display = 'none'; } else { document.getElementById('my-shop-logo').style.display = 'none'; document.getElementById('my-shop-initial').style.display = 'flex'; document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0); } fetchShopProducts(shop.id, 'my-shop-products'); showSec('my-shop-sec'); } } catch(e) { openModal("Kosa", e.message); } }
+    async function viewShopById(id) { try { const { data: shop, error } = await sb.from('shops').select('*').eq('id', id).single(); if(error) throw error; document.getElementById('view-shop-name').innerText = shop.shop_name; document.getElementById('view-shop-village').innerText = "📍 " + shop.village; document.getElementById('view-shop-desc').innerText = shop.description || ''; if(shop.logo_url) { document.getElementById('view-shop-logo').src = shop.logo_url; document.getElementById('view-shop-logo').style.display = 'block'; document.getElementById('view-shop-initial').style.display = 'none'; } else { document.getElementById('view-shop-logo').style.display = 'none'; document.getElementById('view-shop-initial').style.display = 'flex'; document.getElementById('view-shop-initial').innerText = shop.shop_name.charAt(0); } fetchShopProducts(shop.id, 'view-shop-products'); showSec('view-shop-sec'); } catch(e) { openModal("Kosa", e.message); } }
+    async function fetchShopProducts(shopId, divId) { const div = document.getElementById(divId); div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div>'; try { const { data, error } = await sb.from('marketplace').select('*').eq('shop_id', shopId).order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(m => renderMarketCard(m)).join('') : '<p style="color:var(--text-sec); text-align:center; grid-column:span 2;">Hakuna bidhaa kwenye duka hili.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    async function postItem() { const u = JSON.parse(localStorage.getItem('kitama_user')); if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado."); const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim(), cat = document.getElementById('item-cat').value, fileInput = document.getElementById('item-image'); const shopVal = document.getElementById('item-shop') ? document.getElementById('item-shop').value : ''; let shopId = null, shopName = null; if(shopVal) { const parts = shopVal.split('|'); shopId = parts[0]; shopName = parts[1]; } if(!name) return openModal("Taarifa", "Weka jina la bidhaa."); if(containsBadWords(name) || containsBadWords(desc)) return openModal("Onyo", "Maelezo yako yana maneno yasiyoruhusiwa."); const btn = document.getElementById('btn-item'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true; let imgUrl = null; if(fileInput.files.length > 0) { const fileName = `market_${Date.now()}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village, category:cat, image_url:imgUrl, status:'active', shop_id: shopId, shop_name: shopName }]); if(error) throw error; showToast("Bidhaa imetangazwa!"); document.getElementById('item-name').value=''; document.getElementById('item-desc').value=''; document.getElementById('item-price').value=''; if(fileInput) fileInput.value = ''; showSec('market-sec'); } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML = 'Weka Tangazo'; btn.disabled = false; } }
+    function renderMarketCard(m) { let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" onerror="this.style.display='none'">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`; let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZA</span></div>` : ''; let waPhone = m.phone.replace(/^0/, '255'); let shopHtml = m.shop_id ? `<span class="shop-badge" onclick="viewShopById('${m.shop_id}')">🏪 ${m.shop_name}</span>` : ''; let actionBtns = m.status === 'sold' ? '' : `<a href="tel:${m.phone}" class="market-btn btn-call">📞 Piga</a><a href="https://wa.me/${waPhone}" target="_blank" class="market-btn btn-wa">💬 WhatsApp</a>`; let markSoldBtn = JSON.parse(localStorage.getItem('kitama_user')).phone_number === m.phone && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" style="width:100%; margin-top:5px; padding:5px; background:var(--bg); color:var(--text-sec); border:1px solid var(--border); border-radius:8px; font-size:10px; font-weight:700; cursor:pointer;">Lelemsha kama Imeuza</button>` : ''; return `<div class="market-card"><div class="market-img-box">${imgHtml}${soldHtml}</div><div class="market-body"><h4>${m.item_name}</h4><div class="market-price">${m.price || 'Agana'}</div><div class="list-meta" style="margin-top:0; margin-bottom:8px;"><span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span><span class="badge b-warn" style="font-size:9px;">${m.village}</span>${shopHtml}</div><div class="market-actions">${actionBtns}</div>${markSoldBtn}</div></div>`; }
+    async function fetchMarket() { const div = document.getElementById('market-list'); const search = document.getElementById('market-search').value.toLowerCase(); const cat = document.getElementById('market-cat').value; div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div><div class="skeleton" style="height:200px; border-radius:16px;"></div>'; try { const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending:false }); if(error) throw error; let filtered = data; if(search) filtered = filtered.filter(m => m.item_name.toLowerCase().includes(search)); if(cat !== 'all') filtered = filtered.filter(m => m.category === cat); div.innerHTML = filtered.length > 0 ? filtered.map(m => renderMarketCard(m)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; grid-column:span 2;">Hakuna bidhaa zilizotangazwa kwenye kategoria hii.</p>'; } catch(e) { div.innerHTML=`<p style="color:red; grid-column:span 2;">${e.message}</p>`; } }
+    async function markAsSold(id) { openModal("Imeuza Bidhaa", "Una uhakika unataka kuweka alama ya 'Imeuza' kwenye bidhaa hii?", false, async () => { try { await sb.from('marketplace').update({ status: 'sold' }).eq('id', id); showToast("Bidhaa imewekwa kama Imeuza!"); fetchMarket(); } catch(e) { openModal("Kosa", e.message); } }); }
+
+    // GEOLOCATION TRACKING
+    async function updateMyLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                try {
+                    await sb.from('users').update({ lat: position.coords.latitude, lng: position.coords.longitude }).eq('id', u.id);
+                } catch(e) { console.error("Loc update failed", e); }
+            }, (error) => { console.log("Location access denied"); }, { enableHighAccuracy: true });
         }
     }
 
-       // --- SHOP LOGIC ---
-    async function createShop() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const name = document.getElementById('shop-name').value.trim(), desc = document.getElementById('shop-desc').value.trim(), fileInput = document.getElementById('shop-logo');
-        if(!name) return openModal("Taarifa", "Weka jina la duka.");
-        const btn = document.getElementById('btn-shop'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
-        let logoUrl = null;
-        if(fileInput.files.length > 0) {
-            const fileName = `shop_${u.phone_number}.jpg`;
-            const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0], { upsert: true });
-            if(!upErr) logoUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
-        }
+    async function trackCitizen(phone) {
         try {
-            const { data, error } = await sb.from('shops').insert([{ owner_phone: u.phone_number, shop_name: name, description: desc, logo_url: logoUrl, village: u.village }]).select().single();
+            const { data: u, error } = await sb.from('users').select('lat, lng, full_name').eq('phone_number', phone).single();
             if(error) throw error;
-            showToast("Duka limefunguliwa!");
-            enterApp(); // Refresh dashboard to show shop tab
-        } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML = 'Fungua Duka'; btn.disabled = false; }
-    }
-
-    async function checkUserShop() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        try {
-            const { data: shop } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle();
-            if(shop) {
-                document.getElementById('shop-select-box').style.display = 'block';
-                const select = document.getElementById('item-shop');
-                select.innerHTML = `<option value="">- Ni bidhaa ya kibinafsi -</option><option value="${shop.id}|${shop.shop_name}">${shop.shop_name}</option>`;
-            }
-        } catch(e) { console.error(e); }
-    }
-
-    async function viewMyShop() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        try {
-            const { data: shop, error } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle();
-            if(error) throw error;
-            if(shop) {
-                document.getElementById('my-shop-name').innerText = shop.shop_name;
-                document.getElementById('my-shop-desc').innerText = shop.description || '';
-                if(shop.logo_url) {
-                    document.getElementById('my-shop-logo').src = shop.logo_url; document.getElementById('my-shop-logo').style.display = 'block'; document.getElementById('my-shop-initial').style.display = 'none';
-                } else {
-                    document.getElementById('my-shop-logo').style.display = 'none'; document.getElementById('my-shop-initial').style.display = 'flex'; document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0);
-                }
-                fetchShopProducts(shop.id, 'my-shop-products');
-                showSec('my-shop-sec');
-            }
-        } catch(e) { openModal("Kosa", e.message); }
-    }
-
-    async function viewShopById(id) {
-        try {
-            const { data: shop, error } = await sb.from('shops').select('*').eq('id', id).single();
-            if(error) throw error;
-            document.getElementById('view-shop-name').innerText = shop.shop_name;
-            document.getElementById('view-shop-village').innerText = "📍 " + shop.village;
-            document.getElementById('view-shop-desc').innerText = shop.description || '';
-            if(shop.logo_url) {
-                document.getElementById('view-shop-logo').src = shop.logo_url; document.getElementById('view-shop-logo').style.display = 'block'; document.getElementById('view-shop-initial').style.display = 'none';
-            } else {
-                document.getElementById('view-shop-logo').style.display = 'none'; document.getElementById('view-shop-initial').style.display = 'flex'; document.getElementById('view-shop-initial').innerText = shop.shop_name.charAt(0);
-            }
-            fetchShopProducts(shop.id, 'view-shop-products');
-            showSec('view-shop-sec');
-        } catch(e) { openModal("Kosa", e.message); }
-    }
-
-    async function fetchShopProducts(shopId, divId) {
-        const div = document.getElementById(divId); div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div>';
-        try {
-            const { data, error } = await sb.from('marketplace').select('*').eq('shop_id', shopId).order('created_at', { ascending:false });
-            if(error) throw error;
-            div.innerHTML = data.length > 0 ? data.map(m => renderMarketCard(m)).join('') : '<p style="color:var(--text-sec); text-align:center; grid-column:span 2;">Hakuna bidhaa kwenye duka hili.</p>';
-        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
-    }
-
-    // --- MARKETPLACE PREMIUM LOGIC (UPDATED) ---
-    async function postItem() { 
-        const u = JSON.parse(localStorage.getItem('kitama_user')); 
-        if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado."); 
-        const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim(), cat = document.getElementById('item-cat').value, fileInput = document.getElementById('item-image'); 
-        const shopVal = document.getElementById('item-shop') ? document.getElementById('item-shop').value : '';
-        let shopId = null, shopName = null;
-        if(shopVal) { const parts = shopVal.split('|'); shopId = parts[0]; shopName = parts[1]; }
-
-        if(!name) return openModal("Taarifa", "Weka jina la bidhaa."); 
-        if(containsBadWords(name) || containsBadWords(desc)) return openModal("Onyo", "Maelezo yako yana maneno yasiyoruhusiwa."); 
-        
-        const btn = document.getElementById('btn-item'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true;
-        let imgUrl = null;
-        if(fileInput.files.length > 0) {
-            const fileName = `market_${Date.now()}.jpg`;
-            const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]);
-            if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
-        }
-
-        try { 
-            const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village, category:cat, image_url:imgUrl, status:'active', shop_id: shopId, shop_name: shopName }]); 
-            if(error) throw error; 
-            showToast("Bidhaa imetangazwa!"); 
-            document.getElementById('item-name').value=''; document.getElementById('item-desc').value=''; document.getElementById('item-price').value=''; if(fileInput) fileInput.value = '';
-            showSec('market-sec'); 
-        } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML = 'Weka Tangazo'; btn.disabled = false; }
-    }
-
-    function renderMarketCard(m) {
-        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" onerror="this.style.display='none'">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
-        let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZA</span></div>` : '';
-        let waPhone = m.phone.replace(/^0/, '255');
-        let shopHtml = m.shop_id ? `<span class="shop-badge" onclick="viewShopById('${m.shop_id}')">🏪 ${m.shop_name}</span>` : '';
-        let actionBtns = m.status === 'sold' ? '' : `<a href="tel:${m.phone}" class="market-btn btn-call">📞 Piga</a><a href="https://wa.me/${waPhone}" target="_blank" class="market-btn btn-wa">💬 WhatsApp</a>`;
-        let markSoldBtn = JSON.parse(localStorage.getItem('kitama_user')).phone_number === m.phone && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" style="width:100%; margin-top:5px; padding:5px; background:var(--bg); color:var(--text-sec); border:1px solid var(--border); border-radius:8px; font-size:10px; font-weight:700; cursor:pointer;">Lelemsha kama Imeuza</button>` : '';
-        
-        return `<div class="market-card">
-            <div class="market-img-box">${imgHtml}${soldHtml}</div>
-            <div class="market-body">
-                <h4>${m.item_name}</h4>
-                <div class="market-price">${m.price || 'Agana'}</div>
-                <div class="list-meta" style="margin-top:0; margin-bottom:8px;">
-                    <span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span>
-                    <span class="badge b-warn" style="font-size:9px;">${m.village}</span>
-                    ${shopHtml}
-                </div>
-                <div class="market-actions">${actionBtns}</div>
-                ${markSoldBtn}
-            </div>
-        </div>`;
-    }
-
-    async function fetchMarket() { 
-        const div = document.getElementById('market-list'); 
-        const search = document.getElementById('market-search').value.toLowerCase(); 
-        const cat = document.getElementById('market-cat').value;
-        div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div><div class="skeleton" style="height:200px; border-radius:16px;"></div>'; 
-        try { 
-            const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending:false }); 
-            if(error) throw error; 
-            let filtered = data;
-            if(search) filtered = filtered.filter(m => m.item_name.toLowerCase().includes(search));
-            if(cat !== 'all') filtered = filtered.filter(m => m.category === cat);
+            if(!u.lat || !u.lng) return openModal("Taarifa", "Mwananchi huyu hajawasha/amrukusu location kwenye simu yake.", false);
             
-            div.innerHTML = filtered.length > 0 ? filtered.map(m => renderMarketCard(m)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; grid-column:span 2;">Hakuna bidhaa zilizotangazwa kwenye kategoria hii.</p>'; 
-        } catch(e) { div.innerHTML=`<p style="color:red; grid-column:span 2;">${e.message}</p>`; } 
+            openModal("📍 Location ya Mwananchi", `Hii ni eneo la ${u.full_name} kwa wakati huu.`, false);
+            document.getElementById('map-container').style.display = 'block';
+            
+            if(mapInstance) mapInstance.remove(); // Futa map ya zamani
+            setTimeout(() => {
+                mapInstance = L.map('map-container').setView([u.lat, u.lng], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+                
+                // Onyesha Blinking Dot
+                const blinkIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot"></div>', iconSize: [20, 20]});
+                L.marker([u.lat, u.lng], {icon: blinkIcon}).addTo(mapInstance);
+            }, 200);
+        } catch(e) { openModal("Kosa", e.message); }
     }
 
-    async function markAsSold(id) {
-        openModal("Imeuzwa Bidhaa", "Una uhakika unataka kuweka alama ya 'Imeuzwa' kwenye bidhaa hii?", false, async () => {
-            try { await sb.from('marketplace').update({ status: 'sold' }).eq('id', id); showToast("Bidhaa imewekwa kama Imeuzwa!"); fetchMarket(); } catch(e) { openModal("Kosa", e.message); }
-        });
-     }     
-    
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
 </body>
