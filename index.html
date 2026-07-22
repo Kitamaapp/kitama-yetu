@@ -475,8 +475,8 @@
         let html = `<div class="hero-banner"><h2>Habari, ${u.full_name.split(' ')[0]}</h2><p>${u.role === 'citizen' ? 'Karibu kwenye huduma za Kata ya Kitama' : 'Dashibodi ya ' + u.role.replace(/_/g, ' ')}</p>`;
         
         if(u.role === 'citizen') {
-            if(u.status === 'pending') { html += `<div class="warning-box" style="margin:15px 0 0 0;">⚠️ Akaunti yako inasubiri kuidhinishwa. Kwa sasa unaweza kuona Soko, Habari na Matukio tu.</div></div>`; } 
-            else { html += `<button class="hero-sos" onclick="triggerSOS()">🆘 Tuma tahadhari ya Dharura</button></div>`; }
+        if(u.status === 'pending') { html += `<div class="warning-box" style="margin:15px 0 0 0;">⚠️ Akaunti yako inasubiri kuidhinishwa. Kwa sasa unaweza kuona Soko, Habari na Matukio tu.</div></div>`; } 
+            else { html += `</div>`; }
             
             const isPending = u.status === 'pending';
             html += `<div class="qa-grid" style="margin-top:20px;">
@@ -576,24 +576,6 @@
             else marketAddBtn.style.display = 'block';
         }
         if(id==='add-item-sec') checkUserShop();
-    }
-
-    async function triggerSOS() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
-        openModal("Arhi ya Dharura", "Una uhakika unataka kutuma arhi ya dharura kwa viongozi wa kijiji chako?", false, async () => {
-            try { 
-                await sb.from('reports').insert([{ 
-                    title: "🚨 DHARURA (SOS)!", 
-                    description: "Mwananchi anahitaji msaada haraka!", 
-                    village: u.village, 
-                    category:"Usalama", 
-                    is_emergency: true,
-                    visibility: 'local_only' // Siri kwa wakuu wa kata
-                }]); 
-                showToast("Arhi imetumwa kwa viongozi wa kijiji!"); 
-            } catch(e) { openModal("Kosa", e.message); }
-        });
     }
 
     async function submitReport() {
