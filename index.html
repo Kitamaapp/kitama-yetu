@@ -341,7 +341,7 @@
                 <a href="#" id="view-shop-wa" target="_blank" class="shop-action-btn shop-btn-wa">💬 WhatsApp</a>
             </div>
             <div style="padding: 0 20px; margin-bottom: 20px;">
-                <button id="view-shop-msg-btn" class="btn-p" style="margin-top:0; background: var(--primary);">✉️ Tuma Ujumbe (Inbox)</button>
+                <button id="view-shop-msg-btn" class="btn-p" style="margin-top:0; background: var(--primary);">Ujumbe</button>
             </div>
             <div class="sec-h"><h2>Bidhaa Zilizopo</h2></div>
             <div id="view-shop-products" class="fb-feed"></div>
@@ -388,7 +388,7 @@
                 <div class="form-g" id="shop-select-box" style="display:none;">
                     <label class="form-l">Chagua Duka (Ikiwa ni biashara yako)</label>
                     <select id="item-shop" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
-                        <option value="">- Ni bidhaa ya kibinafsi (Sio la duka) -</option>
+                        <option value="">- Ni bidhaa ya kibinafsi (Sio ya duka) -</option>
                     </select>
                 </div>
                 <div class="form-g"><input type="text" id="item-name" style="padding-left:16px;" placeholder="Jina la Bidhaa"></div>
@@ -402,12 +402,12 @@
 
         <div id="progress-sec" class="sec"><div class="sec-h"><h2>Maendeleo ya Kata</h2><span onclick="fetchPublicProgress()">Refresh</span></div><div id="progress-list"></div></div>
         
-        <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div style="padding: 0 20px;"><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div></div>
+        <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Mapendekezo</h2></div><div style="padding: 0 20px;"><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div></div>
         
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
         
         <div id="leader-chat-sec" class="sec">
-            <div class="sec-h"><h2>Chumb cha Viongozi</h2></div>
+            <div class="sec-h"><h2>Chat ya Viongozi</h2></div>
             <div class="chat-container" id="chat-list"></div>
             <div id="leader-reply-context" style="display:none; padding:10px 15px; background:var(--bg); border-radius:10px 10px 0 0; font-size:12px; color:var(--text-sec); margin-bottom:-5px; width:calc(100% - 40px); max-width: 440px; bottom: 130px; left: 50%; transform: translateX(-50%); position: fixed; border:1px solid var(--border); border-bottom:none;">
                 <span id="leader-reply-text"></span>
@@ -443,7 +443,7 @@
     let mapInstance = null;
     let currentShopId = null;
     
-    const BAD_WORDS = ['mbwa', 'kuma', 'matako', 'ushenzi', 'pumbavu', 'mavi', 'mbulu', 'uliye', 'msenge'];
+    const BAD_WORDS = ['litoko', 'kuma', 'matako', 'ushenzi', 'pumbavu', 'mavi', 'kumamako', 'kumamayo, 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumamyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge'];
     function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
     
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
