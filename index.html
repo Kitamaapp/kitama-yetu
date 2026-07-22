@@ -550,37 +550,38 @@
         }
     }
 
-    function enforceCitizenLocation(u) {
+        function enforceCitizenLocation(u) {
         if (!navigator.geolocation) {
-            openModal("Kosa", "Simu yako haitumiki GPS. App haitaweza kufanya kazi.", false, () => {
-                localStorage.removeItem('kitama_user'); location.reload();
-            });
+            setupDashboard(u);
             return;
         }
         
-        setupDashboard(u); // Fungua app mara moja
+        // 1. Fungua App mara moja bila kusubiri GPS
+        setupDashboard(u);
         
+        // 2. Omba location kwa siri
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
                 try { await sb.from('users').update({ lat: lat, lng: lng }).eq('id', u.id); } catch(e) {}
                 
+                // 3. Anapoiwasha,anza kumfuatilia kimyakimya
                 navigator.geolocation.watchPosition(
                     async (pos) => {
                         try { await sb.from('users').update({ lat: pos.coords.latitude, lng: pos.coords.longitude }).eq('id', u.id); } catch(e) {}
-                    }, (err) => {}, { enableHighAccuracy: true }
+                    }, 
+                    (err) => {}, 
+                    { enableHighAccuracy: true }
                 );
             },
             (error) => {
-                openModal("Onyo", "Ukikataa kuwasha Location, viongozi hawataweza kukuonia unapohitaji msaada.", false, () => {
-                    localStorage.removeItem('kitama_user');
-                    location.reload();
-                });
+                // 4. Kama ikishindwa kusoma au akakataa, mtie taarifa tu, usimfungie app
+                showToast("GPS haijawashwa. Washa ili viongozi wakuonie kwenye ramani.");
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
-    }
+        }
 
     function setupDashboard(u) {
         const content = document.getElementById('home-content'), nav = document.getElementById('b-nav');
