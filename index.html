@@ -341,7 +341,7 @@
                 <a href="#" id="view-shop-wa" target="_blank" class="shop-action-btn shop-btn-wa">💬 WhatsApp</a>
             </div>
             <div style="padding: 0 20px; margin-bottom: 20px;">
-                <button id="view-shop-msg-btn" class="btn-p" style="margin-top:0; background: var(--primary);">Ujumbe</button>
+                <button id="view-shop-msg-btn" class="btn-p" style="margin-top:0; background: var(--primary);">✉️ Tuma Ujumbe (Inbox)</button>
             </div>
             <div class="sec-h"><h2>Bidhaa Zilizopo</h2></div>
             <div id="view-shop-products" class="fb-feed"></div>
@@ -366,7 +366,13 @@
         </div>
 
         <div id="market-sec" class="sec">
-            <div class="sec-h"><h2>Soko la Kitama</h2><span id="market-add-btn" onclick="handleNav('add-item-sec')" style="cursor:pointer; color:var(--accent); font-size:13px; font-weight:700;">+ Tangaza</span></div>
+            <div class="sec-h">
+                <h2>Soko la Kitama</h2>
+                <div style="display:flex; gap:15px;">
+                    <span onclick="handleNav('shops-directory-sec')" style="cursor:pointer; color:var(--accent); font-size:13px; font-weight:700;">🏪 Maduka</span>
+                    <span id="market-add-btn" onclick="handleNav('add-item-sec')" style="cursor:pointer; color:var(--accent); font-size:13px; font-weight:700;">+ Tangaza</span>
+                </div>
+            </div>
             <div class="filter-row">
                 <input type="text" id="market-search" placeholder="🔍 Tafuta bidhaa..." oninput="fetchMarket()">
                 <select id="market-cat" onchange="fetchMarket()">
@@ -381,6 +387,12 @@
             </div>
             <div id="market-list" class="market-grid"></div>
         </div>
+
+        <div id="shops-directory-sec" class="sec">
+            <div class="sec-h"><h2>Maduka ya Kitama</h2><span onclick="fetchShopsDirectory()">Refresh</span></div>
+            <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Bofya duka lolote ili kuona bidhaa zake na kuliwasiliana.</p>
+            <div id="shops-directory-list" class="market-grid"></div>
+        </div>
         
         <div id="add-item-sec" class="sec">
             <div class="sec-h"><h2>Tangaza Bidhaa</h2></div>
@@ -388,7 +400,7 @@
                 <div class="form-g" id="shop-select-box" style="display:none;">
                     <label class="form-l">Chagua Duka (Ikiwa ni biashara yako)</label>
                     <select id="item-shop" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
-                        <option value="">- Ni bidhaa ya kibinafsi (Sio ya duka) -</option>
+                        <option value="">- Ni bidhaa ya kibinafsi (Sio la duka) -</option>
                     </select>
                 </div>
                 <div class="form-g"><input type="text" id="item-name" style="padding-left:16px;" placeholder="Jina la Bidhaa"></div>
@@ -402,12 +414,12 @@
 
         <div id="progress-sec" class="sec"><div class="sec-h"><h2>Maendeleo ya Kata</h2><span onclick="fetchPublicProgress()">Refresh</span></div><div id="progress-list"></div></div>
         
-        <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Mapendekezo</h2></div><div style="padding: 0 20px;"><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div></div>
+        <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div style="padding: 0 20px;"><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div></div>
         
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
         
         <div id="leader-chat-sec" class="sec">
-            <div class="sec-h"><h2>Chat ya Viongozi</h2></div>
+            <div class="sec-h"><h2>Chumb cha Viongozi</h2></div>
             <div class="chat-container" id="chat-list"></div>
             <div id="leader-reply-context" style="display:none; padding:10px 15px; background:var(--bg); border-radius:10px 10px 0 0; font-size:12px; color:var(--text-sec); margin-bottom:-5px; width:calc(100% - 40px); max-width: 440px; bottom: 130px; left: 50%; transform: translateX(-50%); position: fixed; border:1px solid var(--border); border-bottom:none;">
                 <span id="leader-reply-text"></span>
@@ -442,8 +454,20 @@
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let mapInstance = null;
     let currentShopId = null;
+
+    let marketItemsCache = [];
+    let marketDisplayIndex = 0;
+    const marketBatchSize = 6;
+    let marketIsLoading = false;
+    let marketHasMore = true;
+
+    let shopsItemsCache = [];
+    let shopsDisplayIndex = 0;
+    const shopsBatchSize = 6;
+    let shopsIsLoading = false;
+    let shopsHasMore = true;
     
-    const BAD_WORDS = ['litoko', 'kuma', 'matako', 'ushenzi', 'pumbu', 'mpumbavu', 'pumbavu', 'nikutombe', 'kumamako', 'kumamayo', 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumamyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge'];
+    const BAD_WORDS = ['mbwa', 'kuma', 'matako', 'ushenzi', 'pumbavu', 'mavi', 'mbulu', 'uliye', 'msenge'];
     function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
     
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
@@ -550,23 +574,20 @@
         }
     }
 
-        function enforceCitizenLocation(u) {
+    function enforceCitizenLocation(u) {
         if (!navigator.geolocation) {
             setupDashboard(u);
             return;
         }
         
-        // 1. Fungua App mara moja bila kusubiri GPS
-        setupDashboard(u);
+        setupDashboard(u); 
         
-        // 2. Omba location kwa siri
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
                 try { await sb.from('users').update({ lat: lat, lng: lng }).eq('id', u.id); } catch(e) {}
                 
-                // 3. Anapoiwasha,anza kumfuatilia kimyakimya
                 navigator.geolocation.watchPosition(
                     async (pos) => {
                         try { await sb.from('users').update({ lat: pos.coords.latitude, lng: pos.coords.longitude }).eq('id', u.id); } catch(e) {}
@@ -576,12 +597,11 @@
                 );
             },
             (error) => {
-                // 4. Kama ikishindwa kusoma au akakataa, mtie taarifa tu, usimfungie app
                 showToast("GPS haijawashwa. Washa ili viongozi wakuonie kwenye ramani.");
             },
             { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
-        }
+    }
 
     function setupDashboard(u) {
         const content = document.getElementById('home-content'), nav = document.getElementById('b-nav');
@@ -654,7 +674,7 @@
 
     function handleNav(sec) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const allowedForPending = ['home-sec', 'hub-sec', 'events-sec', 'profile-sec', 'market-sec'];
+        const allowedForPending = ['home-sec', 'hub-sec', 'events-sec', 'profile-sec', 'market-sec', 'shops-directory-sec'];
         if(u.status === 'pending' && !allowedForPending.includes(sec)) {
             openModal("Akaunti Inasubiri", "Huduma hii inahitaji akaunti yako kuidhinishwa na Kiongozi wako kwanza. Tafadhali subiri.");
             return;
@@ -669,6 +689,7 @@
         document.querySelectorAll('.nav-b').forEach(n => { if(n.getAttribute('onclick').includes(id)) n.classList.add('active'); });
         if(id==='hub-sec') fetchHub();
         if(id==='market-sec') fetchMarket();
+        if(id==='shops-directory-sec') fetchShopsDirectory();
         if(id==='progress-sec') fetchPublicProgress();
         if(id==='leader-reports-sec') fetchLeaderReports();
         if(id==='leader-chat-sec') fetchLeaderChat();
@@ -943,6 +964,7 @@
 
     async function viewShopById(id) {
         try {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
             const { data: shop, error } = await sb.from('shops').select('*').eq('id', id).single();
             if(error) throw error;
             
@@ -969,10 +991,16 @@
                 document.getElementById('view-shop-initial').innerText = shop.shop_name.charAt(0);
             }
             
-            let waPhone = shop.owner_phone.replace(/^0/, '255');
-            document.getElementById('view-shop-call').href = `tel:${shop.owner_phone}`;
-            document.getElementById('view-shop-wa').href = `https://wa.me/${waPhone}`;
-            document.getElementById('view-shop-msg-btn').onclick = () => sendShopMessage(shop.id, shop.shop_name);
+            const msgBtn = document.getElementById('view-shop-msg-btn');
+            if(u.phone_number === shop.owner_phone) {
+                msgBtn.style.display = 'none';
+            } else {
+                msgBtn.style.display = 'block';
+                let waPhone = shop.owner_phone.replace(/^0/, '255');
+                document.getElementById('view-shop-call').href = `tel:${shop.owner_phone}`;
+                document.getElementById('view-shop-wa').href = `https://wa.me/${waPhone}`;
+                msgBtn.onclick = () => sendShopMessage(shop.id, shop.shop_name);
+            }
             
             fetchShopProducts(shop, 'view-shop-products');
             showSec('view-shop-sec');
@@ -1060,7 +1088,6 @@
         } catch(e) { openModal("Kosa", e.message); }
     }
 
-    // SHOP COMMENTS LOGIC
     function toggleShopComments(itemId) {
         const box = document.getElementById(`fb-comments-${itemId}`);
         if(box.style.display === 'block') { box.style.display = 'none'; } 
@@ -1088,7 +1115,6 @@
         } catch(e) { openModal("Kosa", e.message); }
     }
 
-    // SHOP INBOX (DMs) LOGIC
     async function sendShopMessage(shopId, shopName) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
@@ -1192,18 +1218,107 @@
     }
 
     async function fetchMarket() { 
+        if (marketIsLoading) return;
+        marketIsLoading = true;
+        
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
         const div = document.getElementById('market-list'); 
         const search = document.getElementById('market-search').value.toLowerCase(); 
         const cat = document.getElementById('market-cat').value; 
-        div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div><div class="skeleton" style="height:200px; border-radius:16px;"></div>'; 
+        
+        marketDisplayIndex = 0;
+        marketHasMore = true;
+        div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div><div class="skeleton" style="height:200px; border-radius:16px;"></div>';
+
         try { 
-            const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending:false }); 
+            let query = sb.from('marketplace').select('*').order('created_at', {ascending:false}).limit(100);
+            query = query.neq('phone', u.phone_number);
+            if (search) query = query.ilike('item_name', `%${search}%`);
+            if (cat !== 'all') query = query.eq('category', cat);
+
+            const { data, error } = await query; 
             if(error) throw error; 
-            let filtered = data; 
-            if(search) filtered = filtered.filter(m => m.item_name.toLowerCase().includes(search)); 
-            if(cat !== 'all') filtered = filtered.filter(m => m.category === cat); 
-            div.innerHTML = filtered.length > 0 ? filtered.map(m => renderMarketCard(m)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; grid-column:span 2;">Hakuna bidhaa zilizotangazwa kwenye kategoria hii.</p>'; 
-        } catch(e) { div.innerHTML=`<p style="color:red; grid-column:span 2;">${e.message}</p>`; } 
+            
+            marketItemsCache = data.sort(() => Math.random() - 0.5);
+            
+            div.innerHTML = '';
+            renderMarketBatch();
+            
+        } catch(e) { 
+            div.innerHTML = `<p style="color:red; grid-column:span 2;">${e.message}</p>`; 
+        } finally {
+            marketIsLoading = false;
+        }
+    }
+
+    function renderMarketBatch() {
+        const div = document.getElementById('market-list');
+        const batch = marketItemsCache.slice(marketDisplayIndex, marketDisplayIndex + marketBatchSize);
+        
+        if (batch.length > 0) {
+            div.insertAdjacentHTML('beforeend', batch.map(m => renderMarketCard(m)).join(''));
+            marketDisplayIndex += batch.length;
+            if (marketDisplayIndex >= marketItemsCache.length) marketHasMore = false;
+        } else {
+            if (marketDisplayIndex === 0) {
+                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; grid-column:span 2;">Hakuna bidhaa zilizotangazwa.</p>';
+            }
+            marketHasMore = false;
+        }
+    }
+
+    async function fetchShopsDirectory() {
+        if (shopsIsLoading) return;
+        shopsIsLoading = true;
+        
+        const div = document.getElementById('shops-directory-list');
+        
+        shopsDisplayIndex = 0;
+        shopsHasMore = true;
+        div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div><div class="skeleton" style="height:200px; border-radius:16px;"></div>';
+
+        try {
+            const { data, error } = await sb.from('shops').select('*').order('created_at', { ascending: false }).limit(100);
+            if(error) throw error;
+            
+            shopsItemsCache = data.sort(() => Math.random() - 0.5);
+            
+            div.innerHTML = '';
+            renderShopsBatch();
+            
+        } catch(e) {
+            div.innerHTML = `<p style="color:red; grid-column:span 2;">${e.message}</p>`; 
+        } finally {
+            shopsIsLoading = false;
+        }
+    }
+
+    function renderShopsBatch() {
+        const div = document.getElementById('shops-directory-list');
+        const batch = shopsItemsCache.slice(shopsDisplayIndex, shopsDisplayIndex + shopsBatchSize);
+        
+        if (batch.length > 0) {
+            div.insertAdjacentHTML('beforeend', batch.map(shop => {
+                let logoHtml = shop.logo_url ? `<img src="${shop.logo_url}" class="market-img">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div>`;
+                return `<div class="market-card" onclick="viewShopById('${shop.id}')">
+                    <div class="market-img-box">${logoHtml}</div>
+                    <div class="market-body">
+                        <h4>${shop.shop_name}</h4>
+                        <div class="market-price">${shop.village}</div>
+                        <div class="market-actions">
+                            <button class="market-btn btn-call" style="width:100%;">Fungua Duka</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join(''));
+            shopsDisplayIndex += batch.length;
+            if (shopsDisplayIndex >= shopsItemsCache.length) shopsHasMore = false;
+        } else {
+            if (shopsDisplayIndex === 0) {
+                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; grid-column:span 2;">Hakuna maduka yaliyofunguliwa bado.</p>';
+            }
+            shopsHasMore = false;
+        }
     }
 
     async function markAsSold(id) { 
@@ -1212,7 +1327,6 @@
         }); 
     }
 
-    // GEOLOCATION TRACKING
     async function trackCitizen(phone) {
         if(!phone) return openModal("Taarifa", "Tatizo: Namba ya simu ya mtumiaji haijarekodiwa kwenye ripoti hii (huenda ni ripoti ya zamani).", false);
         
@@ -1250,6 +1364,18 @@
             document.getElementById('map-container').style.display = 'none';
         }
     }
+
+    window.addEventListener('scroll', () => {
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        if (scrollTop + clientHeight >= scrollHeight - 300) {
+            if (document.getElementById('market-sec').classList.contains('active') && marketHasMore && !marketIsLoading) {
+                renderMarketBatch();
+            }
+            if (document.getElementById('shops-directory-sec').classList.contains('active') && shopsHasMore && !shopsIsLoading) {
+                renderShopsBatch();
+            }
+        }
+    });
 
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
