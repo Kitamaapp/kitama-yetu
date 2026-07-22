@@ -58,21 +58,21 @@
         .app-h { background: rgba(255,255,255,0.8); backdrop-filter: blur(15px); padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
         [data-theme="dark"] .app-h { background: rgba(30,41,59,0.8); }
         .theme-toggle { background: var(--bg); border: none; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; color: var(--text); display: flex; align-items: center; justify-content: center; }
-        main { padding: 20px; }
+        main { padding: 20px 0; }
         .sec { display: none; animation: slide 0.4s ease; }
         .sec.active { display: block; }
         @keyframes slide { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         
-        .hero-banner { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: white; padding: 25px; border-radius: 24px; margin-bottom: 25px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(16,185,129,0.2); }
+        .hero-banner { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: white; padding: 25px; border-radius: 24px; margin: 0 20px 25px 20px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(16,185,129,0.2); }
         .hero-banner::after { content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; }
         .hero-banner h2 { font-size: 22px; font-weight: 800; margin-bottom: 5px; position: relative; z-index: 1; }
         .hero-banner p { font-size: 13px; opacity: 0.9; position: relative; z-index: 1; }
-        .warning-box { background: #FEF3C7; color: #D97706; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; font-weight: 600; border: 1px solid #FBBF24; }
+        .warning-box { background: #FEF3C7; color: #D97706; padding: 15px; border-radius: 12px; margin: 0 20px 20px 20px; font-size: 13px; font-weight: 600; border: 1px solid #FBBF24; }
         
-        .sec-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .sec-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 20px; }
         .sec-h h2 { font-size: 20px; font-weight: 800; }
         .sec-h span { font-size: 13px; color: var(--accent); font-weight: 700; cursor: pointer; }
-        .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; padding: 0 20px; }
         .qa-card { background: var(--surface); padding: 20px; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: 1px solid var(--border); transition: all 0.2s; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; opacity: 0.5; pointer-events: none; }
         .qa-card:active { transform: scale(0.97); }
         .qa-card.active { opacity: 1; pointer-events: auto; }
@@ -80,7 +80,7 @@
         .qa-card h4 { font-size: 15px; font-weight: 700; }
         .qa-card p { font-size: 12px; color: var(--text-sec); }
         
-        .list-i { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 15px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+        .list-i { background: var(--surface); padding: 18px; border-radius: 20px; margin: 0 20px 15px 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
         .list-i h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
         .list-i p { font-size: 14px; color: var(--text-sec); line-height: 1.6; }
         .list-meta { display: flex; gap: 8px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
@@ -113,12 +113,12 @@
         .modal-text { font-size: 14px; color: var(--text-sec); margin-bottom: 20px; line-height: 1.5; }
         .modal-input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 15px; font-family: inherit; font-size: 14px; background: var(--bg); color: var(--text); }
         .modal-btns { display: flex; gap: 10px; }
-        .m-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 14px; }
+        .m-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 14px; text-align: center; }
         .m-btn-primary { background: var(--accent); color: white; }
         .m-btn-danger { background: var(--danger); color: white; }
         .m-btn-secondary { background: var(--bg); color: var(--text-sec); }
 
-        .chat-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 80px; }
+        .chat-container { display: flex; flex-direction: column; gap: 10px; margin: 0 20px 80px 20px; }
         .chat-msg { background: var(--surface); padding: 12px 16px; border-radius: 16px 16px 16px 4px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); align-self: flex-start; }
         .chat-msg.self { align-self: flex-end; background: var(--accent); color: white; border-radius: 16px 16px 4px 16px; border: none; }
         .chat-msg b { font-size: 12px; color: var(--accent); display: block; margin-bottom: 4px; }
@@ -132,15 +132,15 @@
         .chat-input-box { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: var(--surface); padding: 10px; border-radius: 20px; display: flex; gap: 10px; box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
         .chat-input-box input { flex: 1; padding: 10px 16px; border-radius: 20px; background: var(--bg); border: none; color: var(--text); }
         
-        .skeleton { background: linear-gradient(90deg, var(--bg) 25%, var(--border) 50%, var(--bg) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; }
+        .skeleton { background: linear-gradient(90deg, var(--bg) 25%, var(--border) 50%, var(--bg) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; margin: 0 20px; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 0 20px 20px 20px; }
         .stat-card { background: var(--surface); padding: 15px; border-radius: 16px; text-align: center; border: 1px solid var(--border); }
         .stat-card h3 { font-size: 22px; font-weight: 800; color: var(--accent); }
         .stat-card p { font-size: 11px; color: var(--text-sec); font-weight: 600; }
 
-        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
         .market-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; position: relative; }
         .market-img-box { width: 100%; height: 130px; background: var(--bg); position: relative; }
         .market-img { width: 100%; height: 100%; object-fit: cover; }
@@ -154,7 +154,7 @@
         .market-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; text-decoration: none; }
         .btn-call { background: var(--accent); color: white; }
         .btn-wa { background: #D1FAE5; color: var(--accent-dark); }
-        .filter-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .filter-row { display: flex; gap: 10px; margin: 0 20px 15px 20px; }
         .filter-row input, .filter-row select { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; }
         .shop-badge { background: var(--primary); color: white; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
         
@@ -168,6 +168,37 @@
         .blink-marker { display: flex; align-items: center; justify-content: center; }
         .blink-dot { width: 15px; height: 15px; background: #EF4444; border-radius: 50%; box-shadow: 0 0 10px rgba(239, 68, 68, 0.8); animation: blink 1s infinite; }
         @keyframes blink { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.5); } 100% { opacity: 1; transform: scale(1); } }
+
+        /* FACEBOOK/INSTAGRAM STYLE SHOP PROFILE */
+        .shop-cover { width: 100%; height: 150px; background: var(--bg); border-radius: 0 0 20px 20px; overflow: hidden; position: relative; }
+        .shop-cover img { width: 100%; height: 100%; object-fit: cover; }
+        .shop-cover-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); }
+        .shop-avatar-box { display: flex; flex-direction: column; align-items: center; margin-top: -50px; position: relative; z-index: 2; padding: 0 20px; }
+        .shop-avatar-box img { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--surface); object-fit: cover; background: var(--bg); }
+        .shop-avatar-placeholder { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--surface); background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800; }
+        .shop-info-text { text-align: center; margin-top: 10px; }
+        .shop-info-text h2 { font-size: 20px; font-weight: 800; }
+        .shop-info-text p { color: var(--text-sec); font-size: 13px; line-height: 1.4; }
+        .shop-action-row { display: flex; gap: 10px; justify-content: center; margin: 15px 20px 25px 20px; }
+        .shop-action-btn { flex: 1; max-width: 160px; padding: 12px; border-radius: 12px; font-weight: 700; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; }
+        .shop-btn-wa { background: #25D366; color: white; }
+        .shop-btn-call { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+
+        /* FACEBOOK STYLE POSTS FEED */
+        .fb-feed { display: flex; flex-direction: column; gap: 15px; padding: 0 20px; }
+        .fb-post-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; }
+        .fb-post-header { display: flex; align-items: center; padding: 12px; gap: 10px; cursor: pointer; }
+        .fb-post-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .fb-post-header .fb-initial { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+        .fb-post-header b { display: block; font-size: 14px; font-weight: 700; color: var(--text); }
+        .fb-post-header small { color: var(--text-sec); font-size: 11px; }
+        .fb-post-text { padding: 0 12px 12px 12px; font-size: 14px; color: var(--text); line-height: 1.5; cursor: pointer; }
+        .fb-post-price { color: var(--accent); font-weight: 800; font-size: 16px; margin-bottom: 4px; display: block; }
+        .fb-post-img { width: 100%; max-height: 400px; object-fit: cover; background: var(--bg); cursor: pointer; }
+        .fb-post-actions { display: flex; justify-content: space-around; border-top: 1px solid var(--border); padding: 5px 0; }
+        .fb-post-btn { background: none; border: none; color: var(--text-sec); font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; padding: 8px 15px; border-radius: 8px; text-decoration: none; flex: 1; transition: background 0.2s; }
+        .fb-post-btn:hover { background: var(--bg); }
+        .fb-sold-tag { background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 8px; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -246,40 +277,63 @@
         
         <div id="create-shop-sec" class="sec">
             <div class="sec-h"><h2>Fungua Duka Lako</h2></div>
-            <p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Kwa wafanyabiashara wenye bidhaa nyingi. Tangaza duka lako hapa.</p>
-            <div class="form-g"><input type="text" id="shop-name" style="padding-left:16px;" placeholder="Jina la Duka (Mfano: Duka la Juma)"></div>
-            <div class="form-g"><textarea id="shop-desc" placeholder="Maelezo ya Duka (Twauza nini?)"></textarea></div>
-            <div class="form-g"><input type="file" id="shop-logo" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
-            <button onclick="createShop()" class="btn-p" id="btn-shop">Fungua Duka</button>
+            <div style="padding: 0 20px;">
+                <p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Tengeneza ukurasa wa kibiashara kama wa Facebook/Instagram.</p>
+                <div class="form-g"><label class="form-l">Picha ya Cover (Bandbox la Duka)</label><input type="file" id="shop-cover" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
+                <div class="form-g"><label class="form-l">Logo ya Duka</label><input type="file" id="shop-logo" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
+                <div class="form-g"><input type="text" id="shop-name" style="padding-left:16px;" placeholder="Jina la Duka (Mfano: Duka la Juma)"></div>
+                <div class="form-g"><textarea id="shop-desc" placeholder="Maelezo ya Duka (Twauza nini?)"></textarea></div>
+                <button onclick="createShop()" class="btn-p" id="btn-shop">Fungua Duka</button>
+            </div>
         </div>
 
         <div id="my-shop-sec" class="sec">
-            <div style="text-align:center; margin-bottom:20px;">
-                <img id="my-shop-logo" src="" style="width:80px; height:80px; border-radius:20px; object-fit:cover; border:3px solid var(--accent); margin:0 auto 10px; display:none;">
-                <div id="my-shop-initial" style="width:80px; height:80px; border-radius:20px; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:800; margin:0 auto 10px;">D</div>
-                <h2 id="my-shop-name">Duka Langu</h2>
-                <p id="my-shop-desc" style="color:var(--text-sec); font-size:13px;"></p>
-                <button onclick="showSec('add-item-sec')" class="btn-p" style="margin-top:15px;">+ Ongeza Bidhaa kwenye Duka</button>
+            <div class="shop-cover">
+                <img id="my-shop-cover" src="" style="display:none;">
+                <div id="my-shop-cover-placeholder" class="shop-cover-placeholder"></div>
+            </div>
+            <div class="shop-avatar-box">
+                <img id="my-shop-logo" src="" style="display:none;">
+                <div id="my-shop-initial" class="shop-avatar-placeholder">D</div>
+                <div class="shop-info-text">
+                    <h2 id="my-shop-name">Duka Langu</h2>
+                    <p id="my-shop-desc" style="margin-top:5px;"></p>
+                </div>
+            </div>
+            <div style="padding: 0 20px;">
+                <button onclick="showSec('add-item-sec')" class="btn-p" style="margin-top:0; margin-bottom:20px;">+ Ongeza Bidhaa Mpya</button>
             </div>
             <div class="sec-h"><h2>Bidhaa Zako</h2></div>
-            <div id="my-shop-products" class="market-grid"></div>
+            <div id="my-shop-products" class="fb-feed"></div>
         </div>
 
         <div id="view-shop-sec" class="sec">
-            <div style="text-align:center; margin-bottom:20px;">
-                <img id="view-shop-logo" src="" style="width:80px; height:80px; border-radius:20px; object-fit:cover; border:3px solid var(--accent); margin:0 auto 10px; display:none;">
-                <div id="view-shop-initial" style="width:80px; height:80px; border-radius:20px; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:800; margin:0 auto 10px;">D</div>
-                <h2 id="view-shop-name">Duka</h2>
-                <p id="view-shop-village" style="color:var(--text-sec); font-size:13px;"></p>
-                <p id="view-shop-desc" style="color:var(--text-sec); font-size:13px; margin-top:5px;"></p>
+            <div class="shop-cover">
+                <img id="view-shop-cover" src="" style="display:none;">
+                <div id="view-shop-cover-placeholder" class="shop-cover-placeholder"></div>
+            </div>
+            <div class="shop-avatar-box">
+                <img id="view-shop-logo" src="" style="display:none;">
+                <div id="view-shop-initial" class="shop-avatar-placeholder">D</div>
+                <div class="shop-info-text">
+                    <h2 id="view-shop-name">Duka</h2>
+                    <p id="view-shop-village" style="margin-top:2px;">📍 Kijiji</p>
+                    <p id="view-shop-desc" style="margin-top:5px;"></p>
+                </div>
+            </div>
+            <div class="shop-action-row">
+                <a href="#" id="view-shop-call" class="shop-action-btn shop-btn-call">📞 Piga Simu</a>
+                <a href="#" id="view-shop-wa" target="_blank" class="shop-action-btn shop-btn-wa">💬 WhatsApp</a>
             </div>
             <div class="sec-h"><h2>Bidhaa Zilizopo</h2></div>
-            <div id="view-shop-products" class="market-grid"></div>
+            <div id="view-shop-products" class="fb-feed"></div>
         </div>      
         
         <div id="citizen-chat-sec" class="sec">
             <div class="sec-h"><h2>Mazungumzo ya Wananchi</h2></div>
-            <p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Jadiliana na wawananchi wengine kwa heshima na ustawi wa kijamii.</p>
+            <div style="padding: 0 20px;">
+                <p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Jadiliana na wawananchi wengine kwa heshima na ustawi wa kijamii.</p>
+            </div>
             <div class="chat-container" id="citizen-chat-list"></div>
             <div class="chat-input-box">
                 <input type="text" id="citizen-chat-input" placeholder="Andika ujumbe...">
@@ -306,22 +360,26 @@
         
         <div id="add-item-sec" class="sec">
             <div class="sec-h"><h2>Tangaza Bidhaa</h2></div>
-            <div class="form-g" id="shop-select-box" style="display:none;">
-                <label class="form-l">Chagua Duka (Ikiwa ni biashara yako)</label>
-                <select id="item-shop" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
-                    <option value="">- Ni bidhaa ya kibinafsi (Sio la duka) -</option>
-                </select>
+            <div style="padding: 0 20px;">
+                <div class="form-g" id="shop-select-box" style="display:none;">
+                    <label class="form-l">Chagua Duka (Ikiwa ni biashara yako)</label>
+                    <select id="item-shop" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+                        <option value="">- Ni bidhaa ya kibinafsi (Sio la duka) -</option>
+                    </select>
+                </div>
+                <div class="form-g"><input type="text" id="item-name" style="padding-left:16px;" placeholder="Jina la Bidhaa"></div>
+                <div class="form-g"><select id="item-cat" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option>Mazao</option><option>Mifugo</option><option>Ardhi</option><option>Maduka</option><option>Huduma/Kazi</option><option>Mengineyo</option></select></div>
+                <div class="form-g"><textarea id="item-desc" placeholder="Maelezo (Mfano: Mzima, afya njema)"></textarea></div>
+                <div class="form-g"><input type="text" id="item-price" style="padding-left:16px;" placeholder="Bei (Mfano: 50,000 Tsh)"></div>
+                <div class="form-g"><input type="file" id="item-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
+                <button onclick="postItem()" class="btn-p" id="btn-item">Weka Tangazo</button>
             </div>
-            <div class="form-g"><input type="text" id="item-name" style="padding-left:16px;" placeholder="Jina la Bidhaa"></div>
-            <div class="form-g"><select id="item-cat" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option>Mazao</option><option>Mifugo</option><option>Ardhi</option><option>Maduka</option><option>Huduma/Kazi</option><option>Mengineyo</option></select></div>
-            <div class="form-g"><textarea id="item-desc" placeholder="Maelezo (Mfano: Mzima, afya njema)"></textarea></div>
-            <div class="form-g"><input type="text" id="item-price" style="padding-left:16px;" placeholder="Bei (Mfano: 50,000 Tsh)"></div>
-            <div class="form-g"><input type="file" id="item-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
-            <button onclick="postItem()" class="btn-p" id="btn-item">Weka Tangazo</button>
         </div>
 
         <div id="progress-sec" class="sec"><div class="sec-h"><h2>Maendeleo ya Kata</h2><span onclick="fetchPublicProgress()">Refresh</span></div><div id="progress-list"></div></div>
-        <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div>
+        
+        <div id="report-sec" class="sec"><div class="sec-h"><h2>Tuma Malalamishi</h2></div><div style="padding: 0 20px;"><div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Mengineyo</option></select></div><div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div><div class="form-g"><textarea id="rep-desc" placeholder="Ufafanuzi"></textarea></div><div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div><button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Ripoti</button></div></div>
+        
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
         
         <div id="leader-chat-sec" class="sec">
@@ -337,19 +395,19 @@
             </div>
         </div>
         
-        <div id="campaign-sec" class="sec"><div class="sec-h"><h2>Kampeni & Miradi</h2><span onclick="fetchProjects()">Refresh</span></div><div id="project-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="proj-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Mradi/Mkakati"></div><div class="form-g"><textarea id="proj-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Maelezo ya Mradi (Dira)"></textarea></div><div class="form-g"><select id="proj-status" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option value="planned">Inapaswa kutekelezwa</option><option value="ongoing">Inaendelea</option><option value="stalled">Imekatika</option><option value="completed">Imekamilika</option></select></div><button onclick="postProject()" class="btn-p">Weka Mradi</button></div><div id="projects-list"></div></div>
+        <div id="campaign-sec" class="sec"><div class="sec-h"><h2>Kampeni & Miradi</h2><span onclick="fetchProjects()">Refresh</span></div><div style="padding: 0 20px;"><div id="project-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="proj-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Mradi/Mkakati"></div><div class="form-g"><textarea id="proj-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Maelezo ya Mradi (Dira)"></textarea></div><div class="form-g"><select id="proj-status" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option value="planned">Inapaswa kutekelezwa</option><option value="ongoing">Inaendelea</option><option value="stalled">Imekatika</option><option value="completed">Imekamilika</option></select></div><button onclick="postProject()" class="btn-p">Weka Mradi</button></div></div><div id="projects-list"></div></div>
 
-        <div id="solidarity-sec" class="sec"><div class="sec-h"><h2>Andamana (Ajenda)</h2><span onclick="fetchCauses()">Refresh</span></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Andamana na wananchi wengine kuleta mabadiliko. Tuma ajeda na uwaombe wengine wakuunge mkono.</p><div id="cause-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="cause-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Kichwa cha Ajenda"></div><div class="form-g"><textarea id="cause-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Eleza ajenda yako..."></textarea></div><button onclick="postCause()" class="btn-p">Tuma Ajenda</button></div><div id="causes-list"></div></div>
+        <div id="solidarity-sec" class="sec"><div class="sec-h"><h2>Andamana (Ajenda)</h2><span onclick="fetchCauses()">Refresh</span></div><div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Andamana na wananchi wengine kuleta mabadiliko. Tuma ajeda na uwaombe wengine wakuunge mkono.</p><div id="cause-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="cause-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Kichwa cha Ajenda"></div><div class="form-g"><textarea id="cause-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Eleza ajenda yako..."></textarea></div><button onclick="postCause()" class="btn-p">Tuma Ajenda</button></div></div><div id="causes-list"></div></div>
 
-        <div id="events-sec" class="sec"><div class="sec-h"><h2>Kalenda ya Matukio</h2><span onclick="fetchEvents()">Refresh</span></div><div id="event-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="event-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Tukio (Mfano: Mkutano)"></div><div class="form-g"><input type="date" id="event-date" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div><div class="form-g"><input type="text" id="event-location" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Mahali"></div><div class="form-g"><textarea id="event-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Maelezo ya tukio"></textarea></div><button onclick="postEvent()" class="btn-p">Weka Tukio</button></div><div id="events-list"></div></div>
+        <div id="events-sec" class="sec"><div class="sec-h"><h2>Kalenda ya Matukio</h2><span onclick="fetchEvents()">Refresh</span></div><div style="padding: 0 20px;"><div id="event-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="event-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Tukio (Mfano: Mkutano)"></div><div class="form-g"><input type="date" id="event-date" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div><div class="form-g"><input type="text" id="event-location" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Mahali"></div><div class="form-g"><textarea id="event-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Maelezo ya tukio"></textarea></div><button onclick="postEvent()" class="btn-p">Weka Tukio</button></div></div><div id="events-list"></div></div>
 
-        <div id="manage-villages-sec" class="sec"><div class="sec-h"><h2>Weka Kitongoji</h2></div><div class="form-g"><select id="sub-v-village" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div><div class="form-g"><input type="text" id="sub-v-name" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Kitongoji"></div><button onclick="addSubVillage()" class="btn-p">Ongeza Kitongoji</button><div id="sub-villages-list" style="margin-top:20px;"></div></div>
+        <div id="manage-villages-sec" class="sec"><div class="sec-h"><h2>Weka Kitongoji</h2></div><div style="padding: 0 20px;"><div class="form-g"><select id="sub-v-village" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div><div class="form-g"><input type="text" id="sub-v-name" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Kitongoji"></div><button onclick="addSubVillage()" class="btn-p">Ongeza Kitongoji</button><div id="sub-villages-list" style="margin-top:20px;"></div></div></div>
         
-        <div id="admin-pins-sec" class="sec"><div class="sec-h"><h2>PIN za Viongozi</h2></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Badilisha PIN za viongozi wakati wowote. PIN mpya itatumika mara moja.</p><div class="form-g"><select id="pin-role" onchange="togglePinVillage()" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option value="diwani">Diwani</option><option value="mtendaji_kata">Mtendaji Kata</option><option value="mtendaji_kijiji">Mtendaji Kijiji</option><option value="mwenyekiti_kijiji">Mwenyekiti Kijiji</option><option value="mwenyekiti_kitongoji">Mwenyekiti Kitongoji</option></select></div><div class="form-g" id="pin-village-box" style="display:none;"><select id="pin-village" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div><div class="form-g"><input type="text" id="pin-value" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Weka PIN mpya (Mfano: 9999)"></div><button onclick="updatePin()" class="btn-p">Hifadhi PIN</button><div id="pins-list" style="margin-top:20px;"></div></div>
+        <div id="admin-pins-sec" class="sec"><div class="sec-h"><h2>PIN za Viongozi</h2></div><div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Badilisha PIN za viongozi wakati wowote. PIN mpya itatumika mara moja.</p><div class="form-g"><select id="pin-role" onchange="togglePinVillage()" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option value="diwani">Diwani</option><option value="mtendaji_kata">Mtendaji Kata</option><option value="mtendaji_kijiji">Mtendaji Kijiji</option><option value="mwenyekiti_kijiji">Mwenyekiti Kijiji</option><option value="mwenyekiti_kitongoji">Mwenyekiti Kitongoji</option></select></div><div class="form-g" id="pin-village-box" style="display:none;"><select id="pin-village" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div><div class="form-g"><input type="text" id="pin-value" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Weka PIN mpya (Mfano: 9999)"></div><button onclick="updatePin()" class="btn-p">Hifadhi PIN</button><div id="pins-list" style="margin-top:20px;"></div></div></div>
 
-        <div id="pending-users-sec" class="sec"><div class="sec-h"><h2>Watu Wapya (Wanaosubiri)</h2></div><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Hawa ni watu waliojisajili. Kagua majina yao, kisha kubali au kataza.</p><div id="pending-list"></div></div>
+        <div id="pending-users-sec" class="sec"><div class="sec-h"><h2>Watu Wapya (Wanaosubiri)</h2></div><div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Hawa ni watu waliojisajili. Kagua majina yao, kisha kubali au kataza.</p></div><div id="pending-list"></div></div>
 
-        <div id="profile-sec" class="sec"><div class="sec-h"><h2>Akaunti Yangu</h2></div><div style="text-align:center; margin-bottom:20px;"><img id="p-ava-img" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--accent); margin:0 auto 15px; display:none;"><div id="p-ava" style="width:80px; height:80px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; margin:0 auto 15px;">U</div><h3 id="p-name">Jina</h3><p id="p-village" style="color:var(--text-sec);">Kijiji</p><button onclick="document.getElementById('avatar-upload').click()" style="margin-top:10px; background:var(--bg); color:var(--text); border:1px solid var(--border); padding:8px 16px; border-radius:10px; font-weight:600; cursor:pointer;">Badilisha Picha</button><input type="file" id="avatar-upload" accept="image/*" style="display:none;" onchange="uploadAvatar()"></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Namba:</strong> <span id="p-phone"></span></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Hadh:</strong> <span id="p-role"></span></div><button onclick="handleLogout()" class="btn-out">Toka (Logout)</button></div>
+        <div id="profile-sec" class="sec"><div class="sec-h"><h2>Akaunti Yangu</h2></div><div style="padding: 0 20px;"><div style="text-align:center; margin-bottom:20px;"><img id="p-ava-img" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--accent); margin:0 auto 15px; display:none;"><div id="p-ava" style="width:80px; height:80px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; margin:0 auto 15px;">U</div><h3 id="p-name">Jina</h3><p id="p-village" style="color:var(--text-sec);">Kijiji</p><button onclick="document.getElementById('avatar-upload').click()" style="margin-top:10px; background:var(--bg); color:var(--text); border:1px solid var(--border); padding:8px 16px; border-radius:10px; font-weight:600; cursor:pointer;">Badilisha Picha</button><input type="file" id="avatar-upload" accept="image/*" style="display:none;" onchange="uploadAvatar()"></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Namba:</strong> <span id="p-phone"></span></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Hadh:</strong> <span id="p-role"></span></div><button onclick="handleLogout()" class="btn-out">Toka (Logout)</button></div></div>
     </main>
     <div class="b-nav" id="b-nav"></div>
 </div>
@@ -679,10 +737,10 @@
             if(u.role === 'diwani' || u.role === 'mtendaji_kata') query = query.neq('visibility', 'local_only');
             const { data, error } = await query; 
             if(error) throw error; 
-            div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, true)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna malalamishi kwa sasa.</p>'; 
-        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } 
+            div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, true)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna malalamishi kwa sasa.</p>'; 
+        } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } 
     }
-    async function fetchPublicProgress() { const div = document.getElementById('progress-list'); div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('reports').select('*').neq('visibility', 'local_only').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna taarifa kwa sasa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } }
+    async function fetchPublicProgress() { const div = document.getElementById('progress-list'); div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('reports').select('*').neq('visibility', 'local_only').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna taarifa kwa sasa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
     async function updateStatus(id, newStatus) { try { await sb.from('reports').update({ status: newStatus }).eq('id', id); showToast("Status imebadilishwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }
     async function promptResolution(id, leaderName) { openModal("Uthibitisho wa Kazi", "Andika kile ulichokifanya (Uthibitisho). Kisha utachagua picha ya mradi uliokamilisha.", true, async (note) => { if(!note) return openModal("Taarifa", "Lazima uandike uthibitisho."); const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.click(); fileInput.onchange = async () => { let imgUrl = null; if(fileInput.files.length > 0) { const fileName = `resolution_${Date.now()}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { await sb.from('reports').update({ status: 'resolved', resolution_note: note, resolution_image: imgUrl, resolved_by_name: leaderName }).eq('id', id); showToast("Umekamilisha kazi na kuweka uthibitisho!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }; }); }
     async function shareToLeaders(reportId, title) { openModal("Shiriki kwa Viongozi", `Una uhakika unataka kushiriki ripoti hii kwenye Chumb cha Viongozi?`, false, async () => { const u = JSON.parse(localStorage.getItem('kitama_user')); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: `Naomba msaada/maoni kuhusu ripoti hii: "${title}"`, shared_report_id: reportId }]); showToast("Imeshirikiwa kwenye Chumb cha Viongozi!"); showSec('leader-chat-sec'); } catch(e) { openModal("Kosa", e.message); } }); }
@@ -702,9 +760,9 @@
                 let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
                 let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', \`${c.content.replace(/`/g, "'")}\`)">↩️ Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', \`${c.content.replace(/`/g, "'")}\`)">✏️ Edit</button><button class="chat-action-btn" onclick="deleteLeaderChat('${c.id}')">🗑️ Delete</button>` : ''}</div>`;
                 return `<div class="chat-msg ${isSelf ? 'self' : ''}"><b>${isSelf ? 'Wewe' : c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')'}</b>${replyHtml}<p>${c.content}</p>${sharedHtml}<small>${new Date(c.created_at).toLocaleString()}</small>${actionsHtml}</div>`; 
-            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna majadiliano bado.</p>'; 
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>'; 
             div.scrollTop = div.scrollHeight; 
-        } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; } 
+        } catch(e) { div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`; } 
     }
     async function postChat() { 
         const u = JSON.parse(localStorage.getItem('kitama_user')); const content = document.getElementById('chat-input').value.trim(); if(!content) return; if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa."); 
@@ -733,9 +791,9 @@
             div.innerHTML = data.length > 0 ? data.map(c => {
                 const isSelf = (u.full_name === c.sender_name);
                 return `<div class="chat-msg ${isSelf ? 'self' : ''}"><b>${isSelf ? 'Wewe' : c.sender_name + ' (' + c.sender_village + ')'}</b><p>${c.content}</p><small>${new Date(c.created_at).toLocaleString()}</small></div>`;
-            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna majadiliano bado.</p>';
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
             div.scrollTop = div.scrollHeight;
-        } catch(e) { div.innerHTML=`<p style="color:red;">${e.message}</p>`; }
+        } catch(e) { div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
     }
     async function postCitizenChat() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -765,43 +823,267 @@
                 let bClass = f.badge === 'pending' ? 'b-warn' : f.badge === 'resolved' ? 'b-succ' : f.badge === 'ongoing' ? 'b-info' : 'b-err';
                 let bText = f.badge === 'pending' ? 'Inasubiri' : f.badge === 'resolved' ? 'Imekamilika' : f.badge === 'ongoing' ? 'Inaendelea' : f.badge === 'tangazo' ? 'Tangazo' : f.badge;
                 return `<div class="list-i"><div class="list-meta"><span class="badge b-info">${f.type}</span><span class="badge ${bClass}">${bText}</span></div><h4 style="margin-top:8px;">${f.title}</h4><p>${f.desc}</p><small style="color:var(--text-sec); display:block; margin-top:8px; text-align:right;">${new Date(f.date).toLocaleString()}</small></div>`;
-            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna taarifa mpya.</p>';
-        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna taarifa mpya.</p>';
+        } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
     }
 
-    async function fetchPendingUsers() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('pending-list'); div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>'; try { let query = sb.from('users').select('*').eq('status', 'pending'); if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village); const { data, error } = await query; if(error) throw error; div.innerHTML = data.length > 0 ? data.map(u => `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center;"><div><strong>${u.full_name}</strong><br><small>${u.phone_number} - ${u.village}</small></div><div style="display:flex; gap:5px;"><button class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:12px;" onclick="approveUser('${u.id}')">Kubali</button><button class="m-btn m-btn-danger" style="flex:none; padding:8px 12px; font-size:12px;" onclick="rejectUser('${u.id}')">Kataza</button></div></div>`).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna watu wapya wanaosubiri kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    async function fetchPendingUsers() { const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('pending-list'); div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>'; try { let query = sb.from('users').select('*').eq('status', 'pending'); if(u.role !== 'diwani' && u.role !== 'mtendaji_kata') query = query.eq('village', u.village); const { data, error } = await query; if(error) throw error; div.innerHTML = data.length > 0 ? data.map(u => `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center;"><div><strong>${u.full_name}</strong><br><small>${u.phone_number} - ${u.village}</small></div><div style="display:flex; gap:5px;"><button class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:12px;" onclick="approveUser('${u.id}')">Kubali</button><button class="m-btn m-btn-danger" style="flex:none; padding:8px 12px; font-size:12px;" onclick="rejectUser('${u.id}')">Kataza</button></div></div>`).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna watu wapya wanaosubiri kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
     async function approveUser(id) { try { await sb.from('users').update({ status: 'active' }).eq('id', id); showToast("Mtumiaji amekubaliwa!"); fetchPendingUsers(); } catch(e) { openModal("Kosa", e.message); } }
     async function rejectUser(id) { openModal("Kataza Mtumiaji", "Una uhakika unataka kumkataza mtumiaji huyu? Akaunti yake itafutwa kabisa.", false, async () => { try { await sb.from('users').delete().eq('id', id); showToast("Mtumiaji amekataliwa na kufutwa!"); fetchPendingUsers(); } catch(e) { openModal("Kosa", e.message); } }); }
 
     async function addSubVillage() { const village = document.getElementById('sub-v-village').value, name = document.getElementById('sub-v-name').value.trim(); if(!name) return openModal("Taarifa", "Weka jina la kitongoji."); try { await sb.from('sub_villages').insert([{ village: village, sub_village_name: name }]); showToast("Kitongoji kimeongezwa!"); document.getElementById('sub-v-name').value = ''; fetchSubVillages(); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchSubVillages() { const div = document.getElementById('sub-villages-list'); div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('sub_villages').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(v => `<div class="list-i" style="padding:12px;"><strong>${v.sub_village_name}</strong><br><small style="color:var(--text-sec);">Kijiji: ${v.village}</small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna vitongoji vilivyoongezwa bado.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    async function fetchSubVillages() { const div = document.getElementById('sub-villages-list'); div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('sub_villages').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(v => `<div class="list-i" style="padding:12px;"><strong>${v.sub_village_name}</strong><br><small style="color:var(--text-sec);">Kijiji: ${v.village}</small></div>`).join('') : '<p style="color:var(--text-sec); margin: 0 20px;">Hakuna vitongoji vilivyoongezwa bado.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
 
     function togglePinVillage() { document.getElementById('pin-village-box').style.display = document.getElementById('pin-role').value === 'mtendaji_kijiji' ? 'block' : 'none'; }
     async function updatePin() { const role = document.getElementById('pin-role').value, village = document.getElementById('pin-village').value, pin = document.getElementById('pin-value').value.trim(); if(!pin) return openModal("Taarifa", "Weka PIN mpya."); try { let query = sb.from('leader_pins').select('*').eq('role', role); if(role === 'mtendaji_kijiji') query = query.eq('village', village); else query = query.is('village', null); const { data: existing } = await query.maybeSingle(); if(existing) { await sb.from('leader_pins').update({ pin: pin }).eq('id', existing.id); } else { await sb.from('leader_pins').insert([{ role: role, village: role === 'mtendaji_kijiji' ? village : null, pin: pin }]); } showToast("PIN imehifadhiwa!"); document.getElementById('pin-value').value = ''; fetchPins(); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchPins() { const div = document.getElementById('pins-list'); div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('leader_pins').select('*').order('role', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => `<div class="list-i" style="padding:12px;"><strong>${p.role.replace(/_/g,' ')}</strong>${p.village ? ' - '+p.village : ''}<br><small style="color:var(--text-sec);">PIN: <b>${p.pin}</b></small></div>`).join('') : '<p style="color:var(--text-sec);">Hakuna PIN zilizowekwa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    async function fetchPins() { const div = document.getElementById('pins-list'); div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('leader_pins').select('*').order('role', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => `<div class="list-i" style="padding:12px;"><strong>${p.role.replace(/_/g,' ')}</strong>${p.village ? ' - '+p.village : ''}<br><small style="color:var(--text-sec);">PIN: <b>${p.pin}</b></small></div>`).join('') : '<p style="color:var(--text-sec); margin: 0 20px;">Hakuna PIN zilizowekwa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
 
     async function postProject() { const title = document.getElementById('proj-title').value.trim(), desc = document.getElementById('proj-desc').value.trim(), status = document.getElementById('proj-status').value; if(!title||!desc) return openModal("Taarifa", "Jaza jina na maelezo ya mradi."); try { await sb.from('projects').insert([{ title, description: desc, status }]); showToast("Mradi umewekwa!"); document.getElementById('proj-title').value=''; document.getElementById('proj-desc').value=''; fetchProjects(); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchProjects() { const div = document.getElementById('projects-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('projects').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => { let sClass = p.status === 'planned' ? 'b-info' : p.status === 'ongoing' ? 'b-warn' : p.status === 'stalled' ? 'b-err' : 'b-succ'; let sText = p.status === 'planned' ? 'Inapaswa kutekelezwa' : p.status === 'ongoing' ? 'Inaendelea' : p.status === 'stalled' ? 'Imekatika' : 'Imekamilika'; return `<div class="list-i"><h4>${p.title}</h4><p>${p.description}</p><div class="list-meta"><span class="badge ${sClass}">${sText}</span></div></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna miradi iliyowekwa kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    async function fetchProjects() { const div = document.getElementById('projects-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('projects').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => { let sClass = p.status === 'planned' ? 'b-info' : p.status === 'ongoing' ? 'b-warn' : p.status === 'stalled' ? 'b-err' : 'b-succ'; let sText = p.status === 'planned' ? 'Inapaswa kutekelezwa' : p.status === 'ongoing' ? 'Inaendelea' : p.status === 'stalled' ? 'Imekatika' : 'Imekamilika'; return `<div class="list-i"><h4>${p.title}</h4><p>${p.description}</p><div class="list-meta"><span class="badge ${sClass}">${sText}</span></div></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna miradi iliyowekwa kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
 
     async function postCause() { const u = JSON.parse(localStorage.getItem('kitama_user')); const title = document.getElementById('cause-title').value.trim(), desc = document.getElementById('cause-desc').value.trim(); if(!title||!desc) return openModal("Taarifa", "Jaza kichwa na maelezo ya ajenda."); if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa."); try { await sb.from('causes').insert([{ title, description: desc, created_by_name: u.full_name, created_by_phone: u.phone_number }]); showToast("Ajenda imetumwa! Wengine wataikuunga mkono."); document.getElementById('cause-title').value=''; document.getElementById('cause-desc').value=''; fetchCauses(); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchCauses() { const div = document.getElementById('causes-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('causes').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(c => { let sBadge = c.status === 'addressed' ? '<span class="badge b-succ">Imekubaliwa na Viongozi</span>' : '<span class="badge b-warn">Inasubiri</span>'; return `<div class="list-i"><h4>${c.title}</h4><p>${c.description}</p><div class="list-meta"><span class="badge b-info">Imetumwa na: ${c.created_by_name}</span>${sBadge}</div><div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="supportCause('${c.id}', ${c.supporters})">✊ Niandamanye (${c.supporters})</button></div></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna ajeda kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    async function fetchCauses() { const div = document.getElementById('causes-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('causes').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(c => { let sBadge = c.status === 'addressed' ? '<span class="badge b-succ">Imekubaliwa na Viongozi</span>' : '<span class="badge b-warn">Inasubiri</span>'; return `<div class="list-i"><h4>${c.title}</h4><p>${c.description}</p><div class="list-meta"><span class="badge b-info">Imetumwa na: ${c.created_by_name}</span>${sBadge}</div><div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="supportCause('${c.id}', ${c.supporters})">✊ Niandamanye (${c.supporters})</button></div></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna ajeda kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
     async function supportCause(id, currentSupporters) { try { await sb.from('causes').update({ supporters: currentSupporters + 1 }).eq('id', id); showToast("Umeiunga mkono ajenda hii!"); fetchCauses(); } catch(e) { openModal("Kosa", e.message); } }
 
     async function postEvent() { const title = document.getElementById('event-title').value.trim(), date = document.getElementById('event-date').value, location = document.getElementById('event-location').value.trim(), desc = document.getElementById('event-desc').value.trim(); if(!title||!date) return openModal("Taarifa", "Weka jina la tukio na tarehe."); try { await sb.from('events').insert([{ title, description: desc, event_date: date, location: location }]); showToast("Tukio limewekwa!"); document.getElementById('event-title').value=''; document.getElementById('event-date').value=''; document.getElementById('event-location').value=''; document.getElementById('event-desc').value=''; fetchEvents(); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchEvents() { const div = document.getElementById('events-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('events').select('*').order('event_date', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(e => `<div class="list-i"><div style="display:flex; justify-content:space-between; align-items:center;"><h4>${e.title}</h4><span class="badge b-succ">${new Date(e.event_date).toLocaleDateString()}</span></div><p>${e.description || ''}</p>${e.location ? `<div class="list-meta"><span class="badge b-info">📍 ${e.location}</span></div>` : ''}</div>`).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna matukio yaliyowekwa kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
+    async function fetchEvents() { const div = document.getElementById('events-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('events').select('*').order('event_date', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(e => `<div class="list-i"><div style="display:flex; justify-content:space-between; align-items:center;"><h4>${e.title}</h4><span class="badge b-succ">${new Date(e.event_date).toLocaleDateString()}</span></div><p>${e.description || ''}</p>${e.location ? `<div class="list-meta"><span class="badge b-info">📍 ${e.location}</span></div>` : ''}</div>`).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna matukio yaliyowekwa kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
 
     async function uploadAvatar() { const u = JSON.parse(localStorage.getItem('kitama_user')); const fileInput = document.getElementById('avatar-upload'); if(fileInput.files.length > 0) { const file = fileInput.files[0]; const fileName = `avatar_${u.phone_number}.jpg`; try { await sb.storage.from('kitama-images').upload(fileName, file, { upsert: true }); const url = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; await sb.from('users').update({ avatar_url: url }).eq('id', u.id); u.avatar_url = url; localStorage.setItem('kitama_user', JSON.stringify(u)); enterApp(); showToast("Picha imewekwa!"); } catch(e) { openModal("Kosa", e.message); } } }
 
     // SHOPS & MARKETPLACE
-    async function createShop() { const u = JSON.parse(localStorage.getItem('kitama_user')); const name = document.getElementById('shop-name').value.trim(), desc = document.getElementById('shop-desc').value.trim(), fileInput = document.getElementById('shop-logo'); if(!name) return openModal("Taarifa", "Weka jina la duka."); const btn = document.getElementById('btn-shop'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true; let logoUrl = null; if(fileInput.files.length > 0) { const fileName = `shop_${u.phone_number}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0], { upsert: true }); if(!upErr) logoUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { const { data, error } = await sb.from('shops').insert([{ owner_phone: u.phone_number, shop_name: name, description: desc, logo_url: logoUrl, village: u.village }]).select().single(); if(error) throw error; showToast("Duka limefunguliwa!"); enterApp(); } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML = 'Fungua Duka'; btn.disabled = false; } }
+    async function createShop() {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const name = document.getElementById('shop-name').value.trim(), desc = document.getElementById('shop-desc').value.trim();
+        const logoInput = document.getElementById('shop-logo'), coverInput = document.getElementById('shop-cover');
+        if(!name) return openModal("Taarifa", "Weka jina la duka.");
+        const btn = document.getElementById('btn-shop'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
+        
+        let logoUrl = null, coverUrl = null;
+        try {
+            if(logoInput.files.length > 0) {
+                const logoName = `shop_logo_${u.phone_number}.jpg`;
+                await sb.storage.from('kitama-images').upload(logoName, logoInput.files[0], { upsert: true });
+                logoUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${logoName}`;
+            }
+            if(coverInput.files.length > 0) {
+                const coverName = `shop_cover_${u.phone_number}.jpg`;
+                await sb.storage.from('kitama-images').upload(coverName, coverInput.files[0], { upsert: true });
+                coverUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${coverName}`;
+            }
+            const { data, error } = await sb.from('shops').insert([{ owner_phone: u.phone_number, shop_name: name, description: desc, logo_url: logoUrl, cover_url: coverUrl, village: u.village }]).select().single();
+            if(error) throw error;
+            showToast("Duka limefunguliwa!");
+            enterApp(); // Refresh dashboard to show shop tab
+        } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML = 'Fungua Duka'; btn.disabled = false; }
+    }
+
     async function checkUserShop() { const u = JSON.parse(localStorage.getItem('kitama_user')); try { const { data: shop } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle(); if(shop) { document.getElementById('shop-select-box').style.display = 'block'; const select = document.getElementById('item-shop'); select.innerHTML = `<option value="">- Ni bidhaa ya kibinafsi -</option><option value="${shop.id}|${shop.shop_name}">${shop.shop_name}</option>`; } } catch(e) { console.error(e); } }
-    async function viewMyShop() { const u = JSON.parse(localStorage.getItem('kitama_user')); try { const { data: shop, error } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle(); if(error) throw error; if(shop) { document.getElementById('my-shop-name').innerText = shop.shop_name; document.getElementById('my-shop-desc').innerText = shop.description || ''; if(shop.logo_url) { document.getElementById('my-shop-logo').src = shop.logo_url; document.getElementById('my-shop-logo').style.display = 'block'; document.getElementById('my-shop-initial').style.display = 'none'; } else { document.getElementById('my-shop-logo').style.display = 'none'; document.getElementById('my-shop-initial').style.display = 'flex'; document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0); } fetchShopProducts(shop.id, 'my-shop-products'); showSec('my-shop-sec'); } } catch(e) { openModal("Kosa", e.message); } }
-    async function viewShopById(id) { try { const { data: shop, error } = await sb.from('shops').select('*').eq('id', id).single(); if(error) throw error; document.getElementById('view-shop-name').innerText = shop.shop_name; document.getElementById('view-shop-village').innerText = "📍 " + shop.village; document.getElementById('view-shop-desc').innerText = shop.description || ''; if(shop.logo_url) { document.getElementById('view-shop-logo').src = shop.logo_url; document.getElementById('view-shop-logo').style.display = 'block'; document.getElementById('view-shop-initial').style.display = 'none'; } else { document.getElementById('view-shop-logo').style.display = 'none'; document.getElementById('view-shop-initial').style.display = 'flex'; document.getElementById('view-shop-initial').innerText = shop.shop_name.charAt(0); } fetchShopProducts(shop.id, 'view-shop-products'); showSec('view-shop-sec'); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchShopProducts(shopId, divId) { const div = document.getElementById(divId); div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div>'; try { const { data, error } = await sb.from('marketplace').select('*').eq('shop_id', shopId).order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(m => renderMarketCard(m)).join('') : '<p style="color:var(--text-sec); text-align:center; grid-column:span 2;">Hakuna bidhaa kwenye duka hili.</p>'; } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; } }
-    async function postItem() { const u = JSON.parse(localStorage.getItem('kitama_user')); if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado."); const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim(), cat = document.getElementById('item-cat').value, fileInput = document.getElementById('item-image'); const shopVal = document.getElementById('item-shop') ? document.getElementById('item-shop').value : ''; let shopId = null, shopName = null; if(shopVal) { const parts = shopVal.split('|'); shopId = parts[0]; shopName = parts[1]; } if(!name) return openModal("Taarifa", "Weka jina la bidhaa."); if(containsBadWords(name) || containsBadWords(desc)) return openModal("Onyo", "Maelezo yako yana maneno yasiyoruhusiwa."); const btn = document.getElementById('btn-item'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true; let imgUrl = null; if(fileInput.files.length > 0) { const fileName = `market_${Date.now()}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village, category:cat, image_url:imgUrl, status:'active', shop_id: shopId, shop_name: shopName }]); if(error) throw error; showToast("Bidhaa imetangazwa!"); document.getElementById('item-name').value=''; document.getElementById('item-desc').value=''; document.getElementById('item-price').value=''; if(fileInput) fileInput.value = ''; showSec('market-sec'); } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML = 'Weka Tangazo'; btn.disabled = false; } }
-    function renderMarketCard(m) { let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" onerror="this.style.display='none'">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`; let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZA</span></div>` : ''; let waPhone = m.phone.replace(/^0/, '255'); let shopHtml = m.shop_id ? `<span class="shop-badge" onclick="viewShopById('${m.shop_id}')">🏪 ${m.shop_name}</span>` : ''; let actionBtns = m.status === 'sold' ? '' : `<a href="tel:${m.phone}" class="market-btn btn-call">📞 Piga</a><a href="https://wa.me/${waPhone}" target="_blank" class="market-btn btn-wa">💬 WhatsApp</a>`; let markSoldBtn = JSON.parse(localStorage.getItem('kitama_user')).phone_number === m.phone && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" style="width:100%; margin-top:5px; padding:5px; background:var(--bg); color:var(--text-sec); border:1px solid var(--border); border-radius:8px; font-size:10px; font-weight:700; cursor:pointer;">Lelemsha kama Imeuza</button>` : ''; return `<div class="market-card"><div class="market-img-box">${imgHtml}${soldHtml}</div><div class="market-body"><h4>${m.item_name}</h4><div class="market-price">${m.price || 'Agana'}</div><div class="list-meta" style="margin-top:0; margin-bottom:8px;"><span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span><span class="badge b-warn" style="font-size:9px;">${m.village}</span>${shopHtml}</div><div class="market-actions">${actionBtns}</div>${markSoldBtn}</div></div>`; }
-    async function fetchMarket() { const div = document.getElementById('market-list'); const search = document.getElementById('market-search').value.toLowerCase(); const cat = document.getElementById('market-cat').value; div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div><div class="skeleton" style="height:200px; border-radius:16px;"></div>'; try { const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending:false }); if(error) throw error; let filtered = data; if(search) filtered = filtered.filter(m => m.item_name.toLowerCase().includes(search)); if(cat !== 'all') filtered = filtered.filter(m => m.category === cat); div.innerHTML = filtered.length > 0 ? filtered.map(m => renderMarketCard(m)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; grid-column:span 2;">Hakuna bidhaa zilizotangazwa kwenye kategoria hii.</p>'; } catch(e) { div.innerHTML=`<p style="color:red; grid-column:span 2;">${e.message}</p>`; } }
-    async function markAsSold(id) { openModal("Imeuza Bidhaa", "Una uhakika unataka kuweka alama ya 'Imeuza' kwenye bidhaa hii?", false, async () => { try { await sb.from('marketplace').update({ status: 'sold' }).eq('id', id); showToast("Bidhaa imewekwa kama Imeuza!"); fetchMarket(); } catch(e) { openModal("Kosa", e.message); } }); }
+    
+    async function viewMyShop() {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        try {
+            const { data: shop, error } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle();
+            if(error) throw error;
+            if(shop) {
+                document.getElementById('my-shop-name').innerText = shop.shop_name;
+                document.getElementById('my-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
+                
+                // Cover
+                if(shop.cover_url) {
+                    document.getElementById('my-shop-cover').src = shop.cover_url;
+                    document.getElementById('my-shop-cover').style.display = 'block';
+                    document.getElementById('my-shop-cover-placeholder').style.display = 'none';
+                } else {
+                    document.getElementById('my-shop-cover').style.display = 'none';
+                    document.getElementById('my-shop-cover-placeholder').style.display = 'block';
+                }
+                
+                // Logo
+                if(shop.logo_url) {
+                    document.getElementById('my-shop-logo').src = shop.logo_url;
+                    document.getElementById('my-shop-logo').style.display = 'block';
+                    document.getElementById('my-shop-initial').style.display = 'none';
+                } else {
+                    document.getElementById('my-shop-logo').style.display = 'none';
+                    document.getElementById('my-shop-initial').style.display = 'flex';
+                    document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0);
+                }
+                
+                fetchShopProducts(shop, 'my-shop-products');
+                showSec('my-shop-sec');
+            }
+        } catch(e) { openModal("Kosa", e.message); }
+    }
+
+    async function viewShopById(id) {
+        try {
+            const { data: shop, error } = await sb.from('shops').select('*').eq('id', id).single();
+            if(error) throw error;
+            
+            document.getElementById('view-shop-name').innerText = shop.shop_name;
+            document.getElementById('view-shop-village').innerText = "📍 " + shop.village;
+            document.getElementById('view-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
+            
+            // Cover
+            if(shop.cover_url) {
+                document.getElementById('view-shop-cover').src = shop.cover_url;
+                document.getElementById('view-shop-cover').style.display = 'block';
+                document.getElementById('view-shop-cover-placeholder').style.display = 'none';
+            } else {
+                document.getElementById('view-shop-cover').style.display = 'none';
+                document.getElementById('view-shop-cover-placeholder').style.display = 'block';
+            }
+            
+            // Logo
+            if(shop.logo_url) {
+                document.getElementById('view-shop-logo').src = shop.logo_url;
+                document.getElementById('view-shop-logo').style.display = 'block';
+                document.getElementById('view-shop-initial').style.display = 'none';
+            } else {
+                document.getElementById('view-shop-logo').style.display = 'none';
+                document.getElementById('view-shop-initial').style.display = 'flex';
+                document.getElementById('view-shop-initial').innerText = shop.shop_name.charAt(0);
+            }
+            
+            // Actions
+            let waPhone = shop.owner_phone.replace(/^0/, '255');
+            document.getElementById('view-shop-call').href = `tel:${shop.owner_phone}`;
+            document.getElementById('view-shop-wa').href = `https://wa.me/${waPhone}`;
+            
+            fetchShopProducts(shop, 'view-shop-products');
+            showSec('view-shop-sec');
+        } catch(e) { openModal("Kosa", e.message); }
+    }
+
+    async function fetchShopProducts(shop, divId) {
+        const div = document.getElementById(divId);
+        div.innerHTML = '<div class="skeleton" style="height:300px; border-radius:16px; margin: 0 20px;"></div>';
+        try {
+            const { data, error } = await sb.from('marketplace').select('*').eq('shop_id', shop.id).order('created_at', { ascending: false });
+            if(error) throw error;
+            div.innerHTML = data.length > 0 ? data.map(m => renderShopPost(m, shop)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Hakuna bidhaa zilizotangazwa kwenye duka hili.</p>';
+        } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
+    }
+
+    function renderShopPost(m, shop) {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const isOwner = u.phone_number === shop.owner_phone;
+        
+        let logoHtml = shop.logo_url ? `<img src="${shop.logo_url}">` : `<div class="fb-initial">${shop.shop_name.charAt(0)}</div>`;
+        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="fb-post-img" onclick="viewShopPost('${m.id}', '${shop.id}')">` : '';
+        let waPhone = shop.owner_phone.replace(/^0/, '255');
+        let soldTag = m.status === 'sold' ? `<span class="fb-sold-tag">IMEUZWA</span>` : '';
+        let markSoldBtn = isOwner && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" class="fb-post-btn">✅ Lelemsha</button>` : '';
+        let actionBtns = m.status === 'sold' ? '' : `
+            <a href="tel:${shop.owner_phone}" class="fb-post-btn">📞 Piga</a>
+            <a href="https://wa.me/${waPhone}" target="_blank" class="fb-post-btn">💬 WhatsApp</a>
+            ${markSoldBtn}
+        `;
+
+        return `
+            <div class="fb-post-card">
+                <div class="fb-post-header" onclick="viewShopPost('${m.id}', '${shop.id}')">
+                    ${logoHtml}
+                    <div>
+                        <b>${shop.shop_name} ${soldTag}</b>
+                        <small>${new Date(m.created_at).toLocaleString()} • ${shop.village}</small>
+                    </div>
+                </div>
+                <div class="fb-post-text" onclick="viewShopPost('${m.id}', '${shop.id}')">
+                    <span class="fb-post-price">${m.price || 'Agana'}</span>
+                    <b>${m.item_name}</b><br>
+                    ${m.description || ''}
+                </div>
+                ${imgHtml}
+                <div class="fb-post-actions">
+                    ${actionBtns}
+                </div>
+            </div>
+        `;
+    }
+
+    async function viewShopPost(postId, shopId) {
+        try {
+            const { data: shop } = await sb.from('shops').select('*').eq('id', shopId).single();
+            const { data: m, error } = await sb.from('marketplace').select('*').eq('id', postId).single();
+            if(error) throw error;
+            
+            let imgHtml = m.image_url ? `<img src="${m.image_url}" style="width:100%; border-radius:8px; margin-top:10px;">` : '';
+            let modalContent = `
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                    ${shop.logo_url ? `<img src="${shop.logo_url}" style="width:40px; height:40px; border-radius:50%;">` : `<div style="width:40px; height:40px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${shop.shop_name.charAt(0)}</div>`}
+                    <div>
+                        <b style="font-size:15px;">${shop.shop_name}</b><br>
+                        <small style="color:var(--text-sec);">${new Date(m.created_at).toLocaleString()}</small>
+                    </div>
+                </div>
+                <div style="font-size:15px; margin-bottom:10px;">
+                    <span style="color:var(--accent); font-weight:800; font-size:18px; display:block; margin-bottom:5px;">${m.price || 'Agana'}</span>
+                    <b>${m.item_name}</b><br>
+                    ${m.description || ''}
+                </div>
+                ${imgHtml}
+            `;
+            openModal(m.item_name, modalContent, false);
+        } catch(e) { openModal("Kosa", e.message); }
+    }
+
+    async function postItem() { 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado."); 
+        const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim(), cat = document.getElementById('item-cat').value, fileInput = document.getElementById('item-image'); 
+        const shopVal = document.getElementById('item-shop') ? document.getElementById('item-shop').value : ''; 
+        let shopId = null, shopName = null; 
+        if(shopVal) { const parts = shopVal.split('|'); shopId = parts[0]; shopName = parts[1]; } 
+        if(!name) return openModal("Taarifa", "Weka jina la bidhaa."); 
+        if(containsBadWords(name) || containsBadWords(desc)) return openModal("Onyo", "Maelezo yako yana maneno yasiyoruhusiwa."); 
+        
+        const btn = document.getElementById('btn-item'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true; 
+        let imgUrl = null; 
+        if(fileInput.files.length > 0) { 
+            const fileName = `market_${Date.now()}.jpg`; 
+            const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); 
+            if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; 
+        } 
+        try { 
+            const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village, category:cat, image_url:imgUrl, status:'active', shop_id: shopId, shop_name: shopName }]); 
+            if(error) throw error; 
+            showToast("Bidhaa imetangazwa!"); 
+            document.getElementById('item-name').value=''; document.getElementById('item-desc').value=''; document.getElementById('item-price').value=''; if(fileInput) fileInput.value = ''; 
+            showSec('market-sec'); 
+        } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML = 'Weka Tangazo'; btn.disabled = false; } 
+    }
+
+    function renderMarketCard(m) { 
+        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" onerror="this.style.display='none'">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`; 
+        let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZWA</span></div>` : ''; 
+        let waPhone = m.phone.replace(/^0/, '255'); 
+        let shopHtml = m.shop_id ? `<span class="shop-badge" onclick="viewShopById('${m.shop_id}')">🏪 ${m.shop_name}</span>` : ''; 
+        let actionBtns = m.status === 'sold' ? '' : `<a href="tel:${m.phone}" class="market-btn btn-call">📞 Piga</a><a href="https://wa.me/${waPhone}" target="_blank" class="market-btn btn-wa">💬 WhatsApp</a>`; 
+        let markSoldBtn = JSON.parse(localStorage.getItem('kitama_user')).phone_number === m.phone && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" style="width:100%; margin-top:5px; padding:5px; background:var(--bg); color:var(--text-sec); border:1px solid var(--border); border-radius:8px; font-size:10px; font-weight:700; cursor:pointer;">Lelemsha kama Imeuzwa</button>` : ''; 
+        return `<div class="market-card"><div class="market-img-box">${imgHtml}${soldHtml}</div><div class="market-body"><h4>${m.item_name}</h4><div class="market-price">${m.price || 'Agana'}</div><div class="list-meta" style="margin-top:0; margin-bottom:8px;"><span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span><span class="badge b-warn" style="font-size:9px;">${m.village}</span>${shopHtml}</div><div class="market-actions">${actionBtns}</div>${markSoldBtn}</div></div>`; 
+    }
+
+    async function fetchMarket() { 
+        const div = document.getElementById('market-list'); 
+        const search = document.getElementById('market-search').value.toLowerCase(); 
+        const cat = document.getElementById('market-cat').value; 
+        div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div><div class="skeleton" style="height:200px; border-radius:16px;"></div>'; 
+        try { 
+            const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending:false }); 
+            if(error) throw error; 
+            let filtered = data; 
+            if(search) filtered = filtered.filter(m => m.item_name.toLowerCase().includes(search)); 
+            if(cat !== 'all') filtered = filtered.filter(m => m.category === cat); 
+            div.innerHTML = filtered.length > 0 ? filtered.map(m => renderMarketCard(m)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; grid-column:span 2;">Hakuna bidhaa zilizotangazwa kwenye kategoria hii.</p>'; 
+        } catch(e) { div.innerHTML=`<p style="color:red; grid-column:span 2;">${e.message}</p>`; } 
+    }
+
+    async function markAsSold(id) { 
+        openModal("Imeuzwa Bidhaa", "Una uhakika unataka kuweka alama ya 'Imeuzwa' kwenye bidhaa hii?", false, async () => { 
+            try { await sb.from('marketplace').update({ status: 'sold' }).eq('id', id); showToast("Bidhaa imewekwa kama Imeuzwa!"); fetchMarket(); } catch(e) { openModal("Kosa", e.message); } 
+        }); 
+    }
 
     // GEOLOCATION TRACKING
     async function trackCitizen(phone) {
