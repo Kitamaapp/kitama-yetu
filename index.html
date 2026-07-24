@@ -465,6 +465,7 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let mapInstance = null;
+    let isRealtimeInitialized = false;
     let currentShopId = null;
 
     let marketItemsCache = [];
