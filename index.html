@@ -613,7 +613,7 @@
         } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML='Tengeneza Akaunti'; btn.disabled=false; }
     }
 
-    function enterApp() {
+        function enterApp() {
         document.getElementById('auth-c').style.display='none'; 
         document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -637,21 +637,28 @@
             setupDashboard(u);
         }
 
-        sb.channel('public:notifications')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, payload => {
-              if(u.role !== 'citizen') { playBeep(); showToast("Malalamishi mapya! " + payload.new.title); }
-          })
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
-              if(u.role !== 'citizen') { playBeep(); }
-          })
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
-              if(u.role === 'citizen') { playBeep(); }
-          })
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
-              if(currentShopId && payload.new.shop_id === currentShopId) { playBeep(); }
-          })
-          .subscribe();
-    }
+        // MAREKEBISHO: Realtime Notifications zinasanidiwa mara moja tu
+        if (!isRealtimeInitialized) {
+            isRealtimeInitialized = true;
+            sb.channel('public:notifications')
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, payload => {
+                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+                  if(currentUser && currentUser.role !== 'citizen') { playBeep(); showToast("Malalamishi mapya! " + payload.new.title); }
+              })
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
+                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+                  if(currentUser && currentUser.role !== 'citizen') { playBeep(); }
+              })
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
+                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+                  if(currentUser && currentUser.role === 'citizen') { playBeep(); }
+              })
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
+                  if(currentShopId && payload.new.shop_id === currentShopId) { playBeep(); }
+              })
+              .subscribe();
+        }
+        }
 
     function enforceCitizenLocation(u) {
         if (!navigator.geolocation) {
