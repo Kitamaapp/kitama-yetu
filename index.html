@@ -1936,8 +1936,14 @@
         if(fileInput.files.length > 0) { 
             const fileName = `market_${Date.now()}.jpg`; 
             const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); 
+            if(upErr) {
+                console.error("Upload Error:", upErr);
+                openModal("Kosa la Kupakia Picha", "Imeshindwa kupakia picha kwenye server. Kosa: " + upErr.message);
+                btn.innerHTML = 'Weka Tangazo'; btn.disabled = false;
+                return;
+            }
             if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; 
-        } 
+        }
         try { 
             const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village, category:cat, image_url:imgUrl, status:'active', shop_id: shopId, shop_name: shopName }]); 
             if(error) throw error; 
