@@ -191,7 +191,7 @@
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
         .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
-        .market-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; position: relative; transition: transform 0.2s; }
+        .market-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; position: relative; transition: transform 0.2s; cursor: pointer; }
         .market-card:active { transform: scale(0.98); }
         .market-img-box { width: 100%; height: 130px; background: var(--bg); position: relative; }
         .market-img { width: 100%; height: 100%; object-fit: cover; }
@@ -263,6 +263,15 @@
 
         .online-dot { width: 8px; height: 8px; background: #10B981; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 5px rgba(16,185,129,0.5); }
         .offline-dot { width: 8px; height: 8px; background: #CBD5E1; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        
+        /* REVIEWS & SAFETY TIPS CSS */
+        .review-card { background: var(--surface); padding: 15px; border-radius: 12px; margin: 0 20px 10px 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+        .review-stars { color: #F59E0B; font-size: 14px; margin-bottom: 5px; }
+        .review-text { font-size: 13px; color: var(--text-sec); line-height: 1.4; }
+        .safety-box { margin-top: 20px; padding: 15px; background: #FEF3C7; border-radius: 12px; border: 1px solid #FDE68A; }
+        .safety-box h4 { font-size: 14px; color: #92400E; margin-bottom: 10px; font-weight: 800; }
+        .safety-box ul { padding-left: 20px; margin: 0; }
+        .safety-box li { font-size: 12px; color: #92400E; margin-bottom: 5px; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -284,7 +293,7 @@
         <div id="modal-input-container" style="display:none;"><textarea class="modal-input" id="modal-input" placeholder="Andika hapa..."></textarea></div>
         <div class="modal-btns">
             <button class="m-btn m-btn-secondary" id="modal-cancel" onclick="closeModal()">Funga</button>
-            <button class="m-btn m-btn-primary" id="modal-ok">Tuma</button>
+            <button class="m-btn m-btn-primary" id="modal-ok">Sawa</button>
         </div>
     </div>
 </div>
@@ -376,6 +385,8 @@
             </div>
             <div class="sec-h" style="margin-top:20px;"><h2>Bidhaa Zako</h2></div>
             <div id="my-shop-products" class="fb-feed"></div>
+            <div class="sec-h" style="margin-top:20px;"><h2>Ushuhuda wa Wateja</h2></div>
+            <div id="my-shop-reviews-list"></div>
         </div>
 
         <div id="view-shop-sec" class="sec">
@@ -401,6 +412,11 @@
             </div>
             <div class="sec-h"><h2>Bidhaa Zilizopo</h2></div>
             <div id="view-shop-products" class="fb-feed"></div>
+            <div class="sec-h" style="margin-top:20px;">
+                <h2>Ushuhuda wa Wateja</h2>
+                <span onclick="openReviewModal(currentShopId)">Ongeza Ushuhuda</span>
+            </div>
+            <div id="view-shop-reviews-list"></div>
         </div> 
 
         <div id="shop-inbox-sec" class="sec">
@@ -566,7 +582,7 @@
     let shopsIsLoading = false;
     let shopsHasMore = true;
     
-    const BAD_WORDS = ['litoko', 'kubabayo', 'usenge', 'ukuma huo', 'kutombesha', 'unatombesha', 'uke na akili', 'huna akili', 'ukenakili', 'ukenaakili', 'kuma', 'matako', 'ushenzi', 'pumbu', 'mpumbavu', 'pumbavu', 'nikutombe', 'kumamako', 'kumamayo', 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumanyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge', 'fuck', 'shit', 'asshole', 'bitch', 'idiot'];
+    const BAD_WORDS = ['litoko', 'kuma', 'matako', 'ushenzi', 'pumbu', 'mpumbavu', 'pumbavu', 'nikutombe', 'kumamako', 'kumamayo', 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumamyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge', 'fuck', 'shit', 'asshole', 'bitch', 'idiot'];
     function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
     
     const ICONS = {
@@ -771,7 +787,7 @@
                 const state = citizenPresenceChannel.presenceState();
                 const onlineCount = Object.keys(state).length;
                 const infoEl = document.getElementById('citizen-presence-info');
-                if(infoEl) infoEl.innerText = `${onlineCount} watu online kati ya ${activeCitizens.length} wananchi`;
+                if(infoEl) infoEl.innerText = `${onlineCount} mtu online kati ya ${activeCitizens.length} wananchi`;
             })
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
@@ -787,7 +803,7 @@
             if(error) throw error;
             activeCitizens = data || [];
             const infoEl = document.getElementById('citizen-presence-info');
-            if(infoEl) infoEl.innerText = `0 watu online kati ya ${activeCitizens.length} wananchi`;
+            if(infoEl) infoEl.innerText = `0 mtu online kati ya ${activeCitizens.length} wananchi`;
         } catch(e) { console.error(e); }
     }
 
@@ -931,7 +947,7 @@
         if(id==='admin-pins-sec') fetchPins();
         if(id==='pending-users-sec') fetchPendingUsers();
         if(id==='campaign-sec') fetchProjects();
-        if(id==='solidarity-sec') fetchCauses;
+        if(id==='solidarity-sec') fetchCauses();
         if(id==='events-sec') fetchEvents();
         if(id==='admin-moderation-sec') fetchModeration();
         if(id==='my-inbox-sec') fetchMyInbox();
@@ -1446,6 +1462,7 @@
                 if(shop.logo_url) { document.getElementById('my-shop-logo').src = shop.logo_url; document.getElementById('my-shop-logo').style.display = 'block'; document.getElementById('my-shop-initial').style.display = 'none'; } 
                 else { document.getElementById('my-shop-logo').style.display = 'none'; document.getElementById('my-shop-initial').style.display = 'flex'; document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0); }
                 fetchShopProducts(shop, 'my-shop-products');
+                fetchShopReviews(shop.id, 'my-shop-reviews-list');
                 showSec('my-shop-sec');
             }
         } catch(e) { openModal("Kosa", e.message); }
@@ -1456,6 +1473,7 @@
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const { data: shop, error } = await sb.from('shops').select('*').eq('id', id).single();
             if(error) throw error;
+            currentShopId = shop.id;
             document.getElementById('view-shop-name').innerText = shop.shop_name;
             document.getElementById('view-shop-village').innerHTML = `${ICONS.pin} ${shop.village}`;
             document.getElementById('view-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
@@ -1473,6 +1491,7 @@
                 msgBtn.onclick = () => sendShopMessage(shop.id, shop.shop_name, shop.owner_phone);
             }
             fetchShopProducts(shop, 'view-shop-products');
+            fetchShopReviews(shop.id, 'view-shop-reviews-list');
             showSec('view-shop-sec');
         } catch(e) { openModal("Kosa", e.message); }
     }
@@ -1550,9 +1569,134 @@
                     ${m.description || ''}
                 </div>
                 ${imgHtml}
+                
+                <div class="safety-box">
+                    <h4>⚠️ Vidokezo vya Usalama</h4>
+                    <ul>
+                        <li>Epuka kutuma malipo yoyote ya awali.</li>
+                        <li>Kutana na muuzaji katika eneo la umma lililo salama.</li>
+                        <li>Kagua bidhaa unayotaka kununua ili uhakikishe kuwa ndiyo unayehitaji.</li>
+                        <li>Hakiki nyaraka zote na ulipe tu ikiwa umeridhika.</li>
+                    </ul>
+                </div>
             `;
             openModal(m.item_name, modalContent, false);
         } catch(e) { openModal("Kosa", e.message); }
+    }
+
+    async function viewMarketItem(itemId) {
+        try {
+            const m = marketItemsCache.find(item => item.id === itemId);
+            if(!m) return showToast("Bidhaa haijapatikana");
+            
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            const isOwner = u.phone_number === m.phone;
+            
+            let imgHtml = m.image_url ? `<img src="${m.image_url}" style="width:100%; border-radius:8px; margin-top:10px; max-height: 300px; object-fit: cover;" onerror="this.style.display='none'">` : '';
+            let waPhone = m.phone.replace(/^0/, '255');
+            
+            let actionBtns = m.status === 'sold' ? '<div style="text-align:center; padding:10px; background:var(--bg); border-radius:8px; font-weight:700; color:var(--danger);">BIDHAA HII IMEUZWA</div>' : `
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <a href="tel:${m.phone}" class="m-btn m-btn-primary" style="text-decoration:none; flex:1;">${ICONS.phone} Piga</a>
+                    <a href="https://wa.me/${waPhone}" target="_blank" class="m-btn m-btn-secondary" style="background:#25D366; color:white; text-decoration:none; flex:1;">${ICONS.whatsapp} WhatsApp</a>
+                </div>
+            `;
+            
+            let markSoldBtn = isOwner && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--text-sec); border: 1px solid var(--border);">${ICONS.check} Weka Alama ya Imeuzwa</button>` : '';
+            
+            let shopBadge = m.shop_id ? `<div style="display:inline-block; margin-bottom:10px; background:var(--bg); padding:5px 10px; border-radius:8px; font-size:12px; font-weight:700; color:var(--accent); cursor:pointer;" onclick="closeModal(); viewShopById('${m.shop_id}')">${ICONS.store} ${m.shop_name || 'Duka'}</div>` : '';
+
+            let modalContent = `
+                ${shopBadge}
+                <div style="font-size:15px; margin-bottom:10px;">
+                    <span style="color:var(--accent); font-weight:800; font-size:20px; display:block; margin-bottom:5px;">${m.price || 'Agana'}</span>
+                    <b style="font-size:17px;">${m.item_name}</b><br>
+                    <small style="color: var(--text-sec);">${m.category || 'Mengineyo'} • ${m.village}</small>
+                </div>
+                <p style="font-size:14px; color:var(--text); line-height:1.5; margin-bottom:10px;">${m.description || 'Hakuna maelezo zaidi.'}</p>
+                ${imgHtml}
+                ${actionBtns}
+                ${markSoldBtn}
+                
+                <div class="safety-box" style="margin-top:20px;">
+                    <h4>⚠️ Vidokezo vya Usalama</h4>
+                    <ul>
+                        <li>Epuka kutuma malipo yoyote ya awali.</li>
+                        <li>Kutana na muuzaji katika eneo la umma lililo salama.</li>
+                        <li>Kagua bidhaa unayotaka kununua ili uhakikishe kuwa ndiyo unayehitaji.</li>
+                        <li>Hakiki nyaraka zote na ulipe tu ikiwa umeridhika.</li>
+                    </ul>
+                </div>
+            `;
+            openModal(m.item_name, modalContent, false);
+        } catch(e) { openModal("Kosa", e.message); }
+    }
+
+    // --- SHOP REVIEWS FUNCTIONS ---
+    async function fetchShopReviews(shopId, divId) {
+        const div = document.getElementById(divId);
+        if(!div) return;
+        div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px;"></div>';
+        try {
+            const { data, error } = await sb.from('shop_reviews').select('*').eq('shop_id', shopId).order('created_at', { ascending: false });
+            if(error) throw error;
+            
+            let html = '';
+            if(data.length > 0) {
+                html = data.map(r => `
+                    <div class="review-card">
+                        <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                        <b style="font-size:13px;">${r.reviewer_name}</b>
+                        <p class="review-text">${r.comment}</p>
+                        <small style="color:var(--text-sec); font-size:10px;">${new Date(r.created_at).toLocaleDateString()}</small>
+                    </div>
+                `).join('');
+            } else {
+                html = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna ushuhuda bado. Kuwa wa kwanza kuacha maoni!</p>';
+            }
+            div.innerHTML = html;
+        } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
+    }
+
+    function openReviewModal(shopId) {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if(!u) return;
+        const html = `
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <div>
+                    <label style="font-size:12px; font-weight:700; color:var(--text-sec);">Rating (1-5)</label>
+                    <select id="review-rating" class="modal-input" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+                        <option value="5">★★★★★ (5)</option>
+                        <option value="4">★★★★☆ (4)</option>
+                        <option value="3">★★★☆☆ (3)</option>
+                        <option value="2">★★☆☆☆ (2)</option>
+                        <option value="1">★☆☆☆☆ (1)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:700; color:var(--text-sec);">Ushuhuda Wako</label>
+                    <textarea id="review-comment" class="modal-input" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text);" placeholder="Ongeza maoni yako kuhusu duka hili..."></textarea>
+                </div>
+            </div>
+        `;
+        openModal("Ongeza Ushuhuda", html, false, async () => {
+            const rating = document.getElementById('review-rating').value;
+            const comment = document.getElementById('review-comment').value.trim();
+            if(!comment) return showToast("Tafadhali andika ushuhuda wako");
+            try {
+                await sb.from('shop_reviews').insert([{ 
+                    shop_id: shopId, 
+                    reviewer_phone: u.phone_number, 
+                    reviewer_name: u.full_name, 
+                    rating: parseInt(rating), 
+                    comment: comment 
+                }]);
+                showToast("Asante kwa ushuhuda wako!");
+                closeModal();
+                fetchShopReviews(shopId, 'view-shop-reviews-list');
+                fetchShopReviews(shopId, 'my-shop-reviews-list');
+            } catch(e) { openModal("Kosa", e.message); }
+        });
     }
 
     function toggleShopComments(itemId) {
@@ -1790,11 +1934,18 @@
     function renderMarketCard(m) { 
         let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" onerror="this.style.display='none'">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`; 
         let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZWA</span></div>` : ''; 
-        let waPhone = m.phone.replace(/^0/, '255'); 
-        let shopHtml = m.shop_id ? `<span class="shop-badge" onclick="viewShopById('${m.shop_id}')">${ICONS.store} ${m.shop_name}</span>` : ''; 
-        let actionBtns = m.status === 'sold' ? '' : `<a href="tel:${m.phone}" class="market-btn btn-call">${ICONS.phone} Piga</a><a href="https://wa.me/${waPhone}" target="_blank" class="market-btn btn-wa">${ICONS.whatsapp} WhatsApp</a>`; 
-        let markSoldBtn = JSON.parse(localStorage.getItem('kitama_user')).phone_number === m.phone && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" style="width:100%; margin-top:5px; padding:5px; background:var(--bg); color:var(--text-sec); border:1px solid var(--border); border-radius:8px; font-size:10px; font-weight:700; cursor:pointer;">${ICONS.check} Imeuzwa</button>` : ''; 
-        return `<div class="market-card"><div class="market-img-box">${imgHtml}${soldHtml}</div><div class="market-body"><h4>${m.item_name}</h4><div class="market-price">${m.price || 'Agana'}</div><div class="list-meta" style="margin-top:0; margin-bottom:8px;"><span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span><span class="badge b-warn" style="font-size:9px;">${m.village}</span>${shopHtml}</div><div class="market-actions">${actionBtns}</div>${markSoldBtn}</div></div>`; 
+        
+        return `<div class="market-card" onclick="viewMarketItem('${m.id}')">
+            <div class="market-img-box">${imgHtml}${soldHtml}</div>
+            <div class="market-body">
+                <h4>${m.item_name}</h4>
+                <div class="market-price">${m.price || 'Agana'}</div>
+                <div class="list-meta" style="margin-top:0; margin-bottom:8px;">
+                    <span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span>
+                    <span class="badge b-warn" style="font-size:9px;">${m.village}</span>
+                </div>
+            </div>
+        </div>`; 
     }
 
     async function fetchMarket() { 
@@ -1888,7 +2039,12 @@
 
     async function markAsSold(id) { 
         openModal("Imeuzwa Bidhaa", "Una uhakika unataka kuweka alama ya 'Imeuzwa' kwenye bidhaa hii?", false, async () => { 
-            try { await sb.from('marketplace').update({ status: 'sold' }).eq('id', id); showToast("Bidhaa imewekwa kama Imeuzwa!"); playBeep(); fetchMarket(); } catch(e) { openModal("Kosa", e.message); } 
+            try { 
+                await sb.from('marketplace').update({ status: 'sold' }).eq('id', id); 
+                showToast("Bidhaa imewekwa kama Imeuzwa!"); 
+                closeModal(); // Close the item modal if open
+                fetchMarket(); 
+            } catch(e) { openModal("Kosa", e.message); } 
         }); 
     }
     
