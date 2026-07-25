@@ -538,7 +538,6 @@
     let isAtBottom = true;
     let unreadChatCount = 0;
 
-    // Swipe Variables
     let touchStartX = 0;
     let touchStartY = 0;
     let currentMsgElement = null;
@@ -557,7 +556,7 @@
     let shopsIsLoading = false;
     let shopsHasMore = true;
     
-    const BAD_WORDS = ['litoko', 'kuma', 'matako', 'ushenzi', 'pumbu', 'mpumbavu', 'pumbavu', 'nikutombe', 'kumamako', 'kumamayo', 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumamyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge', 'fuck', 'shit', 'asshole', 'bitch', 'idiot'];
+    const BAD_WORDS = ['litoko', 'kubabayo', 'usenge', 'ukuma huo', 'kutombesha', 'unatombesha', 'uke na akili', 'huna akili', 'ukenakili', 'ukenaakili', 'kuma', 'matako', 'ushenzi', 'pumbu', 'mpumbavu', 'pumbavu', 'nikutombe', 'kumamako', 'kumamayo', 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumanyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge', 'fuck', 'shit', 'asshole', 'bitch', 'idiot'];
     function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
     
     const ICONS = {
@@ -922,7 +921,7 @@
         if(id==='admin-pins-sec') fetchPins();
         if(id==='pending-users-sec') fetchPendingUsers();
         if(id==='campaign-sec') fetchProjects();
-        if(id==='solidarity-sec') fetchCauses();
+        if(id==='solidarity-sec') fetchCauses;
         if(id==='events-sec') fetchEvents();
         if(id==='admin-moderation-sec') fetchModeration();
         if(id==='my-inbox-sec') fetchMyInbox();
@@ -1062,7 +1061,6 @@
                     <button class="chat-action-btn" onclick="setCitizenReply('${c.id}', '${c.content.replace(/'/g, "\\'")}')">${ICONS.reply} Reply</button>
                     ${isSelf ? `<button class="chat-action-btn" onclick="deleteCitizenChat('${c.id}')" style="color:var(--danger);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Futa</button>` : ''}
                 </div>`;
-                // Swipe handlers
                 let swipeHandlers = `ontouchstart="startSwipe(event, '${c.id}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" ontouchmove="moveSwipe(event)" ontouchend="endSwipe()"`;
                 
                 return `<div class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers}><b>${isSelf ? 'Wewe' : c.sender_name}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
@@ -1116,7 +1114,6 @@
         });
     }
 
-    // Swipe to Reply Functions
     function startSwipe(e, msgId, msgContent) {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
@@ -1239,7 +1236,7 @@
     }
     async function fetchPublicProgress() { const div = document.getElementById('progress-list'); div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('reports').select('*').neq('visibility', 'local_only').neq('status', 'archived').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna taarifa kwa sasa.</p>'; } catch(e) { div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
     async function updateStatus(id, newStatus) { try { await sb.from('reports').update({ status: newStatus }).eq('id', id); showToast("Status imebadilishwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }
-    async function promptResolution(id, leaderName) { openModal("Uthibitisho wa Kazi", "Andika kile ulichokifanya (Uthibitisho). Kisha utachagua picha ya mradi uliokamilisha.", true, async (note) => { if(!note) return openModal("Taarifa", "Lazima uandike uthibitisho."); const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.click(); fileInput.onchange = async () => { let imgUrl = null; if(fileInput.files.length > 0) { const fileName = `resolution_${Date.now()}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { await sb.from('reports').update({ status: 'resolved', resolution_note: note, resolution_image: imgUrl, resolved_by_name: leaderName }).eq('id', id); showToast("Umekamilisha kazi na kuweka uthibitisho!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }; }); }
+    async function promptResolution(id, leaderName) { openModal("Uthibitisho wa Kazi", "Andika kile ulichokifanya (Uthibitisho). Kisha utachagua picha ya mradi uliokamilisha.", true, async (note) => { if(!note) return openModal("Taarifa", "Lazima uandika uthibitisho."); const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.click(); fileInput.onchange = async () => { let imgUrl = null; if(fileInput.files.length > 0) { const fileName = `resolution_${Date.now()}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { await sb.from('reports').update({ status: 'resolved', resolution_note: note, resolution_image: imgUrl, resolved_by_name: leaderName }).eq('id', id); showToast("Umekamilisha kazi na kuweka uthibitisho!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }; }); }
     async function shareToLeaders(reportId, title) { openModal("Shiriki kwa Viongozi", `Una uhakika unataka kushiriki ripoti hii kwenye Chumb cha Viongozi?`, false, async () => { const u = JSON.parse(localStorage.getItem('kitama_user')); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: `Naomba msaada/maoni kuhusu ripoti hii: "${title}"`, shared_report_id: reportId }]); showToast("Imeshirikiwa kwenye Chumb cha Viongozi!"); showSec('leader-chat-sec'); } catch(e) { openModal("Kosa", e.message); } }); }
 
     let leaderReplyTo = null;
@@ -1391,7 +1388,7 @@
                 let waPhone = shop.owner_phone.replace(/^0/, '255');
                 document.getElementById('view-shop-call').href = `tel:${shop.owner_phone}`;
                 document.getElementById('view-shop-wa').href = `https://wa.me/${waPhone}`;
-                msgBtn.onclick = () => sendShopMessage(shop.id, shop.shop_name);
+                msgBtn.onclick = () => sendShopMessage(shop.id, shop.shop_name, shop.owner_phone);
             }
             fetchShopProducts(shop, 'view-shop-products');
             showSec('view-shop-sec');
@@ -1538,25 +1535,36 @@
     async function openShopChat(shopId, senderPhone, senderName) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         try {
+            const orFilter = `and(sender_phone.eq.${senderPhone},recipient_phone.eq.${u.phone_number}),and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${senderPhone})`;
             const { data, error } = await sb.from('shop_messages')
                 .select('*')
                 .eq('shop_id', shopId)
-                .in('sender_phone', [senderPhone, u.phone_number])
+                .or(orFilter)
                 .order('created_at', { ascending: true });
             if(error) throw error;
             
             let chatHtml = '<div style="max-height: 300px; overflow-y: auto; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">';
-            data.forEach(msg => {
-                let isSelf = msg.sender_phone === u.phone_number; 
-                chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;"><b>${isSelf ? 'Wewe' : msg.sender_name}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
-            });
+            if(data && data.length > 0) {
+                data.forEach(msg => {
+                    let isSelf = msg.sender_phone === u.phone_number; 
+                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;"><b>${isSelf ? 'Wewe' : msg.sender_name}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
+                });
+            } else {
+                chatHtml += '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna ujumbe bado.</p>';
+            }
             chatHtml += '</div>';
             
             openModal(`Mazungumzo na ${senderName}`, chatHtml, true, async (reply) => {
                 if(!reply) return;
                 if(containsBadWords(reply)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
                 try {
-                    await sb.from('shop_messages').insert([{ shop_id: shopId, sender_phone: u.phone_number, sender_name: u.full_name, content: reply }]);
+                    await sb.from('shop_messages').insert([{ 
+                        shop_id: shopId, 
+                        sender_phone: u.phone_number, 
+                        sender_name: u.full_name, 
+                        content: reply,
+                        recipient_phone: senderPhone
+                    }]);
                     playBeep();
                     showToast("Ujumbe umetumwa!");
                     openShopChat(shopId, senderPhone, senderName); 
@@ -1565,14 +1573,20 @@
         } catch(e) { openModal("Kosa", e.message); }
     }
 
-    async function sendShopMessage(shopId, shopName) {
+    async function sendShopMessage(shopId, shopName, ownerPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
         openModal(`Mwonge na ${shopName}`, "Andika ujumbe wako kwa muuzaji:", true, async (content) => {
             if(!content) return;
-            if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+            if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako na maneno yasiyoruhusiwa.");
             try {
-                await sb.from('shop_messages').insert([{ shop_id: shopId, sender_phone: u.phone_number, sender_name: u.full_name, content: content }]);
+                await sb.from('shop_messages').insert([{ 
+                    shop_id: shopId, 
+                    sender_phone: u.phone_number, 
+                    sender_name: u.full_name, 
+                    content: content,
+                    recipient_phone: ownerPhone
+                }]);
                 playBeep();
                 showToast("Ujumbe umetumwa kwenye inbox ya duka!");
                 fetchMyInbox(); 
@@ -1611,25 +1625,36 @@
     async function openCitizenChat(shopId, shopName, ownerPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         try {
+            const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${ownerPhone}),and(sender_phone.eq.${ownerPhone},recipient_phone.eq.${u.phone_number})`;
             const { data, error } = await sb.from('shop_messages')
                 .select('*')
                 .eq('shop_id', shopId)
-                .in('sender_phone', [u.phone_number, ownerPhone])
+                .or(orFilter)
                 .order('created_at', { ascending: true });
             if(error) throw error;
             
             let chatHtml = '<div style="max-height: 300px; overflow-y: auto; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">';
-            data.forEach(msg => {
-                let isSelf = msg.sender_phone === u.phone_number;
-                chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;"><b>${isSelf ? 'Wewe' : msg.sender_name + ' ('+shopName+')'}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
-            });
+            if(data && data.length > 0) {
+                data.forEach(msg => {
+                    let isSelf = msg.sender_phone === u.phone_number;
+                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;"><b>${isSelf ? 'Wewe' : msg.sender_name + ' ('+shopName+')'}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
+                });
+            } else {
+                chatHtml += '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna ujumbe bado.</p>';
+            }
             chatHtml += '</div>';
             
             openModal(`Mazungumzo na ${shopName}`, chatHtml, true, async (reply) => {
                 if(!reply) return;
                 if(containsBadWords(reply)) return openModal("Onyo", "Ujumbe wako na maneno yasiyoruhusiwa.");
                 try {
-                    await sb.from('shop_messages').insert([{ shop_id: shopId, sender_phone: u.phone_number, sender_name: u.full_name, content: reply }]);
+                    await sb.from('shop_messages').insert([{ 
+                        shop_id: shopId, 
+                        sender_phone: u.phone_number, 
+                        sender_name: u.full_name, 
+                        content: reply,
+                        recipient_phone: ownerPhone
+                    }]);
                     playBeep();
                     showToast("Ujumbe umetumwa!");
                     openCitizenChat(shopId, shopName, ownerPhone);
