@@ -1057,7 +1057,7 @@
         document.getElementById('citizen-reply-context').style.display = 'none';
     }
 
-    async function replyPrivately(phone, name, originalMsg) {
+        async function replyPrivately(phone, name, originalMsg) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if (phone === u.phone_number) return showToast("Huwezi kujibu mwenyewe");
         
@@ -1081,31 +1081,41 @@
             if(data && data.length > 0) {
                 data.forEach(msg => {
                     let isSelf = msg.sender_phone === u.phone_number;
-                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;"><b>${isSelf ? 'Wewe' : displayName}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
+                    
+                    // Kuonyesha ujumbe wa awali kama quote ndani ya chat
+                    let quoteHtml = '';
+                    if(msg.reply_to) {
+                        quoteHtml = `<div class="reply-quote" style="margin-bottom: 5px; border-left: 3px solid var(--accent); padding: 5px 8px; background: rgba(0,0,0,0.05); border-radius: 4px; font-size: 11px; color: var(--text-sec); white-space: normal;">${msg.reply_to.substring(0, 100)}</div>`;
+                    }
+                    
+                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;">${quoteHtml}<b>${isSelf ? 'Wewe' : displayName}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
                 });
             } else {
                 chatHtml += '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna mazungumzo ya faragha bado.</p>';
             }
             chatHtml += '</div>';
             
+            // Kuonyesha ujumbe wa awali juu ya sehemu ya kuandika (kama WhatsApp)
             if(originalMsg) {
-                chatHtml += `<div class="reply-quote" style="margin-bottom: 10px; border-left: 4px solid var(--accent);"><b>${displayName}</b><small>${originalMsg.substring(0, 100)}</small></div>`;
+                chatHtml += `<div class="reply-quote" style="margin-bottom: 10px; border-left: 4px solid var(--accent); padding: 8px 12px; background: var(--bg); border-radius: 8px;"><b style="font-size: 12px; color: var(--accent);">${displayName}</b><small style="display: block; margin-top: 2px; color: var(--text-sec);">${originalMsg.substring(0, 100)}</small></div>`;
             }
             
             openModal(`Mazungumzo na ${displayName}`, chatHtml, true, async (reply) => {
                 if(!reply) return;
                 if(containsBadWords(reply)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
                 try {
+                    // Kuhifadhi ujumbe pamoja na ule wa awali (reply_to)
                     await sb.from('shop_messages').insert([{ 
                         shop_id: null, 
                         sender_phone: u.phone_number, 
                         sender_name: u.full_name, 
                         content: reply,
-                        recipient_phone: phone
+                        recipient_phone: phone,
+                        reply_to: originalMsg ? originalMsg.substring(0, 150) : null
                     }]);
                     playBeep();
                     showToast("Ujumbe wa faragha umetumwa!");
-                    replyPrivately(phone, displayName, '');
+                    replyPrivately(phone, displayName, ''); // Kufungua tena bila ya quote
                 } catch(e) { openModal("Kosa", e.message); }
             });
         } catch(e) { openModal("Kosa", e.message); }
