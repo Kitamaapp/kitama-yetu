@@ -16,12 +16,14 @@
             --border: #E2E8F0; --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
             --shadow-md: 0 10px 25px -5px rgba(0,0,0,0.05); --shadow-lg: 0 20px 35px -10px rgba(0,0,0,0.1);
             --radius: 24px; --danger: #EF4444;
+            --chat-bg: #ECE5DD; --chat-pattern: #d1c7bd;
         }
         [data-theme="dark"] {
             --primary: #F8FAFC; --accent: #10B981; --accent-dark: #34D399;
             --bg: #0B1120; --surface: #161E2E; --text: #F8FAFC; --text-sec: #94A3B8;
             --border: #2A3650; --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
             --shadow-md: 0 10px 25px -5px rgba(0,0,0,0.3); --shadow-lg: 0 20px 35px -10px rgba(0,0,0,0.5);
+            --chat-bg: #0B141A; --chat-pattern: #182229;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; transition: background 0.3s, color 0.3s; }
@@ -132,19 +134,51 @@
         .m-btn-danger { background: var(--danger); color: white; }
         .m-btn-secondary { background: var(--bg); color: var(--text-sec); }
 
-        .chat-container { display: flex; flex-direction: column; gap: 10px; margin: 0 20px 80px 20px; }
-        .chat-msg { background: var(--surface); padding: 12px 16px; border-radius: 16px 16px 16px 4px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); align-self: flex-start; position: relative; }
-        .chat-msg.self { align-self: flex-end; background: var(--accent); color: white; border-radius: 16px 16px 4px 16px; border: none; }
-        .chat-msg b { font-size: 12px; color: var(--accent); display: block; margin-bottom: 4px; }
-        .chat-msg.self b { color: rgba(255,255,255,0.9); text-align: right; }
-        .chat-msg p { font-size: 14px; color: var(--text); }
-        .chat-msg.self p { color: white; }
-        .chat-msg small { font-size: 10px; color: var(--text-sec); margin-top: 5px; display: block; text-align: right; }
-        .chat-msg.self small { color: rgba(255,255,255,0.7); }
-        .shared-card { background: rgba(255,255,255,0.2); border-left: 3px solid white; padding: 8px 12px; border-radius: 8px; margin-top: 8px; font-size: 13px; }
-        .chat-msg:not(.self) .shared-card { background: var(--bg); border-left-color: var(--accent); }
-        .chat-input-box { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: var(--surface); padding: 10px; border-radius: 20px; display: flex; gap: 10px; box-shadow: var(--shadow-lg); border: 1px solid var(--border); align-items: center; }
-        .chat-input-box input { flex: 1; padding: 10px 16px; border-radius: 20px; background: var(--bg); border: none; color: var(--text); }
+        /* WHATSAPP STYLE CHAT CSS */
+        .chat-header { position: sticky; top: 0; background: var(--surface); z-index: 50; padding: 12px 20px; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h2 { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; }
+        .chat-header small { font-size: 11px; color: var(--text-sec); margin-top: 2px; display: block; font-weight: 500; }
+        .chat-header-btn { font-size: 12px; color: var(--accent); font-weight: 700; cursor: pointer; padding: 6px 10px; background: rgba(16,185,129,0.1); border-radius: 8px; display: flex; align-items: center; gap: 4px; }
+        
+        .chat-body { background-color: var(--chat-bg); background-image: radial-gradient(var(--chat-pattern) 1px, transparent 1px); background-size: 20px 20px; padding: 20px 10px 90px 10px; display: flex; flex-direction: column; gap: 8px; min-height: calc(100vh - 150px); overflow-y: auto; }
+        
+        .chat-msg { background: var(--surface); padding: 8px 12px; border-radius: 12px 12px 12px 2px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); align-self: flex-start; position: relative; word-wrap: break-word; transition: transform 0.2s ease; touch-action: pan-y; }
+        .chat-msg.self { align-self: flex-end; background: #DCF8C6; color: #111; border-radius: 12px 12px 2px 12px; border: none; }
+        [data-theme="dark"] .chat-msg.self { background: #005C4B; color: #fff; }
+        
+        .chat-msg b { font-size: 12px; color: var(--accent); display: block; margin-bottom: 2px; }
+        .chat-msg.self b { color: #059669; }
+        [data-theme="dark"] .chat-msg.self b { color: #34D399; }
+        
+        .chat-msg p { font-size: 14px; color: var(--text); margin-bottom: 5px; }
+        .chat-msg.self p { color: #111; }
+        [data-theme="dark"] .chat-msg.self p { color: #fff; }
+        
+        .chat-msg .msg-time { font-size: 10px; color: var(--text-sec); margin-top: 4px; display: flex; align-items: center; gap: 4px; justify-content: flex-end; float: right; }
+        .chat-msg.self .msg-time { color: #667781; }
+        [data-theme="dark"] .chat-msg.self .msg-time { color: #E9EDEF; }
+        
+        .ticks { font-size: 14px; font-weight: bold; cursor: pointer; }
+        .ticks.sent { color: #9CA3AF; }
+        .ticks.read { color: #53BDEB; }
+        
+        .reply-quote { background: rgba(0,0,0,0.05); padding: 6px 10px; border-radius: 6px; margin-bottom: 5px; font-size: 12px; border-left: 3px solid var(--accent); }
+        .chat-msg.self .reply-quote { background: rgba(255,255,255,0.2); border-left-color: #059669; }
+        
+        .chat-actions { display: flex; gap: 10px; margin-top: 5px; opacity: 0.7; }
+        .chat-action-btn { background: none; border: none; color: var(--text-sec); cursor: pointer; font-size: 10px; font-weight: 600; padding: 2px 0; display: flex; align-items: center; gap: 2px; }
+        .chat-msg.self .chat-action-btn { color: #059669; }
+
+        .chat-input-box { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--surface); padding: 10px 15px; display: flex; gap: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); border-top: 1px solid var(--border); align-items: center; z-index: 100; }
+        .chat-input-box input { flex: 1; padding: 10px 16px; border-radius: 20px; background: var(--bg); border: 1px solid var(--border); color: var(--text); }
+        
+        #citizen-reply-context { display: none; position: fixed; bottom: 65px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 10px 15px; background: var(--surface); border-radius: 0; border-left: 4px solid var(--accent); box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 99; box-sizing: border-box; }
+        #citizen-reply-text { font-size: 13px; color: var(--text-sec); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        #new-msg-banner { display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: var(--shadow-lg); z-index: 101; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+        .tag-icon-btn { background: var(--bg); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; }
         
         .skeleton { background: linear-gradient(90deg, var(--bg) 25%, var(--border) 50%, var(--bg) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; margin: 0 20px; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -168,12 +202,6 @@
         .filter-row { display: flex; gap: 10px; margin: 0 20px 15px 20px; }
         .filter-row input, .filter-row select { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; }
         .shop-badge { background: var(--primary); color: white; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
-        
-        .reply-quote { background: rgba(0,0,0,0.1); padding: 5px 10px; border-radius: 8px; margin-bottom: 5px; font-size: 12px; border-left: 3px solid var(--accent); }
-        .chat-msg.self .reply-quote { background: rgba(255,255,255,0.2); border-left-color: white; }
-        .chat-actions { display: flex; gap: 15px; margin-top: 5px; justify-content: flex-end; }
-        .chat-action-btn { background: none; border: none; color: var(--text-sec); cursor: pointer; font-size: 11px; font-weight: 600; padding: 0; display: flex; align-items: center; gap: 4px; }
-        .chat-msg.self .chat-action-btn { color: rgba(255,255,255,0.8); }
 
         #map-container { height: 250px; border-radius: 12px; margin-bottom: 15px; display: none; z-index: 1; }
         .blink-marker { display: flex; align-items: center; justify-content: center; }
@@ -226,7 +254,6 @@
         .mod-item { display: flex; gap: 12px; background: var(--surface); padding: 12px; border-radius: 12px; margin: 0 20px 10px 20px; border: 1px solid var(--border); align-items: center; }
         .mod-item img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: var(--bg); }
 
-        .tag-icon-btn { background: var(--bg); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; }
         .online-dot { width: 8px; height: 8px; background: #10B981; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 5px rgba(16,185,129,0.5); }
         .offline-dot { width: 8px; height: 8px; background: #CBD5E1; border-radius: 50%; display: inline-block; margin-right: 5px; }
     </style>
@@ -382,20 +409,26 @@
         </div> 
 
         <div id="citizen-chat-sec" class="sec">
-            <div class="sec-h">
+            <div class="chat-header">
                 <div>
                     <h2>Mazungumzo ya Wananchi</h2>
                     <small id="citizen-presence-info" style="font-size:11px; color:var(--text-sec); margin-top:2px; display:block;">Inapakia...</small>
                 </div>
-                <span onclick="viewCitizensList()">
+                <span onclick="viewCitizensList()" class="chat-header-btn">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Wananchi
                 </span>
             </div>
-            <div class="chat-container" id="citizen-chat-list"></div>
-            <div id="citizen-reply-context" style="display:none; padding:10px 15px; background:var(--bg); border-radius:10px 10px 0 0; font-size:12px; color:var(--text-sec); margin-bottom:-5px; width:calc(100% - 40px); max-width: 440px; bottom: 130px; left: 50%; transform: translateX(-50%); position: fixed; border:1px solid var(--border); border-bottom:none;">
+            <div class="chat-body" id="citizen-chat-list" onscroll="handleChatScroll(this)"></div>
+            
+            <div id="citizen-reply-context" style="display:none;">
                 <span id="citizen-reply-text"></span>
-                <button onclick="cancelCitizenReply()" style="float:right; background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button>
+                <button onclick="cancelCitizenReply()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--bg); border: none; color: var(--danger); cursor: pointer; font-weight: bold; width: 24px; height: 24px; border-radius: 50%;">X</button>
             </div>
+            
+            <div id="new-msg-banner" onclick="scrollToBottomChat()">
+                Message Mpya (<span id="new-msg-count">0</span>)
+            </div>
+
             <div class="chat-input-box">
                 <button onclick="openTagModal()" class="tag-icon-btn">@</button>
                 <input type="text" id="citizen-chat-input" placeholder="Andika ujumbe...">
@@ -502,6 +535,15 @@
     let citizenPresenceChannel = null;
     let activeCitizens = [];
     let citizenReplyTo = null;
+    let isAtBottom = true;
+    let unreadChatCount = 0;
+
+    // Swipe Variables
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let currentMsgElement = null;
+    let currentMsgId = null;
+    let currentMsgContent = null;
 
     let marketItemsCache = [];
     let marketDisplayIndex = 0;
@@ -694,12 +736,16 @@
                   if(currentUser && currentUser.role === 'citizen') { 
                       playBeep(); 
                       if(document.getElementById('citizen-chat-sec').classList.contains('active')) {
-                          fetchCitizenChat(); 
+                          const isIncoming = payload.new.sender_phone !== currentUser.phone_number;
+                          fetchCitizenChat(isIncoming);
                       }
                   }
               })
+              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'citizen_chat' }, payload => {
+                  if(document.getElementById('citizen-chat-sec').classList.contains('active')) fetchCitizenChat(false);
+              })
               .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'citizen_chat' }, payload => {
-                  if(document.getElementById('citizen-chat-sec').classList.contains('active')) fetchCitizenChat();
+                  if(document.getElementById('citizen-chat-sec').classList.contains('active')) fetchCitizenChat(false);
               })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
                   if(currentShopId && payload.new.shop_id === currentShopId) { playBeep(); }
@@ -857,13 +903,21 @@
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-b').forEach(n => n.classList.remove('active'));
         document.querySelectorAll('.nav-b').forEach(n => { if(n.getAttribute('onclick').includes(id)) n.classList.add('active'); });
+        
+        const nav = document.getElementById('b-nav');
+        if(id === 'citizen-chat-sec' || id === 'leader-chat-sec') {
+            nav.style.display = 'none';
+        } else {
+            nav.style.display = 'flex';
+        }
+
         if(id==='hub-sec') fetchHub();
         if(id==='market-sec') fetchMarket();
         if(id==='shops-directory-sec') fetchShopsDirectory();
         if(id==='progress-sec') fetchPublicProgress();
         if(id==='leader-reports-sec') fetchLeaderReports();
         if(id==='leader-chat-sec') fetchLeaderChat();
-        if(id==='citizen-chat-sec') fetchCitizenChat();
+        if(id==='citizen-chat-sec') { unreadChatCount = 0; document.getElementById('new-msg-banner').style.display = 'none'; fetchCitizenChat(false); }
         if(id==='manage-villages-sec') fetchSubVillages();
         if(id==='admin-pins-sec') fetchPins();
         if(id==='pending-users-sec') fetchPendingUsers();
@@ -886,7 +940,28 @@
         if(id==='add-item-sec') checkUserShop();
     }
 
-    // CITIZEN CHAT WHATSAPP FEATURES
+    // --- CITIZEN CHAT WHATSAPP FEATURES ---
+    function handleChatScroll(el) {
+        const threshold = 150; 
+        const position = el.scrollTop + el.clientHeight;
+        const height = el.scrollHeight;
+        if (height - position <= threshold) {
+            isAtBottom = true;
+            unreadChatCount = 0;
+            document.getElementById('new-msg-banner').style.display = 'none';
+        } else {
+            isAtBottom = false;
+        }
+    }
+
+    function scrollToBottomChat() {
+        const div = document.getElementById('citizen-chat-list');
+        div.scrollTop = div.scrollHeight;
+        isAtBottom = true;
+        unreadChatCount = 0;
+        document.getElementById('new-msg-banner').style.display = 'none';
+    }
+
     async function viewCitizensList() {
         if(activeCitizens.length === 0) return showToast("Inapakia orodha...");
         const state = citizenPresenceChannel ? citizenPresenceChannel.presenceState() : {};
@@ -924,8 +999,10 @@
 
     function setCitizenReply(id, text) {
         citizenReplyTo = id;
-        document.getElementById('citizen-reply-context').style.display = 'block';
-        document.getElementById('citizen-reply-text').innerText = "Unajibu: " + text.substring(0, 30) + "...";
+        const ctxBox = document.getElementById('citizen-reply-context');
+        document.getElementById('citizen-reply-text').innerText = text.length > 40 ? text.substring(0, 40) + '...' : text;
+        ctxBox.style.display = 'block';
+        document.getElementById('citizen-chat-input').focus();
     }
 
     function cancelCitizenReply() {
@@ -933,15 +1010,39 @@
         document.getElementById('citizen-reply-context').style.display = 'none';
     }
 
-    async function fetchCitizenChat() {
+    async function viewReadBy(msgId) {
+        try {
+            const { data: msg, error } = await sb.from('citizen_chat').select('read_by').eq('id', msgId).single();
+            if(error) throw error;
+            if(!msg.read_by || msg.read_by.length === 0) return showToast("Hakuna aliyesoma bado");
+            
+            const { data: users, error: usrErr } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', msg.read_by);
+            if(usrErr) throw usrErr;
+            
+            let html = '<div style="max-height: 300px; overflow-y: auto; display:flex; flex-direction:column; gap:10px;">';
+            users.forEach(u => {
+                let avatarHtml = u.avatar_url ? `<img src="${u.avatar_url}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;">` : `<div style="width:35px;height:35px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;">${u.full_name.charAt(0)}</div>`;
+                html += `<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--bg);border-radius:10px;">${avatarHtml}<div><b style="font-size:14px;">${u.full_name}</b><br><small style="color:var(--text-sec);font-size:12px;">${u.phone_number}</small></div></div>`;
+            });
+            html += '</div>';
+            openModal("Waliyosoma Ujumbe", html, false);
+        } catch(e) { openModal("Kosa", e.message); }
+    }
+
+    async function fetchCitizenChat(isIncoming = false) {
         const u = JSON.parse(localStorage.getItem('kitama_user')); 
         const div = document.getElementById('citizen-chat-list'); 
+        if(isIncoming && !isAtBottom) {
+            unreadChatCount++;
+            document.getElementById('new-msg-count').innerText = unreadChatCount;
+            document.getElementById('new-msg-banner').style.display = 'block';
+        }
+        
         div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>';
         try {
             const { data, error } = await sb.from('citizen_chat').select('*').order('created_at', { ascending:true }).limit(100);
             if(error) throw error;
             
-            // Update read receipts
             const unreadMsgs = data.filter(m => m.sender_phone !== u.phone_number && (!m.read_by || !m.read_by.includes(u.phone_number)));
             if(unreadMsgs.length > 0) {
                 for(let msg of unreadMsgs) {
@@ -951,19 +1052,25 @@
             }
 
             div.innerHTML = data.length > 0 ? data.map(c => {
-                if(c.deleted) return `<div class="chat-msg ${u.phone_number === c.sender_phone ? 'self' : ''}" style="opacity:0.5; font-style:italic;"><p>Ujumbe umefutwa</p></div>`;
                 const isSelf = (u.phone_number === c.sender_phone);
-                const readByCount = c.read_by ? c.read_by.length : 0;
-                const ticks = isSelf ? (readByCount > 1 ? `<span style="color:#3B82F6;">✓✓</span>` : `✓`) : '';
+                const readByArray = c.read_by || [];
+                const readCount = readByArray.length;
+                const ticksHtml = isSelf ? (readCount > 1 ? `<span class="ticks read" onclick="event.stopPropagation(); viewReadBy('${c.id}')">✓✓</span>` : `<span class="ticks sent">✓</span>`) : '';
                 let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Inajibu:</small><br>${c.reply_to}</div>` : '';
                 let content = c.content.replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
                 let actionsHtml = `<div class="chat-actions">
                     <button class="chat-action-btn" onclick="setCitizenReply('${c.id}', '${c.content.replace(/'/g, "\\'")}')">${ICONS.reply} Reply</button>
                     ${isSelf ? `<button class="chat-action-btn" onclick="deleteCitizenChat('${c.id}')" style="color:var(--danger);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Futa</button>` : ''}
                 </div>`;
-                return `<div class="chat-msg ${isSelf ? 'self' : ''}"><b>${isSelf ? 'Wewe' : c.sender_name}</b>${replyHtml}<p>${content}</p><small>${new Date(c.created_at).toLocaleTimeString()} ${ticks}</small>${actionsHtml}</div>`;
+                // Swipe handlers
+                let swipeHandlers = `ontouchstart="startSwipe(event, '${c.id}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" ontouchmove="moveSwipe(event)" ontouchend="endSwipe()"`;
+                
+                return `<div class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers}><b>${isSelf ? 'Wewe' : c.sender_name}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
             }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
-            div.scrollTop = div.scrollHeight;
+            
+            if(isAtBottom || !isIncoming) {
+                div.scrollTop = div.scrollHeight;
+            }
         } catch(e) { div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
     }
 
@@ -973,30 +1080,80 @@
         const content = document.getElementById('citizen-chat-input').value.trim();
         if(!content) return;
         if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+        
+        let replyText = null;
+        if(citizenReplyTo) {
+            try {
+                const { data: repMsg } = await sb.from('citizen_chat').select('content').eq('id', citizenReplyTo).single();
+                if(repMsg) replyText = repMsg.content;
+            } catch(e) {}
+        }
+
         try {
             await sb.from('citizen_chat').insert([{ 
                 sender_name: u.full_name, 
                 sender_phone: u.phone_number,
                 sender_village: u.village, 
                 content: content,
-                reply_to: citizenReplyTo ? (await sb.from('citizen_chat').select('content').eq('id', citizenReplyTo).single()).data?.content : null,
+                reply_to: replyText,
                 read_by: [u.phone_number]
             }]);
             document.getElementById('citizen-chat-input').value = '';
             cancelCitizenReply();
             playBeep();
-            fetchCitizenChat();
+            isAtBottom = true;
+            fetchCitizenChat(false);
         } catch(e) { openModal("Kosa", e.message); }
     }
 
     async function deleteCitizenChat(id) {
-        openModal("Futa Ujumbe", "Una uhakika unataka kufuta ujumbe huu?", false, async () => {
+        openModal("Futa Ujumbe", "Una uhakika unataka kufuta ujumbe huu kabisa?", false, async () => {
             try {
-                await sb.from('citizen_chat').update({ deleted: true, content: null }).eq('id', id);
-                showToast("Ujumbe umefutwa!");
-                fetchCitizenChat();
+                await sb.from('citizen_chat').delete().eq('id', id);
+                showToast("Ujumbe umefutwa kabisa!");
+                fetchCitizenChat(false);
             } catch(e) { openModal("Kosa", e.message); }
         });
+    }
+
+    // Swipe to Reply Functions
+    function startSwipe(e, msgId, msgContent) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        currentMsgElement = e.currentTarget;
+        currentMsgId = msgId;
+        currentMsgContent = msgContent;
+    }
+
+    function moveSwipe(e) {
+        if(!currentMsgElement) return;
+        let touchX = e.touches[0].clientX;
+        let touchY = e.touches[0].clientY;
+        let deltaX = touchX - touchStartX;
+        let deltaY = touchY - touchStartY;
+        
+        if(Math.abs(deltaX) > Math.abs(deltaY)) {
+            e.preventDefault();
+            let limit = 50;
+            let move = Math.max(-limit, Math.min(deltaX, limit));
+            currentMsgElement.style.transform = `translateX(${move}px)`;
+            currentMsgElement.style.background = deltaX > 20 || deltaX < -20 ? 'rgba(16, 185, 129, 0.1)' : '';
+        }
+    }
+
+    function endSwipe() {
+        if(!currentMsgElement) return;
+        let transform = currentMsgElement.style.transform;
+        let match = transform.match(/translateX\(([-0-9.]+)px\)/);
+        let x = match ? parseFloat(match[1]) : 0;
+        
+        currentMsgElement.style.transform = 'translateX(0)';
+        currentMsgElement.style.background = '';
+        
+        if(x > 40 || x < -40) {
+            setCitizenReply(currentMsgId, currentMsgContent);
+        }
+        currentMsgElement = null;
     }
 
     async function submitReport() {
@@ -1019,7 +1176,7 @@
     function renderReportCard(r, isLeader) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         let sClass = r.status === 'pending' ? 'b-warn' : r.status === 'in_progress' ? 'b-info' : r.status === 'archived' ? 'b-err' : 'b-succ';
-        let sText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulikiwa' : r.status === 'archived' ? 'Imefungwa' : 'Imekamilika';
+        let sText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulkiwa' : r.status === 'archived' ? 'Imefungwa' : 'Imekamilika';
         let imgHtml = r.image_url ? `<img src="${r.image_url}" class="report-img" onerror="this.style.display='none'">` : '';
         let resImgHtml = r.resolution_image ? `<img src="${r.resolution_image}" class="report-img" style="border:2px solid var(--accent);" onerror="this.style.display='none'">` : '';
         let resNoteHtml = r.resolution_note ? `<div style="background:rgba(16,185,129,0.1); padding:12px; border-radius:8px; margin-top:12px; font-size:13px; border-left:3px solid var(--accent);"><b>Uthibitisho:</b> ${r.resolution_note} <br> <small>- ${r.resolved_by_name || 'Kiongozi'}</small></div>` : '';
