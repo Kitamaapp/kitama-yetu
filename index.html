@@ -771,7 +771,7 @@
                 const state = citizenPresenceChannel.presenceState();
                 const onlineCount = Object.keys(state).length;
                 const infoEl = document.getElementById('citizen-presence-info');
-                if(infoEl) infoEl.innerText = `${onlineCount} mtu online kati ya ${activeCitizens.length} wananchi`;
+                if(infoEl) infoEl.innerText = `${onlineCount} watu online kati ya ${activeCitizens.length} wananchi`;
             })
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
@@ -787,7 +787,7 @@
             if(error) throw error;
             activeCitizens = data || [];
             const infoEl = document.getElementById('citizen-presence-info');
-            if(infoEl) infoEl.innerText = `0 mtu online kati ya ${activeCitizens.length} wananchi`;
+            if(infoEl) infoEl.innerText = `0 watu online kati ya ${activeCitizens.length} wananchi`;
         } catch(e) { console.error(e); }
     }
 
