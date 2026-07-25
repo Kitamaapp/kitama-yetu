@@ -411,7 +411,7 @@
         
         <div id="my-inbox-sec" class="sec">
             <div class="sec-h"><h2>Ujumbe Wangu</h2><span onclick="fetchMyInbox()">Refresh</span></div>
-            <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Mazungumzo yako na Wenye Maduka.</p>
+            <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Mazungumzo yako ya faragha na Wenye Maduka na Wananchi wengine.</p>
             <div id="my-inbox-list"></div>
         </div> 
 
@@ -566,7 +566,7 @@
     let shopsIsLoading = false;
     let shopsHasMore = true;
     
-    const BAD_WORDS = ['litoko', 'kuma', 'matako', 'ushenzi', 'pumbu', 'mpumbavu', 'pumbavu', 'nikutombe', 'kumamako', 'kumamayo', 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumamyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge', 'fuck', 'shit', 'asshole', 'bitch', 'idiot'];
+    const BAD_WORDS = ['litoko', 'kubabayo', 'usenge', 'ukuma huo', 'kutombesha', 'unatombesha', 'uke na akili', 'huna akili', 'ukenakili', 'ukenaakili', 'kuma', 'matako', 'ushenzi', 'pumbu', 'mpumbavu', 'pumbavu', 'nikutombe', 'kumamako', 'kumamayo', 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumanyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge', 'fuck', 'shit', 'asshole', 'bitch', 'idiot'];
     function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
     
     const ICONS = {
@@ -1025,10 +1025,58 @@
         document.getElementById('citizen-reply-context').style.display = 'none';
     }
 
-    function replyPrivately(phone, name) {
-        if (!phone) return showToast("Namba ya mtumiaji haiapatikani");
-        let waPhone = phone.replace(/^0/, '255');
-        window.open(`https://wa.me/${waPhone}?text=Habari%20${encodeURIComponent(name)},%20`, '_blank');
+    async function replyPrivately(phone, name, originalMsg) {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if (phone === u.phone_number) return showToast("Huwezi kujibu mwenyewe");
+        
+        let displayName = name;
+        if(!displayName) {
+            const citizen = activeCitizens.find(c => c.phone_number === phone);
+            if(citizen) displayName = citizen.full_name;
+            else displayName = phone;
+        }
+
+        try {
+            const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${phone}),and(sender_phone.eq.${phone},recipient_phone.eq.${u.phone_number})`;
+            const { data, error } = await sb.from('shop_messages')
+                .select('*')
+                .is('shop_id', null)
+                .or(orFilter)
+                .order('created_at', { ascending: true });
+            if(error) throw error;
+
+            let chatHtml = '<div style="max-height: 250px; overflow-y: auto; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">';
+            if(data && data.length > 0) {
+                data.forEach(msg => {
+                    let isSelf = msg.sender_phone === u.phone_number;
+                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;"><b>${isSelf ? 'Wewe' : displayName}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
+                });
+            } else {
+                chatHtml += '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna mazungumzo ya faragha bado.</p>';
+            }
+            chatHtml += '</div>';
+            
+            if(originalMsg) {
+                chatHtml += `<div class="reply-quote" style="margin-bottom: 10px; border-left: 4px solid var(--accent);"><b>${displayName}</b><small>${originalMsg.substring(0, 100)}</small></div>`;
+            }
+            
+            openModal(`Mazungumzo na ${displayName}`, chatHtml, true, async (reply) => {
+                if(!reply) return;
+                if(containsBadWords(reply)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+                try {
+                    await sb.from('shop_messages').insert([{ 
+                        shop_id: null, 
+                        sender_phone: u.phone_number, 
+                        sender_name: u.full_name, 
+                        content: reply,
+                        recipient_phone: phone
+                    }]);
+                    playBeep();
+                    showToast("Ujumbe wa faragha umetumwa!");
+                    replyPrivately(phone, displayName, '');
+                } catch(e) { openModal("Kosa", e.message); }
+            });
+        } catch(e) { openModal("Kosa", e.message); }
     }
 
     function toggleMsgActions(el) {
@@ -1094,7 +1142,7 @@
                 let content = c.content.replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
                 let actionsHtml = `<div class="chat-actions">
                     <button class="chat-action-btn" onclick="event.stopPropagation(); setCitizenReply('${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')">${ICONS.reply} Reply</button>
-                    ${!isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); replyPrivately('${c.sender_phone}', '${c.sender_name}')" title="Reply Privately"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Private</button>` : ''}
+                    ${!isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); replyPrivately('${c.sender_phone}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" title="Reply Privately"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Private</button>` : ''}
                     ${isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); deleteCitizenChat('${c.id}')" style="color:var(--danger);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Futa</button>` : ''}
                 </div>`;
                 let swipeHandlers = `ontouchstart="startSwipe(event, '${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" ontouchmove="moveSwipe(event)" ontouchend="endSwipe()"`;
@@ -1633,26 +1681,43 @@
         const div = document.getElementById('my-inbox-list');
         div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
         try {
-            const { data, error } = await sb.from('shop_messages').select('*, shops(shop_name, owner_phone)').eq('sender_phone', u.phone_number).order('created_at', { ascending: false });
+            const { data, error } = await sb.from('shop_messages')
+                .select('*, shops(shop_name, owner_phone)')
+                .or(`sender_phone.eq.${u.phone_number},recipient_phone.eq.${u.phone_number}`)
+                .order('created_at', { ascending: false });
             if(error) throw error;
             
             const convos = {};
             data.forEach(msg => {
-                if(msg.shops && !convos[msg.shop_id]) {
-                    convos[msg.shop_id] = { shopId: msg.shop_id, shopName: msg.shops.shop_name, ownerPhone: msg.shops.owner_phone, lastMsg: msg.content, time: msg.created_at };
+                let otherPhone = msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone;
+                let otherName = msg.sender_name; 
+                
+                if(msg.shops && msg.shops.shop_name) {
+                    if(!convos[msg.shop_id]) {
+                        convos[msg.shop_id] = { type: 'shop', id: msg.shop_id, name: msg.shops.shop_name, phone: msg.shops.owner_phone, lastMsg: msg.content, time: msg.created_at };
+                    }
+                } else if(otherPhone) {
+                    if(!convos['dm_'+otherPhone]) {
+                        let nameToDisplay = msg.sender_phone === u.phone_number ? 'Mtumiaji' : otherName;
+                        convos['dm_'+otherPhone] = { type: 'dm', id: otherPhone, name: nameToDisplay, phone: otherPhone, lastMsg: msg.content, time: msg.created_at };
+                    }
                 }
             });
 
             const convoList = Object.values(convos);
-            div.innerHTML = convoList.length > 0 ? convoList.map(c => `
-                <div class="fb-convo-card" onclick="openCitizenChat('${c.shopId}', '${c.shopName.replace(/'/g, "\\'")}', '${c.ownerPhone}')">
+            div.innerHTML = convoList.length > 0 ? convoList.map(c => {
+                let clickAction = c.type === 'shop' 
+                    ? `openCitizenChat('${c.id}', '${c.name.replace(/'/g, "\\'")}', '${c.phone}')`
+                    : `replyPrivately('${c.phone}', '', '')`;
+                return `
+                <div class="fb-convo-card" onclick="${clickAction}">
                     <div class="fb-convo-info">
-                        <b>${c.shopName}</b>
-                        <small>${c.lastMsg.substring(0, 30)}...</small>
+                        <b>${c.name}</b>
+                        <small>${c.lastMsg ? c.lastMsg.substring(0, 30) : '...'}...</small>
                     </div>
                     <div class="fb-convo-badge">${new Date(c.time).toLocaleDateString()}</div>
-                </div>
-            `).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hujatumia ujumbe kwa duka lolote bado.</p>';
+                </div>`;
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna ujumbe wowote bado.</p>';
         } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
     }
 
