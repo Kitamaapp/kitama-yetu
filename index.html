@@ -1112,7 +1112,7 @@
     }
 
     // ACTIVISTS CONTROL (IT ONLY)
-    async function fetchActivistsControl() {
+        async function fetchActivistsControl() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.role !== 'system_admin') return;
         const div = document.getElementById('activists-control-list');
@@ -1124,7 +1124,8 @@
             const { data: citizens, error: cErr } = await sb.from('users').select('*').eq('role', 'citizen').eq('status', 'active').eq('is_activist', false).order('full_name');
             if(cErr) throw cErr;
 
-            let html = '<h4 style="padding:0 20px; margin:15px 0 10px 0; color:var(--text);">Waactivists Waliopo (${activists.length})</h4>';
+            // Nimetumia backticks (`) badala ya nukuu ('') ili hesabu ifanye kazi
+            let html = `<h4 style="padding:0 20px; margin:15px 0 10px 0; color:var(--text);">Waactivists Waliopo (${activists.length})</h4>`;
             if(activists.length > 0) {
                 html += activists.map(act => `
                     <div class="list-i" style="display:flex; justify-content:space-between; align-items:center;">
@@ -1136,7 +1137,7 @@
                 html += '<p style="color:var(--text-sec); padding:0 20px;">Hakuna waactivists kwa sasa.</p>';
             }
 
-            html += '<h4 style="padding:0 20px; margin:25px 0 10px 0; color:var(--text);">Wananchi Wa Kawaida</h4>';
+            html += `<h4 style="padding:0 20px; margin:25px 0 10px 0; color:var(--text);">Wananchi Wa Kawaida</h4>`;
             if(citizens.length > 0) {
                 html += citizens.map(cit => `
                     <div class="list-i" style="display:flex; justify-content:space-between; align-items:center;">
@@ -1148,7 +1149,7 @@
 
             div.innerHTML = html;
         } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
-    }
+        }
 
     async function toggleActivistStatus(userId, makeActivist) {
         try {
