@@ -1446,7 +1446,7 @@
         } catch(e) { div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
     }
 
-    async function postCitizenChat() {
+        async function postCitizenChat() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
         const content = document.getElementById('citizen-chat-input').value.trim();
@@ -1459,7 +1459,8 @@
         }
 
         try {
-            await sb.from('citizen_chat').insert([{ 
+            // Tumia destructuring ili kukamata error
+            const { error } = await sb.from('citizen_chat').insert([{ 
                 sender_name: u.full_name, 
                 sender_phone: u.phone_number,
                 sender_village: u.village, 
@@ -1468,13 +1469,18 @@
                 read_by: [u.phone_number],
                 is_activist: u.is_activist || false
             }]);
+            
+            if (error) throw error; // Hii itaonesha kama RLS imekataa
+
             document.getElementById('citizen-chat-input').value = '';
             cancelCitizenReply();
             playBeep();
             isAtBottom = true;
             fetchCitizenChat(false);
-        } catch(e) { openModal("Kosa", e.message); }
-    }
+        } catch(e) { 
+            openModal("Kosa la Kutuma", e.message); 
+        }
+        }
 
     async function deleteCitizenChat(id) {
         openModal("Futa Ujumbe", "Una uhakika unataka kufuta ujumbe huu kabisa?", false, async () => {
