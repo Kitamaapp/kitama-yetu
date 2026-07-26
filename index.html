@@ -809,6 +809,24 @@
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activist_articles' }, payload => {
                   if(document.getElementById('activist-hub-sec').classList.contains('active')) fetchActivistArticles();
               })
+              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${u.id}` }, payload => {
+                  // Kusikiliza mabadiliko ya profile ya mtumiaji mwenyewe
+                  const updatedUser = payload.new;
+                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+                  
+                  // Kama amepewa hadhi ya activist na IT
+                  if(updatedUser.is_activist && !currentUser.is_activist) {
+                      openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b>. Ukiandika makala, hoja, au maoni, jina lako litakuwa na alama ya <b>✓ Activist</b>.", false);
+                  } 
+                  // Kama amenyang'anywa hadhi ya activist na IT
+                  else if(!updatedUser.is_activist && currentUser.is_activist) {
+                      showToast("Hadhi yako ya Activist imeondolewa.");
+                  }
+                  
+                  // Hifadhi taarifa mpya na refresh dashboard
+                  localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
+                  setupDashboard(updatedUser);
+              })
               .subscribe();
         }
     }
