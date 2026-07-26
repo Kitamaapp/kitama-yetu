@@ -454,11 +454,17 @@
             <div id="my-inbox-list"></div>
         </div> 
 
-        <div id="citizen-chat-sec" class="sec">
+                <div id="citizen-chat-sec" class="sec">
             <div class="chat-header">
-                <div>
-                    <h2>KITAMA FORUM</h2>
-                    <small id="citizen-presence-info" style="font-size:11px; color:var(--text-sec); margin-top:2px; display:block;">Inapakia...</small>
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <!-- HII NDIO BUTTON YA KURUDI HOME -->
+                    <button onclick="handleNav('home-sec')" style="background:var(--bg); border:none; padding:8px; border-radius:12px; cursor:pointer; color:var(--text); display:flex; align-items:center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    </button>
+                    <div>
+                        <h2>KITAMA FORUM</h2>
+                        <small id="citizen-presence-info" style="font-size:11px; color:var(--text-sec); margin-top:2px; display:block;">Inapakia...</small>
+                    </div>
                 </div>
                 <span onclick="viewCitizensList()" class="chat-header-btn">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Wananchi
@@ -535,8 +541,14 @@
         
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
         
-        <div id="leader-chat-sec" class="sec">
-            <div class="sec-h"><h2>Chumb cha Viongozi</h2></div>
+                <div id="leader-chat-sec" class="sec">
+            <div class="sec-h" style="display:flex; align-items:center; gap:15px;">
+                <!-- HII NDIO BUTTON YA KURUDI HOME -->
+                <button onclick="handleNav('home-sec')" style="background:var(--bg); border:none; padding:8px; border-radius:12px; cursor:pointer; color:var(--text); display:flex; align-items:center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                </button>
+                <h2>Chumb cha Viongozi</h2>
+            </div>
             <div class="chat-container" id="chat-list"></div>
             <div id="leader-reply-context" style="display:none; padding:10px 15px; background:var(--bg); border-radius:10px 10px 0 0; font-size:12px; color:var(--text-sec); margin-bottom:-5px; width:calc(100% - 40px); max-width: 440px; bottom: 130px; left: 50%; transform: translateX(-50%); position: fixed; border:1px solid var(--border); border-bottom:none;">
                 <span id="leader-reply-text"></span>
