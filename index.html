@@ -809,10 +809,12 @@
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activist_articles' }, payload => {
                   if(document.getElementById('activist-hub-sec').classList.contains('active')) fetchActivistArticles();
               })
-              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${u.id}` }, payload => {
-                  // Kusikiliza mabadiliko ya profile ya mtumiaji mwenyewe
+              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
+                  // Kusikiliza mabadiliko ya profile ya mtumiaji
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+                  
+                  if (!currentUser || updatedUser.id !== currentUser.id) return; // Tumia bila filter ya Supabase, tufanye validation hapa
                   
                   // Kama amepewa hadhi ya activist na IT
                   if(updatedUser.is_activist && !currentUser.is_activist) {
@@ -844,18 +846,27 @@
             // 1. Check account age (> 30 days)
             const createdAt = new Date(u.created_at).getTime();
             const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-            if (createdAt > thirtyDaysAgo) return; // Not old enough
+            if (createdAt > thirtyDaysAgo) return;
 
             // 2. Check causes count (> 5) and total supporters (> 100)
             const { data: causes, error: cErr } = await sb.from('causes').select('supporters').eq('created_by_phone', u.phone_number);
-            if (cErr || !causes || causes.length < 5) return;
+            if (cErr) throw cErr;
+            if (!causes || causes.length < 5) return;
 
             let totalSupporters = 0;
             causes.forEach(c => totalSupporters += c.supporters || 0);
             if (totalSupporters < 100) return;
 
             // 3. Grant Activist Status
-            await sb.from('users').update({ is_activist: true, became_activist_at: new Date().toISOString() }).eq('id', u.id);
+            const { data: upData, error: upErr } = await sb.from('users')
+                .update({ is_activist: true, became_activist_at: new Date().toISOString() })
+                .eq('id', u.id)
+                .select()
+                .single();
+                
+            if (upErr) throw upErr;
+            if (!upData) throw new Error("Imeshindwa kusasisha hadhi yako kwenye DB.");
+            
             u.is_activist = true;
             localStorage.setItem('kitama_user', JSON.stringify(u));
             
@@ -1130,7 +1141,7 @@
     }
 
     // ACTIVISTS CONTROL (IT ONLY)
-        async function fetchActivistsControl() {
+    async function fetchActivistsControl() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.role !== 'system_admin') return;
         const div = document.getElementById('activists-control-list');
@@ -1142,7 +1153,6 @@
             const { data: citizens, error: cErr } = await sb.from('users').select('*').eq('role', 'citizen').eq('status', 'active').eq('is_activist', false).order('full_name');
             if(cErr) throw cErr;
 
-            // Nimetumia backticks (`) badala ya nukuu ('') ili hesabu ifanye kazi
             let html = `<h4 style="padding:0 20px; margin:15px 0 10px 0; color:var(--text);">Waactivists Waliopo (${activists.length})</h4>`;
             if(activists.length > 0) {
                 html += activists.map(act => `
@@ -1167,14 +1177,29 @@
 
             div.innerHTML = html;
         } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
-        }
+    }
 
     async function toggleActivistStatus(userId, makeActivist) {
         try {
-            await sb.from('users').update({ is_activist: makeActivist, became_activist_at: makeActivist ? new Date().toISOString() : null }).eq('id', userId);
+            const { data, error } = await sb.from('users')
+                .update({ 
+                    is_activist: makeActivist, 
+                    became_activist_at: makeActivist ? new Date().toISOString() : null 
+                })
+                .eq('id', userId)
+                .select();
+                
+            if (error) throw error;
+            if (!data || data.length === 0) {
+                throw new Error("Update haukufanyika. Kagua RLS policy kwenye Supabase.");
+            }
+            
             showToast("Hadhi imebadilishwa!");
+            playBeep();
             fetchActivistsControl();
-        } catch(e) { openModal("Kosa", e.message); }
+        } catch(e) { 
+            openModal("Kosa", e.message); 
+        }
     }
 
     // --- CITIZEN CHAT WHATSAPP FEATURES ---
@@ -1645,7 +1670,7 @@
             feed.sort((a,b) => new Date(b.date) - new Date(a.date));
             div.innerHTML = feed.length > 0 ? feed.map(f => {
                 let bClass = f.badge === 'pending' ? 'b-warn' : f.badge === 'resolved' ? 'b-succ' : f.badge === 'ongoing' ? 'b-info' : f.badge === 'archived' ? 'b-err' : 'b-warn';
-                let bText = f.badge === 'pending' ? 'Inasubiri' : f.badge === 'resolved' ? 'Imekamilika' : f.badge === 'ongoing' ? 'Inaendelea' : f.badge === 'archived' ? 'Imefungwa' : f.badge === 'tangazo' ? 'Tangazo' : 'Activist';
+                let bText = f.badge === 'pending' ? 'Inasubiri' : f.badge === 'resolved' ? 'Imekamilika' : f.badge === 'ongoing' ? 'Inaendolea' : f.badge === 'archived' ? 'Imefungwa' : f.badge === 'tangazo' ? 'Tangazo' : 'Activist';
                 return `<div class="list-i"><div class="list-meta"><span class="badge b-info">${f.type}</span><span class="badge ${bClass}">${bText}</span></div><h4 style="margin-top:8px;">${f.title}</h4><p>${f.desc}</p><small style="color:var(--text-sec); display:block; margin-top:8px; text-align:right;">${new Date(f.date).toLocaleString()}</small></div>`;
             }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna taarifa mpya.</p>';
         } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
@@ -1671,7 +1696,7 @@
     async function fetchPins() { const div = document.getElementById('pins-list'); div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('leader_pins').select('*').order('role', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => `<div class="list-i" style="padding:12px;"><strong>${p.role.replace(/_/g,' ')}</strong>${p.village ? ' - '+p.village : ''}<br><small style="color:var(--text-sec);">PIN: <b>${p.pin}</b></small></div>`).join('') : '<p style="color:var(--text-sec); margin: 0 20px;">Hakuna PIN zilizowekwa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
 
     async function postProject() { const title = document.getElementById('proj-title').value.trim(), desc = document.getElementById('proj-desc').value.trim(), status = document.getElementById('proj-status').value; if(!title||!desc) return openModal("Taarifa", "Jaza jina na maelezo ya mradi."); if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa."); try { await sb.from('projects').insert([{ title, description: desc, status }]); showToast("Mradi umewekwa!"); playBeep(); document.getElementById('proj-title').value=''; document.getElementById('proj-desc').value=''; fetchProjects(); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchProjects() { const div = document.getElementById('projects-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('projects').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => { let sClass = p.status === 'planned' ? 'b-info' : p.status === 'ongoing' ? 'b-warn' : p.status === 'stalled' ? 'b-err' : 'b-succ'; let sText = p.status === 'planned' ? 'Inapaswa kutekelezwa' : p.status === 'ongoing' ? 'Inaendelea' : p.status === 'stalled' ? 'Imekatika' : 'Imekamilika'; return `<div class="list-i"><h4>${p.title}</h4><p>${p.description}</p><div class="list-meta"><span class="badge ${sClass}">${sText}</span></div></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna miradi iliyowekwa kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
+    async function fetchProjects() { const div = document.getElementById('projects-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('projects').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => { let sClass = p.status === 'planned' ? 'b-info' : p.status === 'ongoing' ? 'b-warn' : p.status === 'stalled' ? 'b-err' : 'b-succ'; let sText = p.status === 'planned' ? 'Inapaswa kutekelezwa' : p.status === 'ongoing' ? 'Inaendolea' : p.status === 'stalled' ? 'Imekatika' : 'Imekamilika'; return `<div class="list-i"><h4>${p.title}</h4><p>${p.description}</p><div class="list-meta"><span class="badge ${sClass}">${sText}</span></div></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna miradi iliyowekwa kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
 
     async function postCause() { const u = JSON.parse(localStorage.getItem('kitama_user')); const title = document.getElementById('cause-title').value.trim(), desc = document.getElementById('cause-desc').value.trim(); if(!title||!desc) return openModal("Taarifa", "Jaza kichwa na maelezo ya ajeda."); if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa."); try { await sb.from('causes').insert([{ title, description: desc, created_by_name: u.full_name, created_by_phone: u.phone_number, is_activist: u.is_activist || false }]); showToast("Ajeda imetumwa! Wengine wataikuunga mkono."); playBeep(); document.getElementById('cause-title').value=''; document.getElementById('cause-desc').value=''; fetchCauses(); } catch(e) { openModal("Kosa", e.message); } }
     async function fetchCauses() { const div = document.getElementById('causes-list'); div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>'; try { const { data, error } = await sb.from('causes').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(c => { let sBadge = c.status === 'addressed' ? '<span class="badge b-succ">Imekubaliwa na Viongozi</span>' : '<span class="badge b-warn">Inasubiri</span>'; let activistBadge = c.is_activist ? getActivistBadge(true) : ''; return `<div class="list-i"><h4>${c.title}</h4><p>${c.description}</p><div class="list-meta"><span class="badge b-info">Imetumwa na: ${c.created_by_name} ${activistBadge}</span>${sBadge}</div><div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="supportCause('${c.id}', ${c.supporters})">${ICONS.thumbs_up} Niandamanye (${c.supporters})</button></div></div>`; }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna ajeda kwa sasa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
@@ -2401,4 +2426,4 @@
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
 </body>
- </html>
+    </html>
