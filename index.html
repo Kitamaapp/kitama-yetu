@@ -749,7 +749,7 @@
         } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML='Tengeneza Akaunti'; btn.disabled=false; }
     }
 
-    function enterApp() {
+        function enterApp() {
         document.getElementById('auth-c').style.display='none'; 
         document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -810,28 +810,40 @@
                   if(document.getElementById('activist-hub-sec').classList.contains('active')) fetchActivistArticles();
               })
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
-                  // Kusikiliza mabadiliko ya profile ya mtumiaji
+                  // HII NDIO SEHEMU TULIOREKEBISHA (Hatua ya 2)
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   
-                  if (!currentUser || updatedUser.id !== currentUser.id) return; // Tumia bila filter ya Supabase, tufanye validation hapa
+                  // Kagua kama mabadiliko ni ya mtumiaji aliyelogin sasa
+                  if (!currentUser || updatedUser.id !== currentUser.id) return; 
                   
-                  // Kama amepewa hadhi ya activist na IT
-                  if(updatedUser.is_activist && !currentUser.is_activist) {
-                      openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b>. Ukiandika makala, hoja, au maoni, jina lako litakuwa na alama ya <b>✓ Activist</b>.", false);
-                  } 
-                  // Kama amenyang'anywa hadhi ya activist na IT
-                  else if(!updatedUser.is_activist && currentUser.is_activist) {
-                      showToast("Hadhi yako ya Activist imeondolewa.");
+                  const activistChanged = updatedUser.is_activist !== currentUser.is_activist;
+                  const statusChanged = updatedUser.status !== currentUser.status;
+                  
+                  // Hifadhi taarifa mpya kimyakimya bila kuharibu ukurasa
+                  localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
+                  
+                  if(activistChanged) {
+                      if(updatedUser.is_activist) {
+                          openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b>. Ukiandika makala, hoja, au maoni, jina lako litakuwa na alama ya <b>✓ Activist</b>.", false);
+                      } else {
+                          showToast("Hadhi yako ya Activist imeondolewa.");
+                      }
                   }
                   
-                  // Hifadhi taarifa mpya na refresh dashboard
-                  localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
-                  setupDashboard(updatedUser);
+                  // Refresh dashboard tu kama mtumiaji yupo kwenye Home Screen na hadhi imebadilika
+                  const activeSec = document.querySelector('.sec.active');
+                  if (statusChanged) {
+                      // Kama akaunti yake imeidhinishwa wakati yupo app, refresh ili afungue huduma zote
+                      location.reload(); 
+                  } else if (activistChanged && activeSec && activeSec.id === 'home-sec') {
+                      setupDashboard(updatedUser);
+                  }
               })
               .subscribe();
         }
     }
+
 
     // ACTIVIST BADGE HELPER
     function getActivistBadge(isActivist) {
@@ -903,27 +915,40 @@
         } catch(e) { console.error(e); }
     }
 
-    function enforceCitizenLocation(u) {
+        function enforceCitizenLocation(u) {
         if (!navigator.geolocation) {
             setupDashboard(u);
             return;
         }
         setupDashboard(u); 
+        
+        let lastLat = null, lastLng = null;
+        
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
+                lastLat = lat; lastLng = lng;
                 try { await sb.from('users').update({ lat: lat, lng: lng }).eq('id', u.id); } catch(e) {}
-                navigator.geolocation.watchPosition(
-                    async (pos) => {
-                        try { await sb.from('users').update({ lat: pos.coords.latitude, lng: pos.coords.longitude }).eq('id', u.id); } catch(e) {}
-                    }, (err) => {}, { enableHighAccuracy: true }
-                );
             },
             (error) => { showToast("GPS haijawashwa. Washa ili viongozi wakuonie kwenye ramani."); },
             { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
-    }
+
+        navigator.geolocation.watchPosition(
+            async (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                // Update db tu kama umetembea zaidi ya mita 10 (0.0001 degrees)
+                if (lastLat === null || (Math.abs(lat - lastLat) > 0.0001 || Math.abs(lng - lastLng) > 0.0001)) {
+                    lastLat = lat; lastLng = lng;
+                    try { await sb.from('users').update({ lat: lat, lng: lng }).eq('id', u.id); } catch(e) {}
+                }
+            }, 
+            (err) => {}, 
+            { enableHighAccuracy: true, maximumAge: 10000 }
+        );
+         }
 
     function setupDashboard(u) {
         const content = document.getElementById('home-content'), nav = document.getElementById('b-nav');
