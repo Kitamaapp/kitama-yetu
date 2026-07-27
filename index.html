@@ -273,9 +273,26 @@
         .safety-box ul { padding-left: 20px; margin: 0; }
         .safety-box li { font-size: 12px; color: #92400E; margin-bottom: 5px; line-height: 1.4; }
 
-        /* ACTIVIST BADGE */
-        .activist-badge { display: inline-flex; align-items: center; gap: 2px; background: linear-gradient(135deg, #F59E0B, #D97706); color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; margin-left: 5px; vertical-align: middle; box-shadow: 0 1px 2px rgba(0,0,0,0.2); text-transform: uppercase; }
-        .activist-icon { color: #D97706; }
+                /* ACTIVIST BADGE (Verified Style) */
+        .activist-badge { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            width: 16px; 
+            height: 16px; 
+            background: linear-gradient(135deg, #1D9BF0, #0d6efd); 
+            color: white; 
+            border-radius: 50%; 
+            font-size: 10px; 
+            font-weight: 900; 
+            margin-left: 4px; 
+            vertical-align: middle; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2); 
+            line-height: 1;
+            padding-bottom: 1px; /* Ku-align herufi K vizuri ndani ya duara */
+            text-transform: uppercase;
+        }
+        .activist-icon { color: #1D9BF0; }
     </style>
 </head>
 <body>
@@ -910,11 +927,12 @@
               })
               .subscribe();
         }
-                                                                                           }   
+        }   
 
-    // ACTIVIST BADGE HELPER
+        // ACTIVIST BADGE HELPER
     function getActivistBadge(isActivist) {
-        return isActivist ? '<span class="activist-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Activist</span>' : '';
+        // Rudiisha duara lenye herufi K
+        return isActivist ? '<span class="activist-badge" title="Activist">K</span>' : '';
     }
 
     // CHECK ACTIVIST STATUS
