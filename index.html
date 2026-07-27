@@ -275,6 +275,12 @@
         
                 /* ACTIVIST BADGE CSS - sasa inatumia SVG moja kwa moja */
         .activist-icon { color: #0066FF; }
+        .fb-reply-item { background: var(--bg); padding: 8px 10px; border-radius: 8px; margin-bottom: 5px; font-size: 12px; border: 1px solid var(--border); margin-left: 10px; }
+        .fb-reply-item b { font-size: 11px; color: var(--primary); display: inline-block; margin-bottom: 2px; }
+        .fb-reply-btn { background: none; border: none; color: var(--text-sec); font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 5px; padding: 0; display: inline-flex; align-items: center; gap: 4px; }
+        .fb-replies-container { margin-left: 15px; border-left: 2px solid var(--border); padding-left: 10px; margin-top: 5px; display: none; flex-direction: column; gap: 5px; }
+        .fb-reply-input-box { margin-left: 15px; margin-top: 5px; display: none; }
+        .fb-comment-item b { font-size: 11px; color: var(--primary); display: block; margin-bottom: 2px; }
     </style>
 </head>
 <body>
@@ -2129,28 +2135,108 @@
         else { box.style.display = 'block'; fetchShopComments(itemId); }
     }
 
-    async function fetchShopComments(itemId) {
+        async function fetchShopComments(itemId) {
         try {
             const { data, error } = await sb.from('shop_item_comments').select('*').eq('item_id', itemId).order('created_at', { ascending: true });
             if(error) throw error;
             const listDiv = document.getElementById(`fb-comment-list-${itemId}`);
-            listDiv.innerHTML = data.length > 0 ? data.map(c => `<div class="fb-comment-item"><b>${c.author_name}</b>${c.content}</div>`).join('') : '<p style="font-size:11px; color:var(--text-sec); text-align:center;">Hakuna maoni bado.</p>';
+            
+            if(!data || data.length === 0) {
+                listDiv.innerHTML = '<p style="font-size:11px; color:var(--text-sec); text-align:center;">Hakuna maoni bado.</p>';
+                return;
+            }
+
+            // Tenganisha maoni kuu na replies
+            const mainComments = data.filter(c => !c.parent_id);
+            const replies = data.filter(c => c.parent_id);
+
+            let html = '';
+            mainComments.forEach(c => {
+                const badge = getActivistBadgeForPhone(c.author_phone, c);
+                const commentReplies = replies.filter(r => r.parent_id === c.id);
+                
+                html += `<div class="fb-comment-item">
+                    <b>${c.author_name} ${badge}</b>${c.content}
+                    <small style="color:var(--text-sec); display:block; margin-top:2px;">${new Date(c.created_at).toLocaleString()}</small>
+                    <button class="fb-reply-btn" onclick="toggleReplyInput('${c.id}')">Jibu</button>
+                </div>`;
+                
+                // Weka button ya kuona replies kama zipo
+                if(commentReplies.length > 0) {
+                    html += `<button class="fb-reply-btn" onclick="toggleReplies('${c.id}')">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        Angalia Majibu (${commentReplies.length})
+                    </button>`;
+                    
+                    html += `<div class="fb-replies-container" id="replies-for-${c.id}">`;
+                    commentReplies.forEach(r => {
+                        const rBadge = getActivistBadgeForPhone(r.author_phone, r);
+                        html += `<div class="fb-reply-item">
+                            <b>${r.author_name} ${rBadge}</b>${r.content}
+                            <small style="color:var(--text-sec); display:block; margin-top:2px;">${new Date(r.created_at).toLocaleString()}</small>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                // Weka box la kuandika reply
+                html += `<div class="fb-reply-input-box" id="reply-box-${c.id}">
+                    <div class="fb-comment-input">
+                        <input type="text" id="reply-input-${c.id}" placeholder="Jibu ${c.author_name}...">
+                        <button onclick="postShopComment('${itemId}', '${c.id}')">Tuma</button>
+                    </div>
+                </div>`;
+            });
+
+            listDiv.innerHTML = html;
         } catch(e) { console.error(e); }
     }
 
-    async function postShopComment(itemId) {
+    async function postShopComment(itemId, parentId = null) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const input = document.getElementById(`fb-comment-input-${itemId}`);
+        const inputId = parentId ? `reply-input-${parentId}` : `fb-comment-input-${itemId}`;
+        const input = document.getElementById(inputId);
+        if(!input) return;
         const content = input.value.trim();
         if(!content) return;
         if(containsBadWords(content)) return openModal("Onyo", "Maoni yako yana maneno yasiyoruhusiwa.");
         try {
-            await sb.from('shop_item_comments').insert([{ item_id: itemId, author_phone: u.phone_number, author_name: u.full_name, content: content }]);
+            await sb.from('shop_item_comments').insert([{ 
+                item_id: itemId, 
+                author_phone: u.phone_number, 
+                author_name: u.full_name, 
+                content: content,
+                parent_id: parentId 
+            }]);
             input.value = '';
             playBeep();
             fetchShopComments(itemId);
+            // Kama ni reply, fungua box la replies moja kwa moja ili aone ulichojibu
+            if(parentId) toggleReplies(parentId, true);
         } catch(e) { openModal("Kosa", e.message); }
     }
+
+    function toggleReplies(commentId, forceOpen = false) {
+        const div = document.getElementById(`replies-for-${commentId}`);
+        if(div) {
+            if(forceOpen) {
+                div.style.display = 'flex';
+            } else {
+                div.style.display = div.style.display === 'flex' ? 'none' : 'flex';
+            }
+        }
+    }
+
+    function toggleReplyInput(commentId) {
+        const div = document.getElementById(`reply-box-${commentId}`);
+        if(div) {
+            div.style.display = div.style.display === 'flex' ? 'none' : 'flex';
+            if(div.style.display === 'flex') {
+                const input = document.getElementById(`reply-input-${commentId}`);
+                if(input) input.focus();
+            }
+        }
+        }
 
     async function fetchShopInbox(shopId) {
         currentShopId = shopId;
