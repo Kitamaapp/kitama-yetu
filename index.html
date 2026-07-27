@@ -1969,10 +1969,11 @@
                     <button onclick="toggleShopComments('${m.id}')" class="fb-post-btn">${ICONS.comment} Maoni</button>
                 </div>
                 <div id="fb-comments-${m.id}" class="fb-comment-box" style="display:none;">
-                    <div class="fb-comment-list" id="fb-comment-list-${m.id}"><p style="font-size:11px; color:var(--text-sec); text-align:center;">Inapakia maoni...</p></div>
-                    <div class="fb-comment-input">
-                        <input type="text" id="fb-comment-input-${m.id}" placeholder="Andika maoni...">
-                        <button onclick="postShopComment('${m.id}')">Tuma</button>
+                <div class="fb-comment-list" id="fb-comment-list-${m.id}"><p style="font-size:11px; color:var(--text-sec); text-align:center;">Inapakia maoni...</p></div>
+                <div class="fb-comment-input">
+                   <input type="text" id="fb-comment-input-${m.id}" placeholder="Andika maoni...">
+                        <!-- ONGEZA null KAMA PARAMETA HAPA -->
+                        <button onclick="postShopComment('${m.id}', null)">Tuma</button>
                     </div>
                 </div>
             </div>
