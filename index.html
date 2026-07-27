@@ -2175,7 +2175,7 @@
         } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
     }
 
-    async function openShopChat(shopId, senderPhone, senderName) {
+        async function openShopChat(shopId, senderPhone, senderName) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         try {
             const orFilter = `and(sender_phone.eq.${senderPhone},recipient_phone.eq.${u.phone_number}),and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${senderPhone})`;
@@ -2190,14 +2190,15 @@
             if(data && data.length > 0) {
                 data.forEach(msg => {
                     let isSelf = msg.sender_phone === u.phone_number; 
-                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;"><b>${isSelf ? 'Wewe' : msg.sender_name}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
+                    let nameWithBadge = isSelf ? 'Wewe' : msg.sender_name + ' ' + getActivistBadgeForPhone(msg.sender_phone, msg);
+                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;"><b>${nameWithBadge}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
                 });
             } else {
                 chatHtml += '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna ujumbe bado.</p>';
             }
             chatHtml += '</div>';
             
-            openModal(`Mazungumzo na ${senderName}`, chatHtml, true, async (reply) => {
+            openModal(`Mazungumzo na ${senderName} ${getActivistBadgeForPhone(senderPhone)}`, chatHtml, true, async (reply) => {
                 if(!reply) return;
                 if(containsBadWords(reply)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
                 try {
@@ -2214,7 +2215,7 @@
                 } catch(e) { openModal("Kosa", e.message); }
             });
         } catch(e) { openModal("Kosa", e.message); }
-    }
+        }
 
     async function sendShopMessage(shopId, shopName, ownerPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -2237,7 +2238,7 @@
         });
     }
 
-    async function fetchMyInbox() {
+        async function fetchMyInbox() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         const div = document.getElementById('my-inbox-list');
         div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
@@ -2260,7 +2261,8 @@
                 } else if(otherPhone) {
                     if(!convos['dm_'+otherPhone]) {
                         let nameToDisplay = msg.sender_phone === u.phone_number ? 'Mtumiaji' : otherName;
-                        convos['dm_'+otherPhone] = { type: 'dm', id: otherPhone, name: nameToDisplay, phone: otherPhone, lastMsg: msg.content, time: msg.created_at };
+                        let nameWithBadge = nameToDisplay + ' ' + getActivistBadgeForPhone(otherPhone);
+                        convos['dm_'+otherPhone] = { type: 'dm', id: otherPhone, name: nameWithBadge, phone: otherPhone, lastMsg: msg.content, time: msg.created_at };
                     }
                 }
             });
@@ -2280,7 +2282,7 @@
                 </div>`;
             }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna ujumbe wowote bado.</p>';
         } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
-    }
+        }
 
         async function openCitizenChat(shopId, shopName, ownerPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
