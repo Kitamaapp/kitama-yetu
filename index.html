@@ -1495,8 +1495,10 @@
         else return msgDate.toLocaleDateString('sw-KE', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
-    async function fetchCitizenChat(isIncoming = false) {
+         async function fetchCitizenChat(isIncoming = false) {
         const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        if (!u || !u.phone_number) return; 
+        
         const div = document.getElementById('citizen-chat-list'); 
         if(isIncoming && !isAtBottom) {
             unreadChatCount++;
@@ -1531,6 +1533,7 @@
                     }
 
                     const isSelf = (u.phone_number === c.sender_phone);
+                    
                     const readByArray = c.read_by || [];
                     const readCount = readByArray.length;
                     const ticksHtml = isSelf ? (readCount > 1 ? `<span class="ticks read" onclick="event.stopPropagation(); viewReadBy('${c.id}')">✓✓</span>` : `<span class="ticks sent">✓</span>`) : '';
@@ -1552,7 +1555,11 @@
                     </div>`;
                     let swipeHandlers = `ontouchstart="startSwipe(event, '${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" ontouchmove="moveSwipe(event)" ontouchend="endSwipe()"`;
                     
-                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${isSelf ? 'Wewe' : c.sender_name} ${getActivistBadge(c.is_activist)}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
+                    // HAPA TUMEBADILISHA: Badala ya getActivistBadge(c.is_activist), tunatumia getActivistBadgeForPhone(c.sender_phone, c)
+                    let badgeHtml = getActivistBadgeForPhone(c.sender_phone, c);
+                    let displayNameWithBadge = isSelf ? 'Wewe' : c.sender_name + ' ' + badgeHtml;
+                    
+                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayNameWithBadge}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
                 });
             } else {
                 chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
@@ -1564,7 +1571,7 @@
                 div.scrollTop = div.scrollHeight;
             }
         } catch(e) { div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
-    }
+         }
 
         async function postCitizenChat() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
