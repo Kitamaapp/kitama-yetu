@@ -982,14 +982,27 @@
         }
     }
 
-    async function fetchActiveCitizens() {
+        async function fetchActiveCitizens() {
         try {
-            const { data, error } = await sb.from('users').select('full_name, phone_number').eq('role', 'citizen').eq('status', 'active').order('full_name');
+            const { data, error } = await sb.from('users').select('full_name, phone_number, is_activist').eq('role', 'citizen').eq('status', 'active').order('full_name');
             if(error) throw error;
             activeCitizens = data || [];
+            
+            // Hapa tunaweka orodha mahsusi ya waactivists tu ili kuwatafuta haraka popote
+            window.activistsMap = {};
+            activeCitizens.forEach(c => { 
+                if(c.is_activist) window.activistsMap[c.phone_number] = true; 
+            });
+
             const infoEl = document.getElementById('citizen-presence-info');
             if(infoEl) infoEl.innerText = `0 mtu online kati ya ${activeCitizens.length} wananchi`;
         } catch(e) { console.error(e); }
+    }
+
+    // HII NI FUNCTION MPYA ITAKAYOTAFUTA MTU KWA NAMBA NA KURUDISHA BADGE
+    function getActivistBadgeForPhone(phone, data = {}) {
+        let isActivist = data.is_activist || (window.activistsMap && window.activistsMap[phone]) || false;
+        return getActivistBadge(isActivist);
     }
 
         function enforceCitizenLocation(u) {
@@ -1380,7 +1393,7 @@
         document.getElementById('citizen-reply-context').style.display = 'none';
     }
 
-    async function replyPrivately(phone, name, originalMsg) {
+        async function replyPrivately(phone, name, originalMsg) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if (phone === u.phone_number) return showToast("Huwezi kujibu mwenyewe");
         
@@ -1390,6 +1403,10 @@
             if(citizen) displayName = citizen.full_name;
             else displayName = phone;
         }
+
+        // Ondoa badge ili tuirudishe baada ya kutafuta sahihi
+        let cleanName = displayName.replace(/<svg[^>]*>([\s\S]*?)<\/svg>/g, '').trim();
+        let displayWithBadge = cleanName + ' ' + getActivistBadgeForPhone(phone);
 
         try {
             const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${phone}),and(sender_phone.eq.${phone},recipient_phone.eq.${u.phone_number})`;
@@ -1404,13 +1421,14 @@
             if(data && data.length > 0) {
                 data.forEach(msg => {
                     let isSelf = msg.sender_phone === u.phone_number;
+                    let msgName = isSelf ? u.full_name : displayWithBadge;
                     
                     let quoteHtml = '';
                     if(msg.reply_to) {
                         quoteHtml = `<div class="reply-quote" style="margin-bottom: 5px; border-left: 3px solid var(--accent); padding: 5px 8px; background: rgba(0,0,0,0.05); border-radius: 4px; font-size: 11px; color: var(--text-sec); white-space: normal;">${msg.reply_to.substring(0, 100)}</div>`;
                     }
                     
-                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;">${quoteHtml}<b>${isSelf ? 'Wewe' : displayName}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
+                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;">${quoteHtml}<b>${msgName}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
                 });
             } else {
                 chatHtml += '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna mazungumzo ya faragha bado.</p>';
@@ -1418,10 +1436,10 @@
             chatHtml += '</div>';
             
             if(originalMsg) {
-                chatHtml += `<div class="reply-quote" style="margin-bottom: 10px; border-left: 4px solid var(--accent); padding: 8px 12px; background: var(--bg); border-radius: 8px;"><b style="font-size: 12px; color: var(--accent);">${displayName}</b><small style="display: block; margin-top: 2px; color: var(--text-sec);">${originalMsg.substring(0, 100)}</small></div>`;
+                chatHtml += `<div class="reply-quote" style="margin-bottom: 10px; border-left: 4px solid var(--accent); padding: 8px 12px; background: var(--bg); border-radius: 8px;"><b style="font-size: 12px; color: var(--accent);">${displayWithBadge}</b><small style="display: block; margin-top: 2px; color: var(--text-sec);">${originalMsg.substring(0, 100)}</small></div>`;
             }
             
-            openModal(`Mazungumzo na ${displayName}`, chatHtml, true, async (reply) => {
+            openModal(`Mazungumzo na ${displayWithBadge}`, chatHtml, true, async (reply) => {
                 if(!reply) return;
                 if(containsBadWords(reply)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
                 try {
@@ -1435,11 +1453,11 @@
                     }]);
                     playBeep();
                     showToast("Ujumbe wa faragha umetumwa!");
-                    replyPrivately(phone, displayName, ''); 
+                    replyPrivately(phone, cleanName, ''); 
                 } catch(e) { openModal("Kosa", e.message); }
             });
         } catch(e) { openModal("Kosa", e.message); }
-    }
+        }
 
     function toggleMsgActions(el) {
         el.classList.toggle('show-actions');
@@ -2264,7 +2282,7 @@
         } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
     }
 
-    async function openCitizenChat(shopId, shopName, ownerPhone) {
+        async function openCitizenChat(shopId, shopName, ownerPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         try {
             const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${ownerPhone}),and(sender_phone.eq.${ownerPhone},recipient_phone.eq.${u.phone_number})`;
@@ -2279,7 +2297,8 @@
             if(data && data.length > 0) {
                 data.forEach(msg => {
                     let isSelf = msg.sender_phone === u.phone_number;
-                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;"><b>${isSelf ? 'Wewe' : msg.sender_name + ' ('+shopName+')'}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
+                    let nameWithBadge = isSelf ? 'Wewe' : msg.sender_name + ' ('+shopName+') ' + getActivistBadgeForPhone(msg.sender_phone, msg);
+                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" style="max-width: 90%;"><b>${nameWithBadge}</b><p>${msg.content}</p><small>${new Date(msg.created_at).toLocaleString()}</small></div>`;
                 });
             } else {
                 chatHtml += '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna ujumbe bado.</p>';
@@ -2303,7 +2322,7 @@
                 } catch(e) { openModal("Kosa", e.message); }
             });
         } catch(e) { openModal("Kosa", e.message); }
-    }
+        }
 
     async function postItem() { 
         const u = JSON.parse(localStorage.getItem('kitama_user')); 
