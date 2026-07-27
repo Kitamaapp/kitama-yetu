@@ -272,30 +272,9 @@
         .safety-box h4 { font-size: 14px; color: #92400E; margin-bottom: 10px; font-weight: 800; }
         .safety-box ul { padding-left: 20px; margin: 0; }
         .safety-box li { font-size: 12px; color: #92400E; margin-bottom: 5px; line-height: 1.4; }
-
-                 /* ACTIVIST BADGE (Verified Scalloped Seal Style) */
-        .activist-badge { 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            width: 18px; 
-            height: 18px; 
-            /* SVG inochora ncha ncha (scalloped seal) kama ya Twitter */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2300A3F5'/%3E%3Cstop offset='100%25' stop-color='%230066FF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.39-.45-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.53 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.26-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34z'/%3E%3C/svg%3E");
-            background-size: 100% 100%; 
-            background-repeat: no-repeat;
-            color: white; 
-            font-size: 10px; 
-            font-weight: 900; 
-            margin-left: 4px; 
-            vertical-align: middle; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2); 
-            line-height: 1;
-            padding-bottom: 1px; /* Ku-align herufi K vizuri ndani ya muhuri */
-            text-transform: uppercase;
-        }
-        .activist-icon { color: #0066FF; }
         
+                /* ACTIVIST BADGE CSS - sasa inatumia SVG moja kwa moja */
+        .activist-icon { color: #0066FF; }
     </style>
 </head>
 <body>
@@ -932,10 +911,20 @@
         }
         }   
 
-        // ACTIVIST BADGE HELPER
+            // ACTIVIST BADGE HELPER
     function getActivistBadge(isActivist) {
-        // Rudiisha duara lenye herufi K
-        return isActivist ? '<span class="activist-badge" title="Activist">k</span>' : '';
+        if (!isActivist) return '';
+        // SVG hii ina ncha nyingi (12 points) kama badge za Twitter/Telegram
+        return `<svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align: middle; margin-left: 3px; margin-bottom: 2px; display: inline-block;">
+            <defs>
+                <linearGradient id="kitamaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#1D9BF0" />
+                    <stop offset="100%" stop-color="#0d6efd" />
+                </linearGradient>
+            </defs>
+            <path fill="url(#kitamaGrad)" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/>
+            <text x="12" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="900" text-anchor="middle" fill="white" style="pointer-events: none;">K</text>
+        </svg>`;
     }
 
     // CHECK ACTIVIST STATUS
