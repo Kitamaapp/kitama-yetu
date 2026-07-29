@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kitama Yetu | Civic Tech Platform</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -2777,12 +2777,9 @@
     });
 
         // --- BODA BODA FUNCTIONS (BOLT STYLE) ---
-    let bodaMap = null;
     let bodaRoutingControl = null;
-    let bodaPickupLat = null, bodaPickupLng = null;
-    let bodaDestLat = null, bodaDestLng = null;
     let bodaFareAmount = 0;
-
+    
     function initBodaMap() {
         if (bodaMap) {
             bodaMap.invalidateSize();
