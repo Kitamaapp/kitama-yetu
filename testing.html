@@ -283,10 +283,10 @@
         .fb-replies-container { margin-left: 15px; border-left: 2px solid var(--border); padding-left: 10px; margin-top: 5px; display: none; flex-direction: column; gap: 5px; }
         .fb-reply-input-box { margin-left: 15px; margin-top: 5px; display: none; }
 
-        /* BODA & FURSA CSS */
-        .boda-sec { padding: 0; margin: 0; max-width: 480px; background: var(--bg); min-height: 100vh; position: relative; }
-        #boda-map { height: 60vh; width: 100%; position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 1; background: var(--bg); }
-        .boda-sheet { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--surface); border-radius: 24px 24px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); padding: 20px; z-index: 101; max-height: 45vh; overflow-y: auto; }
+                /* BODA & FURSA CSS (BOLT STYLE) */
+        .boda-sec { position: relative; height: 100vh; overflow: hidden; background: var(--bg); }
+        #boda-map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; background: var(--bg); }
+        .boda-sheet { position: absolute; bottom: 0; left: 0; width: 100%; z-index: 2; background: var(--surface); border-radius: 24px 24px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); padding: 20px; max-height: 60vh; overflow-y: auto; }
         .boda-input-group { position: relative; margin-bottom: 15px; }
         .boda-input-line { position: absolute; left: 23px; top: 18px; height: 24px; width: 2px; background: var(--border); z-index: 0; }
         .boda-input-wrap { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
