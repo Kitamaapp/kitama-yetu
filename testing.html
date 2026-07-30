@@ -2456,6 +2456,7 @@
                 fetchMyInbox(); 
             } catch(e) { openModal("Kosa", e.message); }
         });
+    }
 
 async function fetchMyInbox() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
