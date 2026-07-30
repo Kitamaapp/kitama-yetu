@@ -2727,7 +2727,7 @@ async function fetchMyInbox() {
         });
     }
 
-    async function trackCitizen(phone) {
+        async function trackCitizen(phone) {
         if(!phone) return openModal("Taarifa", "Tatizo: Namba ya simu ya mtumiaji haijarekodiwa kwenye ripoti hii (huenda ni ripoti ya zamani).", false);
         openModal("Inatafuta...", "Subiri kidogo tunapakia eneo la mwananchi.", false);
         try {
@@ -2742,21 +2742,23 @@ async function fetchMyInbox() {
             document.getElementById('modal-title').innerHTML = `${ICONS.pin} Location ya Mwananchi`;
             document.getElementById('modal-text').innerHTML = `Hii ni eneo la <b>${u.full_name}</b> kwa wakati huu.`;
             document.getElementById('map-container').style.display = 'block';
-            if(mapInstance) mapInstance.remove();
-            setTimeout(() => {
-                mapInstance = L.map('map-container').setView([u.lat, u.lng], 18);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(mapInstance);
-                const blinkIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot"></div>', iconSize: [20, 20]});
-                const marker = L.marker([u.lat, u.lng], {icon: blinkIcon}).addTo(mapInstance);
-                marker.bindPopup(`<b>${u.full_name}</b> yupo hapa sasa.`).openPopup();
-                setTimeout(() => { if(mapInstance) mapInstance.invalidateSize(); }, 300);
-            }, 300);
+            document.getElementById('map-container').innerHTML = ''; // Futa zamani
+            
+            const map = new google.maps.Map(document.getElementById('map-container'), {
+                center: { lat: parseFloat(u.lat), lng: parseFloat(u.lng) },
+                zoom: 18
+            });
+            new google.maps.Marker({
+                position: { lat: parseFloat(u.lat), lng: parseFloat(u.lng) },
+                map: map,
+                title: u.full_name
+            });
         } catch(e) { 
             document.getElementById('modal-title').innerText = "Kosa";
-            document.getElementById('modal-text').innerHTML = e.message + "<br><small>(Kama kosa linasema 'lat column does not exist', tafadhali run SQL ya kuongeza lat/lng kwenye Supabase).</small>";
+            document.getElementById('modal-text').innerHTML = e.message;
             document.getElementById('map-container').style.display = 'none';
         }
-    }
+        }
 
     window.addEventListener('scroll', () => {
         const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
