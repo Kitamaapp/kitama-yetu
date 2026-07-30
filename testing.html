@@ -2772,7 +2772,7 @@ async function fetchMyInbox() {
         }
     });
 
-    // --- BODA BODA FUNCTIONS (BOLT STYLE) ---
+        // --- BODA BODA FUNCTIONS (BOLT STYLE) ---
     let bodaRoutingControl = null;
     let bodaFareAmount = 0;
 
@@ -2785,7 +2785,9 @@ async function fetchMyInbox() {
         bodaMap = L.map('boda-map').setView([-6.2, 35.0], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(bodaMap);
 
+        // Auto-detect location ya mtumiaji mara moja
         if (navigator.geolocation) {
+            document.getElementById('boda-pickup').value = "Inatafuta mahali ulipo...";
             navigator.geolocation.getCurrentPosition(pos => {
                 bodaPickupLat = pos.coords.latitude;
                 bodaPickupLng = pos.coords.longitude;
@@ -2798,48 +2800,39 @@ async function fetchMyInbox() {
                 document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
             }, err => {
                 showToast("Washa GPS ili kupata mahali ulipo otomatiki.");
-            }, { enableHighAccuracy: true });
+                document.getElementById('boda-pickup').value = "Haijapatikana (Washa GPS)";
+            }, { enableHighAccuracy: true, timeout: 10000 });
         } else {
             showToast("Kifaa chako hakiauni GPS.");
         }
+        
+        // Hakikisha ramani inajirekebisha kutegemea ukubwa wa screen
+        setTimeout(() => { if(bodaMap) bodaMap.invalidateSize(); }, 300);
     }
 
     async function searchRouteAndFare() {
         const destText = document.getElementById('boda-dest').value.trim();
-        const pickupText = document.getElementById('boda-pickup').value.trim();
 
-        if (!pickupText) return showToast("Weka mahali unaondokia");
+        // Kama GPS bado haijapata location ya sasa
+        if (!bodaPickupLat || !bodaPickupLng) {
+            return showToast("GPS ya mahali ulipo bado hajaanza. Subiri kidogo au washa GPS.");
+        }
         if (!destText) return showToast("Weka mahali unaelekea");
 
         try {
             document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div>';
             
-            if (!bodaDestLat && destText) {
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destText)}`);
-                const data = await res.json();
-                if (data && data.length > 0) {
-                    bodaDestLat = parseFloat(data[0].lat);
-                    bodaDestLng = parseFloat(data[0].lon);
-                } else {
-                    document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
-                    return showToast("Mahali hapatikani. Jaribu jina lingine.");
-                }
-            }
-
-            if (!bodaPickupLat && pickupText && pickupText !== "Mahali ulipo sasa (GPS)") {
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pickupText)}`);
-                const data = await res.json();
-                if (data && data.length > 0) {
-                    bodaPickupLat = parseFloat(data[0].lat);
-                    bodaPickupLng = parseFloat(data[0].lon);
-                }
-            }
-
-            if (bodaPickupLat && bodaDestLat) {
-                updateRoute();
+            // Tafuta mahali anaelekea kwenye mtandao (Geocoding)
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destText)}`);
+            const data = await res.json();
+            
+            if (data && data.length > 0) {
+                bodaDestLat = parseFloat(data[0].lat);
+                bodaDestLng = parseFloat(data[0].lon);
+                updateRoute(); // Ita function ya kujenga njia na kuhesabu nauli
             } else {
                 document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
-                showToast("GPS ya mahali ulipo bado hajaanza. Subiri kidogo.");
+                showToast("Mahali hapatikani. Jaribu jina lingine.");
             }
         } catch(e) {
             document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
@@ -2852,6 +2845,7 @@ async function fetchMyInbox() {
             bodaMap.removeControl(bodaRoutingControl);
         }
 
+        // Onyesha mstari wa njia kama Bolt
         bodaRoutingControl = L.Routing.control({
             waypoints: [
                 L.latLng(bodaPickupLat, bodaPickupLng),
@@ -2860,18 +2854,20 @@ async function fetchMyInbox() {
             routeWhileDragging: false,
             addWaypoints: false,
             draggableWaypoints: false,
-            fitSelectedRoutes: true,
+            fitSelectedRoutes: true, // Hii inafanya ramani ijizome yenyesse kuonesha njia yote
             show: false, 
             lineOptions: {
                 styles: [{color: '#10B981', opacity: 0.9, weight: 6}]
             }
         }).addTo(bodaMap);
 
+        // Hesabu Nauli otomatiki mara njia inapopatikana
         bodaRoutingControl.on('routesfound', function(e) {
             const routes = e.routes;
-            const distance = routes[0].summary.totalDistance; 
+            const distance = routes[0].summary.totalDistance; // in meters
             const distanceKm = distance / 1000;
             
+            // Nauli: 1000 Tsh base + 500 Tsh kwa Kila Km (Unaweza kubadilisha hapa)
             bodaFareAmount = Math.round(1000 + (distanceKm * 500));
             
             document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
@@ -2880,10 +2876,12 @@ async function fetchMyInbox() {
             document.getElementById('btn-boda-search').style.display = 'none';
             document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
             
+            // Rekebisha ramani baada ya mstari kuonekana
+            setTimeout(() => { bodaMap.invalidateSize(); }, 300);
             playBeep();
         });
     }
-
+    
     function proceedToPayment() {
         const html = `
             <div style="text-align:center; margin-bottom:20px;">
