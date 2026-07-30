@@ -3086,31 +3086,60 @@ async function fetchMyInbox() {
         return R * c;
     }
 
-    function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
+        function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
         openModal("Ramani ya Ombi", `<div id="boda-req-map-${reqId}" style="height: 300px; width: 100%; border-radius: 12px;"></div>`, false);
         setTimeout(() => {
-            const reqMap = L.map(`boda-req-map-${reqId}`).setView([parseFloat(pLat), parseFloat(pLng)], 14);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(reqMap);
+            const reqMap = new google.maps.Map(document.getElementById(`boda-req-map-${reqId}`), {
+                center: { lat: parseFloat(pLat), lng: parseFloat(pLng) },
+                zoom: 14
+            });
             
-            L.Routing.control({
-                waypoints: [
-                    L.latLng(parseFloat(pLat), parseFloat(pLng)),
-                    L.latLng(parseFloat(dLat), parseFloat(dLng))
-                ],
-                routeWhileDragging: false,
-                addWaypoints: false,
-                draggableWaypoints: false,
-                fitSelectedRoutes: true,
-                show: false,
-                lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
-            }).addTo(reqMap);
-
-            const pickupIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot"></div>', iconSize: [20, 20]});
-            L.marker([parseFloat(pLat), parseFloat(pLng)], {icon: pickupIcon}).addTo(reqMap).bindPopup("<b>Abiria yupo hapa</b>").openPopup();
+            new google.maps.Marker({
+                position: { lat: parseFloat(pLat), lng: parseFloat(pLng) },
+                map: reqMap,
+                title: "Abiria yupo hapa",
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: "#10B981",
+                    fillOpacity: 1,
+                    strokeColor: "white",
+                    strokeWeight: 2
+                }
+            });
             
-            setTimeout(() => { reqMap.invalidateSize(); }, 300);
-        }, 200);
-    }
+            new google.maps.Marker({
+                position: { lat: parseFloat(dLat), lng: parseFloat(dLng) },
+                map: reqMap,
+                title: "Anaelekea hapa",
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: "#EF4444",
+                    fillOpacity: 1,
+                    strokeColor: "white",
+                    strokeWeight: 2
+                }
+            });
+            
+            const directionsService = new google.maps.DirectionsService();
+            const directionsRenderer = new google.maps.DirectionsRenderer({
+                suppressMarkers: true,
+                polylineOptions: { strokeColor: "#10B981", strokeWeight: 6 }
+            });
+            directionsRenderer.setMap(reqMap);
+            
+            directionsService.route({
+                origin: { lat: parseFloat(pLat), lng: parseFloat(pLng) },
+                destination: { lat: parseFloat(dLat), lng: parseFloat(dLng) },
+                travelMode: 'DRIVING'
+            }, (result, status) => {
+                if (status === "OK") {
+                    directionsRenderer.setDirections(result);
+                }
+            });
+        }, 300);
+        }
 
     async function acceptBoda(reqId, riderPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
