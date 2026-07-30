@@ -2782,16 +2782,18 @@ async function fetchMyInbox() {
             return;
         }
         
-        bodaMap = L.map('boda-map').setView([-6.2, 35.0], 13);
+        // Ongeza zoomControl ili mtumiaji aweze kusogeza ramani vizuri
+        bodaMap = L.map('boda-map', { zoomControl: false }).setView([-6.2, 35.0], 13);
+        L.control.zoom({ position: 'bottomright' }).addTo(bodaMap);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(bodaMap);
 
-        // Auto-detect location ya mtumiaji mara moja
+        // Auto-detect location ya mtumiaji (Pickup)
         if (navigator.geolocation) {
             document.getElementById('boda-pickup').value = "Inatafuta mahali ulipo...";
             navigator.geolocation.getCurrentPosition(pos => {
                 bodaPickupLat = pos.coords.latitude;
                 bodaPickupLng = pos.coords.longitude;
-                bodaMap.setView([bodaPickupLat, bodaPickupLng], 15);
+                bodaMap.setView([bodaPickupLat, bodaPickupLng], 16); // Zoom 16 ni nzuri sana kwa vijijini
                 
                 if (pickupMarker) bodaMap.removeLayer(pickupMarker);
                 pickupMarker = L.marker([bodaPickupLat, bodaPickupLng]).addTo(bodaMap);
@@ -2801,10 +2803,31 @@ async function fetchMyInbox() {
             }, err => {
                 showToast("Washa GPS ili kupata mahali ulipo otomatiki.");
                 document.getElementById('boda-pickup').value = "Haijapatikana (Washa GPS)";
-            }, { enableHighAccuracy: true, timeout: 10000 });
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         } else {
             showToast("Kifaa chako hakiauni GPS.");
         }
+
+        // MUHIMU: Ruhusu mtumiaji kubofya kwenye ramani kuweka alama ya mahili anaelekea!
+        // Hii inasaidia sana vijijini ambapo maeneo hayana majina kwenye map.
+        bodaMap.on('click', function(e) {
+            bodaDestLat = e.latlng.lat;
+            bodaDestLng = e.latlng.lng;
+            
+            // Ondoa alama ya zamani na weka mpya
+            if (destMarker) bodaMap.removeLayer(destMarker);
+            destMarker = L.marker([bodaDestLat, bodaDestLng]).addTo(bodaMap);
+            destMarker.bindPopup("<b>Unaenda hapa</b>").openPopup();
+            
+            document.getElementById('boda-dest').value = "Alama imewekwa kwenye Ramani";
+            
+            // Kama mahali ulipo (pickup) tayari yapo, hesabu nauli moja kwa moja!
+            if (bodaPickupLat && bodaPickupLng) {
+                updateRoute();
+            } else {
+                showToast("GPS ya mahali ulipo bado hajaanza. Subiri kidogo.");
+            }
+        });
         
         // Hakikisha ramani inajirekebisha kutegemea ukubwa wa screen
         setTimeout(() => { if(bodaMap) bodaMap.invalidateSize(); }, 300);
@@ -2813,16 +2836,25 @@ async function fetchMyInbox() {
     async function searchRouteAndFare() {
         const destText = document.getElementById('boda-dest').value.trim();
 
-        // Kama GPS bado haijapata location ya sasa
+        // Kama amebofya kwenye ramani, destLat tayari ipo, hivyo fanya update route tu
+        if (bodaDestLat && bodaDestLng && destText === "Alama imewekwa kwenye Ramani") {
+            if (bodaPickupLat && bodaPickupLng) {
+                updateRoute();
+            } else {
+                showToast("GPS ya mahali ulipo bado hajaanza. Subiri kidogo.");
+            }
+            return;
+        }
+
         if (!bodaPickupLat || !bodaPickupLng) {
             return showToast("GPS ya mahali ulipo bado hajaanza. Subiri kidogo au washa GPS.");
         }
-        if (!destText) return showToast("Weka mahali unaelekea");
+        if (!destText) return showToast("Weka mahali unaelekea au bofya kwenye ramani");
 
         try {
             document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div>';
             
-            // Tafuta mahali anaelekea kwenye mtandao (Geocoding)
+            // Tafuta mahali anaelekea kwenye mtandao (Kama ameandika jina)
             const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destText)}`);
             const data = await res.json();
             
@@ -2832,11 +2864,11 @@ async function fetchMyInbox() {
                 updateRoute(); // Ita function ya kujenga njia na kuhesabu nauli
             } else {
                 document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
-                showToast("Mahali hapatikani. Jaribu jina lingine.");
+                showToast("Mahali hapatikani kwa jina. Bofya kwenye ramani kukiweka.");
             }
         } catch(e) {
             document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
-            showToast("Kosa la mtandao kutafuta mahali.");
+            showToast("Kosa la mtandao. Bofya kwenye ramani kukiweka.");
         }
     }
 
@@ -2867,7 +2899,7 @@ async function fetchMyInbox() {
             const distance = routes[0].summary.totalDistance; // in meters
             const distanceKm = distance / 1000;
             
-            // Nauli: 1000 Tsh base + 500 Tsh kwa Kila Km (Unaweza kubadilisha hapa)
+            // Nauli: 1000 Tsh base + 500 Tsh kwa Kila Km
             bodaFareAmount = Math.round(1000 + (distanceKm * 500));
             
             document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
@@ -2881,7 +2913,7 @@ async function fetchMyInbox() {
             playBeep();
         });
     }
-    
+
     function proceedToPayment() {
         const html = `
             <div style="text-align:center; margin-bottom:20px;">
