@@ -2456,7 +2456,8 @@
                 fetchMyInbox(); 
             } catch(e) { openModal("Kosa", e.message); }
         });
-            async function fetchMyInbox() {
+
+async function fetchMyInbox() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         const div = document.getElementById('my-inbox-list');
         div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
@@ -2812,7 +2813,6 @@
         try {
             document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div>';
             
-            // Tafuta Destination
             if (!bodaDestLat && destText) {
                 const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destText)}`);
                 const data = await res.json();
@@ -2825,7 +2825,6 @@
                 }
             }
 
-            // Tafuta Pickup kama haipo (kama mtu amebadilisha)
             if (!bodaPickupLat && pickupText && pickupText !== "Mahali ulipo sasa (GPS)") {
                 const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pickupText)}`);
                 const data = await res.json();
@@ -2872,7 +2871,6 @@
             const distance = routes[0].summary.totalDistance; 
             const distanceKm = distance / 1000;
             
-            // Nauli: 1000 Tsh base + 500 Tsh kwa Kila Km
             bodaFareAmount = Math.round(1000 + (distanceKm * 500));
             
             document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
@@ -2967,7 +2965,6 @@
         sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle().then(({ data }) => {
             if(data) {
                 document.getElementById('boda-reg-box').style.display = 'none';
-                // Update driver location
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(async pos => {
                         try {
