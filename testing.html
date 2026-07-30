@@ -2772,15 +2772,20 @@ async function fetchMyInbox() {
         }
     });
 
-       // --- BODA BODA FUNCTIONS (GOOGLE MAPS STYLE) ---
+           // --- BODA BODA FUNCTIONS (GOOGLE MAPS STYLE) ---
     let bodaDirectionsService = null;
     let bodaDirectionsRenderer = null;
     let bodaFareAmount = 0;
     let autocompleteDest = null;
 
     function initBodaMap() {
+        // Kagua kama Google Maps imepakia vizuri
+        if (typeof google === 'undefined' || !document.getElementById("boda-map")) {
+            showToast("Google Maps haijapakia. Angalia mtandao wako.");
+            return;
+        }
+
         if (bodaMap) {
-            // Trigger resize if already exists
             google.maps.event.trigger(bodaMap, 'resize');
             return;
         }
@@ -2828,7 +2833,7 @@ async function fetchMyInbox() {
                 
                 document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
             }, err => {
-                showToast("Washa GPS ili kupata mahali ulipo otomatiki.");
+                showToast("GPS imekataa. Washa location kwenye settings ya simu.");
                 document.getElementById('boda-pickup').value = "Haijapatikana (Washa GPS)";
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         } else {
@@ -2879,7 +2884,6 @@ async function fetchMyInbox() {
     }
 
     async function searchRouteAndFare() {
-        // Kama amebofya kwenye ramani, destLat tayari ipo, hivyo fanya update route tu
         if (bodaDestLat && bodaDestLng && document.getElementById('boda-dest').value === "Alama imewekwa kwenye Ramani") {
             calculateRouteAndFare();
             return;
@@ -2891,7 +2895,6 @@ async function fetchMyInbox() {
         }
         if (!destText) return showToast("Weka mahali unaelekea au bofya kwenye ramani");
 
-        // Kama ameandika jina bila kuteua kwenye orodha, Google Geocoder itafute
         const geocoder = new google.maps.Geocoder();
         geocoder.geocode({ address: destText }, (results, status) => {
             if (status === "OK" && results[0]) {
@@ -2931,7 +2934,9 @@ async function fetchMyInbox() {
                 
                 playBeep();
             } else {
-                showToast("Imeshindwa kupata njia. Jaribu tena.");
+                // Hapa itatoa error hasa kama Billing haijawekwa au API haijawashwa
+                showToast("Kosa la Google Maps (Status: " + status + "). Angalia kama Billing imewekwa.");
+                console.error("Directions request failed due to " + status);
             }
         });
     }
