@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kitama Yetu | Civic Tech Platform</title>
-    <link href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -284,11 +284,26 @@
         .fb-reply-input-box { margin-left: 15px; margin-top: 5px; display: none; }
 
         /* BODA & FURSA CSS */
-        .boda-card { background: var(--surface); padding: 20px; border-radius: 20px; margin: 0 20px 15px 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); text-align: center; }
-        .boda-icon-big { width: 70px; height: 70px; background: rgba(16,185,129,0.1); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; }
-        .boda-status { padding: 12px; border-radius: 12px; margin-top: 15px; font-weight: 700; display: none; }
+        .boda-sec { padding: 0; margin: 0; max-width: 480px; background: var(--bg); min-height: 100vh; position: relative; }
+        #boda-map { height: 60vh; width: 100%; position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 1; background: var(--bg); }
+        .boda-sheet { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--surface); border-radius: 24px 24px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); padding: 20px; z-index: 101; max-height: 45vh; overflow-y: auto; }
+        .boda-input-group { position: relative; margin-bottom: 15px; }
+        .boda-input-line { position: absolute; left: 23px; top: 18px; height: 24px; width: 2px; background: var(--border); z-index: 0; }
+        .boda-input-wrap { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+        .boda-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .boda-dot.green { background: var(--accent); }
+        .boda-dot.red { background: var(--danger); }
+        .boda-input { border: none; background: none; outline: none; width: 100%; font-size: 15px; color: var(--text); font-family: inherit; }
+        .fare-box { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 15px; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); }
+        .fare-price { font-size: 22px; font-weight: 800; color: var(--accent); }
+        .boda-icon-small { width: 40px; height: 40px; background: rgba(16,185,129,0.1); color: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .btn-bolt { background: var(--accent); color: white; font-size: 16px; padding: 18px; border-radius: 12px; margin-top: 0; width: 100%; border: none; cursor: pointer; font-weight: 700; }
+        .btn-bolt-cancel { background: var(--danger); color: white; font-size: 16px; padding: 18px; border-radius: 12px; margin-top: 10px; width: 100%; border: none; cursor: pointer; font-weight: 700; }
+        .btn-bolt-back { background: var(--bg); color: var(--text-sec); font-size: 14px; padding: 12px; border-radius: 12px; margin-top: 5px; width: 100%; border: 1px solid var(--border); cursor: pointer; font-weight: 600; }
+        .boda-status { padding: 15px; border-radius: 12px; margin-top: 15px; font-weight: 700; text-align: center; display: none; }
         .boda-status.searching { background: #FEF3C7; color: #D97706; display: block; animation: pulse 1.5s infinite; }
         .boda-status.accepted { background: #D1FAE5; color: #059669; display: block; }
+        .leaflet-routing-container { display: none !important; } 
         
         .opp-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-md); border: 1px solid var(--border); overflow: hidden; margin: 0 20px 15px 20px; }
         .opp-img { width: 100%; height: 180px; object-fit: cover; background: var(--bg); }
@@ -311,28 +326,8 @@
         .opp-poster-title { font-size: 22px; font-weight: 800; margin-bottom: 10px; padding: 0 20px; }
         .opp-poster-desc { font-size: 14px; opacity: 0.9; line-height: 1.6; white-space: pre-wrap; padding: 0 20px; }
         .opp-poster-meta { display: flex; gap: 15px; margin-top: 15px; padding: 15px 20px 0 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; opacity: 0.8; flex-wrap: wrap; }
-    
-            /* BOLT STYLE BODA CSS */
-        .boda-sec { padding: 0; margin: 0; max-width: 480px; background: var(--bg); min-height: 100vh; position: relative; }
-        #boda-map { height: 60vh; width: 100%; position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 1; background: var(--bg); }
-        .boda-sheet { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--surface); border-radius: 24px 24px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); padding: 20px; z-index: 101; max-height: 45vh; overflow-y: auto; }
-        .boda-input-group { position: relative; margin-bottom: 15px; }
-        .boda-input-line { position: absolute; left: 23px; top: 18px; height: 24px; width: 2px; background: var(--border); z-index: 0; }
-        .boda-input-wrap { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
-        .boda-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-        .boda-dot.green { background: var(--accent); }
-        .boda-dot.red { background: var(--danger); }
-        .boda-input { border: none; background: none; outline: none; width: 100%; font-size: 15px; color: var(--text); font-family: inherit; }
-        .fare-box { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 15px; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); }
-        .fare-price { font-size: 22px; font-weight: 800; color: var(--accent); }
-        .boda-icon-small { width: 40px; height: 40px; background: rgba(16,185,129,0.1); color: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .btn-bolt { background: var(--accent); color: white; font-size: 16px; padding: 18px; border-radius: 12px; margin-top: 0; width: 100%; border: none; cursor: pointer; font-weight: 700; }
-        .btn-bolt-cancel { background: var(--danger); color: white; font-size: 16px; padding: 18px; border-radius: 12px; margin-top: 10px; width: 100%; border: none; cursor: pointer; font-weight: 700; }
-        .btn-bolt-back { background: var(--bg); color: var(--text-sec); font-size: 14px; padding: 12px; border-radius: 12px; margin-top: 5px; width: 100%; border: 1px solid var(--border); cursor: pointer; font-weight: 600; }
-        .boda-status { padding: 15px; border-radius: 12px; margin-top: 15px; font-weight: 700; text-align: center; display: none; }
-        .boda-status.searching { background: #FEF3C7; color: #D97706; display: block; animation: pulse 1.5s infinite; }
-        .boda-status.accepted { background: #D1FAE5; color: #059669; display: block; }
-        .leaflet-routing-container { display: none !important; } /* Ficha instructions za ramani */
+        
+        .driver-priority-badge { background: #D1FAE5; color: #059669; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; margin-top: 5px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -415,7 +410,7 @@
         <div id="home-sec" class="sec active"><div id="home-content"></div></div>
         <div id="hub-sec" class="sec"><div class="sec-h"><h2>Mchanganyiko wa Habari</h2><span onclick="fetchHub()">Refresh</span></div><div id="hub-list"></div></div>
                
-                <!-- BODA HAILING SECTION (BOLT STYLE) -->
+        <!-- BODA HAILING SECTION (BOLT STYLE) -->
         <div id="boda-sec" class="sec boda-sec">
             <div id="boda-map"></div>
             <div class="boda-sheet" id="boda-sheet">
@@ -447,7 +442,7 @@
                 </div>
 
                 <button onclick="searchRouteAndFare()" class="btn-bolt" id="btn-boda-search">Tafuta Nauli</button>
-                <button onclick="requestBoda()" class="btn-bolt" id="btn-boda-confirm" style="display:none;">Ita Boda Sasa</button>
+                <button onclick="proceedToPayment()" class="btn-bolt" id="btn-boda-confirm" style="display:none;">Endelea</button>
                 
                 <div id="boda-status-box" class="boda-status"></div>
                 <button onclick="cancelBodaRide()" class="btn-bolt-cancel" id="btn-boda-cancel" style="display:none;">Futa Ombi</button>
@@ -761,6 +756,8 @@
     let pickupMarker = null;
     let destMarker = null;
     let bodaRouteLine = null;
+    let bodaPickupLat = null, bodaPickupLng = null;
+    let bodaDestLat = null, bodaDestLng = null;
     
     const BAD_WORDS = ['litoko', 'kuma', 'matako', 'ushenzi', 'pumbu', 'mpumbavu', 'pumbavu', 'nikutombe', 'kumamako', 'kumamayo', 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumamyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge', 'fuck', 'shit', 'asshole', 'bitch', 'idiot'];
     function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
@@ -937,7 +934,7 @@
                   if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'accepted') {
                       document.getElementById('boda-status-box').className = 'boda-status accepted';
                       let waPhone = payload.new.driver_phone.replace(/^0/, '255');
-                      document.getElementById('boda-status-box').innerHTML = `✅ Dereva <b>${payload.new.driver_name}</b> amekubali! <br><br> Piga: <a href="tel:${payload.new.driver_phone}" style="color:var(--accent); font-weight:800;">${payload.new.driver_phone}</a>`;
+                      document.getElementById('boda-status-box').innerHTML = `✅ Dereva <b>${payload.new.driver_name}</b> amekubali! <br><br> Nauli: ${payload.new.fare.toLocaleString()} Tsh (${payload.new.payment_method.toUpperCase()}) <br><br> Piga: <a href="tel:${payload.new.driver_phone}" style="color:var(--accent); font-weight:800;">${payload.new.driver_phone}</a>`;
                   }
                   if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
               })
@@ -1071,7 +1068,6 @@
 
     async function checkActivistStatus(u) {
         if (u.is_activist || u.role !== 'citizen') return;
-
         try {
             const createdAt = new Date(u.created_at).getTime();
             const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
@@ -1324,7 +1320,7 @@
         if(id==='boda-sec') { checkDriverStatus(); setTimeout(() => initBodaMap(), 100); }
         if(id==='boda-driver-sec') fetchBodaRequests();
         if(id==='opportunities-sec') fetchOpportunities();
-      
+
         if(id==='campaign-sec' && (u.role === 'mtendaji_kata' || u.role === 'diwani' || u.role === 'system_admin')) document.getElementById('project-form-box').style.display = 'block';
         if(id==='solidarity-sec' && u.role === 'citizen' && u.status === 'active') document.getElementById('cause-form-box').style.display = 'block';
         if(id==='events-sec' && u.role !== 'citizen') document.getElementById('event-form-box').style.display = 'block';
@@ -1701,7 +1697,7 @@
                     let badgeHtml = getActivistBadgeForPhone(c.sender_phone, c);
                     let displayNameWithBadge = isSelf ? 'Wewe' : c.sender_name + ' ' + badgeHtml;
                     
-                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayNameWithBadge}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
+                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayNameWithBadge}</b>${replyHtml><p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
                 });
             } else {
                 chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
@@ -2167,7 +2163,7 @@
                 </div>
             `;
             
-            let markSoldBtn = isOwner && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--text-sec); border:1px solid var(--border);">${ICONS.check} Weka Alama ya Imeuzwa</button>` : '';
+            let markSoldBtn = isOwner && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--text-sec); border: 1px solid var(--border);">${ICONS.check} Weka Alama ya Imeuzwa</button>` : '';
             
             let shopBadge = m.shop_id ? `<div style="display:inline-block; margin-bottom:10px; background:var(--bg); padding:5px 10px; border-radius:8px; font-size:12px; font-weight:700; color:var(--accent); cursor:pointer;" onclick="closeModal(); viewShopById('${m.shop_id}')">${ICONS.store} ${m.shop_name || 'Duka'}</div>` : '';
 
@@ -2460,9 +2456,7 @@
                 fetchMyInbox(); 
             } catch(e) { openModal("Kosa", e.message); }
         });
-    }
-
-    async function fetchMyInbox() {
+            async function fetchMyInbox() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         const div = document.getElementById('my-inbox-list');
         div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
@@ -2776,36 +2770,36 @@
         }
     });
 
-        // --- BODA BODA FUNCTIONS (BOLT STYLE) ---
+    // --- BODA BODA FUNCTIONS (BOLT STYLE) ---
     let bodaRoutingControl = null;
     let bodaFareAmount = 0;
-    
+
     function initBodaMap() {
         if (bodaMap) {
-            bodaMap.invalidateSize();
+            setTimeout(() => { bodaMap.invalidateSize(); }, 200);
             return;
         }
+        
         bodaMap = L.map('boda-map').setView([-6.2, 35.0], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(bodaMap);
 
-        // Pata location ya sasa auto
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(pos => {
                 bodaPickupLat = pos.coords.latitude;
                 bodaPickupLng = pos.coords.longitude;
                 bodaMap.setView([bodaPickupLat, bodaPickupLng], 15);
+                
+                if (pickupMarker) bodaMap.removeLayer(pickupMarker);
+                pickupMarker = L.marker([bodaPickupLat, bodaPickupLng]).addTo(bodaMap);
+                pickupMarker.bindPopup("<b>Wapo hapa (Pickup)</b>").openPopup();
+                
                 document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
             }, err => {
-                showToast("Washa GPS ili kupata mahali ulipo.");
+                showToast("Washa GPS ili kupata mahali ulipo otomatiki.");
             }, { enableHighAccuracy: true });
+        } else {
+            showToast("Kifaa chako hakiauni GPS.");
         }
-
-        //bofya kwenye ramani kuweka destination
-        bodaMap.on('click', function(e) {
-            bodaDestLat = e.latlng.lat;
-            bodaDestLng = e.latlng.lng;
-            document.getElementById('boda-dest').value = `${bodaDestLat.toFixed(4)}, ${bodaDestLng.toFixed(4)}`;
-        });
     }
 
     async function searchRouteAndFare() {
@@ -2815,33 +2809,45 @@
         if (!pickupText) return showToast("Weka mahali unaondokia");
         if (!destText) return showToast("Weka mahali unaelekea");
 
-        // Kama anwani imeandikwa, tafuta kwenye map (Geocoding)
-        if (!bodaDestLat && destText) {
-            try {
-                showToast("Inatafuta mahali...");
+        try {
+            document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div>';
+            
+            // Tafuta Destination
+            if (!bodaDestLat && destText) {
                 const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destText)}`);
                 const data = await res.json();
                 if (data && data.length > 0) {
                     bodaDestLat = parseFloat(data[0].lat);
                     bodaDestLng = parseFloat(data[0].lon);
                 } else {
-                    return showToast("Mahali hapatikani. Jaribu jina lingine au bofya kwenye ramani.");
+                    document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+                    return showToast("Mahali hapatikani. Jaribu jina lingine.");
                 }
-            } catch(e) {
-                return showToast("Kosa la mtandao kutafuta mahali.");
             }
-        }
 
-        if (bodaPickupLat && bodaDestLat) {
-            updateRoute();
-        } else {
-            showToast("Hakikisha unaweka majina sahihi au bofya kwenye ramani");
+            // Tafuta Pickup kama haipo (kama mtu amebadilisha)
+            if (!bodaPickupLat && pickupText && pickupText !== "Mahali ulipo sasa (GPS)") {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pickupText)}`);
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    bodaPickupLat = parseFloat(data[0].lat);
+                    bodaPickupLng = parseFloat(data[0].lon);
+                }
+            }
+
+            if (bodaPickupLat && bodaDestLat) {
+                updateRoute();
+            } else {
+                document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+                showToast("GPS ya mahali ulipo bado hajaanza. Subiri kidogo.");
+            }
+        } catch(e) {
+            document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+            showToast("Kosa la mtandao kutafuta mahali.");
         }
     }
 
     function updateRoute() {
-        if (!bodaMap || !bodaPickupLat || !bodaDestLat) return;
-
         if (bodaRoutingControl) {
             bodaMap.removeControl(bodaRoutingControl);
         }
@@ -2863,26 +2869,56 @@
 
         bodaRoutingControl.on('routesfound', function(e) {
             const routes = e.routes;
-            const distance = routes[0].summary.totalDistance; // in meters
+            const distance = routes[0].summary.totalDistance; 
             const distanceKm = distance / 1000;
             
-            // Hesabu ya Nauli (Bolt style) - Mfano: 1000 Tsh base + 500 Tsh kwa Km
-            const baseFare = 1000; 
-            const perKmRate = 500; 
-            bodaFareAmount = Math.round(baseFare + (distanceKm * perKmRate));
+            // Nauli: 1000 Tsh base + 500 Tsh kwa Kila Km
+            bodaFareAmount = Math.round(1000 + (distanceKm * 500));
             
             document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
             document.getElementById('boda-fare-details').style.display = 'block';
             document.getElementById('btn-boda-confirm').style.display = 'block';
             document.getElementById('btn-boda-search').style.display = 'none';
+            document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
             
             playBeep();
         });
     }
 
-    async function requestBoda() {
+    function proceedToPayment() {
+        const html = `
+            <div style="text-align:center; margin-bottom:20px;">
+                <h3 style="font-size:24px; font-weight:800; color:var(--text);">Nauli: ${bodaFareAmount.toLocaleString()} Tsh</h3>
+                <p style="color:var(--text-sec); font-size:13px;">Chagua mode ya malipo</p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button onclick="confirmPaymentAndRequest('cash')" style="background:var(--bg); border:2px solid var(--accent); padding:15px; border-radius:12px; display:flex; align-items:center; gap:15px; cursor:pointer;">
+                    <div style="width:40px; height:40px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                    </div>
+                    <div style="text-align:left;">
+                        <b style="color:var(--text); font-size:15px;">Cash (Fedha)</b><br>
+                        <small style="color:var(--text-sec); font-size:12px;">Lipa kwa mkono kwa dereva</small>
+                    </div>
+                </button>
+                <button onclick="showToast('Huduma hii bado haijawekwa. Tumia Cash.')" style="background:var(--bg); border:2px solid var(--border); padding:15px; border-radius:12px; display:flex; align-items:center; gap:15px; cursor:pointer; opacity:0.6;">
+                    <div style="width:40px; height:40px; background:var(--text-sec); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    </div>
+                    <div style="text-align:left;">
+                        <b style="color:var(--text-sec); font-size:15px;">Mtandao (M-Pesa)</b><br>
+                        <small style="color:var(--text-sec); font-size:12px;">Huduma haitumiki kwa sasa</small>
+                    </div>
+                </button>
+            </div>
+        `;
+        openModal("Chagua Malipo", html, false);
+    }
+
+    async function confirmPaymentAndRequest(method) {
+        closeModal();
         const u = JSON.parse(localStorage.getItem('kitama_user'));
-        if (!bodaPickupLat || !bodaDestLat) return showToast("Tafuta njia na nauli kwanza.");
+        if (!bodaPickupLat || !bodaDestLat) return showToast("Tafuta njia na nauli kwanma.");
         
         const btn = document.getElementById('btn-boda-confirm'); btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
         try {
@@ -2894,17 +2930,18 @@
                 dest_lat: bodaDestLat.toString(),
                 dest_lng: bodaDestLng.toString(),
                 fare: bodaFareAmount,
+                payment_method: method,
                 status: 'searching' 
             }]).select().single();
             if(error) throw error;
             
             document.getElementById('boda-status-box').className = 'boda-status searching';
-            document.getElementById('boda-status-box').innerHTML = '🔍 Tunatafuta dereva wako...';
+            document.getElementById('boda-status-box').innerHTML = `🔍 Tunatafuta dereva wako... <br><small>Nauli: ${bodaFareAmount.toLocaleString()} Tsh (${method.toUpperCase()})</small>`;
             document.getElementById('btn-boda-cancel').style.display = 'block';
             btn.style.display = 'none';
             document.getElementById('boda-fare-details').style.display = 'none';
             
-        } catch(e) { openModal("Kosa", e.message); btn.disabled = false; btn.innerHTML = 'Ita Boda Sasa'; }
+        } catch(e) { openModal("Kosa", e.message); btn.disabled = false; btn.innerHTML = 'Endelea'; }
     }
 
     async function cancelBodaRide() {
@@ -2930,6 +2967,14 @@
         sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle().then(({ data }) => {
             if(data) {
                 document.getElementById('boda-reg-box').style.display = 'none';
+                // Update driver location
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(async pos => {
+                        try {
+                            await sb.from('boda_drivers').update({ lat: pos.coords.latitude.toString(), lng: pos.coords.longitude.toString() }).eq('phone', u.phone_number);
+                        } catch(e) {}
+                    });
+                }
             }
         });
     }
@@ -2950,22 +2995,67 @@
         const div = document.getElementById('boda-requests-list');
         div.innerHTML = '<div class="skeleton" style="height:80px; margin-bottom:10px;"></div>';
         try {
-            const { data, error } = await sb.from('boda_requests').select('*').eq('status', 'searching').order('created_at', { ascending: false });
+            const { data: reqs, error } = await sb.from('boda_requests').select('*').eq('status', 'searching').order('created_at', { ascending: false });
+            const { data: drivers, error: dErr } = await sb.from('boda_drivers').select('lat, lng, phone');
+            
             if(error) throw error;
-            div.innerHTML = data.length > 0 ? data.map(r => `
-                <div class="list-i" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <b>${r.rider_name}</b><br>
-                        <small>📍 Anaelekea: ${r.dest_lat.substring(0,5)}... ${r.dest_lng.substring(0,5)}...</small><br>
-                        <small>Nauli: <b style="color:var(--accent);">${r.fare ? r.fare.toLocaleString() : 'Agana'} Tsh</b></small>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:5px;">
-                        <button onclick="viewBodaLocation('${r.id}', '${r.pickup_lat}', '${r.pickup_lng}', '${r.dest_lat}', '${r.dest_lng}')" class="m-btn m-btn-secondary" style="flex:none; padding:8px 12px; font-size:11px;">Ramani</button>
-                        <button onclick="acceptBoda('${r.id}', '${r.rider_phone}')" class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:11px;">Kubali</button>
-                    </div>
-                </div>
-            `).join('') : '<p style="color:var(--text-sec); text-align:center;">Hakuna maombi ya boda sasa.</p>';
+            if(dErr) throw dErr;
+
+            let html = '';
+            if (reqs.length > 0) {
+                html = reqs.map(r => {
+                    let priorityBadge = '';
+                    let distText = '';
+
+                    if (drivers && drivers.length > 0) {
+                        const nearbyDrivers = drivers.map(d => {
+                            if (!d.lat || !d.lng) return { ...d, dist: Infinity };
+                            const dist = getDistance(parseFloat(r.pickup_lat), parseFloat(r.pickup_lng), parseFloat(d.lat), parseFloat(d.lng));
+                            return { ...d, dist };
+                        }).sort((a, b) => a.dist - b.dist);
+
+                        if (nearbyDrivers.length > 0 && nearbyDrivers[0].dist !== Infinity) {
+                            const nearest = nearbyDrivers[0];
+                            distText = `Karibu ${nearest.dist.toFixed(1)} km`;
+                            const u = JSON.parse(localStorage.getItem('kitama_user'));
+                            if (nearest.phone === u.phone_number) {
+                                priorityBadge = `<span class="driver-priority-badge">Karumi Nawe! (${nearest.dist.toFixed(1)} km)</span>`;
+                            } else {
+                                priorityBadge = `<span class="driver-priority-badge">Karibu Zaidi: ${nearest.dist.toFixed(1)} km</span>`;
+                            }
+                        }
+                    }
+
+                    return `
+                    <div class="list-i" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <b>${r.rider_name}</b><br>
+                            <small>Nauli: <b style="color:var(--accent);">${r.fare ? r.fare.toLocaleString() : 'Agana'} Tsh (${r.payment_method ? r.payment_method.toUpperCase() : 'CASH'})</b></small><br>
+                            ${priorityBadge}<br>
+                            <small>Simu: ${r.rider_phone}</small>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:5px;">
+                            <button onclick="viewBodaLocation('${r.id}', '${r.pickup_lat}', '${r.pickup_lng}', '${r.dest_lat}', '${r.dest_lng}')" class="m-btn m-btn-secondary" style="flex:none; padding:8px 12px; font-size:11px;">Ramani</button>
+                            <button onclick="acceptBoda('${r.id}', '${r.rider_phone}')" class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:11px;">Kubali</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } else {
+                html = '<p style="color:var(--text-sec); text-align:center;">Hakuna maombi ya boda sasa.</p>';
+            }
+            div.innerHTML = html;
         } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+    }
+
+    function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 
     function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
@@ -3094,9 +3184,9 @@
 
     function viewImage(url) {
         openModal("Picha ya Tangazo", `<img src="${url}" style="width:100%; border-radius:12px;">`, false);
-         }
+    }
 
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
 </body>
-  </html>
+</html>
