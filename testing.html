@@ -7,8 +7,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-       <!-- GOOGLE MAPS API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD7kK5C6gMnsGT8PP484AQQI60T4X7ZUGg&libraries=places"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <style>
         :root {
             --primary: #0F172A; --accent: #10B981; --accent-dark: #059669;
@@ -2772,194 +2774,135 @@ async function fetchMyInbox() {
         }
     });
 
-           // --- BODA BODA FUNCTIONS (GOOGLE MAPS STYLE) ---
-    let bodaDirectionsService = null;
-    let bodaDirectionsRenderer = null;
+       // --- BODA BODA FUNCTIONS (OPENSTREETMAP STYLE) ---
+    let bodaRoutingControl = null;
     let bodaFareAmount = 0;
-    let autocompleteDest = null;
 
-        
-            function initBodaMap() {
-        if (typeof google === 'undefined' || !document.getElementById("boda-map")) {
-            showToast("Google Maps haijapakia. Angalia mtandao.");
-            return;
-        }
-
+    function initBodaMap() {
         if (bodaMap) {
-            google.maps.event.trigger(bodaMap, 'resize');
+            setTimeout(() => { bodaMap.invalidateSize(); }, 200);
             return;
         }
+        
+        bodaMap = L.map('boda-map', { zoomControl: true }).setView([-6.2, 35.0], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(bodaMap);
 
-        bodaMap = new google.maps.Map(document.getElementById("boda-map"), {
-            center: { lat: -6.2, lng: 35.0 },
-            zoom: 13,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false
-        });
+        findMyLocation();
 
-        bodaDirectionsService = new google.maps.DirectionsService();
-        bodaDirectionsRenderer = new google.maps.DirectionsRenderer({
-            suppressMarkers: true, 
-            polylineOptions: { strokeColor: "#10B981", strokeWeight: 6 }
-        });
-        bodaDirectionsRenderer.setMap(bodaMap);
-
-        // Subiri ramani ipakie vizuri kwanza (idle) ndipo uanze kutafuta GPS
-        google.maps.event.addListenerOnce(bodaMap, 'idle', () => {
-            findMyLocation();
-        });
-
-        // Bofya kwenye ramani kuweka alama ya mahali unaelekea
-        bodaMap.addListener("click", (e) => {
-            bodaDestLat = e.latLng.lat();
-            bodaDestLng = e.latLng.lng();
-            setDestinationMarker();
-            calculateRouteAndFare();
-        });
-
-        // Auto-complete unapoandika mahali unaelekea
-        const destInput = document.getElementById("boda-dest");
-        autocompleteDest = new google.maps.places.Autocomplete(destInput);
-        autocompleteDest.addListener("place_changed", () => {
-            const place = autocompleteDest.getPlace();
-            if (!place.geometry) {
-                showToast("Mahali hapatikana kwa jina. Bofya kwenye ramani.");
-                return;
-            }
-            bodaDestLat = place.geometry.location.lat();
-            bodaDestLng = place.geometry.location.lng();
-            setDestinationMarker();
-            calculateRouteAndFare();
+        // Ruhusu mtumiaji kubofya kwenye ramani kuweka alama ya mahali anaelekea
+        bodaMap.on('click', function(e) {
+            bodaDestLat = e.latlng.lat;
+            bodaDestLng = e.latlng.lng;
+            
+            if (destMarker) bodaMap.removeLayer(destMarker);
+            destMarker = L.marker([bodaDestLat, bodaDestLng]).addTo(bodaMap);
+            destMarker.bindPopup("<b>Unaenda hapa</b>").openPopup();
+            
+            document.getElementById('boda-dest').value = "Alama imewekwa kwenye Ramani";
+            updateRoute();
         });
     }
 
-        function findMyLocation() {
+    function findMyLocation() {
         if (!navigator.geolocation) {
             showToast("Kifaa chako hakiauni GPS.");
             return;
         }
 
-        showToast("Inatafuta eneo lako... Subiri");
+        document.getElementById('boda-pickup').value = "Inatafuta eneo lako...";
         navigator.geolocation.getCurrentPosition(pos => {
             bodaPickupLat = pos.coords.latitude;
             bodaPickupLng = pos.coords.longitude;
-            const posLatLng = { lat: bodaPickupLat, lng: bodaPickupLng };
             
-            bodaMap.setCenter(posLatLng);
-            bodaMap.setZoom(16);
+            bodaMap.setView([bodaPickupLat, bodaPickupLng], 15);
             
-            if (pickupMarker) pickupMarker.setMap(null);
-            pickupMarker = new google.maps.Marker({
-                position: posLatLng,
-                map: bodaMap,
-                title: "Wapo hapa",
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 12,
-                    fillColor: "#007BFF",
-                    fillOpacity: 1,
-                    strokeColor: "white",
-                    strokeWeight: 3
-                }
-            });
+            if (pickupMarker) bodaMap.removeLayer(pickupMarker);
+            pickupMarker = L.marker([bodaPickupLat, bodaPickupLng]).addTo(bodaMap);
+            pickupMarker.bindPopup("<b>Wapo hapa (Pickup)</b>").openPopup();
+            
             document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
-            showToast("Eneo limepatikana!");
-            
         }, err => {
-            // Kama GPS ikishindwa kupatikana, tumia eneo la Kitama (Default) ili mtumiaji aendelee kufanya kazi
-            showToast("GPS haipatikani. Tumia kitufe cha 📍 au weka alama kwenye ramani.");
-            document.getElementById('boda-pickup').value = "GPS haijawashwa (Weka alama kwenye ramani)";
-            
-            // Set default center to Kitama roughly so map isn't blank
-            bodaMap.setCenter({ lat: -6.2447, lng: 35.0359 }); // lat/lng ya takribani Kitama
-            bodaMap.setZoom(14);
+            showToast("GPS imekataa. Washa location kwenye simu yako.");
+            document.getElementById('boda-pickup').value = "GPS haijawashwa";
         }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-        }
-
-    function setDestinationMarker() {
-        const destLatLng = { lat: bodaDestLat, lng: bodaDestLng };
-        if (destMarker) destMarker.setMap(null);
-        destMarker = new google.maps.Marker({
-            position: destLatLng,
-            map: bodaMap,
-            title: "Unaenda hapa",
-            icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 10,
-                fillColor: "#EF4444",
-                fillOpacity: 1,
-                strokeColor: "white",
-                strokeWeight: 2
-            }
-        });
-        document.getElementById('boda-dest').value = "Alama imewekwa kwenye Ramani";
     }
 
     async function searchRouteAndFare() {
+        // Kama amebofya kwenye ramani, destLat tayari ipo, fanya update route tu
         if (bodaDestLat && bodaDestLng && document.getElementById('boda-dest').value === "Alama imewekwa kwenye Ramani") {
-            calculateRouteAndFare();
+            updateRoute();
             return;
         }
 
         const destText = document.getElementById('boda-dest').value.trim();
-        if (!bodaPickupLat || !bodaPickupLng) {
-            return showToast("GPS ya mahali ulipo bado hajaanza. Subiri kidogo.");
-        }
+        if (!bodaPickupLat || !bodaPickupLng) return showToast("GPS ya mahali ulipo bado hajaanza. Subiri kidogo.");
         if (!destText) return showToast("Weka mahali unaelekea au bofya kwenye ramani");
 
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ address: destText }, (results, status) => {
-            if (status === "OK" && results[0]) {
-                bodaDestLat = results[0].geometry.location.lat();
-                bodaDestLng = results[0].geometry.location.lng();
-                setDestinationMarker();
-                calculateRouteAndFare();
+        try {
+            document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div>';
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destText)}`);
+            const data = await res.json();
+            
+            if (data && data.length > 0) {
+                bodaDestLat = parseFloat(data[0].lat);
+                bodaDestLng = parseFloat(data[0].lon);
+                
+                if (destMarker) bodaMap.removeLayer(destMarker);
+                destMarker = L.marker([bodaDestLat, bodaDestLng]).addTo(bodaMap);
+                destMarker.bindPopup("<b>Unaenda hapa</b>").openPopup();
+                
+                updateRoute();
             } else {
-                showToast("Mahali hapatikana. Bofya kwenye ramani kukiweka.");
+                document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+                showToast("Mahali hapatikana kwa jina. Bofya kwenye ramani kukiweka.");
             }
-        });
+        } catch(e) {
+            document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+            showToast("Kosa la mtandao. Bofya kwenye ramani kukiweka.");
+        }
     }
 
-    function calculateRouteAndFare() {
-        if (!bodaPickupLat || !bodaDestLat) {
-            return showToast("Weka mahali ulipo na mahali unaelekea kwanza.");
+    function updateRoute() {
+        if (!bodaPickupLat || !bodaDestLat) return;
+
+        if (bodaRoutingControl) {
+            bodaMap.removeControl(bodaRoutingControl);
         }
 
-        const request = {
-            origin: { lat: bodaPickupLat, lng: bodaPickupLng },
-            destination: { lat: bodaDestLat, lng: bodaDestLng },
-            travelMode: 'DRIVING'
-        };
-
-        bodaDirectionsService.route(request, (result, status) => {
-            if (status === "OK") {
-                bodaDirectionsRenderer.setDirections(result);
-                const distance = result.routes[0].legs[0].distance.value; // in meters
-                const distanceKm = distance / 1000;
-                
-                bodaFareAmount = Math.round(1000 + (distanceKm * 500));
-                
-                document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
-                document.getElementById('boda-fare-details').style.display = 'block';
-                document.getElementById('btn-boda-confirm').style.display = 'block';
-                document.getElementById('btn-boda-search').style.display = 'none';
-                document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
-                
-                playBeep();
-            } else {
-                // Hii itakupa sababu halisi kama imeshindwa kutoa njia
-                let errMsg = "Kosa la Njia: " + status;
-                if (status === "REQUEST_DENIED") errMsg += " (Angalia kama Billing imewekwa Google Cloud)";
-                if (status === "ZERO_RESULTS") errMsg = "Hakuna njia ya gari kati ya maeneo haya";
-                showToast(errMsg);
-                console.error("Directions request failed due to " + status);
+        bodaRoutingControl = L.Routing.control({
+            waypoints: [
+                L.latLng(bodaPickupLat, bodaPickupLng),
+                L.latLng(bodaDestLat, bodaDestLng)
+            ],
+            routeWhileDragging: false,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            show: false, 
+            lineOptions: {
+                styles: [{color: '#10B981', opacity: 0.9, weight: 6}]
             }
+        }).addTo(bodaMap);
+
+        bodaRoutingControl.on('routesfound', function(e) {
+            const routes = e.routes;
+            const distance = routes[0].summary.totalDistance; // in meters
+            const distanceKm = distance / 1000;
+            
+            // Nauli: 1000 Tsh base + 500 Tsh kwa Kila Km
+            bodaFareAmount = Math.round(1000 + (distanceKm * 500));
+            
+            document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
+            document.getElementById('boda-fare-details').style.display = 'block';
+            document.getElementById('btn-boda-confirm').style.display = 'block';
+            document.getElementById('btn-boda-search').style.display = 'none';
+            document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+            
+            playBeep();
         });
     }
-
-
-    function proceedToPayment() {
+    
+        function proceedToPayment() {
         const html = `
             <div style="text-align:center; margin-bottom:20px;">
                 <h3 style="font-size:24px; font-weight:800; color:var(--text);">Nauli: ${bodaFareAmount.toLocaleString()} Tsh</h3>
@@ -3029,8 +2972,11 @@ async function fetchMyInbox() {
         document.getElementById('boda-fare-details').style.display = 'none';
         document.getElementById('btn-boda-confirm').style.display = 'none';
         bodaDestLat = null; bodaDestLng = null;
-        if (bodaDirectionsRenderer) bodaDirectionsRenderer.setDirections({ routes: [] });
-        if (destMarker) destMarker.setMap(null);
+        if (bodaRoutingControl) {
+            bodaMap.removeControl(bodaRoutingControl);
+            bodaRoutingControl = null;
+        }
+        if (destMarker) { bodaMap.removeLayer(destMarker); destMarker = null; }
         showToast("Ombi limefutwa.");
     }
 
@@ -3076,8 +3022,6 @@ async function fetchMyInbox() {
             if (reqs.length > 0) {
                 html = reqs.map(r => {
                     let priorityBadge = '';
-                    let distText = '';
-
                     if (drivers && drivers.length > 0) {
                         const nearbyDrivers = drivers.map(d => {
                             if (!d.lat || !d.lng) return { ...d, dist: Infinity };
@@ -3087,7 +3031,6 @@ async function fetchMyInbox() {
 
                         if (nearbyDrivers.length > 0 && nearbyDrivers[0].dist !== Infinity) {
                             const nearest = nearbyDrivers[0];
-                            distText = `Karibu ${nearest.dist.toFixed(1)} km`;
                             const u = JSON.parse(localStorage.getItem('kitama_user'));
                             if (nearest.phone === u.phone_number) {
                                 priorityBadge = `<span class="driver-priority-badge">Karumi Nawe! (${nearest.dist.toFixed(1)} km)</span>`;
@@ -3132,56 +3075,27 @@ async function fetchMyInbox() {
     function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
         openModal("Ramani ya Ombi", `<div id="boda-req-map-${reqId}" style="height: 300px; width: 100%; border-radius: 12px;"></div>`, false);
         setTimeout(() => {
-            const reqMap = new google.maps.Map(document.getElementById(`boda-req-map-${reqId}`), {
-                center: { lat: parseFloat(pLat), lng: parseFloat(pLng) },
-                zoom: 14
-            });
+            const reqMap = L.map(`boda-req-map-${reqId}`).setView([parseFloat(pLat), parseFloat(pLng)], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(reqMap);
             
-            new google.maps.Marker({
-                position: { lat: parseFloat(pLat), lng: parseFloat(pLng) },
-                map: reqMap,
-                title: "Abiria yupo hapa",
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 10,
-                    fillColor: "#10B981",
-                    fillOpacity: 1,
-                    strokeColor: "white",
-                    strokeWeight: 2
-                }
-            });
+            L.Routing.control({
+                waypoints: [
+                    L.latLng(parseFloat(pLat), parseFloat(pLng)),
+                    L.latLng(parseFloat(dLat), parseFloat(dLng))
+                ],
+                routeWhileDragging: false,
+                addWaypoints: false,
+                draggableWaypoints: false,
+                fitSelectedRoutes: true,
+                show: false,
+                lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
+            }).addTo(reqMap);
+
+            const pickupIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot"></div>', iconSize: [20, 20]});
+            L.marker([parseFloat(pLat), parseFloat(pLng)], {icon: pickupIcon}).addTo(reqMap).bindPopup("<b>Abiria yupo hapa</b>").openPopup();
             
-            new google.maps.Marker({
-                position: { lat: parseFloat(dLat), lng: parseFloat(dLng) },
-                map: reqMap,
-                title: "Anaelekea hapa",
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 10,
-                    fillColor: "#EF4444",
-                    fillOpacity: 1,
-                    strokeColor: "white",
-                    strokeWeight: 2
-                }
-            });
-            
-            const directionsService = new google.maps.DirectionsService();
-            const directionsRenderer = new google.maps.DirectionsRenderer({
-                suppressMarkers: true,
-                polylineOptions: { strokeColor: "#10B981", strokeWeight: 6 }
-            });
-            directionsRenderer.setMap(reqMap);
-            
-            directionsService.route({
-                origin: { lat: parseFloat(pLat), lng: parseFloat(pLng) },
-                destination: { lat: parseFloat(dLat), lng: parseFloat(dLng) },
-                travelMode: 'DRIVING'
-            }, (result, status) => {
-                if (status === "OK") {
-                    directionsRenderer.setDirections(result);
-                }
-            });
-        }, 300);
+            setTimeout(() => { reqMap.invalidateSize(); }, 300);
+        }, 200);
     }
 
     async function acceptBoda(reqId, riderPhone) {
@@ -3193,7 +3107,7 @@ async function fetchMyInbox() {
             openModal("Mteja Wako", `Piga simu <a href="tel:${riderPhone}" style="color:var(--accent);">${riderPhone}</a> au <a href="https://wa.me/${waPhone}" target="_blank" style="color:var(--accent);">WhatsApp</a> kumjulisha umeshakuja.`, false);
             fetchBodaRequests();
         } catch(e) { openModal("Kosa", e.message); }
-     }   
+    }
             
     // --- FURSA NA MICHANGO FUNCTIONS ---
     async function postOpportunity() {
