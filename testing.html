@@ -2780,7 +2780,7 @@ async function fetchMyInbox() {
 
         function initBodaMap() {
         if (typeof google === 'undefined' || !document.getElementById("boda-map")) {
-            showToast("Google Maps haijapakia. Angalia mtandao wako.");
+            showToast("Google Maps haijapakia. Angalia mtandao.");
             return;
         }
 
@@ -2791,7 +2791,7 @@ async function fetchMyInbox() {
 
         bodaMap = new google.maps.Map(document.getElementById("boda-map"), {
             center: { lat: -6.2, lng: 35.0 },
-            zoom: 14,
+            zoom: 13,
             mapTypeControl: false,
             streetViewControl: false,
             fullscreenControl: false,
@@ -2805,18 +2805,12 @@ async function fetchMyInbox() {
         });
         bodaDirectionsRenderer.setMap(bodaMap);
 
-        // Ongeza Kitufe cha "Locate Me" (📍) kwenye ramani
-        const locateControlDiv = document.createElement('div');
-        locateControlDiv.style.padding = '10px';
-        locateControlDiv.innerHTML = '<button id="locate-me-btn" style="background: white; border: none; width: 40px; height: 40px; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); font-size: 20px; cursor: pointer;">📍</button>';
-        locateControlDiv.index = 1;
-        locateControlDiv.onclick = () => findMyLocation();
-        bodaMap.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(locateControlDiv);
+        // MUHIMU: Subiri ramani ipakie vizuri kwanza (idle) ndipo uanze kutafuta GPS
+        google.maps.event.addListenerOnce(bodaMap, 'idle', () => {
+            findMyLocation();
+        });
 
-        // Pata eneo la sasa moja kwa moja unapoingia
-        findMyLocation();
-
-        // Ruhusu mtumiaji kubofya kwenye ramani kuweka alama ya mahali anaelekea!
+        // Bofya kwenye ramani kuweka alama ya mahali unaelekea
         bodaMap.addListener("click", (e) => {
             bodaDestLat = e.latLng.lat();
             bodaDestLng = e.latLng.lng();
@@ -2824,13 +2818,13 @@ async function fetchMyInbox() {
             calculateRouteAndFare();
         });
 
-        // Auto-complete unapoandika mahali unaelekea (Google Places)
+        // Auto-complete unapoandika mahali unaelekea
         const destInput = document.getElementById("boda-dest");
         autocompleteDest = new google.maps.places.Autocomplete(destInput);
         autocompleteDest.addListener("place_changed", () => {
             const place = autocompleteDest.getPlace();
             if (!place.geometry) {
-                showToast("Mahali hapatikana kwa jina. Bofya kwenye ramani kukiweka.");
+                showToast("Mahali hapatikana kwa jina. Bofya kwenye ramani.");
                 return;
             }
             bodaDestLat = place.geometry.location.lat();
@@ -2840,43 +2834,53 @@ async function fetchMyInbox() {
         });
     }
 
-    // Function ya kupata eneo la sasa kwa uhakika
     function findMyLocation() {
-        if (navigator.geolocation) {
-            showToast("Inatafuta eneo lako...");
-            navigator.geolocation.getCurrentPosition(pos => {
-                bodaPickupLat = pos.coords.latitude;
-                bodaPickupLng = pos.coords.longitude;
-                const posLatLng = { lat: bodaPickupLat, lng: bodaPickupLng };
-                
-                bodaMap.setCenter(posLatLng);
-                bodaMap.setZoom(16); // Kuzoom karibu ili uone vizuri
-                
-                if (pickupMarker) pickupMarker.setMap(null);
-                
-                // Weka alama ya duara la bluu (kama Bolt/Google Maps)
-                pickupMarker = new google.maps.Marker({
-                    position: posLatLng,
-                    map: bodaMap,
-                    title: "Wapo hapa",
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 12, // Kubwa kutosha
-                        fillColor: "#007BFF", // Rangi ya Bluu
-                        fillOpacity: 1,
-                        strokeColor: "white",
-                        strokeWeight: 3
-                    }
-                });
-                
-                document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
-            }, err => {
-                showToast("GPS imekataa. Washa location kwenye simu yako au bonyeza 📍.");
-                document.getElementById('boda-pickup').value = "Bonyeza 📍 kupata eneo";
-            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
-        } else {
+        if (!navigator.geolocation) {
             showToast("Kifaa chako hakiauni GPS.");
+            return;
         }
+
+        // HTTPS Check: Browser inakataa GPS kama hauko kwenye mtandao salama (https)
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            showToast("GPS inahitaji mtandao salama (HTTPS). Fungua app kupitia link sahihi.");
+            document.getElementById('boda-pickup').value = "GPS inahitaji HTTPS";
+            return;
+        }
+
+        showToast("Inatafuta eneo lako... Subiri");
+        navigator.geolocation.getCurrentPosition(pos => {
+            bodaPickupLat = pos.coords.latitude;
+            bodaPickupLng = pos.coords.longitude;
+            const posLatLng = { lat: bodaPickupLat, lng: bodaPickupLng };
+            
+            bodaMap.setCenter(posLatLng);
+            bodaMap.setZoom(16); // Zoom 16 kuonesha vichochoro vizuri
+            
+            if (pickupMarker) pickupMarker.setMap(null);
+            pickupMarker = new google.maps.Marker({
+                position: posLatLng,
+                map: bodaMap,
+                title: "Wapo hapa",
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 12,
+                    fillColor: "#007BFF",
+                    fillOpacity: 1,
+                    strokeColor: "white",
+                    strokeWeight: 3
+                }
+            });
+            document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
+            showToast("Eneo limepatikana!");
+            
+        }, err => {
+            let errMsg = "Imeshindwa kupata eneo. ";
+            if (err.code === 1) errMsg += "Ruhusu location kwenye browser.";
+            else if (err.code === 2) errMsg += "GPS haipatikani. Washa kwenye settings.";
+            else if (err.code === 3) errMsg += "Muda umeisha. Jaribu tena.";
+            showToast(errMsg);
+            document.getElementById('boda-pickup').value = "GPS haijawashwa";
+        }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
     }
 
     function setDestinationMarker() {
@@ -2924,7 +2928,9 @@ async function fetchMyInbox() {
     }
 
     function calculateRouteAndFare() {
-        if (!bodaPickupLat || !bodaDestLat) return;
+        if (!bodaPickupLat || !bodaDestLat) {
+            return showToast("Weka mahali ulipo na mahali unaelekea kwanza.");
+        }
 
         const request = {
             origin: { lat: bodaPickupLat, lng: bodaPickupLng },
@@ -2938,7 +2944,6 @@ async function fetchMyInbox() {
                 const distance = result.routes[0].legs[0].distance.value; // in meters
                 const distanceKm = distance / 1000;
                 
-                // Nauli: 1000 Tsh base + 500 Tsh kwa Kila Km
                 bodaFareAmount = Math.round(1000 + (distanceKm * 500));
                 
                 document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
@@ -2949,12 +2954,15 @@ async function fetchMyInbox() {
                 
                 playBeep();
             } else {
-                // Hapa itatoa error hasa kama Billing haijawekwa au API haijawashwa
-                showToast("Kosa la Google Maps (Status: " + status + "). Angalia kama Billing imewekwa.");
+                // Hii itakupa sababu halisi kama imeshindwa kutoa njia
+                let errMsg = "Kosa la Njia: " + status;
+                if (status === "REQUEST_DENIED") errMsg += " (Angalia kama Billing imewekwa Google Cloud)";
+                if (status === "ZERO_RESULTS") errMsg = "Hakuna njia ya gari kati ya maeneo haya";
+                showToast(errMsg);
                 console.error("Directions request failed due to " + status);
             }
         });
-    }
+            }
 
     function proceedToPayment() {
         const html = `
