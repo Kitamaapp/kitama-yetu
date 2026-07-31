@@ -2834,7 +2834,7 @@ async function fetchMyInbox() {
         });
     }
 
-    function findMyLocation() {
+        function findMyLocation() {
         if (!navigator.geolocation) {
             showToast("Kifaa chako hakiauni GPS.");
             return;
@@ -2847,7 +2847,7 @@ async function fetchMyInbox() {
             const posLatLng = { lat: bodaPickupLat, lng: bodaPickupLng };
             
             bodaMap.setCenter(posLatLng);
-            bodaMap.setZoom(16); // Zoom 16 kuonesha vichochoro vizuri
+            bodaMap.setZoom(16);
             
             if (pickupMarker) pickupMarker.setMap(null);
             pickupMarker = new google.maps.Marker({
@@ -2867,14 +2867,15 @@ async function fetchMyInbox() {
             showToast("Eneo limepatikana!");
             
         }, err => {
-            let errMsg = "Imeshindwa kupata eneo. ";
-            if (err.code === 1) errMsg += "Ruhusu location kwenye browser.";
-            else if (err.code === 2) errMsg += "GPS haipatikani. Washa kwenye settings.";
-            else if (err.code === 3) errMsg += "Muda umeisha. Jaribu tena.";
-            showToast(errMsg);
-            document.getElementById('boda-pickup').value = "GPS haijawashwa";
+            // Kama GPS ikishindwa kupatikana, tumia eneo la Kitama (Default) ili mtumiaji aendelee kufanya kazi
+            showToast("GPS haipatikani. Tumia kitufe cha 📍 au weka alama kwenye ramani.");
+            document.getElementById('boda-pickup').value = "GPS haijawashwa (Weka alama kwenye ramani)";
+            
+            // Set default center to Kitama roughly so map isn't blank
+            bodaMap.setCenter({ lat: -6.2447, lng: 35.0359 }); // lat/lng ya takribani Kitama
+            bodaMap.setZoom(14);
         }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-    }
+        }
 
     function setDestinationMarker() {
         const destLatLng = { lat: bodaDestLat, lng: bodaDestLng };
