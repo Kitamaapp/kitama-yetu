@@ -32,8 +32,9 @@
         
         .splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease; }
         .splash-screen.hide { opacity: 0; visibility: hidden; }
-        .splash-logo { width: 90px; height: 90px; background: var(--accent); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+        .splash-logo { width: 120px; height: 120px; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite; }
+        .splash-logo img { width: 100%; height: 100%; object-fit: contain; }
+        @keyframes pulse { 0% { transform: scale(1); } 70% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .splash-title { color: white; font-size: 32px; font-weight: 800; margin-bottom: 5px; letter-spacing: -1px; }
         .splash-subtitle { color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 40px; }
         .splash-spinner { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.1); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s linear infinite; }
@@ -319,14 +320,108 @@
         .opp-btn { display: flex; gap: 10px; margin-top: 12px; }
         .opp-btn a { flex: 1; padding: 10px; border-radius: 10px; text-align: center; font-weight: 700; text-decoration: none; font-size: 13px; }
 
-        /* POSTER STYLE FURSA */
-        .opp-poster { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; border-radius: 16px; box-shadow: var(--shadow-md); overflow: hidden; margin: 0 20px 15px 20px; padding-bottom: 15px; }
-        .opp-poster-img { width: 100%; height: 200px; object-fit: cover; background: rgba(255,255,255,0.1); }
-        .opp-badge-poster { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; background: rgba(16, 185, 129, 0.2); color: #10B981; margin: 15px 0; }
-        .opp-poster-title { font-size: 22px; font-weight: 800; margin-bottom: 10px; padding: 0 20px; }
-        .opp-poster-desc { font-size: 14px; opacity: 0.9; line-height: 1.6; white-space: pre-wrap; padding: 0 20px; }
-        .opp-poster-meta { display: flex; gap: 15px; margin-top: 15px; padding: 15px 20px 0 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; opacity: 0.8; flex-wrap: wrap; }
+                /* PREMIUM 3D PURPLE NOTICE POSTER */
+        .opp-poster { 
+            background: radial-gradient(circle at 10% 20%, rgba(128, 90, 213, 0.6) 0%, transparent 60%), 
+                        radial-gradient(circle at 90% 80%, rgba(76, 29, 149, 0.6) 0%, transparent 60%),
+                        linear-gradient(135deg, #4c1d95 0%, #2e1065 100%); 
+            padding: 20px; 
+            border-radius: 28px; 
+            position: relative; 
+            box-shadow: 0 25px 50px -12px rgba(76, 29, 149, 0.5), inset 0 1px 0 rgba(255,255,255,0.1); 
+            overflow: hidden; 
+            margin: 0 20px 25px 20px; 
+        }
+        /* Madoido ya Mwanga wa 3D nyuma */
+        .opp-poster::before {
+            content: '';
+            position: absolute;
+            top: -50px; left: -50px;
+            width: 200px; height: 200px;
+            background: rgba(168, 85, 247, 0.4);
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: 0;
+        }
+        .opp-poster::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; right: -60px;
+            width: 250px; height: 250px;
+            background: rgba(124, 58, 237, 0.3);
+            border-radius: 50%;
+            filter: blur(70px);
+            z-index: 0;
+        }
         
+        /* Kioo Cheupe (White Card) kilichopo katikati */
+        .opp-poster-card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            padding: 0 0 25px 0;
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+        }
+        .opp-poster-img { 
+            width: 100%; height: 220px; object-fit: cover; 
+            background: #f8fafc;
+        }
+        .opp-poster-body { padding: 25px 25px 0 25px; text-align: center; }
+        
+        .opp-badge-poster { 
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 20px; border-radius: 30px; 
+            font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+            background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%); 
+            color: white; 
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+            margin-bottom: 15px;
+        }
+        .opp-poster-title { 
+            font-size: 24px; font-weight: 900; margin-bottom: 12px; line-height: 1.3;
+            color: #1e293b;
+        }
+        .opp-poster-desc { 
+            font-size: 15px; color: #475569; line-height: 1.7; white-space: pre-wrap; 
+            text-align: left;
+            background: #f8fafc; padding: 15px; border-radius: 12px;
+            border-left: 4px solid #7c3aed;
+            margin-bottom: 20px;
+        }
+        .opp-poster-meta { 
+            display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; 
+            border-top: 1px dashed #cbd5e1; padding-top: 15px;
+        }
+        .opp-poster-meta span {
+            color: #64748b; font-size: 13px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .opp-poster .opp-btn { display: flex; flex-direction: column; gap: 10px; padding: 0 25px; }
+        .opp-poster .opp-btn a { 
+            background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%) !important; 
+            color: white !important; 
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3) !important; 
+            font-weight: 700 !important; 
+            padding: 14px !important; font-size: 14px !important;
+            border: none !important;
+            border-radius: 12px;
+        }
+        .opp-poster .opp-btn a:nth-child(2) { 
+            background: #f1f5f9 !important; 
+            color: #7c3aed !important; 
+            box-shadow: none !important; 
+            border: 1px solid #e2e8f0 !important;
+        }
+        
+        .opp-poster-footer {
+            text-align: center; margin-top: 25px;
+            color: rgba(255,255,255,0.6); font-size: 10px; 
+            font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            position: relative; z-index: 2;
+        }
         .driver-priority-badge { background: #D1FAE5; color: #059669; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; margin-top: 5px; display: inline-block; }
     </style>
 </head>
@@ -334,7 +429,7 @@
 
 <div class="splash-screen" id="splash-screen">
     <div class="splash-logo">
-        <img src="LINK_YA_PICHA_YAKO_HAPA" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 24px;">
+        <img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" alt="Kitama Yetu Logo">
     </div>
     <h1 class="splash-title">Kitama Yetu</h1>
     <p class="splash-subtitle">Jukwaa Rasmi la Maendeleo</p>
@@ -3161,21 +3256,25 @@ async function fetchMyInbox() {
                         <a href="https://wa.me/${waPhone}" target="_blank" class="m-btn m-btn-secondary" style="background:#25D366; color:white;">WhatsApp</a>
                     </div>` : '';
                 
-                if (o.is_poster) {
+                                    if (o.is_poster) {
                     let imgHtml = o.image_url ? `<img src="${o.image_url}" class="opp-poster-img">` : '';
                     return `<div class="opp-poster">
-                        ${imgHtml}
-                        <div style="padding: 15px 20px 0 20px; text-align: center;">
-                            <span class="opp-badge-poster">${o.type}</span>
-                        </div>
-                        <h3 class="opp-poster-title">${o.title}</h3>
-                        <p class="opp-poster-desc">${o.description}</p>
-                        <div class="opp-poster-meta">
-                            ${o.deadline ? `<span>⏳ Mwisho: ${o.deadline}</span>` : ''}
-                            ${o.author_name ? `<span>👤 ${o.author_name}</span>` : ''}
-                        </div>
-                        <div style="padding: 0 20px 15px 20px;">
+                        <div class="opp-poster-card">
+                            ${imgHtml}
+                            <div class="opp-poster-body">
+                                <span class="opp-badge-poster">${o.type}</span>
+                                <h3 class="opp-poster-title">${o.title}</h3>
+                                <p class="opp-poster-desc">${o.description}</p>
+                                <div class="opp-poster-meta">
+                                    ${o.deadline ? `<span>⏳ Mwisho: ${o.deadline}</span>` : ''}
+                                    ${o.author_name ? `<span>👤 ${o.author_name}</span>` : ''}
+                                </div>
+                            </div>
                             ${contactHtml}
+                        </div>
+                        <div class="opp-poster-footer">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
+                            Powered by Kitama Yetu
                         </div>
                     </div>`;
                 } else {
