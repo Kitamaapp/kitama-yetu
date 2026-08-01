@@ -1429,12 +1429,11 @@
         if (isPending) {
             navHtml += `<button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
             navHtml += `<button class="nav-b" onclick="handleNav('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
-        } else {
-            navHtml += `<button class="nav-b" onclick="handleNav('hub-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Habari</span></button>`;
+     } else {
             navHtml += `<button class="nav-b" onclick="handleNav('citizen-chat-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span></button>`;
             navHtml += `<button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
             navHtml += `<button class="nav-b" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>`;
-        }
+    }
         
         let roleText = u.role === 'system_admin' ? 'Admin wa Mfumo' : u.role.replace(/_/g, ' ');
         let initial = u.full_name.charAt(0).toUpperCase();
