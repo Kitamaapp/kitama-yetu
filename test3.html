@@ -2147,12 +2147,18 @@
                     </div>`;
                     let swipeHandlers = `ontouchstart="startSwipe(event, '${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" ontouchmove="moveSwipe(event)" ontouchend="endSwipe()"`;
                     
-                    let badgeHtml = getActivistBadgeForPhone(c.sender_phone, c);
+                                        let badgeHtml = getActivistBadgeForPhone(c.sender_phone, c);
                     let displayNameWithBadge = isSelf ? 'Wewe' : c.sender_name + ' ' + badgeHtml;
                     let msgClass = isSelf ? 'self' : '';
-                    if (isSystemAlert) msgClass = 'system-alert';
                     
-                    chatHtml += `<div class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${isSelf ? 'Wewe' : c.sender_name} ${getActivistBadge(c.is_activist)}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
+                    // ADMIN SYSTEM ALERT LOGIC
+                    if (c.sender_phone === window.adminPhone || c.sender_role === 'system_admin') {
+                        msgClass = 'system-alert';
+                        displayNameWithBadge = 'Mfumo wa Kitama';
+                        actionsHtml = ''; // Ondoa vitufe vya Reply/Private kwa Admin
+                    }
+                    
+                    chatHtml += `<div class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayNameWithBadge}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
                 });
             } else {
                 chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
