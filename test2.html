@@ -1513,7 +1513,7 @@
                     <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
                 </div>`;
             }
-            if(u.role === 'system_admin') {
+                        if(u.role === 'system_admin') {
                 html += `<div class="action-item" onclick="handleNav('admin-activists-sec')">
                     <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #b45309); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
                     <div class="action-text"><h4>Udhibiti wa Activists</h4><p>Ondoa/Ongeza</p></div>
@@ -1527,6 +1527,13 @@
                 <div class="action-item" onclick="handleNav('admin-pins-sec')">
                     <div class="action-icon" style="background: linear-gradient(135deg, #ef4444, #b91c1c); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div>
                     <div class="action-text"><h4>PIN za Viongozi</h4><p>Badilisha PIN</p></div>
+                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
+                </div>
+                
+                <!-- HII NDIO SEHEMU MPYA ILIYOONGEZWA KWA ADMIN KUONA MAONI -->
+                <div class="action-item" onclick="fetchDeveloperFeedback()">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+                    <div class="action-text"><h4>Maoni ya Watumiaji</h4><p>Tazama feedback za App</p></div>
                     <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
                 </div>`;
             }
