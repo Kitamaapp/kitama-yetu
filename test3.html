@@ -1602,6 +1602,11 @@
                             <h4>Interceptor</h4>
                             <p>Soma Inbox za Watu</p>
                         </div>
+                         <div class="admin-tool-card" onclick="openBroadcastModal()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>
+                            <h4>Broadcast</h4>
+                            <p>Tuma Alert kwa Wote</p>
+                        </div>
                     </div>
                 </div>`;
                 // Admin Nav
@@ -3949,6 +3954,25 @@
                 }
                 html += '</div>';
                 openModal("Inbox ya " + phone, html, false);
+            } catch(e) { openModal("Kosa", e.message); }
+        });
+    }
+
+        // --- ADMIN GLOBAL BROADCAST FUNCTION ---
+    function openBroadcastModal() {
+        openModal("Global Broadcast (System Alert)", `<p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Ujumbe huu utaonekana kama 'System Alert' kwa wananchi wote kwenye Forum. Hawataweza kuujibu.</p><textarea id="broadcast-input" class="modal-input" style="min-height: 100px;" placeholder="Andika tangazo la mfumo hapa..."></textarea>`, true, async (text) => {
+            if(!text) return;
+            try {
+                await sb.from('citizen_chat').insert([{ 
+                    sender_name: 'Mfumo wa Kitama', 
+                    sender_phone: window.adminPhone, 
+                    sender_role: 'system_admin',
+                    sender_village: 'Kata Yote',
+                    content: text,
+                    read_by: [window.adminPhone],
+                    is_activist: false
+                }]);
+                showToast("System Alert imetumwa kwa Forum ya Wananchi!");
             } catch(e) { openModal("Kosa", e.message); }
         });
     }
