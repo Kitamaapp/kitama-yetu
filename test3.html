@@ -517,6 +517,20 @@
             .nav-b svg { width: 18px; height: 18px; }
             .b-nav { padding: 6px 0; }
         }
+                /* DEVELOPER CONSOLE CSS */
+        .admin-console { padding: 0 16px; }
+        .admin-console-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .admin-tool-card { background: linear-gradient(135deg, #1e293b, #0f172a); color: #fff; padding: 20px; border-radius: 16px; cursor: pointer; display: flex; flex-direction: column; gap: 10px; border: 1px solid #334155; transition: all 0.2s ease; }
+        .admin-tool-card svg { color: #38bdf8; }
+        .admin-tool-card h4 { font-size: 14px; font-weight: 700; color: #f1f5f9; }
+        .admin-tool-card p { font-size: 11px; color: #94a3b8; }
+        .admin-tool-card:hover { border-color: #38bdf8; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189, 248, 0.2); }
+        
+        /* SYSTEM ALERT CHAT BUBBLE */
+        .chat-msg.system-alert { background: linear-gradient(135deg, #1e1b4b, #312e81) !important; color: #fff !important; border: 1px solid #4c1d95 !important; max-width: 95% !important; align-self: center !important; border-radius: 12px !important; box-shadow: 0 4px 15px rgba(49, 46, 129, 0.4) !important; margin: 10px 0; }
+        .chat-msg.system-alert b { color: #a5b4fc !important; display: flex; align-items: center; gap: 6px; }
+        .chat-msg.system-alert p { color: #fff !important; }
+        [data-theme="dark"] .chat-msg.system-alert { border-color: #6366f1 !important; }
         
     </style>
 </head>
