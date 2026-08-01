@@ -1645,20 +1645,22 @@
         document.querySelectorAll('.nav-b').forEach(n => n.classList.remove('active'));
         document.querySelectorAll('.nav-b').forEach(n => { if(n.getAttribute('onclick').includes(id)) n.classList.add('active'); });
         
-        const nav = document.getElementById('b-nav');
+                const nav = document.getElementById('b-nav');
+        const feedbackBubble = document.getElementById('dev-feedback-bubble');
         
-        // Default Nav
+        // Onyesha bubble ya feedback kwenye Nyumbani tu
+        if (feedbackBubble) {
+            feedbackBubble.style.display = (id === 'home-sec') ? 'flex' : 'none';
+        }
+        
+        // Default Nav (bila Habari)
         let defaultNavHtml = `<button class="nav-b active" onclick="handleNav('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button>
-        <button class="nav-b" onclick="handleNav('hub-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Habari</span></button>
         <button class="nav-b" onclick="handleNav('citizen-chat-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span></button>
         <button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>
         <button class="nav-b" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>`;
 
         if(id === 'citizen-chat-sec') {
-            nav.innerHTML = `<button class="nav-b" onclick="handleNav('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button>
-            <button class="nav-b active" onclick="viewCitizensList()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Wananchi</span></button>
-            <button class="nav-b" onclick="handleNav('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
-            nav.style.display = 'flex';
+            nav.style.display = 'none'; // Futa kabisa nav kwenye Forum
         } else if (id === 'opportunities-sec') {
             nav.innerHTML = `<button class="nav-b" onclick="handleNav('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button>
             <button class="nav-b active" onclick="fetchOpportunities()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>
@@ -1673,7 +1675,7 @@
         // Update active state
         document.querySelectorAll('.nav-b').forEach(n => n.classList.remove('active'));
         document.querySelectorAll('.nav-b').forEach(n => { if(n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) n.classList.add('active'); });
-
+        
         const u = JSON.parse(localStorage.getItem('kitama_user'));
 
         if(id==='hub-sec') fetchHub();
