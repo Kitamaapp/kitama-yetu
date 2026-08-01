@@ -141,11 +141,11 @@
         .badge { padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
         .b-warn { background: #FEF3C7; color: #D97706; } .b-info { background: #DBEAFE; color: #2563EB; } .b-succ { background: #D1FAE5; color: #059669; } .b-err { background: #FEE2E2; color: #EF4444; }
         
-        .b-nav { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 440px; background: var(--surface); border: 1px solid var(--border); border-radius: 24px; display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; box-shadow: var(--shadow-lg); }
+        .b-nav { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: calc(100% - 30px); max-width: 480px; background: var(--surface); border: 1px solid var(--border); border-radius: 24px; display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; box-shadow: var(--shadow-lg); }
         [data-theme="dark"] .b-nav { background: rgba(22,30,46,0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
-        .nav-b { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-sec); transition: all 0.2s; padding: 8px 15px; border-radius: 16px; }
+        .nav-b { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-sec); transition: all 0.2s; padding: 8px 6px; border-radius: 16px; }
         .nav-b.active { color: var(--accent); background: rgba(16,185,129,0.1); }
-        .nav-b span { font-size: 10px; font-weight: 700; }
+        .nav-b span { font-size: 9px; font-weight: 700; }
         
         .btn-out { width: 100%; padding: 14px; background: transparent; color: var(--danger); border: 1px solid #FCA5A5; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 30px; }
         .report-img { width: 100%; height: 180px; object-fit: cover; border-radius: 12px; margin-top: 12px; background: var(--bg); }
@@ -826,21 +826,22 @@
 
         <div id="progress-sec" class="sec"><div class="sec-h"><h2>Kero Zote za Kitama</h2><span onclick="fetchPublicProgress()">Refresh</span></div><div id="progress-list"></div></div>
         
-            <div id="report-sec" class="sec">
+                   <div id="report-sec" class="sec">
             <div class="sec-h"><h2>Andika kero yako</h2></div>
             <div style="padding: 0 20px;">
                 <div class="form-g"><select id="rep-cat" style="padding-left:16px;"><option>Maji</option><option>Umeme</option><option>Barabara</option><option>Afya</option><option>Usalama</option><option>Elimu</option><option>Biashara</option><option>Mazao</option><option>Mifugo</option><option>Mengineyo</option></select></div>
                 <div class="form-g"><input type="text" id="rep-title" style="padding-left:16px;" placeholder="Mada Kuu"></div>
-                <div class="form-g"><textarea id="rep-desc" maxlength="120" placeholder="Ufafanuzi (Max 120 herufi)"></textarea></div>
+                
+                <!-- TEXTAREA NA COUNTER -->
+                <div class="form-g" style="position: relative;">
+                    <textarea id="rep-desc" maxlength="120" oninput="updateCharCount('rep-desc', 'rep-count')" placeholder="Ufafanuzi (Max 120 herufi)"></textarea>
+                    <small id="rep-count" style="position: absolute; bottom: 10px; right: 16px; font-size: 11px; color: var(--text-sec); background: var(--surface); padding: 2px 6px; border-radius: 8px; border: 1px solid var(--border);">120</small>
+                </div>
+
                 <div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
                 <button onclick="submitReport()" class="btn-p" id="btn-rep">Tuma Kero</button>
             </div>
-            
-            <!-- SEHEMU MPYA YA KUONA MALALAMISHI YOTE -->
-            <div class="sec-h" style="margin-top:25px;">
-                <h2>KERO ZOTE KATA YA KITAMA</h2>
-                <span onclick="fetchCitizenReports()">Refresh</span>
-            </div>
+            <div class="sec-h" style="margin-top:25px;"><h2>KERO ZOTE KATA YA KITAMA</h2><span onclick="fetchCitizenReports()">Refresh</span></div>
             <div id="citizen-reports-list"></div>
         </div>
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
@@ -865,7 +866,17 @@
         
         <div id="campaign-sec" class="sec"><div class="sec-h"><h2>Kampeni & Miradi</h2><span onclick="fetchProjects()">Refresh</span></div><div style="padding: 0 20px;"><div id="project-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="proj-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Mradi/Mkakati"></div><div class="form-g"><textarea id="proj-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Maelezo ya Mradi (Dira)"></textarea></div><div class="form-g"><select id="proj-status" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"><option value="planned">Inapaswa kutekelezwa</option><option value="ongoing">Inaendolea</option><option value="stalled">Imekatika</option><option value="completed">Imekamilika</option></select></div><button onclick="postProject()" class="btn-p">Weka Mradi</button></div></div><div id="projects-list"></div></div>
 
-        <div id="solidarity-sec" class="sec"><div class="sec-h"><h2>Andamana (Ajeda)</h2><span onclick="fetchCauses()">Refresh</span></div><div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Andamana na wananchi wengine kuleta mabadiliko. Tuma ajeda na uwaombe wengine wakuunge mkono.</p><div id="cause-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="cause-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Kichwa cha Ajeda"></div><div class="form-g"><textarea id="cause-desc" maxlength="120" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Eleza ajeda yako... (Max 120 herufi)"></textarea></div><button onclick="postCause()" class="btn-p">Tuma Ajeda</button></div></div><div id="causes-list"></div></div>
+                    <div id="solidarity-sec" class="form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;">
+                <div class="form-g"><input type="text" id="cause-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Kichwa cha Ajeda"></div>
+                
+                <!-- TEXTAREA NA COUNTER -->
+                <div class="form-g" style="position: relative;">
+                    <textarea id="cause-desc" maxlength="120" oninput="updateCharCount('cause-desc', 'cause-count')" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Eleza ajeda yako... (Max 120 herufi)"></textarea>
+                    <small id="cause-count" style="position: absolute; bottom: 10px; right: 16px; font-size: 11px; color: var(--text-sec); background: var(--surface); padding: 2px 6px; border-radius: 8px; border: 1px solid var(--border);">120</small>
+                </div>
+                
+                <button onclick="postCause()" class="btn-p">Tuma Ajeda</button>
+            </div></div><div id="causes-list"></div></div>
 
         <div id="events-sec" class="sec"><div class="sec-h"><h2>Kalenda ya Matukio</h2><span onclick="fetchEvents()">Refresh</span></div><div style="padding: 0 20px;"><div id="event-form-box" style="display:none; background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px;"><div class="form-g"><input type="text" id="event-title" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Jina la Tukio (Mfano: Mkutano)"></div><div class="form-g"><input type="date" id="event-date" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div><div class="form-g"><input type="text" id="event-location" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Mahali"></div><div class="form-g"><textarea id="event-desc" style="background:var(--bg); color:var(--text); border:1px solid var(--border);" placeholder="Maelezo ya tukio"></textarea></div><button onclick="postEvent()" class="btn-p">Weka Tukio</button></div></div><div id="events-list"></div></div>
 
@@ -979,6 +990,22 @@
     }
 
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+        function updateCharCount(textareaId, countId) {
+        const textarea = document.getElementById(textareaId);
+        const countEl = document.getElementById(countId);
+        if (textarea && countEl) {
+            const remaining = 120 - textarea.value.length;
+            countEl.innerText = remaining;
+            // Badilisha rangi ikiwa inakaribia kikomo
+            if (remaining <= 20) {
+                countEl.style.color = '#EF4444'; // Rangi nyekundu
+                countEl.style.borderColor = '#FCA5A5';
+            } else {
+                countEl.style.color = 'var(--text-sec)';
+                countEl.style.borderColor = 'var(--border)';
+            }
+        }
+    }
     function openModal(title, text, isPrompt, callback) {
         document.getElementById('modal-title').innerHTML = title;
         document.getElementById('modal-text').innerHTML = text;
@@ -1355,9 +1382,11 @@
         if (isPending) {
             navHtml += `<button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
             navHtml += `<button class="nav-b" onclick="handleNav('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
-        } else {
+      } else {
             navHtml += `<button class="nav-b" onclick="handleNav('hub-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Habari</span></button>`;
+            navHtml += `<button class="nav-b" onclick="handleNav('citizen-chat-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span></button>`;
             navHtml += `<button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
+            navHtml += `<button class="nav-b" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>`;
             navHtml += `<button class="nav-b" onclick="handleNav('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
         }
         
@@ -1569,9 +1598,11 @@
         // Default Nav
         let defaultNavHtml = `<button class="nav-b active" onclick="handleNav('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button>
         <button class="nav-b" onclick="handleNav('hub-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Habari</span></button>
+        <button class="nav-b" onclick="handleNav('citizen-chat-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span></button>
         <button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>
+        <button class="nav-b" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>
         <button class="nav-b" onclick="handleNav('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
-
+        
         if(id === 'citizen-chat-sec') {
             nav.innerHTML = `<button class="nav-b" onclick="handleNav('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button>
             <button class="nav-b active" onclick="viewCitizensList()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Wananchi</span></button>
