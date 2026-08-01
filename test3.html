@@ -526,11 +526,41 @@
         .admin-tool-card p { font-size: 11px; color: #94a3b8; }
         .admin-tool-card:hover { border-color: #38bdf8; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189, 248, 0.2); }
         
-        /* SYSTEM ALERT CHAT BUBBLE */
-        .chat-msg.system-alert { background: linear-gradient(135deg, #1e1b4b, #312e81) !important; color: #fff !important; border: 1px solid #4c1d95 !important; max-width: 95% !important; align-self: center !important; border-radius: 12px !important; box-shadow: 0 4px 15px rgba(49, 46, 129, 0.4) !important; margin: 10px 0; }
-        .chat-msg.system-alert b { color: #a5b4fc !important; display: flex; align-items: center; gap: 6px; }
-        .chat-msg.system-alert p { color: #fff !important; }
-        [data-theme="dark"] .chat-msg.system-alert { border-color: #6366f1 !important; }
+                /* SYSTEM ALERT CHAT BUBBLE */
+        .chat-msg.system-alert { 
+            background: linear-gradient(135deg, #1e1b4b, #312e81) !important; 
+            color: #fff !important; 
+            border: 2px solid #4c1d95 !important; 
+            max-width: 95% !important; 
+            align-self: center !important; 
+            border-radius: 12px !important; 
+            box-shadow: 0 4px 15px rgba(49, 46, 129, 0.4) !important; 
+            margin: 15px 0 !important; 
+            pointer-events: none !important; /* Mtu hawezi kubonyeza au kuswipe ujumbe huu */
+        }
+        .chat-msg.system-alert b { 
+            color: #a5b4fc !important; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            font-size: 11px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 6px; 
+        }
+        .chat-msg.system-alert p { 
+            color: #fff !important; 
+            text-align: center; 
+            font-size: 14px; 
+            font-weight: 500; 
+        }
+        .chat-msg.system-alert .msg-time { 
+            color: #c7d2fe !important; 
+            width: 100%; 
+            justify-content: center; 
+            display: flex !important; 
+            float: none !important; 
+        }
         
     </style>
 </head>
