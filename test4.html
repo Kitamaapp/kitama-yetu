@@ -4148,8 +4148,16 @@
         div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div>';
         showSec('dm-chat-sec'); // Nenda Full Screen
         
-        try {
+                try {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
+            
+            // FIX: Tafuta taarifa za mtumiaji mwenzie ili kupata hadhi ya activist kwa uhakika
+            let otherUserIsActivist = false;
+            const { data: otherUser } = await sb.from('users').select('is_activist').eq('phone_number', phone).maybeSingle();
+            if (otherUser && otherUser.is_activist) {
+                otherUserIsActivist = true;
+            }
+
             const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${phone}),and(sender_phone.eq.${phone},recipient_phone.eq.${u.phone_number})`;
             let query = sb.from('shop_messages').select('*').or(orFilter).order('created_at', { ascending: true }).limit(100);
             if(shopId) query = query.eq('shop_id', shopId); else query = query.is('shop_id', null);
@@ -4178,7 +4186,7 @@
                         return;
                     }
 
-                    // FIX 1: Badilisha jina liwe "Wewe" kama wewe ndio mtumiaji
+                                // FIX 1: Badilisha jina liwe "Wewe" kama wewe ndio mtumiaji
                     let displayName = isSelf ? 'Wewe' : c.sender_name;
                     
                     if(!isSelf) {
@@ -4188,8 +4196,14 @@
                     }
                     let swipeHandlers = `ontouchstart="startDmSwipe(event, '${c.id}', '${c.sender_name}', '${content.replace(/'/g, "\\'")}')" ontouchmove="moveSwipe(event)" ontouchend="endDmSwipe()"`;
                     
-                    // FIX 2: Tumia getActivistBadgeForPhone kuhakikisha badge inaonekana
-                    let badgeHtml = getActivistBadgeForPhone(c.sender_phone, c);
+                    // FIX 2: Onyesha badge kwa uhakika kulingana na taarifa tulizopata
+                    let badgeHtml = '';
+                    if (isSelf) {
+                        badgeHtml = u.is_activist ? getActivistBadge(true) : '';
+                    } else {
+                        badgeHtml = otherUserIsActivist ? getActivistBadge(true) : '';
+                    }
+                    
                     chatHtml += `<div class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayName} ${badgeHtml}</b><p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
                 });
             } else {
