@@ -638,17 +638,18 @@
             <div id="h-initial" style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">U</div>
             <div><p style="font-size:11px; color:var(--text-sec);">Karibu</p><h3 id="w-name" style="font-size:16px; font-weight:800;">Mtumiaji</h3></div>
         </div>
-        <div class="header-actions">
+         <div class="header-actions">
             <button class="theme-toggle" onclick="handleNav('my-inbox-sec')" style="position: relative;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span id="inbox-badge" style="position: absolute; top: -2px; right: -2px; background: #EF4444; color: white; font-size: 10px; min-width: 16px; height: 16px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span>
             </button>
             <button class="theme-toggle" onclick="toggleSound()" id="sound-toggle-btn">
-                <span id="sound-icon"></span>
+            <span id="sound-icon"></span>
             </button>
             <button class="theme-toggle" onclick="toggleTheme()">
-                <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             </button>
-        </div>
+            </div>
     </header>
     <main>
         <div id="home-sec" class="sec active"><div id="home-content"></div></div>
