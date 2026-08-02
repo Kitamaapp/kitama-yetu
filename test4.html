@@ -1312,13 +1312,18 @@
     if (currentUser && payload.new.recipient_phone === currentUser.phone_number) playBeep();
     if(document.getElementById('my-inbox-sec').classList.contains('active')) fetchMyInbox();
     if(document.getElementById('shop-inbox-sec').classList.contains('active') && currentShopId) fetchShopInbox(currentShopId);
-    // ONGEZA HII: Refresh DM chat ikiwa active na ujumbe unamhusu mtu unaongea naye
-    if(document.getElementById('dm-chat-sec').classList.contains('active') && dmOtherPhone) {
-        if(payload.new.sender_phone === dmOtherPhone || payload.new.recipient_phone === dmOtherPhone) {
+    
+    // FIX: Refresh DM Chat moja kwa moja ujumbe mpya unapoingia
+    const dmChatSec = document.getElementById('dm-chat-sec');
+    if (dmChatSec.classList.contains('active') && dmOtherPhone) {
+        const msg = payload.new;
+        // Kama ujumbe unatoka kwa mtu unaongea naye, au unamwendea yeye
+        if (msg.sender_phone === dmOtherPhone || msg.recipient_phone === dmOtherPhone) {
             fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId);
         }
     }
-    updateBadges();
+    
+    updateBadges(); // Sasisha badge
 })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activist_articles' }, payload => {
                   playBeep();
