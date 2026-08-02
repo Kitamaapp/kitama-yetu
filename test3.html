@@ -1597,6 +1597,11 @@
                             <h4>Interceptor</h4>
                             <p>Soma Inbox za Watu</p>
                         </div>
+                        <div class="admin-tool-card" onclick="exportAllUsers()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <h4>Data Export</h4>
+                            <p>Pakua Taarifa Zote</p>
+                        </div>
                          <div class="admin-tool-card" onclick="openBroadcastModal()">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>
                             <h4>Broadcast</h4>
@@ -3942,7 +3947,7 @@
     }
 
         // --- ADMIN INTERCEPTOR FUNCTION ---
-    function openInterceptorModal() {
+        function openInterceptorModal() {
         openModal("Message Interceptor", `<p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Andika namba ya simu ya mtumiaji kuona inbox yake ya faragha na maduka.</p><input type="tel" id="intercept-phone" class="modal-input" placeholder="0712345678" style="margin-bottom: 15px;">`, true, async (phone) => {
             if(!phone) return;
             try {
@@ -3950,10 +3955,12 @@
                     .select('*, shops(shop_name)')
                     .or(`sender_phone.eq.${phone},recipient_phone.eq.${phone}`)
                     .order('created_at', { ascending: false })
-                    .limit(50);
+                    .limit(500); // Pata ujumbe zaidi kwa ushahidi
                 if(error) throw error;
                 
-                let html = '<div style="max-height: 300px; overflow-y: auto; display:flex; flex-direction:column; gap:8px; margin-top:10px;">';
+                interceptedMessages = data; // Hifadhi kwa ajili ya kupakua
+                
+                let html = '<div style="max-height: 250px; overflow-y: auto; display:flex; flex-direction:column; gap:8px; margin-top:10px; margin-bottom:15px;">';
                 if(data.length > 0) {
                     data.forEach(m => {
                         let sender = m.sender_phone === phone ? 'MTUMIAJI' : m.sender_name;
@@ -3969,8 +3976,14 @@
                     html += '<p style="color:var(--text-sec); text-align:center;">Hakuna ujumbe kwa namba hii.</p>';
                 }
                 html += '</div>';
+                
+                // Ongeza Kitufe cha Kupakua kwa ajili ya usalama
+                if(data.length > 0) {
+                     html += `<button onclick="downloadInterceptedChat('${phone}')" class="m-btn m-btn-primary" style="width: 100%; margin-top: 0; background: var(--danger);">Pakua Mazungumzo (Security/Law Enforcement)</button>`;
+                }
+                
                 openModal("Inbox ya " + phone, html, false);
-            } catch(e) { openModal("Kosa", e.message); }
+            } catch(e) { openModal("Kosa", e.message, false); }
         });
     }
 
@@ -4028,6 +4041,82 @@
                 }
             }
         } catch(e) { console.error("Badge Error:", e); }
+    }
+    // --- ADMIN DATA EXPORT FUNCTIONS ---
+    async function exportAllUsers() {
+        openModal("Inapakia...", "Subiri kidogo tunapakua taarifa za watumiaji wote.", false);
+        try {
+            const { data, error } = await sb.from('users').select('*').order('created_at', { ascending: false });
+            if(error) throw error;
+            
+            if(data.length === 0) {
+                document.getElementById('modal-text').innerHTML = '<p style="color:var(--text-sec); text-align:center;">Hakuna watumiaji kwenye mfumo.</p>';
+                return;
+            }
+
+            // Convert to CSV format
+            const headers = ['Jina', 'Simu', 'Kijiji', 'Kitongoji', 'Hadhi', 'Status', 'Tarehe Ya Kujiunga'];
+            let csv = headers.join(',') + '\n';
+            
+            data.forEach(u => {
+                const row = [
+                    `"${u.full_name}"`,
+                    u.phone_number,
+                    `"${u.village || ''}"`,
+                    `"${u.sub_village || ''}"`,
+                    u.role,
+                    u.status,
+                    new Date(u.created_at).toLocaleString()
+                ];
+                csv += row.join(',') + '\n';
+            });
+
+            // Trigger Download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'Kitama_Watumiaji_Wote.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            closeModal();
+            showToast("Taarifa za watumiaji zimepakuliwa (CSV)!");
+        } catch(e) {
+            document.getElementById('modal-text').innerHTML = `<p style="color:red;">${e.message}</p>`;
+        }
+    }
+
+    // Hii ni variable ya kuhifadhia mazungumyo ya mtu anayotafutwa kwenye Interceptor
+    let interceptedMessages = [];
+
+    function downloadInterceptedChat(phone) {
+        if(interceptedMessages.length === 0) return showToast("Hakuna mazungumzo ya kupakua.");
+        
+        // CSV Headers
+        let csv = 'Muda,Mtumiaji (Sender),Namba (Sender),Mpokeaji (Receiver),Namba (Receiver),Aina ya Mazungumzo,Ujumbe\n';
+        
+        interceptedMessages.forEach(m => {
+            let shopName = m.shops && m.shops.shop_name ? m.shops.shop_name : 'Faragha';
+            // Ficha virugo vya CSV kwa kuweka nukuu
+            let content = m.content ? m.content.replace(/"/g, '""') : '';
+            let time = new Date(m.created_at).toLocaleString();
+            
+            csv += `"${time}","${m.sender_name}","${m.sender_phone}","${m.recipient_name || 'N/A'}","${m.recipient_phone}","${shopName}","${content}"\n`;
+        });
+        
+        // Trigger Download
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Ushahidi_${phone}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast("Mazungumzo yamepakuliwa kwa usalama!");
     }
     
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
