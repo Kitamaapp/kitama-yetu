@@ -4290,6 +4290,9 @@
         dmOtherPhone = phone; dmShopId = shopId;
         document.getElementById('dm-chat-title').innerText = name;
         document.getElementById('dm-reply-context').style.display = 'none'; dmReplyTo = null;
+        
+        showSec('dm-chat-sec'); // HII NDIO ILIKUWA IMEKOSEKANA IRAFIKI YANGU!
+        
         const div = document.getElementById('dm-chat-list');
         
         const oldScrollTop = div.scrollTop;
@@ -4361,24 +4364,20 @@
             }
             div.innerHTML = chatHtml;
             
-            // HAPA NDIO SEHEMU MUHIMU YA SCROLL
             if (isIncoming && !dmIsAtBottom) {
-                // Ujumbe unakuja wakati uko juu, screen isiruke
                 div.scrollTop = oldScrollTop;
             } else if (firstUnreadId) {
-                // Fungua chat, nenda kwenye ujumbe wa kwanza hujasoma
                 const el = document.getElementById(`msg-${firstUnreadId}`);
                 if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 dmIsAtBottom = false;
             } else {
-                // Kila kitu kiko sawa, nenda chini
                 div.scrollTop = div.scrollHeight;
                 dmIsAtBottom = true;
             }
         } catch(e) { 
             if(!hasContent) div.innerHTML = `<p style="color:red;">${e.message}</p>`;
         }
-    }
+        }
 
     async function postDmChat() {
     const u = JSON.parse(localStorage.getItem('kitama_user'));
