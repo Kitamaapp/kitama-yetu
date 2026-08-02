@@ -1252,14 +1252,15 @@
                   const box = document.getElementById(`comments-${reportId}`);
                   if(box && box.style.display === 'block') fetchComments(reportId);
               })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if(currentUser && currentUser.role !== 'citizen') { 
                       playBeep(); 
                       if(document.getElementById('leader-chat-sec').classList.contains('active')) fetchLeaderChat();
                   }
+                  updateBadges(); // ONGEZA HII HAPA
               })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
+               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if(currentUser && currentUser.role === 'citizen') { 
                       if (payload.new.sender_phone !== currentUser.phone_number) playBeep(); 
@@ -1268,7 +1269,9 @@
                           fetchCitizenChat(isIncoming);
                       }
                   }
+                  updateBadges(); // ONGEZA HII HAPA
               })
+                
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'citizen_chat' }, payload => {
                   if(document.getElementById('citizen-chat-sec').classList.contains('active')) fetchCitizenChat(false);
               })
@@ -1286,11 +1289,12 @@
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shops' }, payload => {
                   if(document.getElementById('shops-directory-sec').classList.contains('active')) fetchShopsDirectory();
               })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (currentUser && payload.new.recipient_phone === currentUser.phone_number) playBeep();
                   if(document.getElementById('my-inbox-sec').classList.contains('active')) fetchMyInbox();
                   if(document.getElementById('shop-inbox-sec').classList.contains('active') && currentShopId) fetchShopInbox(currentShopId);
+                  updateBadges(); // ONGEZA HII HAPA
               })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activist_articles' }, payload => {
                   playBeep();
@@ -1344,9 +1348,8 @@
               })
               .subscribe();
         }
-                updateBadges(); // Itasasisha badges
-        setInterval(updateBadges, 15000); // Itakagua kila sekunde 15
-    }   
+        updateBadges();
+        }   
 
     function getActivistBadge(isActivist) {
         if (!isActivist) return '';
