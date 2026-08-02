@@ -1474,11 +1474,11 @@
         if (isPending) {
             navHtml += `<button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
             navHtml += `<button class="nav-b" onclick="handleNav('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
-        } else {
-            navHtml += `<button class="nav-b" onclick="handleNav('citizen-chat-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span></button>`;
+    } else {
+            navHtml += `<button class="nav-b" onclick="handleNav('citizen-chat-sec')" style="position: relative;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span><span id="forum-badge" style="position: absolute; top: 2px; right: 8px; background: #EF4444; color: white; font-size: 9px; min-width: 14px; height: 14px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span></button>`;
             navHtml += `<button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
             navHtml += `<button class="nav-b" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>`;
-        }
+    }
         
         let roleText = u.role === 'system_admin' ? 'Admin wa Mfumo' : u.role.replace(/_/g, ' ');
         let initial = u.full_name.charAt(0).toUpperCase();
@@ -1658,7 +1658,7 @@
                 fetchLeaderStats(u);
                 
                 // Leader Nav
-                navHtml += `<button class="nav-b" onclick="handleNav('citizen-chat-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span></button>`;
+                                navHtml += `<button class="nav-b" onclick="handleNav('leader-chat-sec')" style="position: relative;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Viongozi</span><span id="leader-chat-badge" style="position: absolute; top: 2px; right: 8px; background: #EF4444; color: white; font-size: 9px; min-width: 14px; height: 14px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span></button>`;
                 navHtml += `<button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
                 navHtml += `<button class="nav-b" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>`;
                 navHtml += `<button class="nav-b" onclick="handleNav('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
@@ -3976,6 +3976,43 @@
                 showToast("System Alert imetumwa kwa Forum ya Wananchi!");
             } catch(e) { openModal("Kosa", e.message); }
         });
+    }
+    
+       // --- UNREAD BADGES LOGIC ---
+    async function updateBadges() {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if (!u) return;
+        try {
+            // 1. Inbox Badge (kwa kila mtu)
+            const { count: inboxCount } = await sb.from('shop_messages').select('*', { count: 'exact' }).eq('recipient_phone', u.phone_number).eq('is_read', false);
+            const inBadge = document.getElementById('inbox-badge');
+            if (inBadge) {
+                if (inboxCount > 0) { inBadge.innerText = inboxCount > 9 ? '9+' : inboxCount; inBadge.style.display = 'flex'; }
+                else { inBadge.style.display = 'none'; }
+            }
+
+            // 2. Forum Badge (kwa wananchi)
+            if (u.role === 'citizen') {
+                const lastRead = u.last_forum_read || '1970-01-01T00:00:00Z';
+                const { count: forumCount } = await sb.from('citizen_chat').select('*', { count: 'exact' }).neq('sender_phone', u.phone_number).gt('created_at', lastRead);
+                const fBadge = document.getElementById('forum-badge');
+                if (fBadge) {
+                    if (forumCount > 0) { fBadge.innerText = forumCount > 9 ? '9+' : forumCount; fBadge.style.display = 'flex'; }
+                    else { fBadge.style.display = 'none'; }
+                }
+            }
+
+            // 3. Leader Chat Badge (kwa viongozi)
+            if (u.role !== 'citizen') {
+                const lastReadL = u.last_leader_read || '1970-01-01T00:00:00Z';
+                const { count: leaderCount } = await sb.from('leader_chat').select('*', { count: 'exact' }).neq('sender_phone', u.phone_number).gt('created_at', lastReadL);
+                const lBadge = document.getElementById('leader-chat-badge');
+                if (lBadge) {
+                    if (leaderCount > 0) { lBadge.innerText = leaderCount > 9 ? '9+' : leaderCount; lBadge.style.display = 'flex'; }
+                    else { lBadge.style.display = 'none'; }
+                }
+            }
+        } catch(e) { console.error("Badge Error:", e); }
     }
     
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
