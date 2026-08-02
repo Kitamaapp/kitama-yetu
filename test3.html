@@ -1344,6 +1344,8 @@
               })
               .subscribe();
         }
+                updateBadges(); // Itasasisha badges
+        setInterval(updateBadges, 15000); // Itakagua kila sekunde 15
     }   
 
     function getActivistBadge(isActivist) {
