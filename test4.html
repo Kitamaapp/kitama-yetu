@@ -1307,24 +1307,23 @@
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shops' }, payload => {
                   if(document.getElementById('shops-directory-sec').classList.contains('active')) fetchShopsDirectory();
               })
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
-    const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-    if (currentUser && payload.new.recipient_phone === currentUser.phone_number) playBeep();
-    if(document.getElementById('my-inbox-sec').classList.contains('active')) fetchMyInbox();
-    if(document.getElementById('shop-inbox-sec').classList.contains('active') && currentShopId) fetchShopInbox(currentShopId);
-    
-    // FIX: Refresh DM Chat moja kwa moja ujumbe mpya unapoingia
-    const dmChatSec = document.getElementById('dm-chat-sec');
-    if (dmChatSec.classList.contains('active') && dmOtherPhone) {
-        const msg = payload.new;
-        // Kama ujumbe unatoka kwa mtu unaongea naye, au unamwendea yeye
-        if (msg.sender_phone === dmOtherPhone || msg.recipient_phone === dmOtherPhone) {
-            fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId);
-        }
-    }
-    
-    updateBadges(); // Sasisha badge
-})
+                  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
+                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+                  if (currentUser && payload.new.recipient_phone === currentUser.phone_number) playBeep();
+                  if(document.getElementById('my-inbox-sec').classList.contains('active')) fetchMyInbox();
+                  if(document.getElementById('shop-inbox-sec').classList.contains('active') && currentShopId) fetchShopInbox(currentShopId);
+                  
+                  // Refresh DM Chat bila kuficha screen
+                  const dmChatSec = document.getElementById('dm-chat-sec');
+                  if (dmChatSec.classList.contains('active') && dmOtherPhone) {
+                      const msg = payload.new;
+                      if (msg.sender_phone === dmOtherPhone || msg.recipient_phone === dmOtherPhone) {
+                          // Tuma 'true' kumjulisha ni ujumbe unakuja (isIncoming)
+                          fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, true);
+                      }
+                  }
+                  updateBadges(); // Sasisha badge
+              })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activist_articles' }, payload => {
                   playBeep();
                   if(document.getElementById('activist-hub-sec').classList.contains('active')) fetchActivistArticles();
@@ -1371,19 +1370,13 @@
     }  
 
     function getActivistBadge(isActivist) {
-        if (!isActivist) return '';
-        return `<svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align: middle; margin-left: 3px; margin-bottom: 2px; display: inline-block;">
-            <defs>
-                <linearGradient id="kitamaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#1D9BF0" />
-                    <stop offset="100%" stop-color="#0d6efd" />
-                </linearGradient>
-            </defs>
-            <path fill="url(#kitamaGrad)" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/>
-            <text x="12" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="900" text-anchor="middle" fill="white" style="pointer-events: none;">K</text>
-        </svg>`;
-    }
-
+    if (!isActivist) return '';
+    // Tumefuta linearGradient (kitambaa cha rangi) na kuweka rangi moja kwa moja ili kuepuka mapigano ya HTML IDs
+    return `<svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align: middle; margin-left: 3px; margin-bottom: 2px; display: inline-block;">
+        <path fill="#1D9BF0" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/>
+        <text x="12" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="900" text-anchor="middle" fill="white" style="pointer-events: none;">K</text>
+    </svg>`;
+}
     async function checkActivistStatus(u) {
         if (u.is_activist || u.role !== 'citizen') return;
         try {
@@ -2072,18 +2065,19 @@
         else return msgDate.toLocaleDateString('sw-KE', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
-    async function fetchCitizenChat(isIncoming = false) {
+        async function fetchCitizenChat(isIncoming = false) {
         const u = JSON.parse(localStorage.getItem('kitama_user')); 
         if (!u || !u.phone_number) return; 
         
         const div = document.getElementById('citizen-chat-list'); 
-        if(isIncoming && !isAtBottom) {
-            unreadChatCount++;
-            document.getElementById('new-msg-count').innerText = unreadChatCount;
-            document.getElementById('new-msg-banner').style.display = 'block';
+        const oldScrollTop = div.scrollTop;
+        const hasContent = div.children.length > 0;
+        
+        // Ficha skeleton loading ikiwa tayari kuna ujumbe kwenye screen
+        if(!hasContent) {
+            div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>';
         }
         
-        div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>';
         try {
             const { data, error } = await sb.from('citizen_chat').select('*').order('created_at', { ascending:true }).limit(100);
             if(error) throw error;
@@ -2097,9 +2091,9 @@
             }
 
             let chatHtml = '';
+            let firstUnreadId = null;
             if(data.length > 0) {
                 let lastDateStr = '';
-                
                 data.forEach(c => {
                     const msgDate = new Date(c.created_at);
                     const dateStr = msgDate.toDateString();
@@ -2109,8 +2103,13 @@
                         lastDateStr = dateStr;
                     }
 
-                                        const isSelf = (u.phone_number === c.sender_phone);
+                    const isSelf = (u.phone_number === c.sender_phone);
                     const isSystemAlert = c.sender_phone === window.adminPhone;
+                    
+                    // Hapa tunachukua ID ya ujumbe wa kwanza ambao bado hujasomwa
+                    if (!isSelf && !firstUnreadId && (!c.read_by || !c.read_by.includes(u.phone_number)) && !isIncoming) {
+                        firstUnreadId = c.id;
+                    }
                     
                     const readByArray = c.read_by || [];
                     const readCount = readByArray.length;
@@ -2135,19 +2134,11 @@
                     
                     let chatMsgHtml = '';
                     if (c.sender_role === 'system_admin') {
-                        // System Alert lenye Verified Badge
-                        chatMsgHtml = `<div class="chat-msg system-alert"><p><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${content}</p></div>`;
+                        chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg system-alert"><p><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${content}</p></div>`;
                     } else {
                         let badgeHtml = getActivistBadgeForPhone(c.sender_phone, c);
                         let displayNameWithBadge = isSelf ? 'Wewe' : c.sender_name + ' ' + badgeHtml;
-                        let actionsHtml = `<div class="chat-actions">
-                            <button class="chat-action-btn" onclick="event.stopPropagation(); setCitizenReply('${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')">${ICONS.reply} Reply</button>
-                            ${!isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); replyPrivately('${c.sender_phone}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" title="Reply Privately"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Private</button>` : ''}
-                            ${isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); deleteCitizenChat('${c.id}')" style="color:var(--danger);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Futa</button>` : ''}
-                        </div>`;
-                        let swipeHandlers = `ontouchstart="startSwipe(event, '${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" ontouchmove="moveSwipe(event)" ontouchend="endSwipe()"`;
-                        
-                        chatMsgHtml = `<div class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayNameWithBadge}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
+                        chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayNameWithBadge}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
                     }
                     chatHtml += chatMsgHtml;
                 });
@@ -2157,10 +2148,26 @@
             
             div.innerHTML = chatHtml;
             
-            if(isAtBottom || !isIncoming) {
+            // HAPA NDIO SEHEMU MUHIMU YA SCROLL
+            if(isIncoming && !isAtBottom) {
+                // Kama ujumbe unakuja lakini wewe uko juu ukisoma, screen isiruke. Iache ipotee kwenye ujumbe wa mwisho (huko chini)
+                unreadChatCount++;
+                document.getElementById('new-msg-count').innerText = unreadChatCount;
+                document.getElementById('new-msg-banner').style.display = 'block';
+                div.scrollTop = oldScrollTop; // Rudisha scroll pale ulipokuwa
+            } else if (firstUnreadId) {
+                // Kama umefungua chat mpya, nenda kwenye ujumbe wa kwanza hujasoma
+                const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
+                if(unreadEl) unreadEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                isAtBottom = false;
+            } else {
+                // Kama wewe ndio umetuma au umeshasoma yote, nenda chini kabisa
                 div.scrollTop = div.scrollHeight;
+                isAtBottom = true;
             }
-        } catch(e) { div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
+        } catch(e) { 
+            if(!hasContent) div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+        }
     }
 
     async function postCitizenChat() {
@@ -4140,18 +4147,22 @@
         currentMsgElement = null;
     }
 
-    async function fetchDmChat(phone, name, shopId = null) {
+        async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
         dmOtherPhone = phone; dmShopId = shopId;
         document.getElementById('dm-chat-title').innerText = name;
         document.getElementById('dm-reply-context').style.display = 'none'; dmReplyTo = null;
         const div = document.getElementById('dm-chat-list');
-        div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div>';
-        showSec('dm-chat-sec'); // Nenda Full Screen
         
-                try {
+        const oldScrollTop = div.scrollTop;
+        const hasContent = div.children.length > 0;
+        
+        if(!hasContent) {
+            div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div>';
+        }
+        
+        try {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             
-            // FIX: Tafuta taarifa za mtumiaji mwenzie ili kupata hadhi ya activist kwa uhakika
             let otherUserIsActivist = false;
             const { data: otherUser } = await sb.from('users').select('is_activist').eq('phone_number', phone).maybeSingle();
             if (otherUser && otherUser.is_activist) {
@@ -4164,11 +4175,13 @@
             const { data, error } = await query;
             if(error) throw error;
             
-        for(let msg of data) {
-           if(msg.recipient_phone === u.phone_number && msg.is_read === false) {
-              try { await sb.from('shop_messages').update({ is_read: true }).eq('id', msg.id); } catch(e) {}
-           }
-        }
+            let firstUnreadId = null;
+            for(let msg of data) {
+                if(msg.recipient_phone === u.phone_number && msg.is_read === false) {
+                    if(!firstUnreadId && !isIncoming) firstUnreadId = msg.id;
+                    try { await sb.from('shop_messages').update({ is_read: true }).eq('id', msg.id); } catch(e) {}
+                }
+            }
             updateBadges();
 
             let chatHtml = '';
@@ -4182,11 +4195,10 @@
                     
                     if (isSystemAlert) {
                         msgClass = 'system-alert';
-                        chatHtml += `<div class="chat-msg ${msgClass}"><p><svg viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${content}</p></div>`;
+                        chatHtml += `<div id="msg-${c.id}" class="chat-msg ${msgClass}"><p><svg viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${content}</p></div>`;
                         return;
                     }
 
-                                // FIX 1: Badilisha jina liwe "Wewe" kama wewe ndio mtumiaji
                     let displayName = isSelf ? 'Wewe' : c.sender_name;
                     
                     if(!isSelf) {
@@ -4196,7 +4208,6 @@
                     }
                     let swipeHandlers = `ontouchstart="startDmSwipe(event, '${c.id}', '${c.sender_name}', '${content.replace(/'/g, "\\'")}')" ontouchmove="moveSwipe(event)" ontouchend="endDmSwipe()"`;
                     
-                    // FIX 2: Onyesha badge kwa uhakika kulingana na taarifa tulizopata
                     let badgeHtml = '';
                     if (isSelf) {
                         badgeHtml = u.is_activist ? getActivistBadge(true) : '';
@@ -4204,14 +4215,30 @@
                         badgeHtml = otherUserIsActivist ? getActivistBadge(true) : '';
                     }
                     
-                    chatHtml += `<div class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayName} ${badgeHtml}</b><p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                    chatHtml += `<div id="msg-${c.id}" class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayName} ${badgeHtml}</b><p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
                 });
             } else {
                 chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna ujumbe bado.</p>';
             }
             div.innerHTML = chatHtml;
-            div.scrollTop = div.scrollHeight;
-        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+            
+            // HAPA NDIO SEHEMU MUHIMU YA SCROLL
+            if (isIncoming && !dmIsAtBottom) {
+                // Ujumbe unakuja wakati uko juu, screen isiruke
+                div.scrollTop = oldScrollTop;
+            } else if (firstUnreadId) {
+                // Fungua chat, nenda kwenye ujumbe wa kwanza hujasoma
+                const el = document.getElementById(`msg-${firstUnreadId}`);
+                if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                dmIsAtBottom = false;
+            } else {
+                // Kila kitu kiko sawa, nenda chini
+                div.scrollTop = div.scrollHeight;
+                dmIsAtBottom = true;
+            }
+        } catch(e) { 
+            if(!hasContent) div.innerHTML = `<p style="color:red;">${e.message}</p>`;
+        }
     }
 
     async function postDmChat() {
