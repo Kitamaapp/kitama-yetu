@@ -2518,29 +2518,39 @@
     let leaderReplyTo = null;
     function setLeaderReply(id, text) { leaderReplyTo = id; document.getElementById('leader-reply-context').style.display = 'block'; document.getElementById('leader-reply-text').innerText = "Unajibu: " + text.substring(0, 30) + "..."; }
     function cancelLeaderReply() { leaderReplyTo = null; document.getElementById('leader-reply-context').style.display = 'none'; }
-    async function fetchLeaderChat() { 
-        const u = JSON.parse(localStorage.getItem('kitama_user')); const div = document.getElementById('chat-list'); div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>'; 
-        try { 
-            const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending:true }).limit(50); 
-            if(error) throw error; 
-                    div.innerHTML = data.length > 0 ? data.map(c => { 
-                const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); 
+        async function fetchLeaderChat() {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const div = document.getElementById('chat-list');
+        div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div>';
+        try {
+            // Sasisha muda wa kusoma kwa admin/leader huyu
+            await sb.from('users').update({ last_leader_read: new Date().toISOString() }).eq('id', u.id);
+            updateBadges(); // Fanya badge ya leader chat iwe 0
+            
+            const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending: true }).limit(50);
+            if (error) throw error;
+
+            div.innerHTML = data.length > 0 ? data.map(c => {
+                const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role);
                 const isSystemAlert = c.sender_role === 'system_admin' && !isSelf;
                 let msgClass = isSelf ? 'self' : '';
                 if (isSystemAlert) msgClass = 'system-alert';
-                
-                let sharedHtml = c.shared_report_id ? `<div class="shared-card"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
+
+                let sharedHtml = c.shared_report_id ? `<div class="reply-quote" style="border-left-color: var(--text-sec);"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : '';
                 let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
-                let safeContent = c.content.replace(/'/g, "\\'");
+                let safeContent = c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 let actionsHtml = isSystemAlert ? '' : `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
-                
-                let displayName = isSelf ? 'Wewe' : (isSystemAlert ? 'Mfumo wa Kitama' : c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')');
-                return `<div class="chat-msg ${msgClass}"><b>${displayName}</b>${replyHtml}<p>${c.content}</p>${sharedHtml}<small>${new Date(c.created_at).toLocaleString()}</small>${actionsHtml}</div>`; 
-            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>'; 
-            
-            div.scrollTop = div.scrollHeight; 
-        } catch(e) { div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`; } 
-    }
+
+                let displayName = isSelf ? 'Wewe' : (isSystemAlert ? 'Mfumo wa Kitama' : c.sender_name);
+                return `<div class="chat-msg ${msgClass}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${c.content}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
+
+            div.scrollTop = div.scrollHeight;
+        } catch (e) {
+            div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+        }
+        }
+    
     async function postChat() { 
         const u = JSON.parse(localStorage.getItem('kitama_user')); const content = document.getElementById('chat-input').value.trim(); if(!content) return; if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
         try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content, reply_to: leaderReplyTo }]); document.getElementById('chat-input').value = ''; cancelLeaderReply(); playBeep(); fetchLeaderChat(); } catch(e) { openModal("Kosa", e.message); } 
@@ -3103,8 +3113,9 @@
             data.forEach(msg => {
                 let otherPhone = msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone;
                 let otherName = msg.sender_name; 
-                
-                if(msg.shops && msg.shops.shop_name) {
+                        
+            try { await sb.from('shop_messages').update({ is_read: true }).eq('id', msg.id); } catch(e) {}
+            if(msg.shops && msg.shops.shop_name) {
                     if(!convos[msg.shop_id]) {
                         convos[msg.shop_id] = { type: 'shop', id: msg.shop_id, name: msg.shops.shop_name, phone: msg.shops.owner_phone, lastMsg: msg.content, time: msg.created_at };
                     }
