@@ -3142,7 +3142,8 @@
                     <div class="fb-convo-badge">${new Date(c.time).toLocaleDateString()}</div>
                 </div>`;
             }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna ujumbe wowote bado.</p>';
-        } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
+                } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
+        updateBadges(); // Sasisha badge baada ya kufungua inbox
     }
 
     async function openCitizenChat(shopId, shopName, ownerPhone) {
