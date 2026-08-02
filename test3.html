@@ -526,41 +526,41 @@
         .admin-tool-card p { font-size: 11px; color: #94a3b8; }
         .admin-tool-card:hover { border-color: #38bdf8; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189, 248, 0.2); }
         
-                /* SYSTEM ALERT CHAT BUBBLE */
+               /* WHATSAPP STYLE SYSTEM ALERT */
         .chat-msg.system-alert { 
-            background: linear-gradient(135deg, #1e1b4b, #312e81) !important; 
-            color: #fff !important; 
-            border: 2px solid #4c1d95 !important; 
-            max-width: 95% !important; 
+            background: transparent !important; 
+            border: none !important; 
+            box-shadow: none !important; 
+            max-width: 90% !important; 
             align-self: center !important; 
-            border-radius: 12px !important; 
-            box-shadow: 0 4px 15px rgba(49, 46, 129, 0.4) !important; 
-            margin: 15px 0 !important; 
-            pointer-events: none !important; /* Mtu hawezi kubonyeza au kuswipe ujumbe huu */
+            margin: 12px 0 !important; 
+            padding: 0 !important; 
+            pointer-events: none !important; /* Mtu hawezi kubonyeza au kuswipe */
         }
-        .chat-msg.system-alert b { 
-            color: #a5b4fc !important; 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-            font-size: 11px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 6px; 
+        .chat-msg.system-alert b, 
+        .chat-msg.system-alert .msg-time, 
+        .chat-msg.system-alert .reply-quote { 
+            display: none !important; /* Ficha jina na muda */
         }
         .chat-msg.system-alert p { 
-            color: #fff !important; 
-            text-align: center; 
-            font-size: 14px; 
-            font-weight: 500; 
-        }
-        .chat-msg.system-alert .msg-time { 
-            color: #c7d2fe !important; 
-            width: 100%; 
-            justify-content: center; 
+            background: var(--surface) !important; 
+            color: var(--text-sec) !important; 
             display: flex !important; 
-            float: none !important; 
+            align-items: center !important; 
+            gap: 6px !important; 
+            padding: 6px 14px !important; 
+            border-radius: 8px !important; 
+            font-size: 12px !important; 
+            font-weight: 500 !important; 
+            text-align: center !important; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important; 
+            border: 1px solid var(--border) !important;
         }
+        [data-theme="dark"] .chat-msg.system-alert p { 
+            background: #1e293b !important; 
+            color: #94a3b8 !important; 
+            border-color: #2a3650 !important; 
+        }         
         
     </style>
 </head>
@@ -1217,7 +1217,7 @@
             setupDashboard(u);
         }
 
-        if (!isRealtimeInitialized) {
+                if (!isRealtimeInitialized) {
             isRealtimeInitialized = true;
             sb.channel('public:kitama-realtime')
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'boda_requests' }, payload => {
@@ -1252,15 +1252,15 @@
                   const box = document.getElementById(`comments-${reportId}`);
                   if(box && box.style.display === 'block') fetchComments(reportId);
               })
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if(currentUser && currentUser.role !== 'citizen') { 
                       playBeep(); 
                       if(document.getElementById('leader-chat-sec').classList.contains('active')) fetchLeaderChat();
                   }
-                  updateBadges(); // ONGEZA HII HAPA
+                  updateBadges(); // Sasisha badge
               })
-               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if(currentUser && currentUser.role === 'citizen') { 
                       if (payload.new.sender_phone !== currentUser.phone_number) playBeep(); 
@@ -1269,9 +1269,8 @@
                           fetchCitizenChat(isIncoming);
                       }
                   }
-                  updateBadges(); // ONGEZA HII HAPA
+                  updateBadges(); // Sasisha badge
               })
-                
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'citizen_chat' }, payload => {
                   if(document.getElementById('citizen-chat-sec').classList.contains('active')) fetchCitizenChat(false);
               })
@@ -1289,12 +1288,12 @@
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shops' }, payload => {
                   if(document.getElementById('shops-directory-sec').classList.contains('active')) fetchShopsDirectory();
               })
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (currentUser && payload.new.recipient_phone === currentUser.phone_number) playBeep();
                   if(document.getElementById('my-inbox-sec').classList.contains('active')) fetchMyInbox();
                   if(document.getElementById('shop-inbox-sec').classList.contains('active') && currentShopId) fetchShopInbox(currentShopId);
-                  updateBadges(); // ONGEZA HII HAPA
+                  updateBadges(); // Sasisha badge
               })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activist_articles' }, payload => {
                   playBeep();
@@ -1318,29 +1317,18 @@
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  
                   if (!currentUser) return;
-                  
                   if (updatedUser.id === currentUser.id) {
                       const activistChanged = updatedUser.is_activist !== currentUser.is_activist;
                       const statusChanged = updatedUser.status !== currentUser.status;
-                      
                       localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
-                      
                       if(activistChanged) {
-                          if(updatedUser.is_activist) {
-                              openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b>. Ukiandika makala, hoja, au maoni, jina lako litakuwa na alama ya <b>✓ Activist</b>.", false);
-                          } else {
-                              showToast("Hadhi yako ya Activist imeondolewa.");
-                          }
+                          if(updatedUser.is_activist) openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b>.", false);
+                          else showToast("Hadhi yako ya Activist imeondolewa.");
                       }
-                      
                       const activeSec = document.querySelector('.sec.active');
-                      if (statusChanged) {
-                          location.reload(); 
-                      } else if (activistChanged && activeSec && activeSec.id === 'home-sec') {
-                          setupDashboard(updatedUser);
-                      }
+                      if (statusChanged) location.reload(); 
+                      else if (activistChanged && activeSec && activeSec.id === 'home-sec') setupDashboard(updatedUser);
                   } else {
                       if(document.getElementById('pending-users-sec').classList.contains('active')) fetchPendingUsers();
                       if(document.getElementById('admin-activists-sec').classList.contains('active')) fetchActivistsControl();
@@ -1348,8 +1336,9 @@
               })
               .subscribe();
         }
-        updateBadges();
-        }   
+
+        updateBadges(); // HII NDIO IPO HAPA MWISHONI
+    }  
 
     function getActivistBadge(isActivist) {
         if (!isActivist) return '';
@@ -2158,18 +2147,23 @@
                     </div>`;
                     let swipeHandlers = `ontouchstart="startSwipe(event, '${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" ontouchmove="moveSwipe(event)" ontouchend="endSwipe()"`;
                     
-                                        let badgeHtml = getActivistBadgeForPhone(c.sender_phone, c);
-                    let displayNameWithBadge = isSelf ? 'Wewe' : c.sender_name + ' ' + badgeHtml;
-                    let msgClass = isSelf ? 'self' : '';
-                    
-                    // ADMIN SYSTEM ALERT LOGIC
+                                    let chatMsgHtml = '';
                     if (c.sender_phone === window.adminPhone || c.sender_role === 'system_admin') {
-                        msgClass = 'system-alert';
-                        displayNameWithBadge = 'Mfumo wa Kitama';
-                        actionsHtml = ''; // Ondoa vitufe vya Reply/Private kwa Admin
+                    // System Alert lenye Verified Badge
+                        chatMsgHtml = `<div class="chat-msg system-alert"><p><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${content}</p></div>`;
+                    } else {
+                        let badgeHtml = getActivistBadgeForPhone(c.sender_phone, c);
+                        let displayNameWithBadge = isSelf ? 'Wewe' : c.sender_name + ' ' + badgeHtml;
+                        let actionsHtml = `<div class="chat-actions">
+                            <button class="chat-action-btn" onclick="event.stopPropagation(); setCitizenReply('${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')">${ICONS.reply} Reply</button>
+                            ${!isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); replyPrivately('${c.sender_phone}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" title="Reply Privately"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Private</button>` : ''}
+                            ${isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); deleteCitizenChat('${c.id}')" style="color:var(--danger);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Futa</button>` : ''}
+                        </div>`;
+                        let swipeHandlers = `ontouchstart="startSwipe(event, '${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" ontouchmove="moveSwipe(event)" ontouchend="endSwipe()"`;
+                        
+                        chatMsgHtml = `<div class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayNameWithBadge}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
                     }
-                    
-                    chatHtml += `<div class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayNameWithBadge}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
+                    chatHtml += chatMsgHtml;
                 });
             } else {
                 chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
@@ -2535,21 +2529,22 @@
             const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending: true }).limit(50);
             if (error) throw error;
 
-            div.innerHTML = data.length > 0 ? data.map(c => {
-                const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role);
-                const isSystemAlert = c.sender_role === 'system_admin' && !isSelf;
-                let msgClass = isSelf ? 'self' : '';
-                if (isSystemAlert) msgClass = 'system-alert';
+             div.innerHTML = data.length > 0 ? data.map(c => { 
+                // System Alert kwa Admin lenye Verified Badge
+                if (c.sender_role === 'system_admin') {
+                    return `<div class="chat-msg system-alert"><p><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${c.content}</p></div>`;
+                }
 
-                let sharedHtml = c.shared_report_id ? `<div class="reply-quote" style="border-left-color: var(--text-sec);"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : '';
+                const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); 
+                let sharedHtml = c.shared_report_id ? `<div class="reply-quote" style="border-left-color: var(--text-sec);"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
                 let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
                 let safeContent = c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                let actionsHtml = isSystemAlert ? '' : `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
+                let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
 
-                let displayName = isSelf ? 'Wewe' : (isSystemAlert ? 'Mfumo wa Kitama' : c.sender_name);
-                return `<div class="chat-msg ${msgClass}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${c.content}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
-            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
-
+                let displayName = c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')';
+                return `<div class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${c.content}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`; 
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>'; 
+            
             div.scrollTop = div.scrollHeight;
         } catch (e) {
             div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
@@ -3103,7 +3098,7 @@
         });
     }
 
-    async function fetchMyInbox() {
+        async function fetchMyInbox() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         const div = document.getElementById('my-inbox-list');
         div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
@@ -3115,12 +3110,14 @@
             if(error) throw error;
             
             const convos = {};
-            data.forEach(msg => {
+            for(const msg of data) {
+                // Weka ujumbe kuwa umesomwa
+                try { await sb.from('shop_messages').update({ is_read: true }).eq('id', msg.id); } catch(e) {}
+                
                 let otherPhone = msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone;
                 let otherName = msg.sender_name; 
-                        
-            try { await sb.from('shop_messages').update({ is_read: true }).eq('id', msg.id); } catch(e) {}
-            if(msg.shops && msg.shops.shop_name) {
+                
+                if(msg.shops && msg.shops.shop_name) {
                     if(!convos[msg.shop_id]) {
                         convos[msg.shop_id] = { type: 'shop', id: msg.shop_id, name: msg.shops.shop_name, phone: msg.shops.owner_phone, lastMsg: msg.content, time: msg.created_at };
                     }
@@ -3131,7 +3128,7 @@
                         convos['dm_'+otherPhone] = { type: 'dm', id: otherPhone, name: nameWithBadge, phone: otherPhone, lastMsg: msg.content, time: msg.created_at };
                     }
                 }
-            });
+            }
 
             const convoList = Object.values(convos);
             div.innerHTML = convoList.length > 0 ? convoList.map(c => {
@@ -3147,7 +3144,7 @@
                     <div class="fb-convo-badge">${new Date(c.time).toLocaleDateString()}</div>
                 </div>`;
             }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna ujumbe wowote bado.</p>';
-                } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
+        } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
         updateBadges(); // Sasisha badge baada ya kufungua inbox
     }
 
