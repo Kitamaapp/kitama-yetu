@@ -4178,6 +4178,9 @@
                         return;
                     }
 
+                    // FIX 1: Badilisha jina liwe "Wewe" kama wewe ndio mtumiaji
+                    let displayName = isSelf ? 'Wewe' : c.sender_name;
+                    
                     if(!isSelf) {
                         actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="event.stopPropagation(); setDmReply('${c.id}', '${c.sender_name}', '${content.replace(/'/g, "\\'")}')" style="color:var(--accent);">Reply</button></div>`;
                     } else {
@@ -4185,8 +4188,9 @@
                     }
                     let swipeHandlers = `ontouchstart="startDmSwipe(event, '${c.id}', '${c.sender_name}', '${content.replace(/'/g, "\\'")}')" ontouchmove="moveSwipe(event)" ontouchend="endDmSwipe()"`;
                     
-                    let badgeHtml = c.is_activist ? getActivistBadge(true) : '';
-                    chatHtml += `<div class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${c.sender_name} ${badgeHtml}</b><p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                    // FIX 2: Tumia getActivistBadgeForPhone kuhakikisha badge inaonekana
+                    let badgeHtml = getActivistBadgeForPhone(c.sender_phone, c);
+                    chatHtml += `<div class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayName} ${badgeHtml}</b><p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
                 });
             } else {
                 chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna ujumbe bado.</p>';
