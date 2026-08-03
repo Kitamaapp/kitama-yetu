@@ -4247,7 +4247,7 @@
         showToast("Mazungumzo yamepakuliwa kwa usalama!");
     }
         // --- FULL SCREEN DM CHAT FUNCTIONS ---
-    let dmOtherPhone = null;
+        let dmOtherPhone = null;
     let dmShopId = null;
     let dmReplyTo = null;
     let dmIsAtBottom = true;
@@ -4259,10 +4259,14 @@
         if (height - position <= threshold) dmIsAtBottom = true; else dmIsAtBottom = false;
     }
 
-    function cancelDmReply() { dmReplyTo = null; document.getElementById('dm-reply-context').style.display = 'none'; }
+    function cancelDmReply() { 
+        dmReplyTo = null; 
+        document.getElementById('dm-reply-context').style.display = 'none'; 
+    }
 
     function setDmReply(id, name, text) {
         dmReplyTo = `${name}|${text}`;
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
         const displayName = name === u.full_name ? 'Wewe' : name;
         document.getElementById('dm-reply-text').innerHTML = `<b style="color:var(--accent)">${displayName}</b><br>${text.substring(0, 40)}...`;
         document.getElementById('dm-reply-context').style.display = 'block';
@@ -4286,15 +4290,14 @@
         currentMsgElement = null;
     }
 
-        async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
+    async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
         dmOtherPhone = phone; dmShopId = shopId;
         document.getElementById('dm-chat-title').innerText = name;
         document.getElementById('dm-reply-context').style.display = 'none'; dmReplyTo = null;
         
-        showSec('dm-chat-sec'); // HII NDIO ILIKUWA IMEKOSEKANA IRAFIKI YANGU!
+        showSec('dm-chat-sec'); // Fungua screen ya chat
         
         const div = document.getElementById('dm-chat-list');
-        
         const oldScrollTop = div.scrollTop;
         const hasContent = div.children.length > 0;
         
@@ -4305,6 +4308,7 @@
         try {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             
+            // Tafuta hadhi ya activist ya mtu unaeongea naye
             let otherUserIsActivist = false;
             const { data: otherUser } = await sb.from('users').select('is_activist').eq('phone_number', phone).maybeSingle();
             if (otherUser && otherUser.is_activist) {
@@ -4313,7 +4317,10 @@
 
             const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${phone}),and(sender_phone.eq.${phone},recipient_phone.eq.${u.phone_number})`;
             let query = sb.from('shop_messages').select('*').or(orFilter).order('created_at', { ascending: true }).limit(100);
+            
+            // HII NDIO INAITENGA INBOX YA DUKA NA YA BINAFSI
             if(shopId) query = query.eq('shop_id', shopId); else query = query.is('shop_id', null);
+            
             const { data, error } = await query;
             if(error) throw error;
             
@@ -4364,8 +4371,9 @@
             }
             div.innerHTML = chatHtml;
             
+            // MAMBO YA SCROLL HAPA
             if (isIncoming && !dmIsAtBottom) {
-                div.scrollTop = oldScrollTop;
+                div.scrollTop = oldScrollTop; // Shikilia screen isiruke
             } else if (firstUnreadId) {
                 const el = document.getElementById(`msg-${firstUnreadId}`);
                 if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -4377,43 +4385,44 @@
         } catch(e) { 
             if(!hasContent) div.innerHTML = `<p style="color:red;">${e.message}</p>`;
         }
+    }
+        
+
+        async function postDmChat() {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const content = document.getElementById('dm-chat-input').value.trim();
+        if(!content) return;
+        if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+        
+        const sendBtn = document.querySelector('#dm-chat-sec .chat-input-box button');
+        const originalBtn = sendBtn ? sendBtn.innerHTML : '';
+        if(sendBtn) { sendBtn.innerHTML = '<div class="spinner"></div>'; sendBtn.disabled = true; }
+        
+        try {
+            const msgData = { 
+                sender_phone: u.phone_number, 
+                sender_name: u.full_name, 
+                content: content,
+                recipient_phone: dmOtherPhone
+            };
+            if(dmShopId) msgData.shop_id = dmShopId; // Weka shop_id ikiwa ni ya duka, ikiwa la binafsi itabaki null
+            
+            const { error } = await sb.from('shop_messages').insert([msgData]);
+            if(error) throw error;
+            
+            document.getElementById('dm-chat-input').value = '';
+            cancelDmReply();
+            playBeep();
+            dmIsAtBottom = true; // Shuka chini unapotuma wewe mwenyewe
+            await fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId);
+        } catch(e) { 
+            openModal("Kosa la Kutuma", e.message); 
+        } finally {
+            if(sendBtn) { sendBtn.innerHTML = originalBtn; sendBtn.disabled = false; }
+        }
         }
 
-    async function postDmChat() {
-    const u = JSON.parse(localStorage.getItem('kitama_user'));
-    const content = document.getElementById('dm-chat-input').value.trim();
-    if(!content) return;
-    if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
-    
-    const sendBtn = document.querySelector('#dm-chat-sec .chat-input-box button');
-    const originalBtn = sendBtn ? sendBtn.innerHTML : '';
-    if(sendBtn) { sendBtn.innerHTML = '<div class="spinner"></div>'; sendBtn.disabled = true; }
-    
-    try {
-        // Tumia fields zilizopo tu kwenye table (mfano wa sendShopMessage)
-        const msgData = { 
-            sender_phone: u.phone_number, 
-            sender_name: u.full_name, 
-            content: content,
-            recipient_phone: dmOtherPhone
-        };
-        if(dmShopId) msgData.shop_id = dmShopId;
-        
-        const { error } = await sb.from('shop_messages').insert([msgData]);
-        if(error) throw error;  <!-- HII NDIO ILIKUWA INAKOSEKANA -->
-        
-        document.getElementById('dm-chat-input').value = '';
-        cancelDmReply();
-        playBeep();
-        await fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId);
-    } catch(e) { 
-        openModal("Kosa la Kutuma", e.message); 
-    } finally {
-        if(sendBtn) { sendBtn.innerHTML = originalBtn; sendBtn.disabled = false; }
-    }
-}
-
-    async function deleteDmMessage(id) {
+        async function deleteDmMessage(id) {
         openModal("Futa Ujumbe", "Una uhakika unataka kufuta ujumbe huu?", false, async () => {
             try {
                 await sb.from('shop_messages').delete().eq('id', id);
@@ -4421,7 +4430,7 @@
                 fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId);
             } catch(e) { openModal("Kosa", e.message); }
         });
-    }
+        }
     
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
