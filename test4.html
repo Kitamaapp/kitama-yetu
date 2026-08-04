@@ -950,18 +950,30 @@
         </div>
         <div id="leader-reports-sec" class="sec"><div class="sec-h"><h2 id="leader-rep-title">Malalamishi</h2><span onclick="fetchLeaderReports()">Refresh</span></div><div id="leader-rep-list"></div></div>
         
-        <div id="leader-chat-sec" class="sec">
-            <div class="sec-h" style="display:flex; align-items:center; gap:15px;">
-                <button onclick="handleNav('home-sec')" style="background:var(--bg); border:none; padding:8px; border-radius:12px; cursor:pointer; color:var(--text); display:flex; align-items:center;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                </button>
-                <h2>Chumb cha Viongozi</h2>
+                <div id="leader-chat-sec" class="sec">
+            <div class="chat-header">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <button onclick="handleNav('home-sec')" style="background:var(--bg); border:none; padding:8px; border-radius:12px; cursor:pointer; color:var(--text); display:flex; align-items:center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    </button>
+                    <div>
+                        <h2>Chumb cha Viongozi</h2>
+                        <small style="font-size:11px; color:var(--text-sec); margin-top:2px; display:block; font-weight:500;">Mazungumzo ya faragha ya Viongozi</small>
+                    </div>
+                </div>
             </div>
-            <div class="chat-container" id="chat-list"></div>
-            <div id="leader-reply-context" style="display:none; padding:10px 15px; background:var(--bg); border-radius:10px 10px 0 0; font-size:12px; color:var(--text-sec); margin-bottom:-5px; width:calc(100% - 40px); max-width: 440px; bottom: 130px; left: 50%; transform: translateX(-50%); position: fixed; border:1px solid var(--border); border-bottom:none;">
+            
+            <div class="chat-body" id="chat-list" onscroll="handleLeaderChatScroll(this)"></div>
+            
+            <div id="leader-new-msg-banner" onclick="scrollToBottomLeaderChat()" style="display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: var(--shadow-lg); z-index: 101; animation: slideUp 0.3s ease;">
+                Message Mpya (<span id="leader-new-msg-count">0</span>)
+            </div>
+
+            <div id="leader-reply-context" style="display:none; position: fixed; bottom: 65px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 10px 15px; background: var(--surface); border-left: 4px solid var(--accent); box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 99; box-sizing: border-box;">
                 <span id="leader-reply-text"></span>
-                <button onclick="cancelLeaderReply()" style="float:right; background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button>
+                <button onclick="cancelLeaderReply()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--bg); border: none; color: var(--danger); cursor: pointer; font-weight: bold; width: 24px; height: 24px; border-radius: 50%;">X</button>
             </div>
+            
             <div class="chat-input-box">
                 <input type="text" id="chat-input" placeholder="Andika ujumbe...">
                 <button onclick="postChat()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:20px; font-weight:700;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
@@ -1271,13 +1283,16 @@
                   const box = document.getElementById(`comments-${reportId}`);
                   if(box && box.style.display === 'block') fetchComments(reportId);
               })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if(currentUser && currentUser.role !== 'citizen') { 
-                      playBeep(); 
-                      if(document.getElementById('leader-chat-sec').classList.contains('active')) fetchLeaderChat();
+                      const isSelf = (payload.new.sender_name === currentUser.full_name && payload.new.sender_role === currentUser.role);
+                      if (!isSelf) playBeep(); 
+                      if(document.getElementById('leader-chat-sec').classList.contains('active')) {
+                          fetchLeaderChat(true); 
+                      }
                   }
-                  updateBadges(); // Sasisha badge
+                  updateBadges(); 
               })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
@@ -2533,46 +2548,126 @@
     async function promptResolution(id, leaderName) { openModal("Uthibitisho wa Kazi", "Andika kile ulichokifanya (Uthibitisho). Kisha utachagua picha ya mradi uliokamilisha.", true, async (note) => { if(!note) return openModal("Taarifa", "Lazima uandika uthibitisho."); const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.click(); fileInput.onchange = async () => { let imgUrl = null; if(fileInput.files.length > 0) { const fileName = `resolution_${Date.now()}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { await sb.from('reports').update({ status: 'resolved', resolution_note: note, resolution_image: imgUrl, resolved_by_name: leaderName }).eq('id', id); showToast("Umekamilisha kazi na kuweka uthibitisho!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }; }); }
     async function shareToLeaders(reportId, title) { openModal("Shiriki kwa Viongozi", `Una uhakika unataka kushiriki ripoti hii kwenye Chumb cha Viongozi?`, false, async () => { const u = JSON.parse(localStorage.getItem('kitama_user')); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: `Naomba msaada/maoni kuhusu ripoti hii: "${title}"`, shared_report_id: reportId }]); showToast("Imeshirikiwa kwenye Chumb cha Viongozi!"); showSec('leader-chat-sec'); } catch(e) { openModal("Kosa", e.message); } }); }
 
+        let leaderIsAtBottom = true;
+    let leaderUnreadCount = 0;
     let leaderReplyTo = null;
-    function setLeaderReply(id, text) { leaderReplyTo = id; document.getElementById('leader-reply-context').style.display = 'block'; document.getElementById('leader-reply-text').innerText = "Unajibu: " + text.substring(0, 30) + "..."; }
-    function cancelLeaderReply() { leaderReplyTo = null; document.getElementById('leader-reply-context').style.display = 'none'; }
-        async function fetchLeaderChat() {
+
+    function handleLeaderChatScroll(el) {
+        const threshold = 150; 
+        const position = el.scrollTop + el.clientHeight;
+        const height = el.scrollHeight;
+        if (height - position <= threshold) {
+            leaderIsAtBottom = true;
+            leaderUnreadCount = 0;
+            const banner = document.getElementById('leader-new-msg-banner');
+            if(banner) banner.style.display = 'none';
+        } else {
+            leaderIsAtBottom = false;
+        }
+    }
+
+    function scrollToBottomLeaderChat() {
+        const div = document.getElementById('chat-list');
+        if(div) div.scrollTop = div.scrollHeight;
+        leaderIsAtBottom = true;
+        leaderUnreadCount = 0;
+        const banner = document.getElementById('leader-new-msg-banner');
+        if(banner) banner.style.display = 'none';
+    }
+
+    function setLeaderReply(id, text) { 
+        leaderReplyTo = text; 
+        document.getElementById('leader-reply-context').style.display = 'block'; 
+        document.getElementById('leader-reply-text').innerText = "Unajibu: " + text.substring(0, 30) + "..."; 
+    } 
+
+    function cancelLeaderReply() { 
+        leaderReplyTo = null; 
+        document.getElementById('leader-reply-context').style.display = 'none'; 
+    }
+
+    async function fetchLeaderChat(isIncoming = false) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         const div = document.getElementById('chat-list');
-        div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div>';
+        const oldScrollTop = div.scrollTop;
+        const hasContent = div.children.length > 0;
+
+        if(!hasContent) {
+            div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div>';
+        }
+        
         try {
-            // Sasisha muda wa kusoma kwa admin/leader huyu
-            await sb.from('users').update({ last_leader_read: new Date().toISOString() }).eq('id', u.id);
-            updateBadges(); // Fanya badge ya leader chat iwe 0
+            if(!isIncoming || leaderIsAtBottom) {
+                await sb.from('users').update({ last_leader_read: new Date().toISOString() }).eq('id', u.id);
+                updateBadges();
+            }
             
-            const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending: true }).limit(50);
+            const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending: true }).limit(100);
             if (error) throw error;
 
-             div.innerHTML = data.length > 0 ? data.map(c => { 
-                // System Alert kwa Admin lenye Verified Badge
-                if (c.sender_role === 'system_admin') {
-                    return `<div class="chat-msg system-alert"><p><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${c.content}</p></div>`;
-                }
+            let chatHtml = '';
+            if (data.length > 0) {
+                let lastDateStr = '';
+                data.forEach(c => {
+                    const msgDate = new Date(c.created_at);
+                    const dateStr = msgDate.toDateString();
+                    if (dateStr !== lastDateStr) {
+                        const label = getDateLabel(c.created_at);
+                        chatHtml += `<div style="display: flex; justify-content: center; margin: 15px 0 10px 0;"><span style="background: var(--surface); color: var(--text-sec); padding: 5px 14px; border-radius: 12px; font-size: 11px; font-weight: 700; box-shadow: var(--shadow-sm);">${label}</span></div>`;
+                        lastDateStr = dateStr;
+                    }
 
-                const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); 
-                let sharedHtml = c.shared_report_id ? `<div class="reply-quote" style="border-left-color: var(--text-sec);"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
-                let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
-                let safeContent = c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
+                    if (c.sender_role === 'system_admin') {
+                        chatHtml += `<div class="chat-msg system-alert"><p><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${c.content}</p></div>`;
+                        return;
+                    }
 
-                let displayName = c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')';
-                return `<div class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${c.content}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`; 
-            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>'; 
+                    const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); 
+                    let sharedHtml = c.shared_report_id ? `<div class="reply-quote" style="border-left-color: var(--text-sec);"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
+                    let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
+                    let safeContent = c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
+
+                    let displayName = c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')';
+                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${c.content}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                });
+            } else {
+                chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
+            }
             
-            div.scrollTop = div.scrollHeight;
+            div.innerHTML = chatHtml;
+
+            if (isIncoming && !leaderIsAtBottom) {
+                leaderUnreadCount++;
+                const banner = document.getElementById('leader-new-msg-banner');
+                if(banner) {
+                    document.getElementById('leader-new-msg-count').innerText = leaderUnreadCount;
+                    banner.style.display = 'block';
+                }
+                div.scrollTop = oldScrollTop;
+            } else {
+                div.scrollTop = div.scrollHeight;
+                leaderIsAtBottom = true;
+                leaderUnreadCount = 0;
+            }
         } catch (e) {
-            div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+            if(!hasContent) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
         }
-        }
-    
+    }
+
     async function postChat() { 
-        const u = JSON.parse(localStorage.getItem('kitama_user')); const content = document.getElementById('chat-input').value.trim(); if(!content) return; if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
-        try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content, reply_to: leaderReplyTo }]); document.getElementById('chat-input').value = ''; cancelLeaderReply(); playBeep(); fetchLeaderChat(); } catch(e) { openModal("Kosa", e.message); } 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        const content = document.getElementById('chat-input').value.trim(); 
+        if(!content) return; 
+        if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+        try { 
+            await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content, reply_to: leaderReplyTo }]); 
+            document.getElementById('chat-input').value = ''; 
+            cancelLeaderReply(); 
+            playBeep(); 
+            leaderIsAtBottom = true; 
+            fetchLeaderChat(false); 
+        } catch(e) { openModal("Kosa", e.message); } 
     }
     async function editLeaderChat(id, oldText) {
         openModal("Hariri Ujumbe", "Badilisha ujumbe wako hapa chini.", true, async (newText) => {
