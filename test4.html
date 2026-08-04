@@ -1915,7 +1915,7 @@
         if(id==='boda-sec') { checkDriverStatus(); setTimeout(() => initBodaMap(), 100); }
         if(id==='boda-driver-sec') fetchBodaRequests();
         if(id==='opportunities-sec') fetchOpportunities();
-
+        if(id==='admin-feedback-sec') fetchAdminFeedbacks();
         if(id==='campaign-sec' && (u.role === 'mtendaji_kata' || u.role === 'diwani' || u.role === 'system_admin')) document.getElementById('project-form-box').style.display = 'block';
         if(id==='solidarity-sec' && u.role === 'citizen' && u.status === 'active') document.getElementById('cause-form-box').style.display = 'block';
         if(id==='events-sec' && u.role !== 'citizen') document.getElementById('event-form-box').style.display = 'block';
