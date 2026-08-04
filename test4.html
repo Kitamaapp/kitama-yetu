@@ -1022,10 +1022,15 @@
             <div id="moderation-list"></div>
         </div>
         <div id="admin-users-sec" class="sec">
-            <div class="sec-h"><h2>Udhibiti wa Watumiaji</h2><span onclick="fetchAdminUsers()">Refresh</span></div>
+            <div class="sec-h"><h2>Dhibiti  Watumiaji</h2><span onclick="fetchAdminUsers()">Refresh</span></div>
             <div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Zuia mtumiaji kufanya vitendo (View-only) au fungua akaunti yake kabisa (Ban).</p></div>
             <div id="admin-users-list"></div>
         </div>
+                <div id="admin-feedback-sec" class="sec">
+            <div class="sec-h"><h2>Maoni ya Watumiaji</h2><span onclick="fetchAdminFeedbacks()">Refresh</span></div>
+            <div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Orodha ya maoni na changamoto zilizotumwa na watumiaji.</p></div>
+            <div id="admin-feedback-list"></div>
+                </div>
         <div id="profile-sec" class="sec"><div class="sec-h"><h2>Akaunti Yangu</h2></div><div style="padding: 0 20px;"><div style="text-align:center; margin-bottom:20px;"><img id="p-ava-img" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--accent); margin:0 auto 15px; display:none;"><div id="p-ava" style="width:80px; height:80px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; margin:0 auto 15px;">U</div><h3 id="p-name">Jina</h3><p id="p-village" style="color:var(--text-sec);">Kijiji</p><button onclick="document.getElementById('avatar-upload').click()" style="margin-top:10px; background:var(--bg); color:var(--text); border:1px solid var(--border); padding:8px 16px; border-radius:10px; font-weight:600; cursor:pointer;">Badilisha Picha</button><input type="file" id="avatar-upload" accept="image/*" style="display:none;" onchange="uploadAvatar()"></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Namba:</strong> <span id="p-phone"></span></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Cheo:</strong> <span id="p-role"></span></div>                <button onclick="showSec('help-feedback-sec')" class="btn-p" style="background:var(--bg); color:var(--text); border:1px solid var(--border); margin-top:10px; margin-bottom: 10px;">Msaada na Maoni</button>
                 <button onclick="handleLogout()" class="btn-out">Toka (Logout)</button></div></div>
     </main>
