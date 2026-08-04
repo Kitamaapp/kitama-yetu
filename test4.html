@@ -4625,6 +4625,39 @@
             }).join('') : '<p style="color:var(--text-sec); padding:0 20px;">Hakuna watumiaji.</p>';
         } catch(e) { div.innerHTML = `<p style="color:red; margin:0 20px;">${e.message}</p>`; }
     }
+        // --- ADMIN FEEDBACK FULL SCREEN FUNCTIONS ---
+    async function fetchAdminFeedbacks() {
+        const div = document.getElementById('admin-feedback-list');
+        if(!div) return;
+        const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
+        const oldScroll = window.scrollY;
+        
+        if(!isRealtimeUpdate) {
+            div.innerHTML = '<div class="skeleton" style="height:100px; margin:0 20px 15px 20px;"></div>';
+        }
+        
+        try {
+            const { data, error } = await sb.from('developer_feedback').select('*').order('created_at', { ascending: false });
+            if(error) throw error;
+            
+            div.innerHTML = data.length > 0 ? data.map(f => {
+                let typeClass = f.feedback_type === 'Kosa' ? 'b-err' : f.feedback_type === 'Swali' ? 'b-info' : 'b-succ';
+                return `<div class="list-i">
+                    <div class="list-meta">
+                        <span class="badge ${typeClass}">${f.feedback_type || 'Pendekezo'}</span>
+                        <small style="color:var(--text-sec); margin-left:auto;">${new Date(f.created_at).toLocaleString()}</small>
+                    </div>
+                    <b style="font-size:14px; margin-top:5px; display:block;">${f.user_name}</b>
+                    <small style="color:var(--text-sec); display:block; margin-bottom:8px;">${f.phone}</small>
+                    <p style="color:var(--text); font-size:14px; line-height:1.5;">${f.content}</p>
+                </div>`;
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna maoni yaliyoletwa bado.</p>';
+            
+            if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
+        } catch(e) {
+            if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+        }
+    }
 
     async function updateUserStatus(userId, status) {
         try {
