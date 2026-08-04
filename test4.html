@@ -1021,7 +1021,11 @@
             <div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Kagua picha na tangazo lililotumwa. Futa linalokiuka sheria za app.</p></div>
             <div id="moderation-list"></div>
         </div>
-
+        <div id="admin-users-sec" class="sec">
+            <div class="sec-h"><h2>Udhibiti wa Watumiaji</h2><span onclick="fetchAdminUsers()">Refresh</span></div>
+            <div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Zuia mtumiaji kufanya vitendo (View-only) au fungua akaunti yake kabisa (Ban).</p></div>
+            <div id="admin-users-list"></div>
+        </div>
         <div id="profile-sec" class="sec"><div class="sec-h"><h2>Akaunti Yangu</h2></div><div style="padding: 0 20px;"><div style="text-align:center; margin-bottom:20px;"><img id="p-ava-img" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--accent); margin:0 auto 15px; display:none;"><div id="p-ava" style="width:80px; height:80px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; margin:0 auto 15px;">U</div><h3 id="p-name">Jina</h3><p id="p-village" style="color:var(--text-sec);">Kijiji</p><button onclick="document.getElementById('avatar-upload').click()" style="margin-top:10px; background:var(--bg); color:var(--text); border:1px solid var(--border); padding:8px 16px; border-radius:10px; font-weight:600; cursor:pointer;">Badilisha Picha</button><input type="file" id="avatar-upload" accept="image/*" style="display:none;" onchange="uploadAvatar()"></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Namba:</strong> <span id="p-phone"></span></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Hadh:</strong> <span id="p-role"></span></div><button onclick="handleLogout()" class="btn-out">Toka (Logout)</button></div></div>
     </main>
     <div class="b-nav" id="b-nav"></div>
@@ -1184,10 +1188,14 @@
         const btn = document.getElementById('btn-login'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
         try {
             const { data: u, error } = await sb.from('users').select('*').eq('phone_number', phone).maybeSingle();
-            if(u) {
+                        if(u) {
                 if(u.status === 'rejected') {
-                    openModal("Akaunti Imefungwa", "Akaunti yako imefungwa na Viongozi wa Kata kwa kutumia vibaya. Wasiliana na Mwenyekiti wako.", false);
+                    openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kabisa na Admin wa Mfumo. Huwezi kuingia kwenye app.", false);
                     localStorage.removeItem('kitama_user');
+                } else if (u.status === 'restricted') {
+                    localStorage.setItem('kitama_user', JSON.stringify(u)); 
+                    enterApp(); 
+                    openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only). Unaweza kusoma ujumbe na kuona machapisho, lakini huwezi kutuma ujumbe wala kuchapisha. Wasiliana na Admin.", false);
                 } else {
                     localStorage.setItem('kitama_user', JSON.stringify(u)); 
                     enterApp(); 
@@ -1358,31 +1366,50 @@
                   if(document.getElementById('events-sec').classList.contains('active')) fetchEvents();
                   if(document.getElementById('hub-sec').classList.contains('active')) fetchHub();
               })
-              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
+                            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (!currentUser) return;
                   if (updatedUser.id === currentUser.id) {
                       const activistChanged = updatedUser.is_activist !== currentUser.is_activist;
                       const statusChanged = updatedUser.status !== currentUser.status;
+                      
                       localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
+                      
+                      if (statusChanged) {
+                          if (updatedUser.status === 'rejected') {
+                              openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kabisa na Admin wa Mfumo. Utatoka kwenye app sasa.", false);
+                              setTimeout(() => handleLogout(), 3000); // Mtoe baada ya sekunde 3
+                          } else if (updatedUser.status === 'restricted') {
+                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochote.", false);
+                              location.reload(); // Reload ili vibao viwe vimezimwa
+                          } else if (updatedUser.status === 'active' && currentUser.status === 'restricted') {
+                              showToast("Akaunti yako imerudishiwa! Unaweza kuandika tena.");
+                              location.reload();
+                          } else {
+                              location.reload();
+                          }
+                          return;
+                      }
+                      
                       if(activistChanged) {
                           if(updatedUser.is_activist) openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b>.", false);
                           else showToast("Hadhi yako ya Activist imeondolewa.");
                       }
+                      
                       const activeSec = document.querySelector('.sec.active');
-                      if (statusChanged) location.reload(); 
-                      else if (activistChanged && activeSec && activeSec.id === 'home-sec') setupDashboard(updatedUser);
+                      if (activistChanged && activeSec && activeSec.id === 'home-sec') setupDashboard(updatedUser);
                   } else {
-                      if(document.getElementById('pending-users-sec').classList.contains('active')) fetchPendingUsers();
-                      if(document.getElementById('admin-activists-sec').classList.contains('active')) fetchActivistsControl();
+                      if(document.getElementById('pending-users-sec') && document.getElementById('pending-users-sec').classList.contains('active')) fetchPendingUsers();
+                      if(document.getElementById('admin-activists-sec') && document.getElementById('admin-activists-sec').classList.contains('active')) fetchActivistsControl();
+                      if(document.getElementById('admin-users-sec') && document.getElementById('admin-users-sec').classList.contains('active')) fetchAdminUsers();
                   }
               })
               .subscribe();
         }
 
-        updateBadges(); // HII NDIO IPO HAPA MWISHONI
-    }  
+        updateBadges(); 
+    }
 
     function getActivistBadge(isActivist) {
     if (!isActivist) return '';
@@ -1604,6 +1631,11 @@
                         <h2 style="font-size: 20px; font-weight: 800; color: var(--text);">Developer Console</h2>
                         <p style="font-size: 12px;">Mfumo wa Udhibiti wa Kitama Yetu</p>
                     </div>
+                        <div class="admin-tool-card" onclick="handleNav('admin-users-sec')">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 98l4 4M9 17l-5-5m12-4l5 5-5 5M3 7l5 5"/></svg>
+                            <h4>Watumiaji</h4>
+                            <p>Zuia / Fungua Akaunti</p>
+                        </div>
                     <div class="admin-console-grid">
                         <div class="admin-tool-card" onclick="handleNav('admin-activists-sec')">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
@@ -1875,6 +1907,7 @@
 
     async function postActivistArticle() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
         if(!u.is_activist) return openModal("Kosa", "Huwezi kuandika makala kwa sasa.");
         const title = document.getElementById('article-title').value.trim();
         const content = document.getElementById('article-content').value.trim();
@@ -2196,6 +2229,7 @@
 
     async function postCitizenChat() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma ujumbe kwa sasa.");
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
         const content = document.getElementById('citizen-chat-input').value.trim();
         if(!content) return;
@@ -2282,6 +2316,7 @@
 
         async function submitReport() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
         const cat = document.getElementById('rep-cat').value, title = document.getElementById('rep-title').value.trim(), desc = document.getElementById('rep-desc').value.trim(), fileInput = document.getElementById('rep-image');
         if(!title||!desc) return openModal("Taarifa", "Tafadhali jaza mada na ufafanuzi.");
@@ -2479,6 +2514,7 @@
 
     async function postComment(id, parentId = null) { 
         const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado."); 
         const inputId = parentId ? `reply-input-${parentId}` : `comment-input-${id}`;
         const input = document.getElementById(inputId);
@@ -2657,6 +2693,7 @@
 
     async function postChat() { 
         const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
         const content = document.getElementById('chat-input').value.trim(); 
         if(!content) return; 
         if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
@@ -2764,7 +2801,7 @@
             if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; 
         } 
     }
-    async function postCause() { const u = JSON.parse(localStorage.getItem('kitama_user')); const title = document.getElementById('cause-title').value.trim(), desc = document.getElementById('cause-desc').value.trim(); if(!title||!desc) return openModal("Taarifa", "Jaza kichwa na maelezo ya ajeda."); if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa."); try { await sb.from('causes').insert([{ title, description: desc, created_by_name: u.full_name, created_by_phone: u.phone_number, is_activist: u.is_activist || false }]); showToast("Ajeda imetumwa! Wengine wataikuunga mkono."); playBeep(); document.getElementById('cause-title').value=''; document.getElementById('cause-desc').value=''; fetchCauses(); } catch(e) { openModal("Kosa", e.message); } }
+    async function postCause() { const u = JSON.parse(localStorage.getItem('kitama_user')); if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa."); const title = document.getElementById('cause-title').value.trim(), desc = document.getElementById('cause-desc').value.trim(); if(!title||!desc) return openModal("Taarifa", "Jaza kichwa na maelezo ya ajeda."); if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa."); try { await sb.from('causes').insert([{ title, description: desc, created_by_name: u.full_name, created_by_phone: u.phone_number, is_activist: u.is_activist || false }]); showToast("Ajeda imetumwa! Wengine wataikuunga mkono."); playBeep(); document.getElementById('cause-title').value=''; document.getElementById('cause-desc').value=''; fetchCauses(); } catch(e) { openModal("Kosa", e.message); } }
         async function fetchCauses() { 
         const div = document.getElementById('causes-list'); 
         const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
@@ -2812,6 +2849,7 @@
 
     async function createShop() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
         const name = document.getElementById('shop-name').value.trim(), desc = document.getElementById('shop-desc').value.trim();
         const logoInput = document.getElementById('shop-logo'), coverInput = document.getElementById('shop-cover');
         if(!name) return openModal("Taarifa", "Weka jina la duka.");
@@ -3386,6 +3424,7 @@
 
     async function postItem() { 
         const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado."); 
         const name = document.getElementById('item-name').value.trim(), desc = document.getElementById('item-desc').value.trim(), price = document.getElementById('item-price').value.trim(), cat = document.getElementById('item-cat').value, fileInput = document.getElementById('item-image'); 
         const shopVal = document.getElementById('item-shop') ? document.getElementById('item-shop').value : ''; 
@@ -3970,6 +4009,7 @@
     // --- FURSA NA MICHANGO FUNCTIONS ---
     async function postOpportunity() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
         const type = document.getElementById('opp-type').value;
         const design = document.getElementById('opp-design').value;
         const title = document.getElementById('opp-title').value.trim();
@@ -3977,7 +4017,6 @@
         const deadline = document.getElementById('opp-deadline').value.trim();
         const contact = document.getElementById('opp-contact').value.trim();
         const fileInput = document.getElementById('opp-image');
-        
         if(!title || !desc) return openModal("Taarifa", "Jaza kichwa na maelezo");
         if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yana maneno yasiyoruhusiwa.");
         
@@ -4485,6 +4524,7 @@
 
         async function postDmChat() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma ujumbe kwa sasa.");
         const content = document.getElementById('dm-chat-input').value.trim();
         if(!content) return;
         if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
@@ -4526,6 +4566,38 @@
             } catch(e) { openModal("Kosa", e.message); }
         });
         }
+        async function fetchAdminUsers() {
+        const div = document.getElementById('admin-users-list');
+        div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>';
+        try {
+            const { data, error } = await sb.from('users').select('*').neq('role', 'system_admin').order('created_at', { ascending: false });
+            if(error) throw error;
+            
+            div.innerHTML = data.length > 0 ? data.map(u => {
+                let statusBadge = u.status === 'active' ? '<span class="badge b-succ">Active</span>' : u.status === 'restricted' ? '<span class="badge b-warn">View Only</span>' : '<span class="badge b-err">Banned</span>';
+                let actions = '';
+                if(u.status === 'active') {
+                    actions = `<button onclick="updateUserStatus('${u.id}', 'restricted')" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; margin-right:5px;">Zuia (View-Only)</button>
+                               <button onclick="updateUserStatus('${u.id}', 'rejected')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Funga (Ban)</button>`;
+                } else {
+                    actions = `<button onclick="updateUserStatus('${u.id}', 'active')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:11px;">Ruhusu</button>`;
+                }
+                return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div><b>${u.full_name}</b> ${statusBadge}<br><small>${u.phone_number} - ${u.role.replace(/_/g, ' ')}</small></div>
+                    <div style="display:flex; gap:5px;">${actions}</div>
+                </div>`;
+            }).join('') : '<p style="color:var(--text-sec); padding:0 20px;">Hakuna watumiaji.</p>';
+        } catch(e) { div.innerHTML = `<p style="color:red; margin:0 20px;">${e.message}</p>`; }
+    }
+
+    async function updateUserStatus(userId, status) {
+        try {
+            await sb.from('users').update({ status: status }).eq('id', userId);
+            showToast("Status ya mtumiaji imebadilishwa!");
+            playBeep();
+            fetchAdminUsers();
+        } catch(e) { openModal("Kosa", e.message); }
+    }
     
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
