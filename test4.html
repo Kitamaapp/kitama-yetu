@@ -1412,6 +1412,16 @@
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'causes' }, payload => {
                   if(document.getElementById('solidarity-sec').classList.contains('active')) fetchCauses();
               })
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'developer_feedback' }, payload => {
+                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+                  if (currentUser && currentUser.role === 'system_admin') {
+                      playBeep();
+                      showToast("Maoni mapya yamepokelewa!");
+                      if(document.getElementById('admin-feedback-sec').classList.contains('active')) {
+                          fetchAdminFeedbacks();
+                      }
+                  }
+              })
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'causes' }, payload => {
                   if(document.getElementById('solidarity-sec').classList.contains('active')) fetchCauses();
               })
