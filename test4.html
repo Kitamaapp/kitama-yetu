@@ -1337,32 +1337,41 @@
         document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         document.getElementById('w-name').innerText = u.full_name.split(' ')[0];
-                document.getElementById('p-name').innerText = u.full_name;
-        document.getElementById('p-name-badge').innerHTML = u.is_activist ? getActivistBadge(true) : '';
+        document.getElementById('p-name').innerText = u.full_name;
+        
+        // --- LOGIC YA UTHIBITISHO (VERIFIED BADGE) ---
+        // Tumia if checks ili kuzuia app kufa (crash) iwapo HTML haipo
+        const pNameBadge = document.getElementById('p-name-badge');
+        if (pNameBadge) pNameBadge.innerHTML = u.is_activist ? getActivistBadge(true) : '';
+
         document.getElementById('p-village').innerText = u.village + (u.sub_village ? ` (${u.sub_village})` : '');
         document.getElementById('p-phone').innerText = u.phone_number;
         document.getElementById('p-role').innerText = u.role.replace(/_/g, ' ');
         
-        // --- LOGIC YA UTHIBITISHO (VERIFIED BADGE) ---
         const vStatus = document.getElementById('p-verified-status');
         const vBtn = document.getElementById('btn-get-verified');
-        if(u.is_activist) {
-            vStatus.innerHTML = `<span style="color: var(--accent); font-weight: 700; display:inline-flex; align-items:center; gap:4px;">Verified ${getActivistBadge(true)}</span>`;
-            vBtn.style.display = 'none';
-        } else {
-            vStatus.innerHTML = `<span style="color: var(--text-sec);">Hujathibitishwa</span>`;
-            vBtn.style.display = 'inline-block';
-            vBtn.onclick = openVerificationModal;
+        
+        if (vStatus && vBtn) {
+            if(u.is_activist) {
+                vStatus.innerHTML = `<span style="color: var(--accent); font-weight: 700; display:inline-flex; align-items:center; gap:4px;">Verified ${getActivistBadge(true)}</span>`;
+                vBtn.style.display = 'none';
+            } else {
+                vStatus.innerHTML = `<span style="color: var(--text-sec);">Hujathibitishwa</span>`;
+                vBtn.style.display = 'inline-block';
+                vBtn.onclick = openVerificationModal;
+            }
         }
         
         if(u.avatar_url) {
-            document.getElementById('p-ava-img').src = u.avatar_url; 
-            document.getElementById('p-ava-img').style.display = 'block'; 
-            document.getElementById('p-ava').style.display = 'none';
+            const pAvaImg = document.getElementById('p-ava-img');
+            const pAva = document.getElementById('p-ava');
+            if(pAvaImg) { pAvaImg.src = u.avatar_url; pAvaImg.style.display = 'block'; }
+            if(pAva) pAva.style.display = 'none';
         } else {
-            document.getElementById('p-ava-img').style.display = 'none'; 
-            document.getElementById('p-ava').style.display = 'flex'; 
-            document.getElementById('p-ava').innerText = u.full_name.charAt(0).toUpperCase();
+            const pAvaImg = document.getElementById('p-ava-img');
+            const pAva = document.getElementById('p-ava');
+            if(pAvaImg) pAvaImg.style.display = 'none';
+            if(pAva) { pAva.style.display = 'flex'; pAva.innerText = u.full_name.charAt(0).toUpperCase(); }
         }
         
         if(u.role === 'citizen' && u.status === 'active') {
@@ -2041,7 +2050,7 @@
                 return `<div class="list-i">
                     <div class="list-meta"><span class="badge b-warn"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Activist</span><small style="color:var(--text-sec);">${new Date(a.created_at).toLocaleDateString()}</small></div>
                     <h4 style="margin-top:8px;">${a.title}</h4>
-                    <b style="font-size:12px; color:var(--text);">${a.author_name} ${getActivistBadge(true)}</b>
+                    <b style="font-size:12px; color:var(--text);"><span style="cursor:pointer;" onclick="viewUserProfile('${a.author_phone}')">${a.author_name}</span> ${getActivistBadge(true)}</b>
                     <p style="margin-top:10px; white-space: pre-wrap;">${a.content}</p>
                     ${deleteBtn}
                 </div>`;
@@ -2342,8 +2351,8 @@
                         chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg system-alert"><p><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${content}</p></div>`;
                     } else {
                         let badgeHtml = getActivistBadgeForPhone(c.sender_phone, c);
-                        let displayNameWithBadge = isSelf ? 'Wewe' : `<span style="cursor:pointer;" onclick="event.stopPropagation(); viewUserProfile('${c.sender_phone}')">${c.sender_name}</span> ` + badgeHtml;
-chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayNameWithBadge}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
+                        let displayNameWithBadge = isSelf ? 'Wewe' : c.sender_name + ' ' + badgeHtml;
+                        chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayNameWithBadge}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
                     }
                     chatHtml += chatMsgHtml;
                 });
@@ -2552,7 +2561,7 @@ chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${
                 <span class="badge b-info">${r.category}</span>
                 <span class="badge ${sClass}">${sText}</span>
                 <span class="badge b-warn">${r.village}</span>
-                <span style="font-size:11px; color:var(--text-sec);">Imetumwa na: ${r.created_by_name || 'Mwananchi'} ${activistBadge}</span>
+                <span style="font-size:11px; color:var(--text-sec);">Imetumwa na: <span style="cursor:pointer; color:var(--accent); font-weight:700;" onclick="viewUserProfile('${r.created_by_phone}')">${r.created_by_name || 'Mwananchi'}</span> ${activistBadge}</span>
             </div>
             ${interactionHtml}
             <div class="comment-box" id="comments-${r.id}">
@@ -2626,7 +2635,7 @@ chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${
                 const commentReplies = replies.filter(r => r.parent_id === c.id);
                 
                 html += `<div class="fb-comment-item">
-                    <b>${c.author_name} (${c.author_role.replace(/_/g,' ')}) ${badge}</b>${c.content}
+                   <b><span style="cursor:pointer; color:var(--accent);" onclick="viewUserProfile('${c.author_phone}')">${c.author_name}</span> (${c.author_role.replace(/_/g,' ')}) ${badge}</b>${c.content}
                     <small style="color:var(--text-sec); display:block; margin-top:2px;">${new Date(c.created_at).toLocaleString()}</small>
                     <button class="fb-reply-btn" onclick="toggleReplyInput('${c.id}')">Jibu</button>
                 </div>`;
@@ -2812,7 +2821,7 @@ chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${
                     let safeContent = c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                     let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
 
-                    let displayName = c.sender_name + ' (' + c.sender_role.replace(/_/g,' ') + ')';
+                    let displayName = `<span style="cursor:pointer;" onclick="event.stopPropagation(); viewUserProfile('${c.sender_phone}')">${c.sender_name}</span> (${c.sender_role.replace(/_/g,' ')})`;
                     chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${c.content}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
                 });
             } else {
@@ -2911,7 +2920,7 @@ chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${
             if(error) throw error; 
             div.innerHTML = data.length > 0 ? data.map(u => {
                 let rejectBtn = u.role === 'system_admin' ? `<button class="m-btn m-btn-danger" style="flex:none; padding:8px 12px; font-size:12px;" onclick="rejectUser('${u.id}')">Kataza</button>` : '';
-                return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center;"><div><strong>${u.full_name}</strong><br><small>${u.phone_number} - ${u.village}</small></div><div style="display:flex; gap:5px;"><button class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:12px;" onclick="approveUser('${u.id}')">Kubali</button>${rejectBtn}</div></div>`;
+                return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center;"><div><strong style="cursor:pointer; color:var(--accent);" onclick="viewUserProfile('${u.phone_number}')">${u.full_name}</strong><br><small>${u.phone_number} - ${u.village}</small></div><div style="display:flex; gap:5px;"><button class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:12px;" onclick="approveUser('${u.id}')">Kubali</button>${rejectBtn}</div></div>`;
             }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna watu wapya wanaosubiri kwa sasa.</p>'; 
             
             if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
@@ -2967,7 +2976,7 @@ chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${
             div.innerHTML = data.length > 0 ? data.map(c => { 
                 let sBadge = c.status === 'addressed' ? '<span class="badge b-succ">Imekubaliwa na Viongozi</span>' : '<span class="badge b-warn">Inasubiri</span>'; 
                 let activistBadge = c.is_activist ? getActivistBadge(true) : ''; 
-                return `<div class="list-i"><h4>${c.title}</h4><p>${c.description}</p><div class="list-meta"><span class="badge b-info">Imetumwa na: ${c.created_by_name} ${activistBadge}</span>${sBadge}</div><div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="supportCause('${c.id}', ${c.supporters})">${ICONS.thumbs_up} Unga hoja (${c.supporters})</button></div></div>`; 
+                return `<div class="list-i"><h4>${c.title}</h4><p>${c.description}</p><div class="list-meta"><span class="badge b-info">Imetumwa na: <span style="cursor:pointer; text-decoration:underline;" onclick="viewUserProfile('${c.created_by_phone}')">${c.created_by_name}</span> ${activistBadge}</span>${sBadge}</div><div class="interaction-bar"><button class="int-btn int-btn-accent" onclick="supportCause('${c.id}', ${c.supporters})">${ICONS.thumbs_up} Unga hoja (${c.supporters})</button></div></div>`; 
             }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna ajeda kwa sasa.</p>'; 
             
             if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
@@ -3308,7 +3317,7 @@ chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${
                 const commentReplies = replies.filter(r => r.parent_id === c.id);
                 
                 html += `<div class="fb-comment-item">
-                    <b>${c.author_name} ${badge}</b>${c.content}
+                    <b><span style="cursor:pointer; color:var(--accent);" onclick="viewUserProfile('${c.author_phone}')">${c.author_name}</span> ${badge}</b>${c.content}
                     <small style="color:var(--text-sec); display:block; margin-top:2px;">${new Date(c.created_at).toLocaleString()}</small>
                     <button class="fb-reply-btn" onclick="toggleReplyInput('${c.id}')">Jibu</button>
                 </div>`;
@@ -4608,7 +4617,8 @@ chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${
                         return;
                     }
 
-                    let displayName = isSelf ? 'Wewe' : `<span style="cursor:pointer;" onclick="event.stopPropagation(); viewUserProfile('${c.sender_phone}')">${c.sender_name}</span>`;
+                    let displayName = isSelf ? 'Wewe' : c.sender_name;
+                    
                     if(!isSelf) {
                         actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="event.stopPropagation(); setDmReply('${c.id}', '${c.sender_name}', '${content.replace(/'/g, "\\'")}')" style="color:var(--accent);">Reply</button></div>`;
                     } else {
