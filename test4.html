@@ -1026,11 +1026,19 @@
             <div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Zuia mtumiaji kufanya vitendo (View-only) au fungua akaunti yake kabisa (Ban).</p></div>
             <div id="admin-users-list"></div>
         </div>
-                <div id="admin-feedback-sec" class="sec">
-            <div class="sec-h"><h2>Maoni ya Watumiaji</h2><span onclick="fetchAdminFeedbacks()">Refresh</span></div>
-            <div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Orodha ya maoni na changamoto zilizotumwa na watumiaji.</p></div>
-            <div id="admin-feedback-list"></div>
+                   <div id="admin-feedback-sec" class="sec">
+            <div class="chat-header" style="position: sticky; top: 0; background: var(--surface); z-index: 50; padding: 15px 20px; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center;">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <button onclick="handleNav('home-sec')" style="background:var(--bg); border:none; padding:8px; border-radius:12px; cursor:pointer; color:var(--text); display:flex;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    </button>
+                    <h2 style="font-size: 16px; font-weight: 800;">Maoni ya Watumiaji</h2>
                 </div>
+                <span onclick="fetchAdminFeedbacks()" style="font-size:12px; color:var(--accent); font-weight:700; cursor:pointer;">Refresh</span>
+            </div>
+            <div style="padding: 15px 20px;"><p style="color:var(--text-sec); font-size:13px;">Orodha ya maoni na changamoto zilizotumwa na watumiaji.</p></div>
+            <div id="admin-feedback-list"></div>
+        </div>
          <div id="admin-verifications-sec" class="sec">
             <div class="sec-h"><h2>Maombi ya Uthibitisho</h2><span onclick="fetchAdminVerifications()">Refresh</span></div>
             <div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Orodha ya watumiaji waliolipa na wanaosubiri uthibitisho wa Badge.</p></div>
@@ -1293,7 +1301,7 @@
             const { data: u, error } = await sb.from('users').select('*').eq('phone_number', phone).maybeSingle();
                         if(u) {
                 if(u.status === 'rejected') {
-                    openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kabisa na Admin wa Mfumo. Huwezi kuingia kwenye app.", false);
+                    openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kulingana na ukiukaji wa sheria na kanuni zetu. Wasiliana na Kitama Yetu.", false);
                     localStorage.removeItem('kitama_user');
                 } else if (u.status === 'restricted') {
                     localStorage.setItem('kitama_user', JSON.stringify(u)); 
@@ -1809,6 +1817,11 @@
                             <h4>Feedback</h4>
                             <p>Maoni ya Watumiaji</p>
                         </div>
+                        <div class="admin-tool-card" onclick="handleNav('admin-feedback-sec')">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            <h4>Feedback</h4>
+                            <p>Soma Maoni ya Watu</p>
+                        </div>
                         <div class="admin-tool-card" onclick="handleNav('admin-verifications-sec')">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
                             <h4>Uthibitisho</h4>
@@ -2009,6 +2022,7 @@
         if(id==='solidarity-sec' && u.role === 'citizen' && u.status === 'active') document.getElementById('cause-form-box').style.display = 'block';
         if(id==='events-sec' && u.role !== 'citizen') document.getElementById('event-form-box').style.display = 'block';
         if(id==='admin-verifications-sec') fetchAdminVerifications();
+        if(id==='admin-users-sec') fetchAdminUsers();
         const marketAddBtn = document.getElementById('market-add-btn');
         if(marketAddBtn) {
             if(u.status === 'pending' || u.role !== 'citizen') marketAddBtn.style.display = 'none';
@@ -3752,9 +3766,9 @@
         }); 
     }
     
-        async function fetchModeration() {
+    async function fetchModeration() {
         const div = document.getElementById('moderation-list');
-        const u = JSON.parse(localStorage.getItem('kitama_user')); // Ongeza hii
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
         const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
         const oldScroll = window.scrollY;
         
@@ -3765,14 +3779,14 @@
             const { data, error } = await sb.from('marketplace').select('*').order('created_at', { ascending: false }).limit(100);
             if(error) throw error;
             div.innerHTML = data.length > 0 ? data.map(m => `
-                <div class="mod-item">
+                <div class="mod-item" style="cursor:pointer;" onclick="viewMarketItem('${m.id}')">
                     <img src="${m.image_url || ''}" onerror="this.style.display='none'">
                     <div style="flex:1;">
                         <b style="display:block; font-size:14px;">${m.item_name}</b>
                         <small style="color:var(--text-sec);">Imetumwa na: ${m.phone}</small><br>
                         <small style="color:var(--text-sec);">Kijiji: ${m.village}</small>
                     </div>
-                    ${u.role === 'system_admin' ? `<button onclick="deleteMarketItem('${m.id}')" class="m-btn m-btn-danger" style="flex:none; padding:8px 12px; font-size:12px;">Futa</button>` : ''}
+                    ${u.role === 'system_admin' ? `<button onclick="event.stopPropagation(); deleteMarketItem('${m.id}')" class="m-btn m-btn-danger" style="flex:none; padding:8px 12px; font-size:12px;">Futa</button>` : ''}
                 </div>
             `).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna tangazo lililowekwa kwa sasa.</p>';
             
@@ -4343,51 +4357,88 @@
         }
     }
 
-        // --- ADMIN INTERCEPTOR FUNCTION ---
-        function openInterceptorModal() {
-        openModal("Message Interceptor", `<p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Andika namba ya simu ya mtumiaji kuona inbox yake ya faragha na maduka.</p><input type="tel" id="intercept-phone" class="modal-input" placeholder="0712345678" style="margin-bottom: 15px;">`, true, async (phone) => {
-            if(!phone) return;
+                // --- ADMIN INTERCEPTOR FUNCTION (IMEBORESHWA) ---
+    function openInterceptorModal() {
+        const html = `
+            <p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Andika namba ya simu ya mtumiaji kuona inbox yake ya faragha na maduka.</p>
+            <input type="tel" id="intercept-phone" class="modal-input" placeholder="0712345678" style="margin-bottom: 15px; width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text);">
+        `;
+        openModal("Message Interceptor", html, false);
+        
+        // Badilisha kitufe ili kisirudi kufunga kabla ya kutafuta
+        const okBtn = document.getElementById('modal-ok');
+        okBtn.innerText = "Tafuta Inbox";
+        okBtn.style.display = 'block';
+        okBtn.onclick = async () => {
+            const phone = document.getElementById('intercept-phone').value.trim();
+            if(!phone) return showToast("Andika namba ya simu.");
+            
+            document.getElementById('modal-text').innerHTML = "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>";
             try {
                 const { data, error } = await sb.from('shop_messages')
                     .select('*, shops(shop_name)')
                     .or(`sender_phone.eq.${phone},recipient_phone.eq.${phone}`)
                     .order('created_at', { ascending: false })
-                    .limit(500); // Pata ujumbe zaidi kwa ushahidi
+                    .limit(500); 
                 if(error) throw error;
                 
-                interceptedMessages = data; // Hifadhi kwa ajili ya kupakua
+                interceptedMessages = data; 
                 
-                let html = '<div style="max-height: 250px; overflow-y: auto; display:flex; flex-direction:column; gap:8px; margin-top:10px; margin-bottom:15px;">';
+                let msgHtml = '<div style="max-height: 300px; overflow-y: auto; display:flex; flex-direction:column; gap:8px; margin-top:10px;">';
                 if(data.length > 0) {
                     data.forEach(m => {
                         let sender = m.sender_phone === phone ? 'MTUMIAJI' : m.sender_name;
                         let receiver = m.recipient_phone === phone ? 'MTUMIAJI' : m.recipient_phone;
                         let shopName = m.shops && m.shops.shop_name ? m.shops.shop_name : 'Faragha';
-                        html += `<div style="background:var(--bg); padding:10px; border-radius:8px; font-size:12px; border:1px solid var(--border);">
+                        msgHtml += `<div style="background:var(--bg); padding:10px; border-radius:8px; font-size:12px; border:1px solid var(--border);">
                             <b style="color:var(--accent);">${m.sender_name} (${sender})</b> -> <small>${receiver} (${shopName})</small><br>
                             ${m.content}<br>
                             <small style="color:var(--text-sec); font-size:10px;">${new Date(m.created_at).toLocaleString()}</small>
                         </div>`;
                     });
                 } else {
-                    html += '<p style="color:var(--text-sec); text-align:center;">Hakuna ujumbe kwa namba hii.</p>';
+                    msgHtml += '<p style="color:var(--text-sec); text-align:center;">Hakuna ujumbe kwa namba hii.</p>';
                 }
-                html += '</div>';
+                msgHtml += '</div>';
                 
-                // Ongeza Kitufe cha Kupakua kwa ajili ya usalama
+                document.getElementById('modal-title').innerText = "Inbox ya " + phone;
+                document.getElementById('modal-text').innerHTML = msgHtml;
+                
+                // Ficha kitufe baada ya kutafuta, ibakie Funga tu
+                okBtn.style.display = 'none';
+                document.getElementById('modal-cancel').innerText = 'Funga';
+                
                 if(data.length > 0) {
-                     html += `<button onclick="downloadInterceptedChat('${phone}')" class="m-btn m-btn-primary" style="width: 100%; margin-top: 0; background: var(--danger);">Pakua Mazungumzo (Security/Law Enforcement)</button>`;
+                    let dlBtn = document.createElement('button');
+                    dlBtn.className = 'm-btn m-btn-danger';
+                    dlBtn.style.cssText = 'width: 100%; margin-top: 15px;';
+                    dlBtn.innerText = 'Pakua Mazungumzo (CSV)';
+                    dlBtn.onclick = () => downloadInterceptedChat(phone);
+                    document.getElementById('modal-text').appendChild(dlBtn);
                 }
-                
-                openModal("Inbox ya " + phone, html, false);
-            } catch(e) { openModal("Kosa", e.message, false); }
-        });
+            } catch(e) { 
+                document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
+            }
+        };
     }
 
-        // --- ADMIN GLOBAL BROADCAST FUNCTION ---
+    // --- ADMIN GLOBAL BROADCAST FUNCTION (IMEBORESHWA) ---
     function openBroadcastModal() {
-        openModal("Global Broadcast (System Alert)", `<p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Ujumbe huu utaonekana kama 'System Alert' kwa wananchi wote kwenye Forum. Hawataweza kuujibu.</p><textarea id="broadcast-input" class="modal-input" style="min-height: 100px;" placeholder="Andika tangazo la mfumo hapa..."></textarea>`, true, async (text) => {
-            if(!text) return;
+        const html = `
+            <p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Ujumbe huu utaonekana kama 'System Alert' kwa wananchi wote kwenye Forum. Hawataweza kuujibu.</p>
+            <textarea id="broadcast-input" class="modal-input" style="min-height: 100px; width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text);" placeholder="Andika tangazo la mfumo hapa..."></textarea>
+        `;
+        openModal("Global Broadcast (System Alert)", html, false);
+        
+        const okBtn = document.getElementById('modal-ok');
+        okBtn.innerText = "Tuma Alert";
+        okBtn.style.display = 'block';
+        okBtn.onclick = async () => {
+            const text = document.getElementById('broadcast-input').value.trim();
+            if(!text) return showToast("Tafadhali andika ujumbe.");
+            
+            okBtn.innerHTML = '<div class="spinner"></div>';
+            okBtn.disabled = true;
             try {
                 await sb.from('citizen_chat').insert([{ 
                     sender_name: 'Mfumo wa Kitama', 
@@ -4399,8 +4450,13 @@
                     is_activist: false
                 }]);
                 showToast("System Alert imetumwa kwa Forum ya Wananchi!");
-            } catch(e) { openModal("Kosa", e.message); }
-        });
+                closeModal();
+            } catch(e) { 
+                document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
+                okBtn.innerText = "Tuma Alert";
+                okBtn.disabled = false;
+            }
+        };
     }
     
        // --- UNREAD BADGES LOGIC ---
@@ -4725,7 +4781,7 @@
         } catch(e) { div.innerHTML = `<p style="color:red; margin:0 20px;">${e.message}</p>`; }
     }
         // --- ADMIN FEEDBACK FULL SCREEN FUNCTIONS ---
-    async function fetchAdminFeedbacks() {
+        async function fetchAdminFeedbacks() {
         const div = document.getElementById('admin-feedback-list');
         if(!div) return;
         const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
@@ -4740,7 +4796,7 @@
             if(error) throw error;
             
             div.innerHTML = data.length > 0 ? data.map(f => {
-                let typeClass = f.feedback_type === 'Kosa' ? 'b-err' : f.feedback_type === 'Swali' ? 'b-info' : 'b-succ';
+                let typeClass = f.feedback_type === 'Kosa' ? 'b-err' : f.feedback_type === 'Swali' ? 'b-info' : f.feedback_type === 'Uthibitisho' ? 'b-warn' : 'b-succ';
                 return `<div class="list-i">
                     <div class="list-meta">
                         <span class="badge ${typeClass}">${f.feedback_type || 'Pendekezo'}</span>
@@ -4748,7 +4804,7 @@
                     </div>
                     <b style="font-size:14px; margin-top:5px; display:block;">${f.user_name}</b>
                     <small style="color:var(--text-sec); display:block; margin-bottom:8px;">${f.phone}</small>
-                    <p style="color:var(--text); font-size:14px; line-height:1.5;">${f.content}</p>
+                    <div style="color:var(--text); font-size:14px; line-height:1.5;">${f.content}</div>
                 </div>`;
             }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna maoni yaliyoletwa bado.</p>';
             
