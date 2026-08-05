@@ -4608,8 +4608,7 @@ chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${
                         return;
                     }
 
-                    let displayName = isSelf ? 'Wewe' : c.sender_name;
-                    
+                    let displayName = isSelf ? 'Wewe' : `<span style="cursor:pointer;" onclick="event.stopPropagation(); viewUserProfile('${c.sender_phone}')">${c.sender_name}</span>`;
                     if(!isSelf) {
                         actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="event.stopPropagation(); setDmReply('${c.id}', '${c.sender_name}', '${content.replace(/'/g, "\\'")}')" style="color:var(--accent);">Reply</button></div>`;
                     } else {
