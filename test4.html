@@ -1038,6 +1038,13 @@
         </div>
         <div id="profile-sec" class="sec"><div class="sec-h"><h2>Akaunti Yangu</h2></div><div style="padding: 0 20px;"><div style="text-align:center; margin-bottom:20px;"><img id="p-ava-img" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--accent); margin:0 auto 15px; display:none;"><div id="p-ava" style="width:80px; height:80px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; margin:0 auto 15px;">U</div><h3 id="p-name">Jina</h3><p id="p-village" style="color:var(--text-sec);">Kijiji</p><button onclick="document.getElementById('avatar-upload').click()" style="margin-top:10px; background:var(--bg); color:var(--text); border:1px solid var(--border); padding:8px 16px; border-radius:10px; font-weight:600; cursor:pointer;">Badilisha Picha</button><input type="file" id="avatar-upload" accept="image/*" style="display:none;" onchange="uploadAvatar()"></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Namba:</strong> <span id="p-phone"></span></div><div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border);"><strong>Cheo:</strong> <span id="p-role"></span></div>                <button onclick="showSec('help-feedback-sec')" class="btn-p" style="background:var(--bg); color:var(--text); border:1px solid var(--border); margin-top:10px; margin-bottom: 10px;">Msaada na Maoni</button>
                 <button onclick="handleLogout()" class="btn-out">Toka (Logout)</button></div></div>
+        <div style="background:var(--surface); padding:16px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <strong>Uthibitisho:</strong><br>
+        <span id="p-verified-status" style="font-size:13px;"></span>
+    </div>
+    <button id="btn-get-verified" class="m-btn m-btn-primary" style="padding:10px 15px; font-size:12px; display:none;">Pata Uthibitisho</button>
+</div>
     </main>
     <div class="b-nav" id="b-nav"></div>
 </div>
@@ -1296,6 +1303,18 @@
         document.getElementById('p-village').innerText = u.village + (u.sub_village ? ` (${u.sub_village})` : '');
         document.getElementById('p-phone').innerText = u.phone_number;
         document.getElementById('p-role').innerText = u.role.replace(/_/g, ' ');
+        
+        // --- LOGIC YA UTHIBITISHO (VERIFIED BADGE) ---
+        const vStatus = document.getElementById('p-verified-status');
+        const vBtn = document.getElementById('btn-get-verified');
+        if(u.is_activist) {
+            vStatus.innerHTML = `<span class="badge b-succ" style="display:inline-flex; align-items:center; gap:4px;">Verified ${getActivistBadge(true)}</span>`;
+            vBtn.style.display = 'none'; // Ficha kitufe kwa walioshathibitishwa
+        } else {
+            vStatus.innerHTML = `<span class="badge b-warn">Hujathibitishwa</span>`;
+            vBtn.style.display = 'inline-block'; // ONYESHA kitufe kwa waja bado hawajathibitishwa
+            vBtn.onclick = openVerificationModal;
+        }
         
         if(u.avatar_url) {
             document.getElementById('h-avatar').src = u.avatar_url; document.getElementById('h-avatar').style.display = 'block'; document.getElementById('h-initial').style.display = 'none';
@@ -4749,7 +4768,7 @@
             btn.disabled = false; 
         }
     }
-       function openVerificationModal() {
+           function openVerificationModal() {
         const html = `
             <div style="text-align: center; margin-bottom: 15px;">
                 <h3 style="font-weight: 800; font-size: 18px; color: var(--text);">Pata Uthibitisho (Verified Badge)</h3>
@@ -4773,7 +4792,6 @@
             try {
                 const u = JSON.parse(localStorage.getItem('kitama_user'));
                 
-                // Tuma kwenye table mpya ya verification_requests
                 await sb.from('verification_requests').insert([{
                     user_name: u.full_name,
                     phone: u.phone_number,
@@ -4788,7 +4806,7 @@
                 btn.innerHTML = 'Sawa'; btn.disabled = false;
             }
         });
-    } 
+    }
         // --- ADMIN VERIFICATIONS FULL SCREEN FUNCTIONS ---
     async function fetchAdminVerifications() {
         const div = document.getElementById('admin-verifications-list');
