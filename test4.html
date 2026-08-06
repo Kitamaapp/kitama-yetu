@@ -2408,9 +2408,22 @@
         if (!u || !u.phone_number) return; 
         
         const div = document.getElementById('citizen-chat-list'); 
+        
+        // OFFLINE MODE: Ikiwa hana mtandao, ona data iliyohifadhiwa
+        if (!isOnline()) {
+            const cached = getFromCache('forum_html');
+            if (cached) {
+                div.innerHTML = cached;
+                div.scrollTop = div.scrollHeight;
+            } else {
+                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Huna mtandao na hakuna mazungumzo yaliyohifadhiwa.</p>';
+            }
+            return;
+        }
+        
         const oldScrollTop = div.scrollTop;
         const hasContent = div.children.length > 0;
-        
+    
         // Ficha skeleton loading ikiwa tayari kuna ujumbe kwenye screen
         if(!hasContent) {
             div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>';
@@ -2484,9 +2497,13 @@
                 chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
             }
             
-            div.innerHTML = chatHtml;
+           div.innerHTML = chatHtml;
             
-            // HAPA NDIO SEHEMU MUHIMU YA SCROLL
+            // HIFADHI DATA YA FORUM
+            if(chatHtml && !chatHtml.includes('skeleton')) {
+                saveToCache('forum_html', chatHtml);
+            }
+            
             if(isIncoming && !isAtBottom) {
                 // Kama ujumbe unakuja lakini wewe uko juu ukisoma, screen isiruke. Iache ipotee kwenye ujumbe wa mwisho (huko chini)
                 unreadChatCount++;
