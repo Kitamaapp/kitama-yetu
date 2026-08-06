@@ -5452,6 +5452,23 @@
         
         document.getElementById('modal-ok').innerText = "Tuma Ombi";
         }
+        // --- OFFLINE CACHE HELPERS ---
+    function isOnline() {
+        return navigator.onLine;
+    }
+
+    function saveToCache(key, html) {
+        try {
+            localStorage.setItem('cache_' + key, html);
+        } catch(e) { console.error("Cache Error:", e); }
+    }
+
+    function getFromCache(key) {
+        return localStorage.getItem('cache_' + key);
+    }
+    window.addEventListener('offline', () => {
+        showToast("Huna mtandao. Unatazama taarifa zilizohifadhiwa.");
+    });
     
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
