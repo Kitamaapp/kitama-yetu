@@ -923,6 +923,36 @@
             <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Orodha ya shule kataani pamoja na taarifa za wanafunzi na viongozi.</p>
             <div id="public-schools-list"></div>
         </div>
+                <!-- STATUS SECTION -->
+        <div id="status-sec" class="sec">
+            <div class="sec-h">
+                <h2>Status</h2>
+                <span onclick="openStatusUploadModal()">+ Weka Status</span>
+            </div>
+            
+            <div style="padding: 0 20px; margin-bottom: 25px;">
+                <h4 style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Status Yangu</h4>
+                <div id="my-status-list" style="display:flex; gap: 15px; overflow-x: auto;"></div>
+            </div>
+            
+            <div style="padding: 0 20px;">
+                <h4 style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Status za Wenzangu</h4>
+                <div id="other-status-list" style="display:flex; flex-direction:column; gap: 10px;"></div>
+            </div>
+        </div>
+
+        <!-- STATUS VIEWER OVERLAY (Full Screen) -->
+        <div id="status-viewer-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; flex-direction:column; justify-content:center; align-items:center;">
+            <div id="status-viewer-img" style="width:100%; height:100%; object-fit:contain; background:#000;"></div>
+            <div style="position:absolute; top:0; left:0; width:100%; padding:20px; background:linear-gradient(to bottom, rgba(0,0,0,0.6), transparent); display:flex; align-items:center; gap:10px;">
+                <div id="sv-avatar" style="width:40px; height:40px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:700;">U</div>
+                <div>
+                    <b id="sv-name" style="display:block; color:white;"></b>
+                    <small id="sv-time" style="color:rgba(255,255,255,0.8);"></small>
+                </div>
+                <button onclick="closeStatusViewer()" style="position:absolute; right:20px; background:none; border:none; color:white; font-size:28px; cursor:pointer;">X</button>
+            </div>
+        </div>
         <div id="add-item-sec" class="sec">
             <div class="sec-h"><h2>Tangaza Bidhaa</h2></div>
             <div style="padding: 0 20px;">
@@ -5559,6 +5589,265 @@
     window.addEventListener('offline', () => {
         showToast("Huna mtandao. Unatazama taarifa zilizohifadhiwa.");
     });
+
+        // --- STATUS FUNCTIONS (LOCAL STORAGE & P2P) ---
+    let statusNetworkChannel = null;
+    const STATUS_DB_NAME = 'kitama_status_db';
+
+    // Kuanzisha mtandao wa Status P2P
+    function initStatusNetwork(u) {
+        if (statusNetworkChannel) return;
+        statusNetworkChannel = sb.channel('status-network-p2p')
+        .on('presence', { event: 'sync' }, () => {
+            const state = statusNetworkChannel.presenceState();
+            // Tutumie presence kupeana status zetu kwa wote waliopo online
+            const myStatuses = getStatusFromStorage().filter(s => s.sender_phone === u.phone_number);
+            if (myStatuses.length > 0) {
+                Object.keys(state).forEach(key => {
+                    state[key].forEach(presence => {
+                        if (presence.phone !== u.phone_number) {
+                            // Peleka status zangu kwa wengine
+                            statusNetworkChannel.send({ type: 'broadcast', event: 'sync_status', payload: { to: presence.phone, statuses: myStatuses } });
+                        }
+                    });
+                });
+            }
+        })
+        .on('broadcast', { event: 'sync_status' }, payload => {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            if (payload.payload.to !== u.phone_number) return; // Nimepokea kwa ajili yangu?
+            
+            let myStorage = getStatusFromStorage();
+            let updated = false;
+            payload.payload.statuses.forEach(incoming => {
+                // Angalia kama nimefichwa na mtumiaji huyu
+                if (incoming.hide_from && incoming.hide_from.includes(u.phone_number)) return;
+                // Angalia kama nipo kwenye walioidhinishwa (ikiwa hakuna walioidhinishwa, ni wote)
+                if (incoming.allowed_viewers && incoming.allowed_viewers.length > 0 && !incoming.allowed_viewers.includes(u.phone_number)) return;
+                
+                if (!myStorage.find(s => s.id === incoming.id) && new Date(incoming.expiry).getTime() > Date.now()) {
+                    myStorage.push(incoming);
+                    updated = true;
+                }
+            });
+            if (updated) {
+                saveStatusToStorage(myStorage);
+                if (document.getElementById('status-sec').classList.contains('active')) loadStatusUI();
+            }
+        })
+        .on('broadcast', { event: 'status_seen' }, payload => {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            if (payload.payload.to !== u.phone_number) return;
+            if (payload.payload.hide_seen_receipts) return; // Amejificha
+            
+            let myStorage = getStatusFromStorage();
+            const status = myStorage.find(s => s.id === payload.payload.status_id);
+            if (status) {
+                if (!status.seen_by) status.seen_by = [];
+                if (!status.seen_by.includes(payload.payload.seen_by)) {
+                    status.seen_by.push(payload.payload.seen_by);
+                    saveStatusToStorage(myStorage);
+                    if (document.getElementById('status-sec').classList.contains('active')) loadStatusUI();
+                }
+            }
+        })
+        .subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                await statusNetworkChannel.track({ phone: u.phone_number, name: u.full_name });
+            }
+        });
+    }
+
+    function getStatusFromStorage() {
+        try { return JSON.parse(localStorage.getItem(STATUS_DB_NAME)) || []; } catch(e) { return []; }
+    }
+    function saveStatusToStorage(data) { localStorage.setItem(STATUS_DB_NAME, JSON.stringify(data)); }
+    
+    function cleanExpiredStatuses() {
+        let myStorage = getStatusFromStorage();
+        const valid = myStorage.filter(s => new Date(s.expiry).getTime() > Date.now());
+        if (valid.length !== myStorage.length) saveStatusToStorage(valid);
+    }
+
+    function loadStatusUI() {
+        cleanExpiredStatuses();
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const allStatuses = getStatusFromStorage();
+        
+        const myStatuses = allStatuses.filter(s => s.sender_phone === u.phone_number);
+        const otherStatuses = allStatuses.filter(s => s.sender_phone !== u.phone_number);
+
+        // My Status UI
+        const myList = document.getElementById('my-status-list');
+        if (myStatuses.length > 0) {
+            myList.innerHTML = myStatuses.map(s => {
+                let seenCount = s.seen_by ? s.seen_by.length : 0;
+                return `<div style="position:relative; cursor:pointer;" onclick="viewStatus('${u.phone_number}')">
+                    <img src="${s.image_base64}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">
+                    <div style="position:absolute; bottom:-5px; right:-5px; background:var(--surface); border-radius:50%; padding:2px; box-shadow:var(--shadow-sm);">
+                        <span style="background:var(--accent); color:white; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700;">${seenCount}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            myList.innerHTML = `<div onclick="openStatusUploadModal()" style="width:60px; height:60px; border-radius:50%; border: 2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-sec); cursor:pointer;">+</div>`;
+        }
+
+        // Other Statuses UI
+        const otherList = document.getElementById('other-status-list');
+        const grouped = {};
+        otherStatuses.forEach(s => {
+            if (!grouped[s.sender_phone]) grouped[s.sender_phone] = [];
+            grouped[s.sender_phone].push(s);
+        });
+
+        if (Object.keys(grouped).length > 0) {
+            otherList.innerHTML = Object.keys(grouped).map(phone => {
+                const statuses = grouped[phone];
+                const isSeen = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number));
+                let border = isSeen ? 'var(--border)' : 'var(--accent)';
+                return `<div onclick="viewStatus('${phone}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
+                    <img src="${statuses[0].image_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">
+                    <div>
+                        <b style="display:block; font-size:14px;">${statuses[0].sender_name}</b>
+                        <small style="color:var(--text-sec); font-size:11px;">${new Date(statuses[0].timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            otherList.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna status mpya za wenzako. Rudi baadaye!</p>';
+        }
+    }
+
+    function openStatusUploadModal() {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if (activeCitizens.length === 0) return showToast("Inapakia orodha ya watumiaji...");
+        
+        const html = `
+            <div class="form-g">
+                <label class="form-l">Chagua Picha</label>
+                <input type="file" id="status-image-input" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);">
+            </div>
+            <div class="form-g">
+                <label class="form-l">Iweke Muda Gani?</label>
+                <select id="status-duration" class="modal-input" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg);">
+                    <option value="1">Saa 1</option>
+                    <option value="6">Masaa 6</option>
+                    <option value="24" selected>Siku 1 (24 Hrs)</option>
+                </select>
+            </div>
+            <div class="form-g">
+                <label class="form-l">Mfichie Nani? (Acha wazi kwa wote)</label>
+                <select id="status-hide-from" multiple class="modal-input" style="width:100%; min-height:100px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg);">
+                    ${activeCitizens.map(c => `<option value="${c.phone_number}">${c.full_name}</option>`).join('')}
+                </select>
+            </div>
+            <div class="form-g" style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="status-hide-seen" style="width:auto;">
+                <label for="status-hide-seen" style="font-size:12px; color:var(--text-sec);">Niwafichie wanaoiona status yangu (Blue Ticks)</label>
+            </div>
+        `;
+        
+        openModal("Weka Status", html, false, async () => {
+            const fileInput = document.getElementById('status-image-input');
+            if (fileInput.files.length === 0) return showToast("Chagua picha kwanza.");
+            
+            const btn = document.getElementById('modal-ok');
+            btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
+            
+            // Compress Image
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const img = new Image();
+                img.onload = async () => {
+                    let canvas = document.createElement('canvas');
+                    let ctx = canvas.getContext('2d');
+                    const maxW = 600;
+                    const scale = Math.min(maxW / img.width, maxW / img.height);
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const base64 = canvas.toDataURL('image/jpeg', 0.7);
+                    
+                    const duration = parseInt(document.getElementById('status-duration').value);
+                    const hideFrom = Array.from(document.getElementById('status-hide-from').selectedOptions).map(o => o.value);
+                    const hideSeen = document.getElementById('status-hide-seen').checked;
+                    
+                    const newStatus = {
+                        id: 'st_' + Date.now() + u.phone_number,
+                        sender_phone: u.phone_number,
+                        sender_name: u.full_name,
+                        image_base64: base64,
+                        timestamp: new Date().toISOString(),
+                        expiry: new Date(Date.now() + (duration * 3600000)).toISOString(),
+                        hide_from: hideFrom,
+                        hide_seen_receipts: hideSeen,
+                        seen_by: []
+                    };
+                    
+                    let myStorage = getStatusFromStorage();
+                    myStorage.push(newStatus);
+                    saveStatusToStorage(myStorage);
+                    
+                    closeModal();
+                    showToast("Status imewekwa!");
+                    loadStatusUI();
+                    
+                    // Omba presence update ili mtandao upate status mpya haraka
+                    if (statusNetworkChannel) statusNetworkChannel.untrack().then(() => statusNetworkChannel.track({ phone: u.phone_number, name: u.full_name }));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        });
+    }
+
+    let currentViewingPhone = null;
+    let currentViewingIndex = 0;
+
+    function viewStatus(phone) {
+        currentViewingPhone = phone;
+        const all = getStatusFromStorage().filter(s => s.sender_phone === phone && new Date(s.expiry).getTime() > Date.now());
+        if (all.length === 0) return showToast("Status imeisha muda.");
+        
+        currentViewingIndex = 0;
+        showStatusViewer(all[currentViewingIndex]);
+    }
+
+    function showStatusViewer(status) {
+        document.getElementById('status-viewer-overlay').style.display = 'flex';
+        document.getElementById('status-viewer-img').style.background = `url(${status.image_base64}) center/contain no-repeat`;
+        document.getElementById('sv-name').innerText = status.sender_name;
+        document.getElementById('sv-avatar').innerText = status.sender_name.charAt(0);
+        document.getElementById('sv-time').innerText = new Date(status.timestamp).toLocaleString();
+        
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if (status.sender_phone !== u.phone_number) {
+            // Ni status ya mwenzangu, niletee "Seen"
+            if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
+                statusNetworkChannel.send({ type: 'broadcast', event: 'status_seen', payload: { 
+                    to: status.sender_phone, 
+                    status_id: status.id, 
+                    seen_by: u.phone_number,
+                    hide_seen_receipts: status.hide_seen_receipts 
+                }});
+                
+                // Update Local
+                let myStorage = getStatusFromStorage();
+                const s = myStorage.find(x => x.id === status.id);
+                if (s) {
+                    if (!s.seen_by) s.seen_by = [];
+                    s.seen_by.push(u.phone_number);
+                    saveStatusToStorage(myStorage);
+                }
+            }
+        }
+    }
+
+    function closeStatusViewer() {
+        document.getElementById('status-viewer-overlay').style.display = 'none';
+        loadStatusUI();
+    }
     
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
