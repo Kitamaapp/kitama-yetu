@@ -5418,6 +5418,22 @@
             btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
             
             try {
+                // KUKAGUA KAMA TAYARI AMETUMA OMBI LA KUFAUNGULIWA
+                const { data: existingReq, error: checkErr } = await sb.from('developer_feedback')
+                    .select('id')
+                    .eq('phone', phone)
+                    .eq('feedback_type', 'Reactivation')
+                    .eq('status', 'pending')
+                    .maybeSingle();
+                    
+                if(checkErr) throw checkErr;
+                
+                if(existingReq) {
+                    btn.innerHTML = 'Tuma Ombi'; btn.disabled = false;
+                    return showToast("Tayari ulishatuma ombi, subiri akaunti yako kufunguliwa.");
+                }
+                
+                // KAMA HAJATUMA, ENDELEA KUTUMA
                 await sb.from('developer_feedback').insert([{
                     user_name: name,
                     phone: phone,
@@ -5427,7 +5443,7 @@
                 }]);
                 
                 closeModal();
-                openModal("Ombi Limewasilishwa", "Asante! Ombi lako la kufunguliwa akaunti limewasilishwa. Utarudishiwa akaunti yako ndani ya masaa 24 ikiwa taarifa zako zimeridhisha.", false);
+                openModal("Ombi Limewasilishwa", "Asante! Ombi lako la kufunguliwa akaunti limewasilishwa kwa Admin. Utairudishiwa akaunti yako ndani ya masaa 24 ikiwa taarifa zako zimeridhisha.", false);
             } catch(e) {
                 openModal("Kosa", e.message);
                 btn.innerHTML = 'Tuma Ombi'; btn.disabled = false;
@@ -5435,7 +5451,7 @@
         });
         
         document.getElementById('modal-ok').innerText = "Tuma Ombi";
-    }
+        }
     
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
