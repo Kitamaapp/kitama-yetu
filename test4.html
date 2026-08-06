@@ -1799,7 +1799,7 @@
                 </div>
             </div>`;
         } else if(u.role === 'citizen') {
-            html += `<div class="action-list">
+                        html += `<div class="action-list">
                 <div class="action-item" onclick="handleNav('report-sec')">
                     <div class="action-icon" style="background: linear-gradient(135deg, #ef4444, #b91c1c); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
                     <div class="action-text"><h4>Tuma Ripoti / Kero</h4><p>Fichua kero na picha</p></div>
@@ -1830,6 +1830,13 @@
                     <div class="action-text"><h4>Soko la Kitama</h4><p>Angalia bidhaa</p></div>
                     <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
                 </div>
+                
+                <div class="action-item" onclick="handleNav('schools-public-sec')">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+                    <div class="action-text"><h4>Shule za Kitama</h4><p>Taarifa za Wanafunzi</p></div>
+                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
+                </div>
+                
                 <div class="action-item" onclick="handleNav('citizen-chat-sec')">
                     <div class="action-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
                     <div class="action-text"><h4>Forum</h4><p>Ongea na Wananchi</p></div>
