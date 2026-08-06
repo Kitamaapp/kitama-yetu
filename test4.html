@@ -611,8 +611,8 @@
             <button onclick="handleLogin()" class="btn-p" id="btn-login">Ingia</button>
         </div>
         <div id="signup-form" style="display:none;">
-            <div class="form-g"><label class="form-l">Jina Kamili</label><div class="in-wrap"><span class="in-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><input type="text" id="su-name" placeholder="Juma Hamisi"></div></div>
-            <div class="form-g"><label class="form-l">Namba ya Simu</label><div class="in-wrap"><span class="in-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><input type="tel" id="su-phone" placeholder="0712345678"></div></div>
+            <div class="form-g"><label class="form-l">Jina Kamili</label><div class="in-wrap"><span class="in-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><input type="text" id="su-name" placeholder="Shadafi Saidi" oninput="checkNameAvailability()"></div><small id="su-name-error" style="color: #EF4444; font-size: 11px; display: none; padding-left: 4px; margin-top: 5px;"></small></div>
+            <div class="form-g"><label class="form-l">Namba ya Simu</label><div class="in-wrap"><span class="in-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><input type="tel" id="su-phone" placeholder="0613367354" oninput="checkPhoneAvailability()"></div><small id="su-phone-error" style="color: #EF4444; font-size: 11px; display: none; padding-left: 4px; margin-top: 5px;"></small></div>
             <div class="form-g" id="village-form-g"><label class="form-l">Kijiji</label><div class="in-wrap"><span class="in-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg></span>
                 <select id="su-village"><option value="">Chagua Kijiji</option><option>Kitama Shulene</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option></select></div></div>
             <div class="form-g"><label class="form-l">Hadhi Yako</label><select id="su-role" onchange="toggleLeaderFields()" style="padding-left:16px;">
@@ -1353,14 +1353,30 @@
         const btn = document.getElementById('btn-login'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
         try {
             const { data: u, error } = await sb.from('users').select('*').eq('phone_number', phone).maybeSingle();
-                        if(u) {
+                if(u) {
+                // Kukagua kama akaunti haijatumiwa kwa miezi 2 (siku 60)
+                if (u.role === 'citizen' && u.status === 'active') {
+                    const lastSeenDate = new Date(u.last_seen || u.created_at);
+                    const diffDays = Math.floor((Math.abs(new Date() - lastSeenDate)) / (1000 * 60 * 60 * 24));
+                    if (diffDays > 60) {
+                        await sb.from('users').update({ status: 'rejected' }).eq('id', u.id);
+                        u.status = 'rejected'; // Sasisha variable
+                    }
+                }
+
                 if(u.status === 'rejected') {
-                    openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kulingana na ukiukaji wa sheria na kanuni zetu. Wasiliana na Kitama Yetu.", false);
+                    openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kwa sababu haijatumiwa kwa kipindi cha zaidi ya miezi 2, au imezuiwa na Admin.", false);
+                    
+                    // Ongeza kitufe cha kuomba kufunguliwa
+                    document.getElementById('modal-ok').innerText = "Omba Kufunguliwa";
+                    document.getElementById('modal-ok').style.display = 'block';
+                    document.getElementById('modal-ok').onclick = () => openReactivationForm(u.phone_number);
+                    document.getElementById('modal-cancel').innerText = 'Funga';
                     localStorage.removeItem('kitama_user');
                 } else if (u.status === 'restricted') {
                     localStorage.setItem('kitama_user', JSON.stringify(u)); 
                     enterApp(); 
-                    openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only). Unaweza kusoma ujumbe na kuona machapisho, lakini huwezi kutuma ujumbe wala kuchapisha. Wasiliana na Admin.", false);
+                    openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendi (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochote.", false);
                 } else {
                     localStorage.setItem('kitama_user', JSON.stringify(u)); 
                     enterApp(); 
@@ -1383,7 +1399,7 @@
             if(role === 'mtendaji_kijiji') pinQuery = pinQuery.eq('village', village); else pinQuery = pinQuery.is('village', null);
             const { data: pinData, error: pinError } = await pinQuery.maybeSingle();
             if(pinError) return openModal("Kosa", pinError.message);
-            if(!pinData || pinData.pin !== enteredPin) return openModal("Kosa la PIN", "PIN si sahihi au haijawekwa na Admin wa Mfumo.");
+            if(!pinData || pinData.pin !== enteredPin) return openModal("Kosa la PIN", "PIN si sahihi au haipo kwenye kanzidata.");
         }
         const btn = document.getElementById('btn-signup'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
         try {
@@ -5330,6 +5346,91 @@
         } catch(e) {
             if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
         }
+    }
+        let isNameValid = false;
+    let isPhoneValid = false;
+
+    async function checkNameAvailability() {
+        const name = document.getElementById('su-name').value.trim();
+        const errEl = document.getElementById('su-name-error');
+        if(name.length < 3) { errEl.style.display = 'none'; isNameValid = false; return; }
+        
+        const { data } = await sb.from('users').select('id').ilike('full_name', name).maybeSingle();
+        if(data) {
+            errEl.innerText = "Jina hili tayari limepokewa kwenye mfumo.";
+            errEl.style.display = 'block';
+            isNameValid = false;
+        } else {
+            errEl.style.display = 'none';
+            isNameValid = true;
+        }
+    }
+
+    async function checkPhoneAvailability() {
+        const phone = document.getElementById('su-phone').value.trim();
+        const errEl = document.getElementById('su-phone-error');
+        if(phone.length < 10) { errEl.style.display = 'none'; isPhoneValid = false; return; }
+        
+        const { data } = await sb.from('users').select('id').eq('phone_number', phone).maybeSingle();
+        if(data) {
+            errEl.innerText = "Namba hii tayari imesajiliwa.";
+            errEl.style.display = 'block';
+            isPhoneValid = false;
+        } else {
+            errEl.style.display = 'none';
+            isPhoneValid = true;
+        }
+    }
+        function openReactivationForm(phone) {
+        const html = `
+            <p style="font-size: 13px; color: var(--text-sec); margin-bottom: 15px;">Akaunti yako imefungwa kwa kutotumika kwa muda mrefu. Ili kuirudisha, jaza fomu hapa chini. Admin atakagua na kuirudisha ndani ya masaa 24.</p>
+            <div class="form-g">
+                <label class="form-l">Namba yako ya Simu</label>
+                <input type="tel" class="modal-input" value="${phone}" readonly style="background: var(--bg); cursor: not-allowed;">
+            </div>
+            <div class="form-g">
+                <label class="form-l">Jina lako kamili</label>
+                <input type="text" id="react-name" class="modal-input" placeholder="Andika jina lako">
+            </div>
+            <div class="form-g">
+                <label class="form-l">Kwa nini hujatumia App kwa muda huo?</label>
+                <textarea id="react-reason" class="modal-input" style="min-height: 80px;" placeholder="Eleza sababu..."></textarea>
+            </div>
+            <div class="form-g">
+                <label class="form-l">Ahadi yako</label>
+                <select id="react-promise" class="modal-input">
+                    <option>Nitatumia App kila siku</option>
+                    <option>Nitatumia App mara kwa mara</option>
+                </select>
+            </div>
+        `;
+        
+        openModal("Omba Kufunguliwa Akaunti", html, false, async () => {
+            const name = document.getElementById('react-name').value.trim();
+            const reason = document.getElementById('react-reason').value.trim();
+            if(!name || !reason) return showToast("Tafadhali jaza taarifa zote.");
+            
+            const btn = document.getElementById('modal-ok');
+            btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
+            
+            try {
+                await sb.from('developer_feedback').insert([{
+                    user_name: name,
+                    phone: phone,
+                    content: `Ombi la KUFAUNGULIWA akaunti.<br>Sababu ya kutotumia: ${reason}`,
+                    feedback_type: 'Reactivation',
+                    status: 'pending'
+                }]);
+                
+                closeModal();
+                openModal("Ombi Limewasilishwa", "Asante! Ombi lako la kufunguliwa akaunti limewasilishwa kwa Admin. Utairudishiwa akaunti yako ndani ya masaa 24 ikiwa taarifa zako zimeridhisha.", false);
+            } catch(e) {
+                openModal("Kosa", e.message);
+                btn.innerHTML = 'Tuma Ombi'; btn.disabled = false;
+            }
+        });
+        
+        document.getElementById('modal-ok').innerText = "Tuma Ombi";
     }
     
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
