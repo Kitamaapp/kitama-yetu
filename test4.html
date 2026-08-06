@@ -909,7 +909,20 @@
             <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Bofya duka lolote ili kuona bidhaa zake na kuliwasiliana.</p>
             <div id="shops-directory-list" class="market-grid"></div>
         </div>
-        
+                <!-- SCHOOLS PUBLIC SECTION -->
+        <div id="schools-public-sec" class="sec">
+            <div class="sec-h"><h2>Shule za Kitama</h2><span onclick="fetchPublicSchools()">Refresh</span></div>
+            <div class="filter-row" style="margin: 0 20px 15px 20px;">
+                <select id="school-level-filter" onchange="fetchPublicSchools()" style="flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit;">
+                    <option value="all">Zote (Msingi, Sekondari, Advance)</option>
+                    <option value="Msingi">Shule za Msingi</option>
+                    <option value="Sekondari">Shule za Sekondari</option>
+                    <option value="Advance">Shule za Advance</option>
+                </select>
+            </div>
+            <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Orodha ya shule kataani pamoja na taarifa za wanafunzi na viongozi.</p>
+            <div id="public-schools-list"></div>
+        </div>
         <div id="add-item-sec" class="sec">
             <div class="sec-h"><h2>Tangaza Bidhaa</h2></div>
             <div style="padding: 0 20px;">
@@ -1053,7 +1066,15 @@
                     <div class="form-g"><input type="text" id="school-name" style="padding-left:16px;" placeholder="Jina la Shule (Mfano: Kitama Primary)"></div>
                     <div class="form-g">
                         <select id="school-village" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
-                            <option>Kitama Shulene</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option>
+                            <option>Kitama Shuleni</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option>
+                        </select>
+                    </div>
+                    <!-- ONGEZA HII: KUCHAGUA KIWANGO CHA SHULE -->
+                    <div class="form-g">
+                        <select id="school-level" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+                            <option value="Msingi">Shule ya Msingi</option>
+                            <option value="Sekondari">Shule ya Sekondari</option>
+                            <option value="Advance">Shule ya Advance</option>
                         </select>
                     </div>
                     <button onclick="postSchool()" class="btn-p" id="btn-school">Hifadhi Shule</button>
@@ -1766,6 +1787,11 @@
                     <div class="action-text"><h4>Soko la Kitama</h4><p>Angalia bidhaa na maduka</p></div>
                     <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
                 </div>
+                <div class="action-item" onclick="handleNav('schools-public-sec')">
+                    <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+                    <div class="action-text"><h4>Shule za Kitama</h4><p>Taarifa za Wanafunzi</p></div>
+                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
+                </div>
                 <div class="action-item" onclick="handleNav('profile-sec')">
                     <div class="action-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div>
                     <div class="action-text"><h4>Akaunti Yangu</h4><p>Angalia taarifa zako</p></div>
@@ -1881,6 +1907,11 @@
                             <h4>Data Export</h4>
                             <p>Pakua Taarifa Zote</p>
                         </div>
+                        <div class="admin-tool-card" onclick="handleNav('admin-schools-sec')">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                            <h4>Shule</h4>
+                            <p>Ongeza / Teua Walimu</p>
+                        </div>
                          <div class="admin-tool-card" onclick="openBroadcastModal()">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>
                             <h4>Broadcast</h4>
@@ -1925,9 +1956,14 @@
                         <div class="action-text"><h4>Watu Wapya</h4><p>Waidhinishe</p></div>
                         <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
                     </div>
+                    <div class="action-item" onclick="handleNav('schools-public-sec')">
+                        <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+                        <div class="action-text"><h4>Shule za Kitama</h4><p>Taarifa za Wanafunzi</p></div>
+                        <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
+                    </div>
                     <div class="action-item" onclick="handleNav('leader-chat-sec')">
                         <div class="action-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-                        <div class="action-text"><h4>Chumb cha Viongozi</h4><p>Jadiliana</p></div>
+                        <div class="action-text"><h4>Kundi la Viongozi</h4><p>Jadiliana</p></div>
                         <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
                     </div>`;
                     if(u.role === 'system_admin') {
@@ -1992,7 +2028,7 @@
     function handleNav(sec) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.role === 'citizen' && u.status === 'pending') {
-            const allowedForPending = ['home-sec', 'market-sec', 'shops-directory-sec', 'profile-sec'];
+            const allowedForPending = ['home-sec', 'market-sec', 'shops-directory-sec', 'profile-sec', 'schools-public-sec'];
             if(!allowedForPending.includes(sec)) {
                 openModal("Akaunti Inasubiri", "Huduma hii inahitaji akaunti yako kuidhinishwa na Kiongozi wako wa Kijiji cha " + u.village + " kwanza. Tafadhali subiri.");
                 return;
@@ -5062,12 +5098,13 @@
     async function postSchool() {
         const name = document.getElementById('school-name').value.trim();
         const village = document.getElementById('school-village').value;
+        const level = document.getElementById('school-level').value;
         if(!name) return openModal("Taarifa", "Jaza jina la shule.");
         
         const btn = document.getElementById('btn-school');
         btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
         try {
-            const { error } = await sb.from('schools').insert([{ school_name: name, village: village }]);
+            const { error } = await sb.from('schools').insert([{ school_name: name, village: village, school_level: level }]);
             if(error) throw error;
             showToast("Shule imeongezwa!");
             document.getElementById('school-name').value = '';
@@ -5090,7 +5127,11 @@
                     : `<button onclick="assignHeadmaster('${s.id}')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:11px;">Teua Mwalimu</button>`;
                 
                 return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <div><b>${s.school_name}</b><br><small style="color:var(--text-sec);">${s.village}</small><br>${hmInfo}</div>
+                    <div>
+                        <b>${s.school_name}</b> <span class="badge b-info" style="font-size:9px; margin-left:5px;">${s.school_level || 'Msingi'}</span><br>
+                        <small style="color:var(--text-sec);">${s.village}</small><br>
+                        ${hmInfo}
+                    </div>
                     <div>${assignBtn}</div>
                 </div>`;
             }).join('') : '<p style="color:var(--text-sec);">Hakuna shule ilizoongezwa bado.</p>';
@@ -5098,14 +5139,42 @@
     }
 
     async function assignHeadmaster(schoolId) {
-        openModal("Teua Mwalimu Mkuu", "<p style='font-size:13px; color:var(--text-sec); margin-bottom:10px;'>Andika namba ya simu ya Mwananchi unayemtaka awe Mwalimu Mkuu wa shule hii.</p>", true, async (phone) => {
-            if(!phone) return;
-            try {
-                await sb.from('schools').update({ headmaster_phone: phone }).eq('id', schoolId);
-                showToast("Mwalimu Mkuu ameteuliwa! Sasa anaweza kujaza taarifa.");
-                fetchAdminSchools();
-            } catch(e) { openModal("Kosa", e.message); }
-        });
+        openModal("Teua Mwalimu Mkuu", "<div style='max-height: 300px; overflow-y: auto; display:flex; flex-direction:column; gap:8px;'><div class='skeleton' style='height:50px;'></div></div>", false);
+        try {
+            const { data, error } = await sb.from('users').select('full_name, phone_number, village').order('full_name', { ascending: true });
+            if(error) throw error;
+            
+            let html = '<div style="max-height: 300px; overflow-y: auto; display:flex; flex-direction:column; gap:8px;">';
+            if(data.length > 0) {
+                html += data.map(u => `
+                    <button onclick="confirmAssignHeadmaster('${schoolId}', '${u.phone_number}')" class="m-btn m-btn-secondary" style="text-align: left; display: flex; justify-content: space-between; align-items: center; padding: 10px;">
+                        <div>
+                            <b style="font-size: 13px; color: var(--text);">${u.full_name}</b><br>
+                            <small style="font-size: 11px; color: var(--text-sec);">${u.phone_number}</small>
+                        </div>
+                        <span class="badge b-info">${u.village}</span>
+                    </button>
+                `).join('');
+            } else {
+                html += '<p style="color:var(--text-sec); text-align:center;">Hakuna watumiaji waliosajiliwa.</p>';
+            }
+            html += '</div>';
+            
+            document.getElementById('modal-text').innerHTML = html;
+            document.getElementById('modal-ok').style.display = 'none';
+            document.getElementById('modal-cancel').innerText = 'Funga';
+        } catch(e) {
+            document.getElementById('modal-text').innerHTML = `<p style='color:red;'>${e.message}</p>`;
+        }
+    }
+
+    async function confirmAssignHeadmaster(schoolId, phone) {
+        try {
+            await sb.from('schools').update({ headmaster_phone: phone }).eq('id', schoolId);
+            showToast("Mwalimu Mkuu ameteuliwa! Sasa anaweza kujaza taarifa.");
+            closeModal();
+            fetchAdminSchools();
+        } catch(e) { openModal("Kosa", e.message); }
     }
 
     async function revokeHeadmaster(schoolId) {
@@ -5181,6 +5250,79 @@
             showToast("Taarifa za shule zimehifadhiwa vizuri!");
         } catch(e) { openModal("Kosa", e.message); } 
         finally { btn.innerHTML = 'Hifadhi Taarifa'; btn.disabled = false; }
+    }
+        async function fetchPublicSchools() {
+        const div = document.getElementById('public-schools-list');
+        if(!div) return;
+        const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
+        const oldScroll = window.scrollY;
+        
+        if(!isRealtimeUpdate) {
+            div.innerHTML = '<div class="skeleton" style="height:150px; margin:0 20px 15px 20px;"></div>';
+        }
+        
+        try {
+            const levelFilter = document.getElementById('school-level-filter') ? document.getElementById('school-level-filter').value : 'all';
+            
+            let query = sb.from('schools').select('*').order('school_name', { ascending: true });
+            if(levelFilter !== 'all') query = query.eq('school_level', levelFilter);
+            
+            const { data, error } = await query;
+            if(error) throw error;
+            
+            div.innerHTML = data.length > 0 ? data.map(s => {
+                let stats = s.class_stats || [];
+                let tB = 0, tG = 0;
+                let rowsHtml = stats.map(st => {
+                    tB += st.boys; tG += st.girls;
+                    return `<tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 8px 5px; font-size: 13px;">${st.class}</td>
+                        <td style="padding: 8px 5px; font-size: 13px; text-align: center; color: var(--accent);">${st.boys}</td>
+                        <td style="padding: 8px 5px; font-size: 13px; text-align: center; color: #ec4899;">${st.girls}</td>
+                        <td style="padding: 8px 5px; font-size: 13px; text-align: center; font-weight: 700;">${st.boys + st.girls}</td>
+                    </tr>`;
+                }).join('');
+                
+                let startDate = s.headmaster_start_date ? new Date(s.headmaster_start_date).toLocaleDateString('sw-KE', { year: 'numeric', month: 'long' }) : 'Haijajulikana';
+                let hmName = s.headmaster_name || 'Hajajaza Jina';
+                let levelClass = s.school_level === 'Sekondari' ? 'b-warn' : s.school_level === 'Advance' ? 'b-err' : 'b-info';
+                
+                return `<div class="list-i" style="padding: 0; overflow: hidden; margin: 0 20px 15px 20px;">
+                    <div style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); padding: 15px; color: white;">
+                        <h3 style="font-size: 18px; font-weight: 800; margin: 0; display:flex; justify-content:space-between; align-items:center;">
+                            ${s.school_name} 
+                            <span class="badge ${levelClass}" style="font-size:10px; color:white; background:rgba(255,255,255,0.2);">${s.school_level || 'Msingi'}</span>
+                        </h3>
+                        <p style="font-size: 12px; opacity: 0.9; margin-top: 5px;">Mkuu wa Shule: <b>${hmName}</b> (Tangu: ${startDate})</p>
+                    </div>
+                    <div style="padding: 15px; background: var(--surface);">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border);">
+                                    <th style="padding: 8px 5px; text-align: left; font-size: 11px; color: var(--text-sec);">Darasa</th>
+                                    <th style="padding: 8px 5px; text-align: center; font-size: 11px; color: var(--text-sec);">Wavulana</th>
+                                    <th style="padding: 8px 5px; text-align: center; font-size: 11px; color: var(--text-sec);">Wasichana</th>
+                                    <th style="padding: 8px 5px; text-align: center; font-size: 11px; color: var(--text-sec);">Jumla</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                                <tr style="background: var(--bg); font-weight: 800;">
+                                    <td style="padding: 10px 5px; font-size: 13px;">JUMLA</td>
+                                    <td style="padding: 10px 5px; font-size: 13px; text-align: center; color: var(--accent);">${tB}</td>
+                                    <td style="padding: 10px 5px; font-size: 13px; text-align: center; color: #ec4899;">${tG}</td>
+                                    <td style="padding: 10px 5px; font-size: 14px; text-align: center;">${tB + tG}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna taarifa za shule zilizowekwa bado.</p>';
+            
+            if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
+        } catch(e) {
+            if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+        }
     }
     
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
