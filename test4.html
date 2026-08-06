@@ -1044,6 +1044,39 @@
             <div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Orodha ya watumiaji waliolipa na wanaosubiri uthibitisho wa Badge.</p></div>
             <div id="admin-verifications-list"></div>
         </div>
+                <!-- ADMIN SCHOOLS SECTION -->
+        <div id="admin-schools-sec" class="sec">
+            <div class="sec-h"><h2>Taarifa za Shule</h2><span onclick="handleNav('home-sec')">Nyumbani</span></div>
+            <div style="padding: 0 20px;">
+                <div style="background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px; border:1px solid var(--border);">
+                    <h4 style="margin-bottom:15px;">Ongeza Shule Mpya</h4>
+                    <div class="form-g"><input type="text" id="school-name" style="padding-left:16px;" placeholder="Jina la Shule (Mfano: Kitama Primary)"></div>
+                    <div class="form-g">
+                        <select id="school-village" style="padding-left:16px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+                            <option>Kitama Shulene</option><option>Kitama Mjini</option><option>Mwenge A</option><option>Mwenge B</option><option>Namunda</option><option>Mitondi A</option><option>Mitondi B</option>
+                        </select>
+                    </div>
+                    <button onclick="postSchool()" class="btn-p" id="btn-school">Hifadhi Shule</button>
+                </div>
+                <div id="admin-schools-list"></div>
+            </div>
+        </div>
+                <!-- HEADMASTER SCHOOL STATS SECTION -->
+        <div id="headmaster-sec" class="sec">
+            <div class="sec-h"><h2>Taarifa za Shule Yangu</h2></div>
+            <div style="padding: 0 20px;">
+                <div style="background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px; border:1px solid var(--border);">
+                    <h4 id="hm-school-title" style="margin-bottom:15px; color:var(--accent);">Shule Yako</h4>
+                    <div class="form-g"><label class="form-l">Jina la Mkuu wa Shule</label><input type="text" id="hm-name" style="padding-left:16px;" placeholder="Jina kamili"></div>
+                    <div class="form-g"><label class="form-l">Mkuu Ameanza Lini?</label><input type="date" id="hm-start" style="padding-left:16px;"></div>
+                    
+                    <h4 style="margin: 15px 0 10px 0;">Idadi ya Wanafunzi kwa Darasa</h4>
+                    <div id="hm-class-inputs-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"></div>
+                    
+                    <button onclick="updateSchoolStats()" class="btn-p" id="btn-hm-update">Hifadhi Taarifa</button>
+                </div>
+            </div>
+        </div>
                <div id="profile-sec" class="sec">
             <!-- PROFILE HEADER (WhatsApp Style) -->
             <div style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); padding: 40px 20px 60px; text-align: center; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; position: relative; overflow: hidden;">
@@ -1521,7 +1554,11 @@
                   if(document.getElementById('events-sec').classList.contains('active')) fetchEvents();
                   if(document.getElementById('hub-sec').classList.contains('active')) fetchHub();
               })
-                            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
+               .on('postgres_changes', { event: '*', schema: 'public', table: 'schools' }, payload => {
+                  if(document.getElementById('schools-public-sec').classList.contains('active')) fetchPublicSchools();
+                  if(document.getElementById('admin-schools-sec').classList.contains('active')) fetchAdminSchools();
+              })
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (!currentUser) return;
@@ -1708,7 +1745,19 @@
                 </div>
             </div>
         `;
-        
+                // --- LOGIC YA MWALIMU MKUU ---
+        if(u.role === 'citizen' || u.role === 'system_admin') {
+            sb.from('schools').select('*').eq('headmaster_phone', u.phone_number).maybeSingle().then(({ data: school }) => {
+                const shopDiv = document.getElementById('shop-action-item'); // Tunatumia hii sehemu yoyote
+                if(school) {
+                    const hmBtn = document.createElement('div');
+                    hmBtn.className = 'action-item';
+                    hmBtn.onclick = () => fetchMySchoolStats(school.id);
+                    hmBtn.innerHTML = `<div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div><div class="action-text"><h4>Taarifa za Shule</h4><p>${school.school_name}</p></div><div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>`;
+                    if(shopDiv) shopDiv.insertAdjacentElement('beforebegin', hmBtn);
+                }
+            });
+        }
         if (isPending) {
             html += `<div class="warning-box" style="margin: 0 16px 20px 16px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Akaunti yako inasubiri kuidhinishwa na Kiongozi wako wa Kijiji cha ${u.village}.</div>`;
             html += `<div class="action-list">
@@ -2018,6 +2067,9 @@
         if(id==='events-sec' && u.role !== 'citizen') document.getElementById('event-form-box').style.display = 'block';
         if(id==='admin-verifications-sec') fetchAdminVerifications();
         if(id==='admin-users-sec') fetchAdminUsers();
+        if(id==='admin-schools-sec') fetchAdminSchools();
+        if(id==='schools-public-sec') fetchPublicSchools();
+        if(id==='headmaster-sec') initHmClassInputs();
         const marketAddBtn = document.getElementById('market-add-btn');
         if(marketAddBtn) {
             if(u.status === 'pending' || u.role !== 'citizen') marketAddBtn.style.display = 'none';
@@ -5005,6 +5057,130 @@
             document.getElementById('modal-text').innerHTML = html;
             document.getElementById('modal-ok').style.display = 'none';
         } catch(e) { document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`; }
+    }
+        // --- ADMIN SCHOOLS FUNCTIONS ---
+    async function postSchool() {
+        const name = document.getElementById('school-name').value.trim();
+        const village = document.getElementById('school-village').value;
+        if(!name) return openModal("Taarifa", "Jaza jina la shule.");
+        
+        const btn = document.getElementById('btn-school');
+        btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
+        try {
+            const { error } = await sb.from('schools').insert([{ school_name: name, village: village }]);
+            if(error) throw error;
+            showToast("Shule imeongezwa!");
+            document.getElementById('school-name').value = '';
+            fetchAdminSchools();
+        } catch(e) { openModal("Kosa", e.message); } 
+        finally { btn.innerHTML = 'Hifadhi Shule'; btn.disabled = false; }
+    }
+
+    async function fetchAdminSchools() {
+        const div = document.getElementById('admin-schools-list');
+        if(!div) return;
+        div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>';
+        try {
+            const { data, error } = await sb.from('schools').select('*').order('created_at', { ascending: false });
+            if(error) throw error;
+            div.innerHTML = data.length > 0 ? data.map(s => {
+                let hmInfo = s.headmaster_phone ? `<small style="color:var(--accent);">Mwalimu: ${s.headmaster_name || s.headmaster_phone}</small><br>` : `<small style="color:var(--text-sec);">Bado hana Mwalimu Mkuu</small><br>`;
+                let assignBtn = s.headmaster_phone 
+                    ? `<button onclick="revokeHeadmaster('${s.id}')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Ondoa Mwalimu</button>` 
+                    : `<button onclick="assignHeadmaster('${s.id}')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:11px;">Teua Mwalimu</button>`;
+                
+                return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div><b>${s.school_name}</b><br><small style="color:var(--text-sec);">${s.village}</small><br>${hmInfo}</div>
+                    <div>${assignBtn}</div>
+                </div>`;
+            }).join('') : '<p style="color:var(--text-sec);">Hakuna shule ilizoongezwa bado.</p>';
+        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+    }
+
+    async function assignHeadmaster(schoolId) {
+        openModal("Teua Mwalimu Mkuu", "<p style='font-size:13px; color:var(--text-sec); margin-bottom:10px;'>Andika namba ya simu ya Mwananchi unayemtaka awe Mwalimu Mkuu wa shule hii.</p>", true, async (phone) => {
+            if(!phone) return;
+            try {
+                await sb.from('schools').update({ headmaster_phone: phone }).eq('id', schoolId);
+                showToast("Mwalimu Mkuu ameteuliwa! Sasa anaweza kujaza taarifa.");
+                fetchAdminSchools();
+            } catch(e) { openModal("Kosa", e.message); }
+        });
+    }
+
+    async function revokeHeadmaster(schoolId) {
+        openModal("Ondoa Mwalimu", "Una uhakika unataka kumtoa uwezo huu wa kujaza taarifa za shule?", false, async () => {
+            try {
+                await sb.from('schools').update({ headmaster_phone: null, headmaster_name: null, headmaster_start_date: null, class_stats: null }).eq('id', schoolId);
+                showToast("Uwezo umekombolewa!");
+                fetchAdminSchools();
+            } catch(e) { openModal("Kosa", e.message); }
+        });
+    }
+
+    // --- HEADMASTER FUNCTIONS ---
+    function initHmClassInputs() {
+        const grid = document.getElementById('hm-class-inputs-grid');
+        if(!grid || grid.children.length > 0) return; // Usijaze tena kama tayariimejaa
+        let html = '';
+        for(let i = 1; i <= 7; i++) {
+            html += `<div style="background: var(--bg); padding: 8px; border-radius: 8px; border: 1px solid var(--border); text-align: center;"><small style="font-size: 11px; font-weight: 700; display: block; margin-bottom: 5px;">Darasa ${i}</small><input type="number" id="hm-class-${i}-boys" placeholder="W" style="text-align: center; padding: 8px; margin-bottom: 5px; border-radius: 6px; border: 1px solid var(--border);" min="0"><input type="number" id="hm-class-${i}-girls" placeholder="V" style="text-align: center; padding: 8px; border-radius: 6px; border: 1px solid var(--border);" min="0"></div>`;
+        }
+        grid.innerHTML = html;
+    }
+
+    async function fetchMySchoolStats(id) {
+        showSec('headmaster-sec');
+        initHmClassInputs();
+        try {
+            const { data: s, error } = await sb.from('schools').select('*').eq('id', id).single();
+            if(error) throw error;
+            document.getElementById('hm-school-title').innerText = s.school_name + ' (' + s.village + ')';
+            if(s.headmaster_name) document.getElementById('hm-name').value = s.headmaster_name;
+            if(s.headmaster_start_date) document.getElementById('hm-start').value = s.headmaster_start_date;
+            
+            if(s.class_stats && s.class_stats.length > 0) {
+                s.class_stats.forEach(st => {
+                    let cNum = st.class.replace('Darasa ', '');
+                    let bEl = document.getElementById(`hm-class-${cNum}-boys`);
+                    let gEl = document.getElementById(`hm-class-${cNum}-girls`);
+                    if(bEl) bEl.value = st.boys;
+                    if(gEl) gEl.value = st.girls;
+                });
+            }
+        } catch(e) { openModal("Kosa", e.message); }
+    }
+
+    async function updateSchoolStats() {
+        const name = document.getElementById('hm-name').value.trim();
+        const start = document.getElementById('hm-start').value;
+        if(!name) return openModal("Taarifa", "Jaza jina la Mkuu wa shule.");
+        
+        let classStats = [];
+        for(let i = 1; i <= 7; i++) {
+            let b = parseInt(document.getElementById(`hm-class-${i}-boys`).value) || 0;
+            let g = parseInt(document.getElementById(`hm-class-${i}-girls`).value) || 0;
+            classStats.push({ class: `Darasa ${i}`, boys: b, girls: g });
+        }
+        
+        const btn = document.getElementById('btn-hm-update');
+        btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
+        
+        try {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            const { data: s } = await sb.from('schools').select('id').eq('headmaster_phone', u.phone_number).single();
+            if(!s) return openModal("Kosa", "Hujaidhinishwa kujaza taarifa za shule hii.");
+            
+            const { error } = await sb.from('schools').update({ 
+                headmaster_name: name, 
+                headmaster_start_date: start, 
+                class_stats: classStats 
+            }).eq('id', s.id);
+            
+            if(error) throw error;
+            showToast("Taarifa za shule zimehifadhiwa vizuri!");
+        } catch(e) { openModal("Kosa", e.message); } 
+        finally { btn.innerHTML = 'Hifadhi Taarifa'; btn.disabled = false; }
     }
     
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
