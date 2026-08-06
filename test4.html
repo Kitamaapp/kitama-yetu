@@ -2168,6 +2168,7 @@
         if(id==='admin-schools-sec') fetchAdminSchools();
         if(id==='schools-public-sec') fetchPublicSchools();
         if(id==='headmaster-sec') initHmClassInputs();
+        if(id==='status-sec') loadStatusUI();
         const marketAddBtn = document.getElementById('market-add-btn');
         if(marketAddBtn) {
             if(u.status === 'pending' || u.role !== 'citizen') marketAddBtn.style.display = 'none';
