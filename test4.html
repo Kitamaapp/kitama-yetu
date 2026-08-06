@@ -3785,9 +3785,19 @@
         const search = document.getElementById('market-search').value.toLowerCase(); 
         const cat = document.getElementById('market-cat').value; 
         
+        // OFFLINE MODE
+        if (!isOnline()) {
+            const cached = getFromCache('market_html');
+            if (cached) {
+                div.innerHTML = cached;
+            } else {
+                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; grid-column:span 2;">Huna mtandao. Hakuna bidhaa zilizohifadhiwa.</p>';
+            }
+            return;
+        }
+        
         const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
         const oldScroll = window.scrollY;
-        
         if(!isRealtimeUpdate) {
             div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div><div class="skeleton" style="height:200px; border-radius:16px;"></div>';
         }
@@ -3804,6 +3814,12 @@
             marketHasMore = true;
             div.innerHTML = '';
             renderMarketBatch();
+            
+            // HIFADHI DATA YA SOKO
+            const marketHtml = div.innerHTML;
+            if(marketHtml && !marketHtml.includes('skeleton')) {
+                saveToCache('market_html', marketHtml);
+            }
             
             if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
         } catch(e) { 
