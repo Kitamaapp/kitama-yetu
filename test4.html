@@ -5314,9 +5314,21 @@
         async function fetchPublicSchools() {
         const div = document.getElementById('public-schools-list');
         if(!div) return;
+        
+        // OFFLINE MODE
+        if (!isOnline()) {
+            const cached = getFromCache('schools_html');
+            if (cached) {
+                div.innerHTML = cached;
+            } else {
+                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Huna mtandao. Hakuna taarifa za shule zilizohifadhiwa.</p>';
+            }
+            return;
+        }
+        
         const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
         const oldScroll = window.scrollY;
-        
+            
         if(!isRealtimeUpdate) {
             div.innerHTML = '<div class="skeleton" style="height:150px; margin:0 20px 15px 20px;"></div>';
         }
@@ -5378,6 +5390,11 @@
                     </div>
                 </div>`;
             }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna taarifa za shule zilizowekwa bado.</p>';
+            
+            // HIFADHI DATA YA SHULE
+            if(div.innerHTML && !div.innerHTML.includes('skeleton')) {
+                saveToCache('schools_html', div.innerHTML);
+            }
             
             if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
         } catch(e) {
