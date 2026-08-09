@@ -1526,20 +1526,29 @@
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'verification_requests' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (currentUser && currentUser.role === 'system_admin') {
-                      playBeep();
-                      showToast("Ombi jipya la uthibitisho limewasilishwa!");
-                      if(document.getElementById('admin-verifications-sec').classList.contains('active')) {
-                          fetchAdminVerifications();
+                      const isOnPage = document.getElementById('admin-verifications-sec').classList.contains('active');
+                      if (!isOnPage || isTabHidden) {
+                          triggerNotification('Ombi Jipya la Uthibitisho', payload.new.user_name + ' anasubiri kuwa Verified.', 'admin-verifications-sec');
+                      } else {
+                          playBeep();
                       }
+                      if(isOnPage) fetchAdminVerifications();
                   }
               })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'opportunities' }, payload => {
                   playBeep();
                   if(document.getElementById('opportunities-sec').classList.contains('active')) fetchOpportunities();
               })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, payload => {
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  if(currentUser && currentUser.role !== 'citizen') { playBeep(); showToast("Malalamishi mapya! " + payload.new.title); }
+                  if(currentUser && currentUser.role !== 'citizen') { 
+                      const isOnReports = document.getElementById('leader-reports-sec').classList.contains('active');
+                      if (!isOnReports || isTabHidden) {
+                          triggerNotification('Kero Mpya!', payload.new.title, 'leader-reports-sec');
+                      } else {
+                          playBeep();
+                      }
+                  }
                   if(document.getElementById('leader-reports-sec').classList.contains('active')) fetchLeaderReports();
                   if(document.getElementById('progress-sec').classList.contains('active')) fetchPublicProgress();
                   if(document.getElementById('hub-sec').classList.contains('active')) fetchHub();
@@ -1562,18 +1571,25 @@
                           fetchLeaderChat(true); 
                       }
                   }
-                  updateBadges(); 
+                    updateBadges();
+                    requestNotificationPermission(); // Omba ruhusa ya kutuma notifications 
               })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if(currentUser && currentUser.role === 'citizen') { 
-                      if (payload.new.sender_phone !== currentUser.phone_number) playBeep(); 
-                      if(document.getElementById('citizen-chat-sec').classList.contains('active')) {
-                          const isIncoming = payload.new.sender_phone !== currentUser.phone_number;
-                          fetchCitizenChat(isIncoming);
+                      const isSelf = payload.new.sender_phone === currentUser.phone_number;
+                      const isOnForum = document.getElementById('citizen-chat-sec').classList.contains('active');
+                      
+                      if (!isSelf) {
+                          if (!isOnForum || isTabHidden) {
+                              triggerNotification('Ujumbe Mpya - Forum', `${payload.new.sender_name}: ${payload.new.content.substring(0, 30)}...`, 'citizen-chat-sec');
+                          } else {
+                              playBeep(); // Akiwa kwenye Forum, cheza sa tu
+                          }
                       }
+                      if(isOnForum) fetchCitizenChat(!isSelf);
                   }
-                  updateBadges(); // Sasisha badge
+                  updateBadges(); 
               })
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'citizen_chat' }, payload => {
                   if(document.getElementById('citizen-chat-sec').classList.contains('active')) fetchCitizenChat(false);
@@ -1592,22 +1608,31 @@
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shops' }, payload => {
                   if(document.getElementById('shops-directory-sec').classList.contains('active')) fetchShopsDirectory();
               })
-                  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
+                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  if (currentUser && payload.new.recipient_phone === currentUser.phone_number) playBeep();
+                  if (currentUser && payload.new.recipient_phone === currentUser.phone_number) {
+                      const isOnDM = document.getElementById('dm-chat-sec').classList.contains('active') && dmOtherPhone === payload.new.sender_phone;
+                      const shopName = payload.new.shop_id ? 'Duka' : 'Faragha';
+                      
+                      if (!isOnDM || isTabHidden) {
+                          triggerNotification(`Ujumbe Mpya wa ${shopName}`, payload.new.content.substring(0, 30) + '...', 'my-inbox-sec');
+                      } else {
+                          playBeep(); // Akiwa kwenye hiyo DM, cheza sa tu
+                      }
+                  }
                   if(document.getElementById('my-inbox-sec').classList.contains('active')) fetchMyInbox();
                   if(document.getElementById('shop-inbox-sec').classList.contains('active') && currentShopId) fetchShopInbox(currentShopId);
                   
-                  // Refresh DM Chat bila kuficha screen
                   const dmChatSec = document.getElementById('dm-chat-sec');
                   if (dmChatSec.classList.contains('active') && dmOtherPhone) {
                       const msg = payload.new;
                       if (msg.sender_phone === dmOtherPhone || msg.recipient_phone === dmOtherPhone) {
-                          // Tuma 'true' kumjulisha ni ujumbe unakuja (isIncoming)
-                          fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, true);
+                          if ((msg.shop_id === null && dmShopId === null) || (msg.shop_id === dmShopId)) {
+                              fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, true);
+                          }
                       }
                   }
-                  updateBadges(); // Sasisha badge
+                  updateBadges();
               })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activist_articles' }, payload => {
                   playBeep();
@@ -6053,7 +6078,44 @@
             if (video) video.pause();
             loadStatusUI();
         }
+        let isTabHidden = false;
     
+    // Kufuatilia kama mtumiaji amefunga au ameshuka kwenye tab ya App
+    document.addEventListener('visibilitychange', () => {
+        isTabHidden = document.hidden;
+        if (!isTabHidden) document.title = 'Kitama Yetu'; // Rudisha jina la kawaida
+    });
+
+    // Kuomba ruhusa ya kutuma notifications
+    function requestNotificationPermission() {
+        if (!("Notification" in window)) return;
+        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+            Notification.requestPermission();
+        }
+    }
+
+    // Function kuu ya kutuma notification
+    function triggerNotification(title, body, sectionId) {
+        playBeep(); // Cheza sauti
+        
+        // 1. Kama mtumiaji hayupo kwenye App (amefunga tab au ameshuka), tumia OS Notification
+        if (isTabHidden && "Notification" in window && Notification.permission === 'granted') {
+            const notification = new Notification(title, { 
+                body: body, 
+                icon: 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png'
+            });
+            notification.onclick = () => {
+                window.focus();
+                if (sectionId) handleNav(sectionId);
+                notification.close();
+            };
+            document.title = '(1) Kitama Yetu'; // Acha namba ionekane kwenye tab
+        } 
+        // 2. Kama yupo kwenye App lakini kwenye ukurasa tofauti, onyesha Toast
+        else if (!isTabHidden) {
+            showToast(body);
+        }
+    }
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
 </body>
