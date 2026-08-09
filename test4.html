@@ -942,7 +942,7 @@
         </div>
 
                 <!-- STATUS VIEWER OVERLAY (Full Screen) -->
-        <div id="status-viewer-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; flex-direction:column; justify-content:center; align-items:center;">
+        <div id="status-viewer-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; flex-direction:column; justify-content:center; align-items:center;" onmousedown="pauseStatus()" ontouchstart="pauseStatus()" onmouseup="resumeStatus()" ontouchend="resumeStatus()">
             <!-- Progress Bar -->
             <div id="status-progress-bar" style="position:absolute; top:10px; left:10px; right:10px; height:3px; background:rgba(255,255,255,0.3); border-radius:2px; overflow:hidden;">
                 <div id="progress-fill" style="width:0%; height:100%; background:#fff;"></div>
@@ -951,8 +951,14 @@
             <div id="status-viewer-img" style="width:100%; height:100%; object-fit:contain; background:#000;"></div>
             
             <!-- Caption -->
-            <div id="sv-caption" style="position:absolute; bottom:40px; left:20px; right:20px; color:white; font-size:18px; text-align:center; text-shadow: 0 1px 4px rgba(0,0,0,0.8); display:none;"></div>
+            <div id="sv-caption" style="position:absolute; bottom:80px; left:20px; right:20px; color:white; font-size:18px; text-align:center; text-shadow: 0 1px 4px rgba(0,0,0,0.8); display:none;"></div>
             
+            <!-- Viewers & Delete (Kwa Status yako) -->
+            <div id="sv-footer" style="position:absolute; bottom:0; left:0; width:100%; padding:15px 20px; background:linear-gradient(to top, rgba(0,0,0,0.9), transparent); display:none; flex-direction:column; gap:10px;">
+                <div id="sv-viewers" style="color:white; font-size:12px; max-height:60px; overflow-y:auto; display:flex; flex-wrap:wrap; gap:8px;"></div>
+                <button onclick="deleteCurrentStatus()" style="background:rgba(239,68,68,0.2); border:1px solid #EF4444; color:white; padding:10px; width:100%; border-radius:8px; font-weight:700; cursor:pointer;">Futa Status Hii</button>
+            </div>
+
             <div style="position:absolute; top:25px; left:0; width:100%; padding:10px 20px; background:linear-gradient(to bottom, rgba(0,0,0,0.6), transparent); display:flex; align-items:center; gap:10px;">
                 <div id="sv-avatar" style="width:40px; height:40px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:700;">U</div>
                 <div>
@@ -5609,7 +5615,6 @@
             // --- STATUS VARIABLES ---
         let statusNetworkChannel = null;
         const STATUS_DB_NAME = 'kitama_status_db';
-        let statusTimer = null;
         let progressInterval = null;
 
         // --- STATUS P2P NETWORK ---
@@ -5738,11 +5743,59 @@
         let statusMediaBase64 = null;
         let statusMediaType = null;
 
-        function openStatusUploadModal() {
+        function previewStatusMedia(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            statusMediaBase64 = null;
+            const previewBox = document.getElementById('status-media-preview');
+            const captionBox = document.getElementById('caption-box');
+            captionBox.style.display = 'none';
+            
+            if (file.type.startsWith('video')) {
+                // Kikomo cha 2.5MB kwa sababu Base64 inaongeza ukubwa na WebSocket anakataa zaidi ya 3MB
+                if (file.size > 2.5 * 1024 * 1024) {
+                    showToast("Video kubwa sana (zaidi ya 2.5MB). Tafadhali chagua video fupi au punguza ukubwa.");
+                    input.value = '';
+                    return;
+                }
+                
+                statusMediaType = 'video';
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    statusMediaBase64 = e.target.result;
+                    previewBox.innerHTML = `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;" controls></video>`;
+                    captionBox.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Kama ni picha, bonyeza kwa kawaida (Base64 ndogo)
+                statusMediaType = 'image';
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    statusMediaBase64 = e.target.result;
+                    const img = new Image();
+                    img.onload = () => {
+                        let canvas = document.createElement('canvas');
+                        let ctx = canvas.getContext('2d');
+                        const maxW = 600;
+                        const scale = Math.min(maxW / img.width, maxW / img.height);
+                        canvas.width = img.width * scale;
+                        canvas.height = img.height * scale;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        statusMediaBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        previewBox.innerHTML = `<img src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;">`;
+                        captionBox.style.display = 'block';
+                    };
+                    img.src = statusMediaBase64;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+            function openStatusUploadModal() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             if (activeCitizens.length === 0) return showToast("Inapakia orodha ya watumiaji...");
             
-            // Admin aondolewe orodhani ili asiwezekane kuwaficha (ni supervisor)
             const citizensList = activeCitizens.filter(c => c.role !== 'system_admin');
             const isVerified = u.is_activist;
             const videoLimitText = isVerified ? "dakika 3" : "sekunde 40";
@@ -5770,7 +5823,7 @@
                     <input type="checkbox" id="status-hide-seen" style="width:auto;">
                     <label for="status-hide-seen" style="font-size:12px; color:var(--text-sec);">Niwafichie wanaoiona (Blue Ticks)</label>
                 </div>
-                <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top: 10px;">* Picha itaonekana kwa sekunde 30. Video itaonekana kwa ${videoLimitText} kwa kila mtu.</small>
+                <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top: 10px;">* Picha itaonekana kwa sekunde 30. Video itaonekana kwa ${videoLimitText}.<br>* Video isizidi MB 2.5 ili iweze kutumwa kwa simu nyingine.</small>
             `;
             
             openModal("Weka Status", html, false, async () => {
@@ -5783,7 +5836,6 @@
                 const hideSeen = document.getElementById('status-hide-seen').checked;
                 const caption = document.getElementById('status-caption').value.trim();
                 
-                // Muda wa Video (Auto-trim logic)
                 let maxPlayDuration = 30; // Picha ni 30s
                 if (statusMediaType === 'video') {
                     maxPlayDuration = isVerified ? 180 : 40; // 3 min kwa verified, 40s kwa kawaida
@@ -5806,56 +5858,22 @@
                 
                 let myStorage = getStatusFromStorage();
                 myStorage.push(newStatus);
-                saveStatusToStorage(myStorage);
+                
+                try {
+                    saveStatusToStorage(myStorage);
+                } catch(e) {
+                    btn.innerHTML = 'Weka Status'; btn.disabled = false;
+                    return showToast("Hifadhi ya simu imejaa. Futa status za zamani.");
+                }
                 
                 closeModal();
                 showToast("Status imewekwa!");
                 loadStatusUI();
                 
                 if (statusNetworkChannel) statusNetworkChannel.untrack().then(() => statusNetworkChannel.track({ phone: u.phone_number, name: u.full_name }));
-            });
-        }
-
-        function previewStatusMedia(input) {
-            const file = input.files[0];
-            if (!file) return;
-            
-            // Kikomo cha ukubwa wa P2P (Kama ni kubwa mno, mtandao unakataa)
-            if (file.size > 4 * 1024 * 1024) {
-                showToast("Faili kubwa sana kwa mtandao wa P2P. Tafadhali chagua chini ya 4MB.");
-                input.value = '';
-                return;
-            }
-
-            const previewBox = document.getElementById('status-media-preview');
-            const captionBox = document.getElementById('caption-box');
-            captionBox.style.display = 'block';
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                statusMediaBase64 = e.target.result;
-                statusMediaType = file.type.startsWith('video') ? 'video' : 'image';
                 
-                if (statusMediaType === 'image') {
-                    // Compress Image
-                    const img = new Image();
-                    img.onload = () => {
-                        let canvas = document.createElement('canvas');
-                        let ctx = canvas.getContext('2d');
-                        const maxW = 600;
-                        const scale = Math.min(maxW / img.width, maxW / img.height);
-                        canvas.width = img.width * scale;
-                        canvas.height = img.height * scale;
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        statusMediaBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                        previewBox.innerHTML = `<img src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;">`;
-                    };
-                    img.src = statusMediaBase64;
-                } else {
-                    previewBox.innerHTML = `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;" controls></video>`;
-                }
-            };
-            reader.readAsDataURL(file);
+                statusMediaBase64 = null;
+            });
         }
 
         let currentViewingPhone = null;
@@ -5870,37 +5888,60 @@
             showStatusViewer(all[currentViewingIndex]);
         }
 
-        function showStatusViewer(status) {
+        let statusTimer = null;
+        let pausedStatus = false;
+        let remainingTime = 0;
+
+                async function showStatusViewer(status) {
             clearTimeout(statusTimer);
-            clearInterval(progressInterval);
+            pausedStatus = false;
+            remainingTime = 0;
             
             document.getElementById('status-viewer-overlay').style.display = 'flex';
             const imgEl = document.getElementById('status-viewer-img');
             const captionEl = document.getElementById('sv-caption');
             const progressFill = document.getElementById('progress-fill');
+            const footerEl = document.getElementById('sv-footer');
+            const viewersEl = document.getElementById('sv-viewers');
             
+            // Ficha background ya zamani kabisa
+            imgEl.style.background = ''; 
             imgEl.innerHTML = ''; 
+            
             progressFill.style.transition = 'none';
             progressFill.style.width = '0%';
             
             let duration = 30000; // 30 seconds default for images
             if (status.media_type === 'video') {
-                duration = status.max_play_duration * 1000;
                 const video = document.createElement('video');
                 video.src = status.media_base64;
-                video.autoplay = true;
                 video.style.cssText = 'width:100%; height:100%; object-fit:contain; background:#000;';
+                video.playsInline = true;
                 imgEl.appendChild(video);
                 
+                let effectiveDuration = status.max_play_duration;
+                
+                // Ngoja video ipakie ili kupata muda halisi
+                video.addEventListener('loadedmetadata', () => {
+                    // Chagua muda mfupi kati ya muda wa video na ule uliwekwa kama kikomo
+                    effectiveDuration = Math.min(video.duration, status.max_play_duration);
+                    video.play().catch(e => console.error("Video play error:", e));
+                });
+                
+                // Sasisha mstari wa juu kulingana na muda wa video inavyocheza
                 video.addEventListener('timeupdate', () => {
-                    if (video.currentTime >= status.max_play_duration) {
+                    const percentage = (video.currentTime / effectiveDuration) * 100;
+                    progressFill.style.transition = 'none';
+                    progressFill.style.width = Math.min(percentage, 100) + '%';
+                    
+                    if (video.currentTime >= effectiveDuration) {
                         video.pause();
                         nextStatus();
                     }
                 });
                 video.addEventListener('ended', () => nextStatus());
             } else {
-                imgEl.style.background = `url(${status.media_base64}) center/contain no-repeat`;
+                imgEl.style.background = `url('${status.media_base64}') center/contain no-repeat`;
             }
             
             document.getElementById('sv-name').innerText = status.sender_name;
@@ -5910,16 +5951,23 @@
             captionEl.innerText = status.caption || '';
             captionEl.style.display = status.caption ? 'block' : 'none';
             
-            // Animate Progress Bar
-            setTimeout(() => {
-                progressFill.style.transition = `width ${duration}ms linear`;
-                progressFill.style.width = '100%';
-            }, 100);
-            
-            statusTimer = setTimeout(() => { nextStatus(); }, duration);
-            
             const u = JSON.parse(localStorage.getItem('kitama_user'));
-            if (status.sender_phone !== u.phone_number) {
+            
+            // Onyesha viewers na kitufe cha kufuta kama ni status yako
+            if (status.sender_phone === u.phone_number) {
+                footerEl.style.display = 'flex';
+                viewersEl.innerHTML = '<small>Inatafuta waliotazama...</small>';
+                try {
+                    const { data: viewersData } = await sb.from('users').select('full_name').in('phone_number', status.seen_by || []);
+                    if (viewersData && viewersData.length > 0) {
+                        viewersEl.innerHTML = '<small>Waliotazama:</small><br>' + viewersData.map(v => `<span style="background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:10px;">${v.full_name}</span>`).join('');
+                    } else {
+                        viewersEl.innerHTML = '<small>Hakuna aliyetazama bado</small>';
+                    }
+                } catch(e) { viewersEl.innerHTML = '<small>Hakuna aliyetazama</small>'; }
+            } else {
+                footerEl.style.display = 'none';
+                // Ni status ya mwenzangu, niletee "Seen"
                 if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
                     statusNetworkChannel.send({ type: 'broadcast', event: 'status_seen', payload: { 
                         to: status.sender_phone, 
@@ -5936,6 +5984,47 @@
                     }
                 }
             }
+            
+            // Animate Progress Bar kwa Picha tu (Video inajisimamia yenyewe kupitia timeupdate)
+            if (status.media_type !== 'video') {
+                setTimeout(() => {
+                    progressFill.style.transition = `width ${duration}ms linear`;
+                    progressFill.style.width = '100%';
+                }, 100);
+                statusTimer = setTimeout(() => { nextStatus(); }, duration);
+            }
+        }
+
+        function pauseStatus() {
+            if (!pausedStatus) {
+                pausedStatus = true;
+                clearTimeout(statusTimer);
+                const video = document.querySelector('#status-viewer-img video');
+                if (video) video.pause();
+                // Stop progress bar animation (complex in CSS, so we just freeze it visually by getting computed width)
+                const progressFill = document.getElementById('progress-fill');
+                const computedWidth = window.getComputedStyle(progressFill).width;
+                progressFill.style.transition = 'none';
+                progressFill.style.width = computedWidth;
+            }
+        }
+
+        function resumeStatus() {
+            if (pausedStatus) {
+                pausedStatus = false;
+                const video = document.querySelector('#status-viewer-img video');
+                if (video) {
+                    video.play();
+                    // Kama ni video, timer tunamwachie video yenyewe kufanya kazi
+                    return; 
+                }
+                // Kama ni picha, tunahitaji kuendeleza timer (tunaweza tu ku-reset kwa muda uliosalia, lakini kwa urahisi tunamaliza hapa)
+                // Ili kuepuka kosa, tunaweka timer mpya ya sekunde 3 ili amalizie haraka
+                const progressFill = document.getElementById('progress-fill');
+                progressFill.style.transition = `width 3000ms linear`;
+                progressFill.style.width = '100%';
+                statusTimer = setTimeout(() => { nextStatus(); }, 3000);
+            }
         }
 
         function nextStatus() {
@@ -5949,9 +6038,22 @@
             }
         }
 
+        function deleteCurrentStatus() {
+            const all = getStatusFromStorage().filter(s => s.sender_phone === currentViewingPhone && new Date(s.expiry).getTime() > Date.now());
+            const currentStatus = all[currentViewingIndex];
+            if (!currentStatus) return;
+            
+            openModal("Futa Status", "Una uhakika unataka kufuta status hii?", false, async () => {
+                let myStorage = getStatusFromStorage();
+                myStorage = myStorage.filter(s => s.id !== currentStatus.id);
+                saveStatusToStorage(myStorage);
+                showToast("Status imefutwa!");
+                closeStatusViewer();
+            });
+        }
+
         function closeStatusViewer() {
             clearTimeout(statusTimer);
-            clearInterval(progressInterval);
             const overlay = document.getElementById('status-viewer-overlay');
             overlay.style.display = 'none';
             const video = overlay.querySelector('video');
