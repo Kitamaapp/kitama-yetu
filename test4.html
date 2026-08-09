@@ -1523,30 +1523,18 @@
                   }
                   if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
               })
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'verification_requests' }, payload => {
-                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  if (currentUser && currentUser.role === 'system_admin') {
-                      const isOnPage = document.getElementById('admin-verifications-sec').classList.contains('active');
-                      if (!isOnPage || isTabHidden) {
-                          triggerNotification('Ombi Jipya la Uthibitisho', payload.new.user_name + ' anasubiri kuwa Verified.', 'admin-verifications-sec');
-                      } else {
-                          playBeep();
-                      }
-                      if(isOnPage) fetchAdminVerifications();
-                  }
-              })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'opportunities' }, payload => {
                   playBeep();
                   if(document.getElementById('opportunities-sec').classList.contains('active')) fetchOpportunities();
               })
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  if(currentUser && currentUser.role !== 'citizen') { 
+                  if(currentUser && currentUser.role !== 'citizen') {
                       const isOnReports = document.getElementById('leader-reports-sec').classList.contains('active');
-                      if (!isOnReports || isTabHidden) {
+                      if (!isOnReports || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
                           triggerNotification('Kero Mpya!', payload.new.title, 'leader-reports-sec');
                       } else {
-                          playBeep();
+                          playBeep(); 
                       }
                   }
                   if(document.getElementById('leader-reports-sec').classList.contains('active')) fetchLeaderReports();
@@ -1562,37 +1550,37 @@
                   const box = document.getElementById(`comments-${reportId}`);
                   if(box && box.style.display === 'block') fetchComments(reportId);
               })
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if(currentUser && currentUser.role !== 'citizen') { 
                       const isSelf = (payload.new.sender_name === currentUser.full_name && payload.new.sender_role === currentUser.role);
-                      if (!isSelf) playBeep(); 
-                      if(document.getElementById('leader-chat-sec').classList.contains('active')) {
-                          fetchLeaderChat(true); 
+                      const isOnChat = document.getElementById('leader-chat-sec').classList.contains('active');
+                      
+                      if (!isSelf) {
+                          if (!isOnChat || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
+                              triggerNotification('Ujumbe Mpya - Viongozi', `${payload.new.sender_name}: ${payload.new.content.substring(0, 30)}...`, 'leader-chat-sec');
+                          } else {
+                              playBeep();
+                          }
                       }
+                      if(isOnChat) fetchLeaderChat(true); 
                   }
-                    updateBadges();
-                    requestNotificationPermission(); // Omba ruhusa ya kutuma notifications 
+                  updateBadges(); 
               })
-                          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  if(currentUser) { 
+                  if(currentUser && currentUser.role === 'citizen') { 
                       const isSelf = payload.new.sender_phone === currentUser.phone_number;
                       const isOnForum = document.getElementById('citizen-chat-sec').classList.contains('active');
                       
-                      // 1. Tupe Notification au Beep kama hatupo kwenye Forum au tumefunga app
                       if (!isSelf) {
-                          if (!isOnForum || isTabHidden) {
+                          if (!isOnForum || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
                               triggerNotification('Ujumbe Mpya - Forum', `${payload.new.sender_name}: ${payload.new.content.substring(0, 30)}...`, 'citizen-chat-sec');
                           } else {
-                              playBeep(); // Akiwa kwenye Forum, cheza sa tu
+                              playBeep();
                           }
                       }
-                      
-                      // 2. PAKIA UJUMBE MOJA KWA MOJA AKIWA KWENYE FORUM (Hili ndilo lilikuwa limepotea)
-                      if(isOnForum) {
-                          fetchCitizenChat(!isSelf);
-                      }
+                      if(isOnForum) fetchCitizenChat(!isSelf);
                   }
                   updateBadges(); 
               })
@@ -1613,16 +1601,16 @@
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shops' }, payload => {
                   if(document.getElementById('shops-directory-sec').classList.contains('active')) fetchShopsDirectory();
               })
-                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (currentUser && payload.new.recipient_phone === currentUser.phone_number) {
                       const isOnDM = document.getElementById('dm-chat-sec').classList.contains('active') && dmOtherPhone === payload.new.sender_phone;
                       const shopName = payload.new.shop_id ? 'Duka' : 'Faragha';
                       
-                      if (!isOnDM || isTabHidden) {
+                      if (!isOnDM || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
                           triggerNotification(`Ujumbe Mpya wa ${shopName}`, payload.new.content.substring(0, 30) + '...', 'my-inbox-sec');
                       } else {
-                          playBeep(); // Akiwa kwenye hiyo DM, cheza sa tu
+                          playBeep();
                       }
                   }
                   if(document.getElementById('my-inbox-sec').classList.contains('active')) fetchMyInbox();
@@ -1656,9 +1644,7 @@
                   if (currentUser && currentUser.role === 'system_admin') {
                       playBeep();
                       showToast("Maoni mapya yamepokelewa!");
-                      if(document.getElementById('admin-feedback-sec').classList.contains('active')) {
-                          fetchAdminFeedbacks();
-                      }
+                      if(document.getElementById('admin-feedback-sec').classList.contains('active')) fetchAdminFeedbacks();
                   }
               })
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'causes' }, payload => {
@@ -1672,7 +1658,19 @@
                   if(document.getElementById('schools-public-sec').classList.contains('active')) fetchPublicSchools();
                   if(document.getElementById('admin-schools-sec').classList.contains('active')) fetchAdminSchools();
               })
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'verification_requests' }, payload => {
+                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+                  if (currentUser && currentUser.role === 'system_admin') {
+                      const isOnPage = document.getElementById('admin-verifications-sec').classList.contains('active');
+                      if (!isOnPage || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
+                          triggerNotification('Ombi Jipya la Uthibitisho', payload.new.user_name + ' anasubiri kuwa Verified.', 'admin-verifications-sec');
+                      } else {
+                          playBeep();
+                      }
+                      if(isOnPage) fetchAdminVerifications();
+                  }
+              })
+              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (!currentUser) return;
@@ -1685,10 +1683,10 @@
                       if (statusChanged) {
                           if (updatedUser.status === 'rejected') {
                               openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kabisa na Admin wa Mfumo. Utatoka kwenye app sasa.", false);
-                              setTimeout(() => handleLogout(), 3000); // Mtoe baada ya sekunde 3
+                              setTimeout(() => handleLogout(), 3000);
                           } else if (updatedUser.status === 'restricted') {
-                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochote.", false);
-                              location.reload(); // Reload ili vibao viwe vimezimwa
+                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochete.", false);
+                              location.reload();
                           } else if (updatedUser.status === 'active' && currentUser.status === 'restricted') {
                               showToast("Akaunti yako imerudishiwa! Unaweza kuandika tena.");
                               location.reload();
@@ -1714,7 +1712,7 @@
               .subscribe();
         }
 
-        updateBadges(); 
+        updateBadges();  
             // Sasisha muda wa mwisho wa kutumia app
         sb.from('users').update({ last_seen: new Date().toISOString() }).eq('id', u.id).then();
      // Washa mtandao wa Status (P2P) kwa kila mtumiaji
