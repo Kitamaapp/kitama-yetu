@@ -1508,65 +1508,9 @@
             setupDashboard(u);
         }
 
-                if (!isRealtimeInitialized) {
+            if (!isRealtimeInitialized) {
             isRealtimeInitialized = true;
             sb.channel('public:kitama-realtime')
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'boda_requests' }, payload => {
-                  if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
-              })
-              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_requests' }, payload => {
-                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'accepted') {
-                      document.getElementById('boda-status-box').className = 'boda-status accepted';
-                      let waPhone = payload.new.driver_phone.replace(/^0/, '255');
-                      document.getElementById('boda-status-box').innerHTML = `✅ Dereva <b>${payload.new.driver_name}</b> amekubali! <br><br> Nauli: ${payload.new.fare.toLocaleString()} Tsh (${payload.new.payment_method.toUpperCase()}) <br><br> Piga: <a href="tel:${payload.new.driver_phone}" style="color:var(--accent); font-weight:800;">${payload.new.driver_phone}</a>`;
-                  }
-                  if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
-              })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'opportunities' }, payload => {
-                  playBeep();
-                  if(document.getElementById('opportunities-sec').classList.contains('active')) fetchOpportunities();
-              })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, payload => {
-                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  if(currentUser && currentUser.role !== 'citizen') {
-                      const isOnReports = document.getElementById('leader-reports-sec').classList.contains('active');
-                      if (!isOnReports || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
-                          triggerNotification('Kero Mpya!', payload.new.title, 'leader-reports-sec');
-                      } else {
-                          playBeep(); 
-                      }
-                  }
-                  if(document.getElementById('leader-reports-sec').classList.contains('active')) fetchLeaderReports();
-                  if(document.getElementById('progress-sec').classList.contains('active')) fetchPublicProgress();
-                  if(document.getElementById('hub-sec').classList.contains('active')) fetchHub();
-              })
-              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'reports' }, payload => {
-                  if(document.getElementById('leader-reports-sec').classList.contains('active')) fetchLeaderReports();
-                  if(document.getElementById('progress-sec').classList.contains('active')) fetchPublicProgress();
-              })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments' }, payload => {
-                  const reportId = payload.new.report_id;
-                  const box = document.getElementById(`comments-${reportId}`);
-                  if(box && box.style.display === 'block') fetchComments(reportId);
-              })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
-                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  if(currentUser && currentUser.role !== 'citizen') { 
-                      const isSelf = (payload.new.sender_name === currentUser.full_name && payload.new.sender_role === currentUser.role);
-                      const isOnChat = document.getElementById('leader-chat-sec').classList.contains('active');
-                      
-                      if (!isSelf) {
-                          if (!isOnChat || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
-                              triggerNotification('Ujumbe Mpya - Viongozi', `${payload.new.sender_name}: ${payload.new.content.substring(0, 30)}...`, 'leader-chat-sec');
-                          } else {
-                              playBeep();
-                          }
-                      }
-                      if(isOnChat) fetchLeaderChat(true); 
-                  }
-                  updateBadges(); 
-              })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if(currentUser && currentUser.role === 'citizen') { 
@@ -1584,22 +1528,22 @@
                   }
                   updateBadges(); 
               })
-              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'citizen_chat' }, payload => {
-                  if(document.getElementById('citizen-chat-sec').classList.contains('active')) fetchCitizenChat(false);
-              })
-              .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'citizen_chat' }, payload => {
-                  if(document.getElementById('citizen-chat-sec').classList.contains('active')) fetchCitizenChat(false);
-              })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'marketplace' }, payload => {
-                  if(document.getElementById('market-sec').classList.contains('active')) fetchMarket();
-                  if(document.getElementById('admin-moderation-sec').classList.contains('active')) fetchModeration();
-              })
-              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'marketplace' }, payload => {
-                  if(document.getElementById('market-sec').classList.contains('active')) fetchMarket();
-                  if(document.getElementById('admin-moderation-sec').classList.contains('active')) fetchModeration();
-              })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shops' }, payload => {
-                  if(document.getElementById('shops-directory-sec').classList.contains('active')) fetchShopsDirectory();
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leader_chat' }, payload => {
+                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+                  if(currentUser && currentUser.role !== 'citizen') { 
+                      const isSelf = (payload.new.sender_name === currentUser.full_name && payload.new.sender_role === currentUser.role);
+                      const isOnChat = document.getElementById('leader-chat-sec').classList.contains('active');
+                      
+                      if (!isSelf) {
+                          if (!isOnChat || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
+                              triggerNotification('Ujumbe Mpya - Viongozi', `${payload.new.sender_name}: ${payload.new.content.substring(0, 30)}...`, 'leader-chat-sec');
+                          } else {
+                              playBeep();
+                          }
+                      }
+                      if(isOnChat) fetchLeaderChat(true); 
+                  }
+                  updateBadges(); 
               })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_messages' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
@@ -1627,36 +1571,19 @@
                   }
                   updateBadges();
               })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activist_articles' }, payload => {
-                  playBeep();
-                  if(document.getElementById('activist-hub-sec').classList.contains('active')) fetchActivistArticles();
-                  if(document.getElementById('hub-sec').classList.contains('active')) fetchHub();
-              })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'projects' }, payload => {
-                  if(document.getElementById('campaign-sec').classList.contains('active')) fetchProjects();
-                  if(document.getElementById('hub-sec').classList.contains('active')) fetchHub();
-              })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'causes' }, payload => {
-                  if(document.getElementById('solidarity-sec').classList.contains('active')) fetchCauses();
-              })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'developer_feedback' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  if (currentUser && currentUser.role === 'system_admin') {
-                      playBeep();
-                      showToast("Maoni mapya yamepokelewa!");
-                      if(document.getElementById('admin-feedback-sec').classList.contains('active')) fetchAdminFeedbacks();
+                  if(currentUser && currentUser.role !== 'citizen') {
+                      const isOnReports = document.getElementById('leader-reports-sec').classList.contains('active');
+                      if (!isOnReports || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
+                          triggerNotification('Kero Mpya!', payload.new.title, 'leader-reports-sec');
+                      } else {
+                          playBeep(); 
+                      }
                   }
-              })
-              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'causes' }, payload => {
-                  if(document.getElementById('solidarity-sec').classList.contains('active')) fetchCauses();
-              })
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' }, payload => {
-                  if(document.getElementById('events-sec').classList.contains('active')) fetchEvents();
+                  if(document.getElementById('leader-reports-sec').classList.contains('active')) fetchLeaderReports();
+                  if(document.getElementById('progress-sec').classList.contains('active')) fetchPublicProgress();
                   if(document.getElementById('hub-sec').classList.contains('active')) fetchHub();
-              })
-               .on('postgres_changes', { event: '*', schema: 'public', table: 'schools' }, payload => {
-                  if(document.getElementById('schools-public-sec').classList.contains('active')) fetchPublicSchools();
-                  if(document.getElementById('admin-schools-sec').classList.contains('active')) fetchAdminSchools();
               })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'verification_requests' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
@@ -1669,6 +1596,10 @@
                       }
                       if(isOnPage) fetchAdminVerifications();
                   }
+              })
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'marketplace' }, payload => {
+                  if(document.getElementById('market-sec').classList.contains('active')) fetchMarket();
+                  if(document.getElementById('admin-moderation-sec').classList.contains('active')) fetchModeration();
               })
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
@@ -1685,7 +1616,7 @@
                               openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kabisa na Admin wa Mfumo. Utatoka kwenye app sasa.", false);
                               setTimeout(() => handleLogout(), 3000);
                           } else if (updatedUser.status === 'restricted') {
-                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochete.", false);
+                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochote.", false);
                               location.reload();
                           } else if (updatedUser.status === 'active' && currentUser.status === 'restricted') {
                               showToast("Akaunti yako imerudishiwa! Unaweza kuandika tena.");
@@ -1712,7 +1643,7 @@
               .subscribe();
         }
 
-        updateBadges();  
+        updateBadges();   
             // Sasisha muda wa mwisho wa kutumia app
         sb.from('users').update({ last_seen: new Date().toISOString() }).eq('id', u.id).then();
      // Washa mtandao wa Status (P2P) kwa kila mtumiaji
