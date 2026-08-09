@@ -1255,6 +1255,8 @@
     let citizenReplyText = null;
     let isAtBottom = true;
     let unreadChatCount = 0;
+    let scrollToBottomOnNextFetch = false; // Mpya
+    let lastForumMsgTime = null; // Mpya
 
     let touchStartX = 0;
     let touchStartY = 0;
@@ -2285,14 +2287,25 @@
         }
     }
 
-    function handleChatScroll(el) {
+        function handleChatScroll(el) {
         const threshold = 150; 
         const position = el.scrollTop + el.clientHeight;
         const height = el.scrollHeight;
         if (height - position <= threshold) {
+            // Kama amefika chini, funga vitu na mwambie amesoma yote
             isAtBottom = true;
             unreadChatCount = 0;
             document.getElementById('new-msg-banner').style.display = 'none';
+            
+            // Hifadhi muda wa ujumbe wa mwisho kama amesoma chini
+            if (lastForumMsgTime) {
+                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                if (u.last_forum_read !== lastForumMsgTime) {
+                    u.last_forum_read = lastForumMsgTime;
+                    localStorage.setItem('kitama_user', JSON.stringify(u));
+                    sb.from('users').update({ last_forum_read: lastForumMsgTime }).eq('id', u.id).then();
+                }
+            }
         } else {
             isAtBottom = false;
         }
@@ -2418,7 +2431,7 @@
         
         const div = document.getElementById('citizen-chat-list'); 
         
-        // OFFLINE MODE: Ikiwa hana mtandao, ona data iliyohifadhiwa
+        // OFFLINE MODE
         if (!isOnline()) {
             const cached = getFromCache('forum_html');
             if (cached) {
@@ -2433,7 +2446,6 @@
         const oldScrollTop = div.scrollTop;
         const hasContent = div.children.length > 0;
     
-        // Ficha skeleton loading ikiwa tayari kuna ujumbe kwenye screen
         if(!hasContent) {
             div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div><div class="skeleton" style="height:60px; width:70%; margin-left:auto; margin-bottom:10px;"></div>';
         }
@@ -2442,6 +2454,7 @@
             const { data, error } = await sb.from('citizen_chat').select('*').order('created_at', { ascending:true }).limit(100);
             if(error) throw error;
             
+            // Sasisha read_by kwa ajili ya mtumiaji mwenzako aone ticks mbili (✓✓)
             const unreadMsgs = data.filter(m => m.sender_phone !== u.phone_number && (!m.read_by || !m.read_by.includes(u.phone_number)));
             if(unreadMsgs.length > 0) {
                 for(let msg of unreadMsgs) {
@@ -2458,7 +2471,12 @@
             </div>`;
             
             let firstUnreadId = null;
+            const lastReadTime = u.last_forum_read ? new Date(u.last_forum_read).getTime() : 0;
+            
             if(data.length > 0) {
+                // Hifadhi muda wa ujumbe wa mwisho kabisa kwenye list
+                lastForumMsgTime = data[data.length - 1].created_at;
+                
                 let lastDateStr = '';
                 data.forEach(c => {
                     const msgDate = new Date(c.created_at);
@@ -2472,9 +2490,11 @@
                     const isSelf = (u.phone_number === c.sender_phone);
                     const isSystemAlert = c.sender_phone === window.adminPhone;
                     
-                    // Hapa tunachukua ID ya ujumbe wa kwanza ambao bado hujasomwa
-                    if (!isSelf && !firstUnreadId && (!c.read_by || !c.read_by.includes(u.phone_number)) && !isIncoming) {
-                        firstUnreadId = c.id;
+                    // Pata ID ya kwanza ya ujumbe ambao hujasomwa (kwa wanaoingia kwenye page)
+                    if (!isSelf && !firstUnreadId && !isIncoming) {
+                        if (msgDate.getTime() > lastReadTime) {
+                            firstUnreadId = c.id;
+                        }
                     }
                     
                     const readByArray = c.read_by || [];
@@ -2512,28 +2532,51 @@
                 chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
             }
             
-           div.innerHTML = chatHtml;
+            div.innerHTML = chatHtml;
             
             // HIFADHI DATA YA FORUM
             if(chatHtml && !chatHtml.includes('skeleton')) {
                 saveToCache('forum_html', chatHtml);
             }
             
-            if(isIncoming && !isAtBottom) {
-                // Kama ujumbe unakuja lakini wewe uko juu ukisoma, screen isiruke. Iache ipotee kwenye ujumbe wa mwisho (huko chini)
-                unreadChatCount++;
-                document.getElementById('new-msg-count').innerText = unreadChatCount;
-                document.getElementById('new-msg-banner').style.display = 'block';
-                div.scrollTop = oldScrollTop; // Rudisha scroll pale ulipokuwa
-            } else if (firstUnreadId) {
-                // Kama umefungua chat mpya, nenda kwenye ujumbe wa kwanza hujasoma
-                const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
-                if(unreadEl) unreadEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                isAtBottom = false;
+            // LOGIC YA SCROLL (Sawa kabisa na WhatsApp)
+            if (isIncoming) {
+                if (isAtBottom || scrollToBottomOnNextFetch) {
+                    // 1. Ujumbe unakuja, na wewe uko chini au umetuma wewe mwenyewe -> Nenda chini
+                    div.scrollTop = div.scrollHeight;
+                    isAtBottom = true;
+                    scrollToBottomOnNextFetch = false;
+                    
+                    // Sasisha muda wa mwisho kusomwa kwani uko chini
+                    if (lastForumMsgTime) {
+                        u.last_forum_read = lastForumMsgTime;
+                        localStorage.setItem('kitama_user', JSON.stringify(u));
+                        sb.from('users').update({ last_forum_read: lastForumMsgTime }).eq('id', u.id).then();
+                    }
+                } else {
+                    // 2. Ujumbe unakuja, lakini wewe uko juu ukisoma -> Usiruke! Bakia pale ulipo
+                    div.scrollTop = oldScrollTop;
+                    unreadChatCount++;
+                    document.getElementById('new-msg-count').innerText = unreadChatCount;
+                    document.getElementById('new-msg-banner').style.display = 'block';
+                }
             } else {
-                // Kama wewe ndio umetuma au umeshasoma yote, nenda chini kabisa
-                div.scrollTop = div.scrollHeight;
-                isAtBottom = true;
+                // 3. Umefungua Forum mpya (sio ujumbe unakuja)
+                if (scrollToBottomOnNextFetch) {
+                    // Umetuma wewe -> Nenda chini
+                    div.scrollTop = div.scrollHeight;
+                    isAtBottom = true;
+                    scrollToBottomOnNextFetch = false;
+                } else if (firstUnreadId) {
+                    // Kuna ujumbe hujasoma -> Nenda kwenye ujumbe wa kwanza hujasoma
+                    const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
+                    if(unreadEl) unreadEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    isAtBottom = false;
+                } else {
+                    // Umeshasoma yote -> Nenda chini tu
+                    div.scrollTop = div.scrollHeight;
+                    isAtBottom = true;
+                }
             }
         } catch(e) { 
             if(!hasContent) div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`;
@@ -2570,6 +2613,7 @@
             document.getElementById('citizen-chat-input').value = '';
             cancelCitizenReply();
             playBeep();
+            scrollToBottomOnNextFetch = true;
             isAtBottom = true;
             fetchCitizenChat(false);
         } catch(e) { 
