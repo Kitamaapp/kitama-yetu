@@ -942,8 +942,8 @@
         </div>
 
                 <!-- STATUS VIEWER OVERLAY (Full Screen) -->
-        <div id="status-viewer-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; flex-direction:column; justify-content:center; align-items:center;" onmousedown="pauseStatus()" ontouchstart="pauseStatus()" onmouseup="resumeStatus()" ontouchend="resumeStatus()">
-            <!-- Progress Bar Segments (Mistari mingi) -->
+        <div id="status-viewer-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; flex-direction:column; justify-content:center; align-items:center; touch-action: none;">
+            <!-- Progress Bar Segments -->
             <div id="status-progress-bar" style="position:absolute; top:15px; left:10px; right:10px; display:flex; gap:4px; z-index:10;"></div>
             
             <div id="status-viewer-img" style="width:100%; height:100%; object-fit:contain; background:#000;"></div>
@@ -953,15 +953,15 @@
             <div onclick="event.stopPropagation(); nextStatus()" style="position:absolute; top:0; right:0; width:70%; height:100%; z-index:5;"></div>
 
             <!-- Caption -->
-            <div id="sv-caption" style="position:absolute; bottom:80px; left:20px; right:20px; color:white; font-size:18px; text-align:center; text-shadow: 0 1px 4px rgba(0,0,0,0.8); display:none; z-index:6;"></div>
+            <div id="sv-caption" style="position:absolute; bottom:30px; left:20px; right:20px; color:white; font-size:18px; text-align:center; text-shadow: 0 1px 4px rgba(0,0,0,0.8); display:none; z-index:6; pointer-events:none;"></div>
             
-             <!-- Viewers & Delete (Kwa Status yako) -->
-            <div id="sv-footer" style="position:absolute; bottom:0; left:0; width:100%; padding:15px 20px; background:linear-gradient(to top, rgba(0,0,0,0.9), transparent); display:none; flex-direction:column; gap:10px; z-index:6;">
-                <button onclick="openStatusViewersModal()" style="background:rgba(255,255,255,0.1); border:none; color:white; padding:12px; width:100%; border-radius:8px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    <span id="sv-viewers-count">0 Waliotazama</span>
-                </button>
-                <button onclick="deleteCurrentStatus()" style="background:rgba(239,68,68,0.2); border:1px solid #EF4444; color:white; padding:10px; width:100%; border-radius:8px; font-weight:700; cursor:pointer;">Futa Status Hii</button>
+            <!-- Viewers Panel (Hujificha chini, inajipush juu unapofinya/swipe up) -->
+            <div id="viewers-panel" style="position:absolute; bottom:0; left:0; width:100%; height:75%; background:var(--surface); border-radius:20px 20px 0 0; transform:translateY(100%); transition:transform 0.3s ease; z-index:20; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 -5px 20px rgba(0,0,0,0.3);">
+                <div style="padding:15px 20px; text-align:center; border-bottom:1px solid var(--border); position:relative;">
+                    <b>Waliotazama</b>
+                    <button onclick="hideViewersPanel()" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); background:var(--bg); border:none; width:30px; height:30px; border-radius:50%; font-size:18px; cursor:pointer; color:var(--text-sec);">X</button>
+                </div>
+                <div id="viewers-list-content" style="flex:1; overflow-y:auto; padding:15px 20px;"></div>
             </div>
 
             <div style="position:absolute; top:30px; left:0; width:100%; padding:10px 20px; background:linear-gradient(to bottom, rgba(0,0,0,0.6), transparent); display:flex; align-items:center; gap:10px; z-index:6;">
@@ -5900,6 +5900,7 @@
         async function showStatusViewer(status) {
             clearTimeout(statusTimer);
             pausedStatus = false;
+            document.getElementById('viewers-panel').style.transform = 'translateY(100%)'; // Ficha paneli kwenye status mpya
             
             document.getElementById('status-viewer-overlay').style.display = 'flex';
             const imgEl = document.getElementById('status-viewer-img');
@@ -6083,14 +6084,15 @@
             });
         }
 
-        function closeStatusViewer() {
+          function closeStatusViewer() {
             clearTimeout(statusTimer);
             const overlay = document.getElementById('status-viewer-overlay');
             overlay.style.display = 'none';
+            document.getElementById('viewers-panel').style.transform = 'translateY(100%)'; // Ficha paneli
             const video = overlay.querySelector('video');
             if (video) video.pause();
             loadStatusUI();
-        }
+          }
             async function openStatusViewersModal() {
             const status = currentStatusList[currentViewingIndex];
             if (!status) return;
@@ -6124,7 +6126,108 @@
                 document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
             }
         }
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        
+        const statusOverlay = document.getElementById('status-viewer-overlay');
+        
+        // Kwa Simu (Touch)
+        statusOverlay.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
+            pauseStatus();
+        }, { passive: true });
 
+        statusOverlay.addEventListener('touchend', (e) => {
+            const touchEndY = e.changedTouches[0].clientY;
+            handleSwipeEnd(touchEndY);
+        }, { passive: true });
+
+        // Kwa Kompyuta (Mouse)
+        statusOverlay.addEventListener('mousedown', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return; // Usifanye kitu akibonyeza X
+            touchStartY = e.clientY;
+            touchStartTime = Date.now();
+            pauseStatus();
+        });
+
+        statusOverlay.addEventListener('mouseup', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            handleSwipeEnd(e.clientY);
+        });
+
+        function handleSwipeEnd(endY) {
+            const diffY = touchStartY - endY;
+            const duration = Date.now() - touchStartTime;
+            const panel = document.getElementById('viewers-panel');
+            const isPanelOpen = panel.style.transform === 'translateY(0%)';
+
+            // 1. Kama ni Tap tu (haikufinya sana wala kukaa muda mrefu)
+            if (Math.abs(diffY) < 10 && duration < 300) {
+                if (!isPanelOpen) resumeStatus();
+            } 
+            // 2. Kama amefinya juu (Swipe Up)
+            else if (diffY > 50) {
+                const status = currentStatusList[currentViewingIndex];
+                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                // Fungua paneli tu kama ni status yake mwenyewe
+                if (status && status.sender_phone === u.phone_number) {
+                    showViewersPanel();
+                } else {
+                    resumeStatus();
+                }
+            } 
+            // 3. Kama amefinya chini (Swipe Down)
+            else if (diffY < -50) {
+                if (isPanelOpen) {
+                    hideViewersPanel(); // Funga paneli tu
+                } else {
+                    closeStatusViewer(); // Funga status yote
+                }
+            } 
+            // 4. Kama hakuna kitu, endelea kucheza
+            else {
+                if (!isPanelOpen) resumeStatus();
+            }
+        }
+                async function showViewersPanel() {
+            const panel = document.getElementById('viewers-panel');
+            const listEl = document.getElementById('viewers-list-content');
+            
+            panel.style.transform = 'translateY(0%)';
+            listEl.innerHTML = "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>";
+            
+            const status = currentStatusList[currentViewingIndex];
+            if (!status) return;
+            
+            try {
+                let html = '';
+                if (status.seen_by && status.seen_by.length > 0) {
+                    const { data: viewersData, error } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', status.seen_by);
+                    if (error) throw error;
+                    
+                    html += viewersData.map(v => `
+                        <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border);">
+                            ${v.avatar_url ? `<img src="${v.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : `<div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${v.full_name.charAt(0)}</div>`}
+                            <div>
+                                <b style="font-size:14px; color:var(--text);">${v.full_name}</b><br>
+                                <small style="color:var(--text-sec); font-size:12px;">${v.phone_number}</small>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    html = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Hakuna aliyetazama bado</p>';
+                }
+                listEl.innerHTML = html;
+            } catch(e) {
+                listEl.innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
+            }
+        }
+
+        function hideViewersPanel() {
+            document.getElementById('viewers-panel').style.transform = 'translateY(100%)';
+        }
+        
         let isTabHidden = false;
     
     // Kufuatilia kama mtumiaji amefunga au ameshuka kwenye tab ya App
