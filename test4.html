@@ -1574,12 +1574,13 @@
                     updateBadges();
                     requestNotificationPermission(); // Omba ruhusa ya kutuma notifications 
               })
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
+                          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  if(currentUser && currentUser.role === 'citizen') { 
+                  if(currentUser) { 
                       const isSelf = payload.new.sender_phone === currentUser.phone_number;
                       const isOnForum = document.getElementById('citizen-chat-sec').classList.contains('active');
                       
+                      // 1. Tupe Notification au Beep kama hatupo kwenye Forum au tumefunga app
                       if (!isSelf) {
                           if (!isOnForum || isTabHidden) {
                               triggerNotification('Ujumbe Mpya - Forum', `${payload.new.sender_name}: ${payload.new.content.substring(0, 30)}...`, 'citizen-chat-sec');
@@ -1587,7 +1588,11 @@
                               playBeep(); // Akiwa kwenye Forum, cheza sa tu
                           }
                       }
-                      if(isOnForum) fetchCitizenChat(!isSelf);
+                      
+                      // 2. PAKIA UJUMBE MOJA KWA MOJA AKIWA KWENYE FORUM (Hili ndilo lilikuwa limepotea)
+                      if(isOnForum) {
+                          fetchCitizenChat(!isSelf);
+                      }
                   }
                   updateBadges(); 
               })
