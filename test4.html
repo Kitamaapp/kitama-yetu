@@ -843,6 +843,9 @@
                 <span onclick="viewCitizensList()" class="chat-header-btn">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Wananchi
                 </span>
+                <span onclick="openForumSearch()" class="chat-header-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Tafuta
+                </span>
             </div>
             <div class="chat-body" id="citizen-chat-list" onscroll="handleChatScroll(this)"></div>
             
@@ -1649,12 +1652,18 @@
               })
               .subscribe();
         }
-
-        updateBadges();   
-            // Sasisha muda wa mwisho wa kutumia app
+              updateBadges();   
+        // Sasisha muda wa mwisho wa kutumia app
         sb.from('users').update({ last_seen: new Date().toISOString() }).eq('id', u.id).then();
-     // Washa mtandao wa Status (P2P) kwa kila mtumiaji
+        
+        // Washa mtandao wa Status (P2P) kwa kila mtumiaji
         initStatusNetwork(u);
+        
+        // OMBA RUHUSA YA NOTIFICATIONS
+        requestNotificationPermission();
+        
+        // FUTA STATUS ZILIZOKWISHA MUDA (Auto-clean)
+        cleanExpiredStatuses();
     }
 
     function getActivistBadge(isActivist) {
@@ -2510,7 +2519,7 @@
                         replyHtml = `<div class="reply-quote"><b>${displayName}</b><small>${replyText.substring(0, 50)}</small></div>`;
                     }
                     
-                    let content = c.content.replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
+                    let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
                     let actionsHtml = `<div class="chat-actions">
                         <button class="chat-action-btn" onclick="event.stopPropagation(); setCitizenReply('${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')">${ICONS.reply} Reply</button>
                         ${!isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); replyPrivately('${c.sender_phone}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" title="Reply Privately"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Private</button>` : ''}
@@ -2993,7 +3002,7 @@
             
             const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending: true }).limit(100);
             if (error) throw error;
-
+            let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
             let chatHtml = `<div class="chat-msg system-alert" style="margin-top: 15px;">
                 <p>
                     <svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
@@ -3020,11 +3029,12 @@
                     const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); 
                     let sharedHtml = c.shared_report_id ? `<div class="reply-quote" style="border-left-color: var(--text-sec);"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
                     let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
-                    let safeContent = c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    let cleanContent = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    let safeContent = cleanContent.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                     let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
 
                     let displayName = `<span style="cursor:pointer;" onclick="event.stopPropagation(); viewUserProfile('${c.sender_phone}')">${c.sender_name}</span> (${c.sender_role.replace(/_/g,' ')})`;
-                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${c.content}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${cleanContent}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
                 });
             } else {
                 chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
@@ -4892,7 +4902,7 @@
                     const isSystemAlert = c.sender_role === 'system_admin' && !isSelf;
                     let msgClass = isSelf ? 'self' : '';
                     let actionsHtml = '';
-                    let content = c.content.replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
+                    let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
                     
                     if (isSystemAlert) {
                         msgClass = 'system-alert';
@@ -5678,7 +5688,13 @@
 
         // 2. Storage Helpers
         function getStatusFromStorage() { try { return JSON.parse(localStorage.getItem(STATUS_DB_NAME)) || []; } catch(e) { return []; } }
-        function saveStatusToStorage(data) { localStorage.setItem(STATUS_DB_NAME, JSON.stringify(data)); }
+        function saveStatusToStorage(data) {
+            // SHIKILIA STATUS 30 ZA MWISHO TU KUEPUCHA SIMU KUJAA
+            if(data.length > 30) {
+                data = data.slice(data.length - 30);
+            }
+            localStorage.setItem(STATUS_DB_NAME, JSON.stringify(data));
+        }
         function cleanExpiredStatuses() {
             let myStorage = getStatusFromStorage();
             const valid = myStorage.filter(s => new Date(s.expiry).getTime() > Date.now());
@@ -5739,7 +5755,7 @@
         }
 
         // 4. Upload Modal
-        function openStatusUploadModal() {
+           function openStatusUploadModal() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             if (activeCitizens.length === 0) return showToast("Inapakia orodha ya watumiaji...");
             
@@ -5760,6 +5776,17 @@
                     <label class="form-l">Andika Caption (Optional)</label>
                     <input type="text" id="status-caption" class="modal-input" placeholder="Ongeza maandishi..." style="padding-left: 16px;">
                 </div>
+                
+                <!-- ONGEZA HII: KUCHAGUA MUDA WA STATUS KUWEPo -->
+                <div class="form-g">
+                    <label class="form-l">Status Iwekee Muda Gani? (Max 24 Hrs)</label>
+                    <select id="status-duration" class="modal-input" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg);">
+                        <option value="1">Saa 1</option>
+                        <option value="6">Masaa 6</option>
+                        <option value="24" selected>Siku 1 (24 Hrs)</option>
+                    </select>
+                </div>
+                
                 <div class="form-g">
                     <label class="form-l">Mfichie Nani? (Acha wazi kwa wote)</label>
                     <select id="status-hide-from" multiple class="modal-input" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg);">
@@ -5783,6 +5810,9 @@
                 const hideSeen = document.getElementById('status-hide-seen').checked;
                 const caption = document.getElementById('status-caption').value.trim();
                 
+                // PATA MUDA ULIOCHAGULIWA
+                const duration = parseInt(document.getElementById('status-duration').value);
+                
                 let maxPlayDuration = 30; 
                 if (statusMediaType === 'video') {
                     maxPlayDuration = isVerified ? 180 : 40; 
@@ -5797,7 +5827,8 @@
                     caption: caption,
                     max_play_duration: maxPlayDuration,
                     timestamp: new Date().toISOString(),
-                    expiry: new Date(Date.now() + (24 * 3600000)).toISOString(),
+                    // HAPA NDIO MUDA WA KUJIFUTA UNAWEKWA KULINGANA NA UCHAGUZI
+                    expiry: new Date(Date.now() + (duration * 3600000)).toISOString(), 
                     hide_from: hideFrom,
                     hide_seen_receipts: hideSeen,
                     seen_by: []
@@ -6126,7 +6157,7 @@
                 document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
             }
         }
-        let touchStartY = 0;
+        
         let touchStartTime = 0;
         
         const statusOverlay = document.getElementById('status-viewer-overlay');
@@ -6236,7 +6267,6 @@
         if (!isTabHidden) document.title = 'Kitama Yetu'; // Rudisha jina la kawaida
     });
 
-    // Kuomba ruhusa ya kutuma notifications
     function requestNotificationPermission() {
         if (!("Notification" in window)) return;
         if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
@@ -6244,11 +6274,9 @@
         }
     }
 
-    // Function kuu ya kutuma notification
     function triggerNotification(title, body, sectionId) {
-        playBeep(); // Cheza sauti
+        playBeep();
         
-        // 1. Kama mtumiaji hayupo kwenye App (amefunga tab au ameshuka), tumia OS Notification
         if (isTabHidden && "Notification" in window && Notification.permission === 'granted') {
             const notification = new Notification(title, { 
                 body: body, 
@@ -6259,13 +6287,64 @@
                 if (sectionId) handleNav(sectionId);
                 notification.close();
             };
-            document.title = '(1) Kitama Yetu'; // Acha namba ionekane kwenye tab
-        } 
-        // 2. Kama yupo kwenye App lakini kwenye ukurasa tofauti, onyesha Toast
-        else if (!isTabHidden) {
+            document.title = '(1) Kitama Yetu';
+        } else if (!isTabHidden) {
             showToast(body);
         }
-    }
+       }
+        async function openForumSearch() {
+            const html = `
+                <input type="text" id="forum-search-input" class="modal-input" placeholder="Andika neno la kutafuta..." oninput="doForumSearch(this.value)" style="margin-bottom: 15px;">
+                <div id="forum-search-results" style="max-height: 300px; overflow-y: auto; display:flex; flex-direction:column; gap:8px;">
+                    <p style="color:var(--text-sec); text-align:center; font-size:13px;">Andika neno la kuanzia kutafuta...</p>
+                </div>
+            `;
+            openModal("Tafuta Ujumbe Forum", html, false);
+            document.getElementById('modal-ok').style.display = 'none';
+            document.getElementById('modal-cancel').innerText = 'Funga';
+        }
+
+        async function doForumSearch(query) {
+            if(query.length < 2) return;
+            const resultsDiv = document.getElementById('forum-search-results');
+            resultsDiv.innerHTML = "<div style='display:flex; justify-content:center; padding:10px;'><div class='spinner'></div></div>";
+            
+            try {
+                const { data, error } = await sb.from('citizen_chat').select('*').ilike('content', `%${query}%`).order('created_at', { ascending: false }).limit(20);
+                if(error) throw error;
+                
+                if(data.length > 0) {
+                    resultsDiv.innerHTML = data.map(msg => `
+                        <div onclick="jumpToForumMsg('${msg.id}')" style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border); cursor:pointer;">
+                            <b style="font-size:12px; color:var(--accent);">${msg.sender_name}</b>
+                            <p style="font-size:13px; color:var(--text); margin-top:4px;">${msg.content.substring(0, 50)}...</p>
+                            <small style="color:var(--text-sec); font-size:10px;">${new Date(msg.created_at).toLocaleString()}</small>
+                        </div>
+                    `).join('');
+                } else {
+                    resultsDiv.innerHTML = '<p style="color:var(--text-sec); text-align:center; font-size:13px;">Hakuna ujumbe uliopatikana.</p>';
+                }
+            } catch(e) {
+                resultsDiv.innerHTML = `<p style="color:red; text-align:center;">${e.message}</p>`;
+            }
+        }
+
+        function jumpToForumMsg(msgId) {
+            closeModal();
+            showSec('citizen-chat-sec');
+            setTimeout(() => {
+                const el = document.getElementById(`msg-${msgId}`);
+                if(el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.style.transition = 'background 0.5s';
+                    el.style.background = 'rgba(16, 185, 129, 0.2)';
+                    setTimeout(() => { el.style.background = ''; }, 2000);
+                } else {
+                    showToast("Ujumbe haujapatikana kwenye screen. Unaweza kuskroll chini kuangalia zaidi.");
+                }
+            }, 500);
+        }
+    
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
 </body>
