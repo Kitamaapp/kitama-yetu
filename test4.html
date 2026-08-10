@@ -1751,7 +1751,7 @@
         return getActivistBadge(isActivist);
     }
 
-    function enforceCitizenLocation(u) {
+        function enforceCitizenLocation(u) {
         if (!navigator.geolocation) {
             setupDashboard(u);
             return;
@@ -1767,8 +1767,14 @@
                 lastLat = lat; lastLng = lng;
                 try { await sb.from('users').update({ lat: lat, lng: lng }).eq('id', u.id); } catch(e) {}
             },
-            (error) => { showToast("GPS haijawashwa. Washa ili viongozi wakuonie kwenye ramani."); },
-            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            (error) => { 
+                // Onyesha ujumbe tu kama mtu amezima GPS kabisa (Permission Denied)
+                if(error.code === 1) {
+                    showToast("GPS haijawashwa. Washa ili viongozi wakuonie kwenye ramani.");
+                }
+                // Kama ni kosa la muda (Timeout) au eneo lisilopatikana, tuKimya kimya, itajaribu tena baadaye.
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 } // Ongeza muda wa kusubiri hadi sekunde 15
         );
 
         navigator.geolocation.watchPosition(
@@ -6203,6 +6209,7 @@
             if (video) video.pause();
             loadStatusUI();
           }
+    
             async function openStatusViewersModal() {
             const status = currentStatusList[currentViewingIndex];
             if (!status) return;
