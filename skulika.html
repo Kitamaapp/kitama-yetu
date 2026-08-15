@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SKULiKA | Educational Repository</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,97 +11,128 @@
     --primary: #0f4c81; --primary-light: #3a6ea5; --accent: #1eb53a;
     --bg-color: #f8f9fa; --surface: #ffffff; --text-dark: #1a1a1a;
     --text-light: #555555; --text-mute: #888888; --border: #e1e5e8;
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04); --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04); --shadow-md: 0 8px 24px rgba(0,0,0,0.1);
     --radius: 12px;
   }
   body.dark-mode {
-    --bg-color: #0f1115 !important; --surface: #1a1d23; --text-dark: #f1f1f1;
+    --bg-color: #0f1115; --surface: #1a1d23; --text-dark: #f1f1f1;
     --text-light: #b0b0b0; --text-mute: #777777; --border: #2a2e36;
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.2); --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.3); --shadow-md: 0 8px 24px rgba(0,0,0,0.5);
   }
+  /* Textures */
+  body.texture-light { background-color: #f0f2f5; background-image: radial-gradient(#dfe4ea 1px, transparent 1px); background-size: 20px 20px; }
+  body.texture-ocean { background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); }
+  body.texture-forest { background: linear-gradient(135deg, #e6f7e6 0%, #d4e9d4 100%); }
+  body.texture-geometric { background-color: #f0f4f8; background-image: linear-gradient(30deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0), linear-gradient(150deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0), linear-gradient(30deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0), linear-gradient(150deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0); background-size: 40px 70px; background-position: 0 0, 0 0, 20px 35px, 20px 35px; }
+  
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-dark); line-height: 1.6; transition: background 0.3s, color 0.3s; }
+  html, body { overflow-x: hidden; max-width: 100%; }
+  body { font-family: 'Inter', sans-serif; color: var(--text-dark); line-height: 1.6; transition: background 0.3s, color 0.3s; }
   h1, h2, h3, h4 { font-family: 'Merriweather', serif; color: var(--text-dark); }
   a { text-decoration: none; color: var(--primary); }
 
-  /* Navbar */
   header { background: var(--surface); box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); }
-  .nav-container { max-width: 1280px; margin: 0 auto; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-  .logo { display: flex; align-items: center; gap: 0.75rem; font-size: 1.4rem; font-weight: 700; color: var(--primary); cursor: pointer; }
+  .nav-container { max-width: 1280px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+  .logo { display: flex; align-items: center; gap: 0.5rem; font-size: 1.3rem; font-weight: 700; color: var(--primary); cursor: pointer; }
   .logo i { color: var(--accent); }
   .nav-links { display: flex; gap: 1.5rem; list-style: none; align-items: center; }
-  .nav-links a { color: var(--text-dark); font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: color 0.2s; }
+  .nav-links a { color: var(--text-dark); font-weight: 500; font-size: 0.95rem; cursor: pointer; position: relative; transition: color 0.2s; }
   .nav-links a:hover { color: var(--accent); }
-  .nav-actions { display: flex; gap: 1rem; align-items: center; }
-  .theme-toggle { background: var(--bg-color); border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; color: var(--text-light); display: grid; place-items: center; }
-  .btn-admin { background: var(--primary); color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; }
+  .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px; background: var(--accent); transition: width 0.3s; }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-actions { display: flex; gap: 0.75rem; align-items: center; }
+  .theme-toggle { background: var(--bg-color); border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; color: var(--text-light); display: grid; place-items: center; transition: all 0.3s; }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .btn-admin { background: var(--primary); color: #fff; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; transition: transform 0.2s; }
+  .btn-admin:hover { transform: translateY(-2px); }
   .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text-dark); cursor: pointer; }
-  .mobile-nav { display: none; flex-direction: column; background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid var(--border); }
-  .mobile-nav.active { display: flex; }
-  .mobile-nav a { padding: 0.75rem 0; color: var(--text-dark); cursor: pointer; }
+  .mobile-nav { display: none; flex-direction: column; background: var(--surface); padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+  .mobile-nav.active { display: flex; animation: slideDown 0.3s ease; }
+  .mobile-nav a { padding: 0.75rem 0; color: var(--text-dark); border-bottom: 1px solid var(--border); cursor: pointer; }
 
-  /* Layout */
-  .layout { max-width: 1280px; margin: 2rem auto; padding: 0 2rem; display: grid; grid-template-columns: 1fr 320px; gap: 2.5rem; }
-  .hero { grid-column: 1 / -1; background: linear-gradient(135deg, var(--primary) 0%, #0a2e50 100%); color: #fff; padding: 4rem 2rem; text-align: center; border-radius: var(--radius); margin-bottom: 2rem; box-shadow: var(--shadow-md); }
-  .hero h1 { color: #fff; font-size: 2.5rem; margin-bottom: 0.5rem; }
-  
-  /* Cards */
+  .layout { max-width: 1280px; margin: 2rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 1fr 300px; gap: 2rem; }
+  .hero { grid-column: 1 / -1; background: linear-gradient(135deg, var(--primary) 0%, #0a2e50 100%); color: #fff; padding: 4rem 1.5rem; text-align: center; border-radius: var(--radius); margin-bottom: 1.5rem; box-shadow: var(--shadow-md); animation: fadeIn 0.8s; }
+  .hero h1 { color: #fff; font-size: clamp(1.8rem, 5vw, 2.5rem); margin-bottom: 0.5rem; }
+
   main { display: flex; flex-direction: column; gap: 1.5rem; }
-  .group-section, .post-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); }
-  .post-card:hover { box-shadow: var(--shadow-md); }
-  .post-card { display: flex; gap: 1.5rem; align-items: flex-start; }
+  
+  .group-section, .post-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); animation: fadeInUp 0.5s; }
+  .post-card { display: flex; gap: 1rem; align-items: flex-start; transition: transform 0.3s, box-shadow 0.3s; }
+  .post-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  
   .doc-icon { width: 50px; height: 60px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-weight: 700; font-size: 0.7rem; flex-shrink: 0; }
   .doc-icon i { font-size: 1.4rem; margin-bottom: 0.2rem; }
   .bg-pdf { background: #e74c3c; } .bg-docx { background: #2980b9; } .bg-pptx { background: #d35400; } .bg-xlsx { background: #27ae60; }
-  .post-content { flex: 1; min-width: 0; }
+  
+  .post-content { flex: 1; min-width: 0; word-wrap: break-word; }
   .post-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
   .tag { background: var(--bg-color); color: var(--text-light); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border); }
-  .post-title { font-size: 1.2rem; margin-bottom: 0.5rem; cursor: pointer; }
+  .post-title { font-size: 1.15rem; margin-bottom: 0.5rem; cursor: pointer; }
   .post-title:hover { color: var(--primary); }
   .post-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; }
-  .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-  .btn-sm { padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; }
+  
+  .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .btn-sm { padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; transition: all 0.2s; }
   .btn-action { background: var(--primary); color: #fff; }
+  .btn-action:hover { background: var(--primary-light); transform: scale(1.03); }
   .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-dark); }
+  .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 
-  /* Tables */
-  .group-header { font-size: 1.4rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1rem; }
-  .region-block { margin-bottom: 1.5rem; }
-  .region-title { font-size: 1.1rem; color: var(--text-dark); margin-bottom: 0.5rem; font-weight: 700; padding-left: 0.5rem; border-left: 4px solid var(--primary-light); }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-  th { background: var(--bg-color); color: var(--text-light); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
+  /* Group Tables */
+  .group-header { font-size: 1.3rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+  .region-block { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px dashed var(--border); }
+  .region-block:last-of-type { border-bottom: none; margin-bottom: 0; }
+  .region-title { font-size: 1.1rem; color: var(--text-dark); margin-bottom: 0.75rem; font-weight: 700; padding-left: 0.5rem; border-left: 4px solid var(--accent); }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; min-width: 400px; }
+  th, td { padding: 0.75rem; text-align: left; border: 1px solid var(--border); font-size: 0.9rem; }
+  th { background: var(--accent); color: #fff; font-weight: 600; }
+  tr:nth-child(even) { background: var(--bg-color); }
+  tr:hover { background: rgba(15, 76, 129, 0.05); }
 
-  /* Inline Comments */
-  .comment-container { margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; animation: fadeIn 0.3s; }
+  .comment-container { margin-top: 1.5rem; border-top: 2px dashed var(--border); padding-top: 1.5rem; animation: fadeIn 0.3s; }
   .comment-box { background: var(--bg-color); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid var(--accent); }
-  .comment-author { font-weight: 700; font-size: 0.85rem; color: var(--primary); }
 
-  /* Sidebar */
   aside { display: flex; flex-direction: column; gap: 1.5rem; position: sticky; top: 90px; height: fit-content; }
   .sidebar-widget { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); }
   .widget-title { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--text-mute); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
   .search-box { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-  .search-box input { flex: 1; border: none; padding: 0.75rem; outline: none; background: var(--bg-color); color: var(--text-dark); }
+  .search-box input { flex: 1; border: none; padding: 0.75rem; outline: none; background: var(--bg-color); color: var(--text-dark); min-width: 0; }
   .search-box button { background: var(--primary); color: #fff; border: none; padding: 0 1rem; cursor: pointer; }
   .filter-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .filter-tag { background: var(--bg-color); padding: 0.4rem 0.9rem; border-radius: 50px; font-size: 0.85rem; color: var(--text-light); cursor: pointer; border: 1px solid var(--border); }
+  .filter-tag { background: var(--bg-color); padding: 0.4rem 0.9rem; border-radius: 50px; font-size: 0.85rem; color: var(--text-light); cursor: pointer; border: 1px solid var(--border); transition: all 0.2s; }
+  .filter-tag:hover { border-color: var(--primary); color: var(--primary); }
   .filter-tag.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-  /* Admin */
-  .admin-grid { display: grid; grid-template-columns: 250px 1fr; gap: 2rem; }
-  .admin-sidebar button { display: block; width: 100%; text-align: left; padding: 0.75rem; background: none; border: none; cursor: pointer; font-weight: 500; color: var(--text-dark); border-radius: 6px; }
-  .admin-sidebar button.active { background: var(--bg-color); color: var(--primary); }
-  .stat-box { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); text-align: center; }
+  .admin-grid { display: grid; grid-template-columns: 220px 1fr; gap: 2rem; }
+  .admin-sidebar button { display: block; width: 100%; text-align: left; padding: 0.75rem; background: none; border: none; cursor: pointer; font-weight: 500; color: var(--text-dark); border-radius: 6px; transition: all 0.2s; }
+  .admin-sidebar button:hover, .admin-sidebar button.active { background: var(--bg-color); color: var(--primary); }
+  .stat-box { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); text-align: center; transition: transform 0.3s; }
+  .stat-box:hover { transform: scale(1.05); }
   .form-group { margin-bottom: 1rem; }
   .form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; }
   .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-dark); }
   .file-drop { padding: 2rem; border: 2px dashed var(--border); border-radius: 8px; text-align: center; cursor: pointer; color: var(--text-light); background: var(--bg-color); }
 
-  .wa-bubble { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 999; }
-  
+  .wa-bubble { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 999; animation: pulse 2s infinite; }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
+  .modal-overlay.active { display: flex; animation: fadeIn 0.3s; }
+
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } aside { position: static; } .nav-links { display: none; } .mobile-menu-btn { display: block; } .admin-grid { grid-template-columns: 1fr; } }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 900px) { 
+    .layout { grid-template-columns: 1fr; } 
+    aside { position: static; } 
+    .nav-links { display: none; } 
+    .mobile-menu-btn { display: block; } 
+    .admin-grid { grid-template-columns: 1fr; } 
+    .post-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .post-content { width: 100%; }
+  }
 </style>
 </head>
 <body>
@@ -130,7 +161,7 @@
 <div id="appContent" class="layout" style="min-height: 70vh;"></div>
 <a id="waBubble" class="wa-bubble" href="#" target="_blank" style="display: none;"><i class="fab fa-whatsapp"></i></a>
 
-<div id="readModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center; padding:1rem;">
+<div class="modal-overlay" id="readModal">
   <div style="background:var(--surface); width:100%; max-width:900px; height:90vh; border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
     <div style="background:var(--primary); color:#fff; padding:1rem 1.5rem; display:flex; justify-content:space-between;">
       <h3 style="color:#fff;">Document Preview</h3>
@@ -148,7 +179,7 @@
 </footer>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZat6tPukuRwOVwuZMgEcK7B64uvtMSxGXNDw9tbGWFnacBgPrGb5Vh_zYvS0Pmo0/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSgwpZkEM7N0aIGFtLajz-3oIY1MKeMqB6Qu8fmCXezSfd4YP3ADFBHvQuyK4DK3c/exec';
   let allData = { settings: {}, docs: [], groups: [] };
   let activeFilters = { form: "All", subject: "All", search: "" };
 
@@ -159,13 +190,16 @@
       document.getElementById('footerText').innerText = allData.settings.footer_text || '© SKULiKA';
       document.getElementById('waBubble').href = allData.settings.whatsapp_link || '#';
       document.getElementById('waBubble').style.display = 'grid';
-      applyBgColor();
+      applyTheme();
     } catch (e) { console.error("Fetch Error:", e); }
   }
 
-  function applyBgColor() {
-    if (!document.body.classList.contains('dark-mode') && allData.settings.bg_color) {
-      document.documentElement.style.setProperty('--bg-color', allData.settings.bg_color);
+  function applyTheme() {
+    // Remove all texture classes
+    document.body.classList.remove('texture-light', 'texture-ocean', 'texture-forest', 'texture-geometric');
+    let theme = allData.settings.bg_theme || 'texture-light';
+    if (!document.body.classList.contains('dark-mode')) {
+      document.body.classList.add(theme);
     }
   }
 
@@ -203,31 +237,32 @@
 
     let html = `<div class="hero"><h1>Welcome to SKULiKA</h1><p>Access past papers, examinations, and notes for Form I to Form VI.</p></div><main>`;
 
-    // Grouped Tables (Fixed to show all regions properly)
     for (let gId in groupsMap) {
       let g = groupsMap[gId];
       html += `<div class="group-section"><h2 class="group-header">${g.title}</h2>`;
       
       for (let region in g.regions) {
         html += `<div class="region-block"><h3 class="region-title">${region}</h3>
-          <table><thead><tr><th>Subject</th><th>Type</th><th>Year</th><th>Actions</th></tr></thead><tbody>`;
+          <div class="table-wrap"><table><thead><tr><th>Subject</th><th>Type</th><th>Year</th><th>Action</th></tr></thead><tbody>`;
         
         g.regions[region].forEach(ex => {
           html += `<tr>
             <td>${ex.subject}</td><td>${ex.type}</td><td>${ex.year || 'N/A'}</td>
-            <td>
-              <button class="btn-sm btn-action" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read</button>
-              <button class="btn-sm btn-outline" onclick="toggleComments('${ex.id}')"><i class="fas fa-comments"></i> Comments</button>
-            </td>
-          </tr>
-          <tr id="comments-row-${ex.id}" style="display:none;"><td colspan="4" style="background:var(--bg-color); padding:1rem;"><div id="comments-container-${ex.id}"></div></td></tr>`;
+            <td><button class="btn-sm btn-action" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read</button></td>
+          </tr>`;
         });
-        html += `</tbody></table></div>`;
+        html += `</tbody></table></div></div>`;
       }
+      
+      // ONE Comment Section per Group
+      html += `<div style="margin-top:1.5rem; text-align:right;">
+        <button class="btn-sm btn-outline" onclick="toggleComments('${gId}', 'group-${gId}')"><i class="fas fa-comments"></i> Group Comments</button>
+        <div id="comments-container-group-${gId}" style="display:none; margin-top:1rem; border-top:2px dashed var(--border); padding-top:1rem;"></div>
+      </div>`;
+      
       html += `</div>`;
     }
 
-    // Individual Posts
     if (individualDocs.length === 0 && Object.keys(groupsMap).length === 0) {
       html += '<p style="text-align:center; padding:2rem; color:var(--text-light);">No documents found.</p>';
     }
@@ -246,9 +281,9 @@
             <p class="post-desc">${d.description || ''}</p>
             <div class="actions">
               <button class="btn-sm btn-action" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
-              <button class="btn-sm btn-outline" onclick="toggleComments('${d.id}')"><i class="fas fa-comments"></i> Comments</button>
+              <button class="btn-sm btn-outline" onclick="toggleComments('${d.id}', 'ind-${d.id}')"><i class="fas fa-comments"></i> Comments</button>
             </div>
-            <div id="comments-container-${d.id}" style="display:none; margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem;"></div>
+            <div id="comments-container-ind-${d.id}" style="display:none; margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem;"></div>
           </div>
         </div>`;
     });
@@ -292,80 +327,47 @@
   function openModal(fileId, examId) {
     document.getElementById('modalIframe').src = "https://drive.google.com/file/d/" + fileId + "/preview";
     document.getElementById('modalDownloadBtn').href = "https://drive.google.com/uc?export=download&id=" + fileId;
-    document.getElementById('readModal').style.display = 'flex';
+    document.getElementById('readModal').classList.add('active');
     fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "incrementStat", examId: examId, type: "view" }) });
     document.getElementById('modalDownloadBtn').onclick = function() {
       fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "incrementStat", examId: examId, type: "download" }) });
     };
   }
-  function closeModal() { document.getElementById('readModal').style.display = 'none'; document.getElementById('modalIframe').src = ''; }
+  function closeModal() { document.getElementById('readModal').classList.remove('active'); document.getElementById('modalIframe').src = ''; }
 
-  // --- INLINE COMMENTS ---
-  async function toggleComments(id) {
-    const container = document.getElementById('comments-container-' + id);
-    const row = document.getElementById('comments-row-' + id);
-    
-    // Toggle visibility
-    if (container.style.display === 'block' || (row && row.style.display === 'table-row')) {
-      container.style.display = 'none';
-      if(row) row.style.display = 'none';
-      return;
-    }
-    
+  // Unified Comment Toggle (Works for both Group and Individual)
+  async function toggleComments(id, prefix) {
+    const container = document.getElementById('comments-container-' + prefix);
+    if (container.style.display === 'block') { container.style.display = 'none'; return; }
     container.style.display = 'block';
-    if(row) row.style.display = 'table-row';
     container.innerHTML = '<p>Loading comments...</p>';
     
     const res = await fetch(SCRIPT_URL + "?action=getComments&examId=" + id);
     const comments = await res.json();
     
-    let html = `
-      <div style="max-width: 600px; margin: 0 auto;">
+    let html = `<div style="max-width: 600px; margin: 0 auto;">
         <h4>Leave a Comment</h4>
-        <div class="form-group" style="margin-top:0.5rem;"><input type="text" id="cName-${id}" class="form-input" placeholder="Your Name"></div>
-        <div class="form-group"><textarea id="cText-${id}" class="form-input" rows="2" placeholder="Write a comment..."></textarea></div>
-        <button class="btn-sm btn-action" onclick="submitComment('${id}')"><i class="fas fa-paper-plane"></i> Post Comment</button>
-        <div style="margin-top:1rem;">
-    `;
+        <div class="form-group" style="margin-top:0.5rem;"><input type="text" id="cName-${prefix}" class="form-input" placeholder="Your Name"></div>
+        <div class="form-group"><textarea id="cText-${prefix}" class="form-input" rows="2" placeholder="Write a comment..."></textarea></div>
+        <button class="btn-sm btn-action" onclick="submitComment('${id}', '${prefix}')"><i class="fas fa-paper-plane"></i> Post</button>
+        <div style="margin-top:1rem;">`;
     
-    if (comments.length === 0) {
-      html += '<p style="font-size:0.85rem; color:var(--text-mute);">No comments yet. Be the first!</p>';
-    } else {
-      comments.forEach(c => {
-        let date = new Date(c.created_at).toLocaleString();
-        html += `<div class="comment-box"><div class="comment-author">${c.name} <small style="color:var(--text-mute); font-weight:400;">(${date})</small></div><p style="font-size:0.9rem; margin-top:0.3rem;">${c.comment}</p></div>`;
-      });
-    }
+    if (comments.length === 0) html += '<p style="font-size:0.85rem; color:var(--text-mute);">No comments yet.</p>';
+    comments.forEach(c => {
+      let date = new Date(c.created_at).toLocaleString();
+      html += `<div class="comment-box"><div style="font-weight:700; font-size:0.85rem; color:var(--primary);">${c.name} <small style="color:var(--text-mute); font-weight:400;">(${date})</small></div><p style="font-size:0.9rem; margin-top:0.3rem;">${c.comment}</p></div>`;
+    });
     html += `</div></div>`;
     container.innerHTML = html;
   }
 
-  async function submitComment(id) {
-    const name = document.getElementById('cName-' + id).value;
-    const comment = document.getElementById('cText-' + id).value;
+  async function submitComment(id, prefix) {
+    const name = document.getElementById('cName-' + prefix).value;
+    const comment = document.getElementById('cText-' + prefix).value;
     if (!name || !comment) return alert('Please fill in your name and comment.');
-    
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "postComment", examId: id, name: name, comment: comment }) });
-    
-    // Refresh comments inside the same container
-    const container = document.getElementById('comments-container-' + id);
-    container.innerHTML = '<p>Refreshing comments...</p>';
-    const res = await fetch(SCRIPT_URL + "?action=getComments&examId=" + id);
-    const comments = await res.json();
-    
-    let html = `
-      <div style="max-width: 600px; margin: 0 auto;">
-        <h4>Leave a Comment</h4>
-        <div class="form-group" style="margin-top:0.5rem;"><input type="text" id="cName-${id}" class="form-input" placeholder="Your Name"></div>
-        <div class="form-group"><textarea id="cText-${id}" class="form-input" rows="2" placeholder="Write a comment..."></textarea></div>
-        <button class="btn-sm btn-action" onclick="submitComment('${id}')"><i class="fas fa-paper-plane"></i> Post Comment</button>
-        <div style="margin-top:1rem;">`;
-    comments.forEach(c => {
-      let date = new Date(c.created_at).toLocaleString();
-      html += `<div class="comment-box"><div class="comment-author">${c.name} <small style="color:var(--text-mute); font-weight:400;">(${date})</small></div><p style="font-size:0.9rem; margin-top:0.3rem;">${c.comment}</p></div>`;
-    });
-    html += `</div></div>`;
-    container.innerHTML = html;
+    toggleComments(id, prefix); // Hide
+    toggleComments(id, prefix); // Show & Refresh
   }
 
   function renderStaticPage(page) {
@@ -374,7 +376,6 @@
     document.getElementById('appContent').innerHTML = `<div style="grid-column: 1 / -1; max-width: 800px; margin: 2rem auto;"><h2>${title}</h2><div class="group-section"><p style="white-space: pre-wrap;">${content}</p></div></div>`;
   }
 
-  // --- ADMIN DASHBOARD ---
   let isAdmin = false;
   function renderAdminLogin() {
     if (isAdmin) return renderAdminDashboard();
@@ -407,14 +408,14 @@
     if (tab === 'stats') {
       let tv = allData.docs.reduce((a,b)=>a+(b.views||0),0);
       let td = allData.docs.reduce((a,b)=>a+(b.downloads||0),0);
-      html = `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:2rem;">
+      html = `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; margin-bottom:2rem;">
         <div class="stat-box"><h2>${allData.docs.length}</h2><p>Posts</p></div>
         <div class="stat-box"><h2>${tv}</h2><p>Views</p></div>
         <div class="stat-box"><h2>${td}</h2><p>Downloads</p></div>
       </div>
-      <table><thead><tr><th>Title</th><th>Views</th><th>Downloads</th></tr></thead><tbody>`;
+      <div class="table-wrap"><table><thead><tr><th>Title</th><th>Views</th><th>Downloads</th></tr></thead><tbody>`;
       allData.docs.forEach(d => { html += `<tr><td>${d.title}</td><td>${d.views||0}</td><td>${d.downloads||0}</td></tr>`; });
-      html += `</tbody></table>`;
+      html += `</tbody></table></div>`;
     } 
     else if (tab === 'groups') {
       html = `<div class="group-section"><h3>Create New Group</h3>
@@ -450,10 +451,12 @@
     else if (tab === 'settings') {
       let s = allData.settings;
       html = `<div class="group-section"><h3>Site Settings</h3>
-        <div class="form-group" style="display:flex; align-items:center; gap:1rem;">
-          <label>Background Color</label>
-          <input type="color" id="sBgColor" value="${s.bg_color || '#f8f9fa'}" style="width:50px; height:40px; padding:0; border:none; cursor:pointer;">
-        </div>
+        <div class="form-group"><label>Background Texture Theme</label><select id="sBgTheme" class="form-input">
+          <option value="texture-light" ${s.bg_theme==='texture-light'?'selected':''}>Light Dots</option>
+          <option value="texture-ocean" ${s.bg_theme==='texture-ocean'?'selected':''}>Ocean Blue</option>
+          <option value="texture-forest" ${s.bg_theme==='texture-forest'?'selected':''}>Forest Green</option>
+          <option value="texture-geometric" ${s.bg_theme==='texture-geometric'?'selected':''}>Geometric</option>
+        </select></div>
         <div class="form-group"><label>WhatsApp Link</label><input type="text" id="sWa" class="form-input" value="${s.whatsapp_link || ''}"></div>
         <div class="form-group"><label>About Us</label><textarea id="sAbout" class="form-input" rows="3">${s.about_us || ''}</textarea></div>
         <div class="form-group"><label>Contact Us</label><textarea id="sContact" class="form-input" rows="3">${s.contact_us || ''}</textarea></div>
@@ -494,7 +497,7 @@
   }
 
   async function saveSettings() {
-    const payload = { action: "saveSettings", whatsapp_link: document.getElementById('sWa').value, about_us: document.getElementById('sAbout').value, contact_us: document.getElementById('sContact').value, privacy_policy: document.getElementById('sPrivacy').value, terms_of_service: document.getElementById('sTerms').value, footer_text: document.getElementById('sFooter').value, bg_color: document.getElementById('sBgColor').value };
+    const payload = { action: "saveSettings", whatsapp_link: document.getElementById('sWa').value, about_us: document.getElementById('sAbout').value, contact_us: document.getElementById('sContact').value, privacy_policy: document.getElementById('sPrivacy').value, terms_of_service: document.getElementById('sTerms').value, footer_text: document.getElementById('sFooter').value, bg_theme: document.getElementById('sBgTheme').value };
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
     alert('Settings Saved!'); await fetchData(); navigate('home');
   }
@@ -503,7 +506,7 @@
     document.body.classList.toggle('dark-mode');
     let icon = document.getElementById('themeIcon');
     if (document.body.classList.contains('dark-mode')) { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); } 
-    else { icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); applyBgColor(); }
+    else { icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); applyTheme(); }
   }
 
   window.onload = async function() { await fetchData(); navigate('home'); };
