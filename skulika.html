@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKULiKA | Notes za Form I hadi Form VI</title>
+<meta name="description" content="SKULiKA - Pakua na soma notes za Form I, II, III, IV, V na VI. PDF, Word, PowerPoint, Excel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --tanzania-green: #1eb53a;
+    --tanzania-yellow: #fcd116;
+    --tanzania-blue: #00a3dd;
+    --tanzania-black: #1a1a1a;
+    --bg-color: #f4f7f6;
+    --text-dark: #222;
+    --text-light: #555;
+    --white: #ffffff;
+    --border: #e1e5e4;
+    --shadow: 0 4px 15px rgba(0,0,0,0.05);
+    --shadow-hover: 0 8px 25px rgba(0,0,0,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Open Sans', sans-serif;
+    background: var(--bg-color);
+    color: var(--text-dark);
+    line-height: 1.6;
+  }
+  h1, h2, h3, h4, h5 { font-family: 'Poppins', sans-serif; }
+
+  /* --- Header --- */
+  header {
+    background: var(--white);
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-top: 4px solid var(--tanzania-green);
+  }
+  .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 0.5rem;
+    text-decoration: none; font-family: 'Poppins', sans-serif;
+    font-size: 1.5rem; font-weight: 700; color: var(--tanzania-green);
+  }
+  .logo span { color: var(--tanzania-blue); }
+  .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+  .nav-links a {
+    text-decoration: none; color: var(--text-dark);
+    font-weight: 600; font-size: 0.95rem; transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--tanzania-blue); }
+
+  /* --- Hero --- */
+  .hero {
+    background: linear-gradient(135deg, var(--tanzania-green) 0%, #16a34a 100%);
+    color: var(--white); text-align: center; padding: 3rem 1.5rem;
+  }
+  .hero h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--white); }
+  .hero p { font-size: 1.1rem; max-width: 700px; margin: 0 auto; opacity: 0.95; }
+
+  /* --- Main Layout (Blog Style) --- */
+  .layout-container {
+    max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem;
+    display: grid; grid-template-columns: 1fr 320px; gap: 2rem;
+  }
+
+  /* --- Filter Tabs --- */
+  .form-tabs {
+    display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+    background: var(--white); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow);
+  }
+  .form-tab {
+    padding: 0.5rem 1rem; background: #f1f5f4; border: 1px solid var(--border);
+    border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text-light);
+    transition: all 0.3s; font-size: 0.9rem;
+  }
+  .form-tab.active, .form-tab:hover {
+    background: var(--tanzania-green); color: var(--white); border-color: var(--tanzania-green);
+  }
+
+  /* --- Notes List (Main Content) --- */
+  .main-content { min-width: 0; }
+  .list-title { 
+    border-bottom: 2px solid var(--tanzania-green); 
+    padding-bottom: 0.5rem; margin-bottom: 1.5rem; color: var(--tanzania-black);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  
+  .note-item {
+    background: var(--white); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1.5rem; margin-bottom: 1.5rem; transition: all 0.3s;
+    display: flex; gap: 1.5rem; align-items: flex-start;
+  }
+  .note-item:hover { box-shadow: var(--shadow-hover); border-color: var(--tanzania-blue); }
+  
+  .file-icon-box {
+    width: 60px; height: 70px; border-radius: 6px; display: grid; place-items: center;
+    color: var(--white); font-weight: 700; font-size: 0.8rem; flex-shrink: 0;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .file-icon-box i { font-size: 1.5rem; margin-bottom: 0.2rem; }
+  .pdf { background: #e74c3c; }
+  .docx { background: #2980b9; }
+  .pptx { background: #d35400; }
+  .xlsx { background: #27ae60; }
+  .txt { background: #7f8c8d; }
+
+  .note-content { flex: 1; min-width: 0; }
+  .note-meta { display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.5rem; flex-wrap: wrap; }
+  .note-meta span { display: flex; align-items: center; gap: 0.3rem; }
+  .note-meta .tag { background: #e6f0f5; color: var(--tanzania-blue); padding: 0.1rem 0.5rem; border-radius: 4px; font-weight: 600; }
+  
+  .note-content h3 { font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--tanzania-black); }
+  .note-content h3:hover { color: var(--tanzania-blue); cursor: pointer; }
+  .note-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; }
+  
+  .note-actions { display: flex; gap: 0.75rem; }
+  .btn-sm {
+    padding: 0.5rem 1rem; text-align: center; border-radius: 6px; font-size: 0.85rem;
+    text-decoration: none; font-weight: 600; border: 1px solid transparent; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-view { background: #eef4f8; color: var(--tanzania-blue); }
+  .btn-view:hover { background: #e1ebf2; }
+  .btn-download { background: var(--tanzania-green); color: var(--white); }
+  .btn-download:hover { background: #16a34a; }
+
+  .load-more-wrapper { text-align: center; margin-top: 2rem; }
+  .btn-load-more {
+    padding: 0.8rem 2rem; background: transparent; border: 2px solid var(--tanzania-green);
+    color: var(--tanzania-green); border-radius: 50px; font-weight: 600; cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-load-more:hover { background: var(--tanzania-green); color: var(--white); }
+
+  /* --- Sidebar --- */
+  .sidebar { display: flex; flex-direction: column; gap: 2rem; }
+  .widget {
+    background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem;
+  }
+  .widget-title {
+    font-size: 1.1rem; color: var(--tanzania-black); border-bottom: 2px solid var(--border);
+    padding-bottom: 0.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .widget-title i { color: var(--tanzania-green); }
+
+  .search-box { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .search-box input { flex: 1; border: none; padding: 0.75rem; outline: none; font-family: 'Open Sans', sans-serif; }
+  .search-box button { background: var(--tanzania-green); color: var(--white); border: none; padding: 0 1rem; cursor: pointer; }
+
+  .labels-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .label-tag {
+    background: #f1f5f4; padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.85rem;
+    color: var(--text-dark); cursor: pointer; transition: all 0.3s; text-decoration: none;
+    border: 1px solid var(--border);
+  }
+  .label-tag:hover { background: var(--tanzania-green); color: var(--white); border-color: var(--tanzania-green); }
+
+  .popular-list { list-style: none; }
+  .popular-list li { 
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; 
+    border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .popular-list li:last-child { border-bottom: none; }
+  .popular-list li:hover .pop-title { color: var(--tanzania-blue); }
+  .pop-num { font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--tanzania-yellow); font-size: 1.2rem; }
+  .pop-title { font-size: 0.9rem; font-weight: 600; color: var(--text-dark); transition: color 0.3s; line-height: 1.4; }
+  .pop-meta { font-size: 0.75rem; color: var(--text-light); }
+
+  .about-text { font-size: 0.9rem; color: var(--text-light); line-height: 1.7; }
+
+  /* --- Modal --- */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center;
+    z-index: 2000; padding: 1rem;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-content {
+    background: var(--white); width: 100%; max-width: 800px; max-height: 90vh;
+    border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .modal-header {
+    padding: 1.2rem 1.5rem; background: var(--tanzania-green); color: var(--white);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .modal-header h3 { color: var(--white); font-size: 1.2rem; padding-right: 1rem; }
+  .modal-close { background: none; border: none; color: var(--white); font-size: 1.8rem; cursor: pointer; line-height: 1; }
+  .modal-body { padding: 2rem; overflow-y: auto; }
+  .modal-body h4 { color: var(--tanzania-blue); margin-bottom: 1rem; margin-top: 1.5rem; }
+  .modal-body h4:first-child { margin-top: 0; }
+  .modal-body p { margin-bottom: 1rem; line-height: 1.8; }
+
+  /* --- Footer --- */
+  footer {
+    background: var(--tanzania-black); color: var(--white);
+    text-align: center; padding: 2rem 1.5rem; margin-top: 3rem;
+  }
+  footer p { opacity: 0.8; font-size: 0.9rem; }
+  .footer-flag { height: 4px; background: linear-gradient(to right, var(--tanzania-green) 33%, var(--tanzania-yellow) 33% 66%, var(--tanzania-black) 66% 66.5%, var(--tanzania-blue) 66.5%); margin-bottom: 1.5rem; }
+
+  /* --- Responsive --- */
+  @media (max-width: 900px) {
+    .layout-container { grid-template-columns: 1fr; }
+    .sidebar { order: -1; }
+    .nav-links { display: none; }
+  }
+  @media (max-width: 600px) {
+    .note-item { flex-direction: column; }
+    .file-icon-box { width: 100%; height: 40px; flex-direction: row; gap: 0.5rem; }
+    .hero h1 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="nav-container">
+    <a href="#" class="logo">
+      <i class="fas fa-graduation-cap"></i> SKU<span>L</span>iKA
+    </a>
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#notes">Notes</a></li>
+      <li><a href="#upload">Upload</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero" id="home">
+  <h1>Karibu SKULiKA</h1>
+  <p>Maktaba ya Digital ya Notes za Form I hadi Form VI. Pakua au soma online. PDF, Word, PowerPoint, Excel.</p>
+</section>
+
+<!-- Main Layout -->
+<div class="layout-container">
+  
+  <!-- Main Content (Notes List) -->
+  <main class="main-content" id="notes">
+    <div class="form-tabs">
+      <button class="form-tab active" onclick="filterNotes('All')">All Forms</button>
+      <button class="form-tab" onclick="filterNotes('Form I')">Form I</button>
+      <button class="form-tab" onclick="filterNotes('Form II')">Form II</button>
+      <button class="form-tab" onclick="filterNotes('Form III')">Form III</button>
+      <button class="form-tab" onclick="filterNotes('Form IV')">Form IV</button>
+      <button class="form-tab" onclick="filterNotes('Form V')">Form V</button>
+      <button class="form-tab" onclick="filterNotes('Form VI')">Form VI</button>
+    </div>
+
+    <div class="list-title">
+      <h2 id="listHeader">Notes Zote (All Notes)</h2>
+      <span style="font-size: 0.9rem; color: var(--text-light);">Showing <span id="noteCount">0</span> notes</span>
+    </div>
+
+    <div id="notesList">
+      <!-- JavaScript injects notes here -->
+    </div>
+
+    <div class="load-more-wrapper" id="loadMoreWrapper" style="display: none;">
+      <button class="btn-load-more" onclick="loadMore()">Load More Notes</button>
+    </div>
+  </main>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    
+    <!-- Search Widget -->
+    <div class="widget">
+      <h3 class="widget-title"><i class="fas fa-search"></i> Tafuta Notes</h3>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Andika jina la somo..." onkeyup="searchNotes()">
+        <button onclick="searchNotes()"><i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- Labels/Subjects Widget -->
+    <div class="widget">
+      <h3 class="widget-title"><i class="fas fa-tags"></i> Masomo (Subjects)</h3>
+      <div class="labels-list">
+        <span class="label-tag" onclick="filterBySubject('Mathematics')">Mathematics</span>
+        <span class="label-tag" onclick="filterBySubject('Kiswahili')">Kiswahili</span>
+        <span class="label-tag" onclick="filterBySubject('Biology')">Biology</span>
+        <span class="label-tag" onclick="filterBySubject('Chemistry')">Chemistry</span>
+        <span class="label-tag" onclick="filterBySubject('Physics')">Physics</span>
+        <span class="label-tag" onclick="filterBySubject('Geography')">Geography</span>
+        <span class="label-tag" onclick="filterBySubject('History')">History</span>
+        <span class="label-tag" onclick="filterBySubject('Economics')">Economics</span>
+      </div>
+    </div>
+
+    <!-- Popular Posts Widget -->
+    <div class="widget">
+      <h3 class="widget-title"><i class="fas fa-fire"></i> Notes Mashuhuri</h3>
+      <ul class="popular-list" id="popularList">
+        <!-- JS injects popular list here -->
+      </ul>
+    </div>
+
+    <!-- About Widget -->
+    <div class="widget" id="about">
+      <h3 class="widget-title"><i class="fas fa-info-circle"></i> Kuhusu SKULiKA</h3>
+      <p class="about-text">
+        SKULiKA ni jukwaa la mtandaoni linalowapa wanafunzi na walimu nafasi ya kupata, kusoma, na kushiriki notes za shule kuanzia Form I hadi Form VI. Lugha ya Taasisi ya Elimu.
+      </p>
+    </div>
+
+  </aside>
+</div>
+
+<!-- Modal for Viewing -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Note Title</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Text content goes here -->
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-flag"></div>
+  <p>&copy; 2024 SKULiKA. Imejengwa kwa ajili ya wanafunzi na walimu Tanzania.</p>
+</footer>
+
+<script>
+  // --- Data Array ---
+  var notes = [
+    { id: 1, form: "Form I", subject: "Kiswahili", title: "Sarufi na Msamiati wa Kidato cha Kwanza", type: "PDF", date: "12 Oct 2024", downloads: 1240, desc: "Muhtasari wa sarufi, nomino, vitenzi na viambishi vya lugha ya Kiswahili.", content: "<h4>Somo la 1: Nomino</h4><p>Nomino ni neno linalotaja jina la mtu, kitu, mahali au wazo. Kuna aina nyingi za nomino kama vile nomino wazi, nomino siri, n.k.</p><h4>Somo la 2: Vitenzi</h4><p>Kitenzi ni neno linaloonyesha kitendo au hali. Kwa mfano: kusoma, kuandika, kukimbia.</p>" },
+    { id: 2, form: "Form II", subject: "Mathematics", title: "Algebra na Namba za Kipekee (Integers)", type: "DOCX", date: "10 Oct 2024", downloads: 980, desc: "Maelezo ya kina kuhusu jinsi ya kuzidisha na kugawanya namba hasi.", content: "<h4>Integers (Namba za Kipekee)</h4><p>Namba za kipekee zinajumuisha namba chanya, sifuri, na namba hasi. Zinaandikwa kama ..., -3, -2, -1, 0, +1, +2, +3 ...</p><p>Mshikara (Rule) wa kuongeza namba zenye alama tofauti: Ondoa namba ndogo kutoka kubwa, kisha weka alama ya namba kubwa.</p>" },
+    { id: 3, form: "Form III", subject: "Biology", title: "Classification of Living Things", type: "PDF", date: "08 Oct 2024", downloads: 2100, desc: "Kingdoms Monera, Protista, Fungi, Plantae, and Animalia notes.", content: "<h4>Classification of Living Organisms</h4><p>Taxonomy is the science of classifying living things. The hierarchy includes: Kingdom, Phylum, Class, Order, Family, Genus, and Species.</p><p>There are 5 major kingdoms: Monera, Protista, Fungi, Plantae, and Animalia.</p>" },
+    { id: 4, form: "Form IV", subject: "Chemistry", title: "Acids, Bases and Salts", type: "PPTX", date: "05 Oct 2024", downloads: 1850, desc: "Slides za kusomea majaribio ya asidi, besi na chumvi.", content: "<h4>Acids and Bases</h4><p>Acids are substances that produce H+ ions when dissolved in water. They have a sour taste and turn blue litmus paper red.</p><p>Bases produce OH- ions in water. They are bitter and turn red litmus paper blue.</p>" },
+    { id: 5, form: "Form V", subject: "Economics", title: "Demand and Supply Analysis", type: "PDF", date: "01 Oct 2024", downloads: 750, desc: "Advanced notes on price elasticity, market equilibrium, and graphs.", content: "<h4>The Law of Demand</h4><p>The law of demand states that, ceteris paribus, as the price of a good increases, the quantity demanded decreases. This creates a downward-sloping demand curve.</p>" },
+    { id: 6, form: "Form VI", subject: "Geography", title: "Population Statistics Data Sheet", type: "XLSX", date: "28 Sep 2024", downloads: 420, desc: "Takwimu za watu nchi mbalimbali kwa ajili ya uchambuzi.", content: "<h4>Population Data</h4><p>Hii ni data ya kiexcel inayoonyesha idadi ya watu, wengi wa kuzaliwa, na takwimu za uhamiaji.</p>" },
+    { id: 7, form: "Form III", subject: "History", title: "Colonial Economy in Africa", type: "TXT", date: "25 Sep 2024", downloads: 1320, desc: "Web text notes about colonialism, agriculture, and mineral extraction.", content: "<h4>Colonial Economy</h4><p>The colonial economy was established in Africa to ensure raw materials were supplied to European industries.</p>" },
+    { id: 8, form: "Form IV", subject: "Physics", title: "Newton's Laws of Motion", type: "PDF", date: "20 Sep 2024", downloads: 2050, desc: "Maelezo ya nguvu (Force), mwelekeo, na miradi ya nyuto.", content: "<h4>Newton's First Law (Inertia)</h4><p>An object at rest stays at rest, and an object in motion stays in motion unless acted upon by an unbalanced force.</p>" },
+    { id: 9, form: "Form II", subject: "Kiswahili", title: "Fasihi Simulizi na Methali", type: "DOCX", date: "18 Sep 2024", downloads: 1110, desc: "Maelezo ya ngano, hadithi, methali na misemo ya Kiswahili.", content: "<h4>Fasihi Simulizi</h4><p>Fasihi simulizi ni aina ya fasihi inayosimuliwa kwa mdomo. Inajumuisha ngano, hadithi, tendi, na methali.</p>" },
+    { id: 10, form: "Form I", subject: "Mathematics", title: "Fractions and Decimals", type: "PDF", date: "15 Sep 2024", downloads: 950, desc: "Basic operations on fractions and decimals for beginners.", content: "<h4>Fractions</h4><p>A fraction represents a part of a whole. It consists of a numerator and a denominator.</p>" }
+  ];
+
+  var visibleCount = 6; // Initial number of notes to show
+  var currentFilter = "All";
+  var currentSubjectFilter = null;
+  var currentSearch = "";
+
+  // --- Render Notes Function ---
+  function renderNotes() {
+    var list = document.getElementById("notesList");
+    list.innerHTML = ""; // Clear list
+
+    var filteredNotes = [];
+    
+    // Step 1: Filter Data
+    for (var i = 0; i < notes.length; i++) {
+      var note = notes[i];
+      var matchesForm = (currentFilter === "All" || note.form === currentFilter);
+      var matchesSubject = (currentSubjectFilter === null || note.subject === currentSubjectFilter);
+      var matchesSearch = (currentSearch === "" || note.title.toLowerCase().indexOf(currentSearch) !== -1 || note.subject.toLowerCase().indexOf(currentSearch) !== -1);
+      
+      if (matchesForm && matchesSubject && matchesSearch) {
+        filteredNotes.push(note);
+      }
+    }
+
+    // Step 2: Update Count
+    document.getElementById("noteCount").innerText = filteredNotes.length;
+
+    // Step 3: Update Header
+    var headerText = "Notes Zote (All Notes)";
+    if (currentFilter !== "All") headerText = currentFilter + " Notes";
+    if (currentSubjectFilter !== null) headerText = currentSubjectFilter + " Notes";
+    if (currentSearch !== "") headerText = "Results for: '" + currentSearch + "'";
+    document.getElementById("listHeader").innerText = headerText;
+
+    // Step 4: Slice for Pagination
+    var notesToShow = filteredNotes.slice(0, visibleCount);
+
+    // Step 5: Build HTML
+    if (notesToShow.length === 0) {
+      list.innerHTML = '<p style="text-align:center; padding:2rem; color:#888;">No notes found. Try another search or filter.</p>';
+      document.getElementById("loadMoreWrapper").style.display = "none";
+      return;
+    }
+
+    for (var j = 0; j < notesToShow.length; j++) {
+      var n = notesToShow[j];
+      
+      var iconHtml = "";
+      if (n.type === "PDF") iconHtml = '<i class="fas fa-file-pdf"></i>';
+      else if (n.type === "DOCX") iconHtml = '<i class="fas fa-file-word"></i>';
+      else if (n.type === "PPTX") iconHtml = '<i class="fas fa-file-powerpoint"></i>';
+      else if (n.type === "XLSX") iconHtml = '<i class="fas fa-file-excel"></i>';
+      else iconHtml = '<i class="fas fa-file-alt"></i>';
+
+      var card = document.createElement("div");
+      card.className = "note-item";
+      
+      // Safely construct HTML using string concatenation
+      card.innerHTML = 
+        '<div class="file-icon-box ' + n.type.toLowerCase() + '">' + iconHtml + '<span>' + n.type + '</span></div>' +
+        '<div class="note-content">' +
+          '<div class="note-meta">' +
+            '<span><i class="fas fa-calendar"></i> ' + n.date + '</span>' +
+            '<span><i class="fas fa-download"></i> ' + n.downloads + '</span>' +
+            '<span class="tag">' + n.form + '</span>' +
+            '<span class="tag" style="background:#e6f0f5; color:var(--tanzania-blue);">' + n.subject + '</span>' +
+          '</div>' +
+          '<h3 onclick="openModal(' + n.id + ')">' + n.title + '</h3>' +
+          '<p class="note-desc">' + n.desc + '</p>' +
+          '<div class="note-actions">' +
+            '<button class="btn-sm btn-view" onclick="openModal(' + n.id + ')"><i class="fas fa-book-open"></i> Soma Online</button>' +
+            '<button class="btn-sm btn-download" onclick="alert(\'Pakua: ' + n.title + ' (' + n.type + ')\')"><i class="fas fa-download"></i> Pakua</button>' +
+          '</div>' +
+        '</div>';
+      
+      list.appendChild(card);
+    }
+
+    // Step 6: Show/Hide Load More Button
+    if (filteredNotes.length > visibleCount) {
+      document.getElementById("loadMoreWrapper").style.display = "block";
+    } else {
+      document.getElementById("loadMoreWrapper").style.display = "none";
+    }
+  }
+
+  // --- Filter Functions ---
+  function filterNotes(form) {
+    currentFilter = form;
+    currentSubjectFilter = null; // Reset subject when form changes
+    currentSearch = ""; // Reset search
+    document.getElementById("searchInput").value = "";
+    visibleCount = 6; // Reset pagination
+
+    // Update active tab color
+    var tabs = document.getElementsByClassName("form-tab");
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].classList.remove("active");
+      if (tabs[i].innerText === form || (form === "All" && tabs[i].innerText === "All Forms")) {
+        tabs[i].classList.add("active");
+      }
+    }
+    renderNotes();
+  }
+
+  function filterBySubject(subject) {
+    currentSubjectFilter = subject;
+    currentFilter = "All"; // Reset form when subject is clicked
+    visibleCount = 6; // Reset pagination
+
+    // Reset active tab visually
+    var tabs = document.getElementsByClassName("form-tab");
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
+    tabs[0].classList.add("active"); // Set "All Forms" active
+
+    renderNotes();
+  }
+
+  function searchNotes() {
+    var input = document.getElementById("searchInput").value.toLowerCase();
+    currentSearch = input;
+    visibleCount = 6;
+    renderNotes();
+  }
+
+  function loadMore() {
+    visibleCount += 6; // Show 6 more notes
+    renderNotes();
+  }
+
+  // --- Modal Functions ---
+  function openModal(id) {
+    var note = null;
+    for (var i = 0; i < notes.length; i++) {
+      if (notes[i].id === id) { note = notes[i]; break; }
+    }
+    if (note) {
+      document.getElementById("modalTitle").innerText = note.title;
+      document.getElementById("modalBody").innerHTML = note.content;
+      document.getElementById("viewModal").classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
+  }
+
+  function closeModal() {
+    document.getElementById("viewModal").classList.remove("active");
+    document.body.style.overflow = "auto";
+  }
+
+  document.getElementById("viewModal").addEventListener("click", function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // --- Sidebar Popular List ---
+  function renderPopular() {
+    var list = document.getElementById("popularList");
+    var popular = notes.slice(0, 5); // Just take first 5 for popular
+    var html = "";
+    for (var i = 0; i < popular.length; i++) {
+      var p = popular[i];
+      html += '<li onclick="openModal(' + p.id + ')">' +
+                '<span class="pop-num">' + (i + 1) + '</span>' +
+                '<div>' +
+                  '<div class="pop-title">' + p.title + '</div>' +
+                  '<div class="pop-meta">' + p.form + ' &bull; ' + p.subject + '</div>' +
+                '</div>' +
+              '</li>';
+    }
+    list.innerHTML = html;
+  }
+
+  // --- Initialize ---
+  window.onload = function() {
+    renderNotes();
+    renderPopular();
+  };
+</script>
+
+</body>
+  </html>
