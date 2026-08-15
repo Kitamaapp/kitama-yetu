@@ -401,9 +401,9 @@
   }
   function searchNotes() { currentSearch = document.getElementById("searchInput").value.toLowerCase(); renderNotes(); }
 
-  // --- Modal (Google Drive Preview) ---
+    // --- Modal (Google Drive Preview) ---
   function openModal(id) {
-    var note = notes.find(n => n.id === id);
+    var note = notes.find(n => n.id == id);
     if (note) {
       document.getElementById("modalTitle").innerText = note.title;
       // Google Drive Embed Format
