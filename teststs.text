@@ -1,0 +1,112 @@
+var SHEET_URL = 'https://docs.google.com/spreadsheets/d/1-2X6-HsLcIvBNAcA0nO0X6SwaLtbONOFpf3y62r9oNI/edit?usp=drivesdk';
+
+function getSheet(name) {
+  return SpreadsheetApp.openByUrl(SHEET_URL).getSheetByName(name);
+}
+
+function doGet(e) {
+  var action = e.parameter.action;
+  
+  if (action == "getHome") {
+    var groupsSheet = getSheet("Groups");
+    var examsSheet = getSheet("Exams");
+    var settingsSheet = getSheet("Settings");
+    
+    var groups = groupsSheet.getDataRange().getValues(); groups.shift();
+    var exams = examsSheet.getDataRange().getValues(); exams.shift();
+    var settingsData = settingsSheet.getDataRange().getValues(); settingsData.shift();
+    
+    var settings = settingsData.length > 0 ? {
+      whatsapp_link: settingsData[0][1], about_us: settingsData[0][2], contact_us: settingsData[0][3],
+      privacy_policy: settingsData[0][4], terms_of_service: settingsData[0][5], footer_text: settingsData[0][6]
+    } : {};
+    
+    var groupsList = groups.map(function(r) { return { id: r[0], title: r[1], description: r[2], created_at: r[3] }; });
+    var examsList = exams.map(function(r) { return { id: r[0], group_id: r[1], region: r[2], year: r[3], file_id: r[4], download_url: r[5], views: r[6], downloads: r[7] }; });
+    
+    return ContentService.createTextOutput(JSON.stringify({ settings: settings, groups: groupsList, exams: examsList })).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  if (action == "getComments") {
+    var examId = e.parameter.examId;
+    var sheet = getSheet("Comments");
+    var data = sheet.getDataRange().getValues(); data.shift();
+    var comments = data.filter(function(r) { return String(r[1]) == String(examId); }).map(function(r) {
+      return { id: r[0], name: r[2], comment: r[3], created_at: r[4] };
+    });
+    return ContentService.createTextOutput(JSON.stringify(comments)).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  return ContentService.createTextOutput("Invalid Action").setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    var body = JSON.parse(e.postData.contents);
+    
+    // 1. ADMIN UPLOADS EXAM FILE
+    if (body.action === "uploadExam") {
+      var folders = DriveApp.getFoldersByName("SKULiKA_Notes");
+      var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder("SKULiKA_Notes");
+      
+      var blob = Utilities.newBlob(Utilities.base64Decode(body.fileData), body.mimeType, body.fileName);
+      var file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      
+      var fileId = file.getId();
+      var downloadUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
+      
+      var sheet = getSheet("Exams");
+      sheet.appendRow([new Date().getTime(), body.groupId, body.region, body.year, fileId, downloadUrl, 0, 0, new Date()]);
+      return jsonOut({ status: "success" });
+    }
+    
+    // 2. ADMIN CREATES GROUP
+    if (body.action === "createGroup") {
+      var sheet = getSheet("Groups");
+      sheet.appendRow([new Date().getTime(), body.title, body.description, new Date()]);
+      return jsonOut({ status: "success" });
+    }
+    
+    // 3. ADMIN SAVES SETTINGS
+    if (body.action === "saveSettings") {
+      var sheet = getSheet("Settings");
+      sheet.getRange("A2").setValue("site_settings");
+      sheet.getRange("B2").setValue(body.whatsapp_link);
+      sheet.getRange("C2").setValue(body.about_us);
+      sheet.getRange("D2").setValue(body.contact_us);
+      sheet.getRange("E2").setValue(body.privacy_policy);
+      sheet.getRange("F2").setValue(body.terms_of_service);
+      sheet.getRange("G2").setValue(body.footer_text);
+      return jsonOut({ status: "success" });
+    }
+    
+    // 4. USER POSTS COMMENT
+    if (body.action === "postComment") {
+      var sheet = getSheet("Comments");
+      sheet.appendRow([new Date().getTime(), body.examId, body.name, body.comment, new Date()]);
+      return jsonOut({ status: "success" });
+    }
+    
+    // 5. INCREMENT STATS
+    if (body.action === "incrementStat") {
+      var sheet = getSheet("Exams");
+      var data = sheet.getDataRange().getValues();
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][0]) == String(body.examId)) {
+          if (body.type == "view") sheet.getRange(i+1, 7).setValue(data[i][6] + 1);
+          if (body.type == "download") sheet.getRange(i+1, 8).setValue(data[i][7] + 1);
+          break;
+        }
+      }
+      return jsonOut({ status: "success" });
+    }
+    
+  } catch (err) {
+    return jsonOut({ status: "error", message: err.toString() });
+  }
+}
+
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
