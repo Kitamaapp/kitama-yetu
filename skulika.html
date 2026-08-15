@@ -11,74 +11,148 @@
     --primary: #0f4c81; --primary-light: #3a6ea5; --accent: #1eb53a;
     --bg-color: #f8f9fa; --surface: #ffffff; --text-dark: #1a1a1a;
     --text-light: #555555; --text-mute: #888888; --border: #e1e5e8;
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04); --shadow-md: 0 8px 24px rgba(0,0,0,0.06);
-    --radius: 10px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04); --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+    --radius: 12px;
   }
+  /* Dark Mode Variables */
+  body.dark-mode {
+    --bg-color: #0f1115; --surface: #1a1d23; --text-dark: #f1f1f1;
+    --text-light: #b0b0b0; --text-mute: #777777; --border: #2a2e36;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.2); --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-dark); line-height: 1.6; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-dark); line-height: 1.6; transition: background 0.3s, color 0.3s; }
   h1, h2, h3, h4 { font-family: 'Merriweather', serif; color: var(--text-dark); }
   a { text-decoration: none; color: var(--primary); }
 
-  header { background: var(--surface); box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); }
+  /* --- Navigation Bar --- */
+  header { background: var(--surface); box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); backdrop-filter: blur(10px); }
   .nav-container { max-width: 1280px; margin: 0 auto; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
   .logo { display: flex; align-items: center; gap: 0.75rem; font-size: 1.4rem; font-weight: 700; color: var(--primary); cursor: pointer; }
-  .logo i { color: var(--accent); }
-  .nav-links { display: flex; gap: 1.5rem; list-style: none; }
-  .nav-links a { color: var(--text-dark); font-weight: 500; font-size: 0.95rem; cursor: pointer; }
+  .logo i { color: var(--accent); transition: transform 0.3s; }
+  .logo:hover i { transform: rotate(15deg); }
+  .nav-links { display: flex; gap: 1.5rem; list-style: none; align-items: center; }
+  .nav-links a { color: var(--text-dark); font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: color 0.2s; position: relative; }
   .nav-links a:hover { color: var(--accent); }
-  .btn-admin { background: var(--primary); color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; }
+  .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px; background: var(--accent); transition: width 0.3s; }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-actions { display: flex; gap: 1rem; align-items: center; }
+  .theme-toggle { background: var(--bg-color); border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; color: var(--text-light); font-size: 1rem; display: grid; place-items: center; transition: all 0.3s; }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .btn-admin { background: var(--primary); color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; transition: background 0.3s, transform 0.2s; }
+  .btn-admin:hover { background: var(--primary-light); transform: translateY(-2px); }
+  .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text-dark); cursor: pointer; }
   
-  .layout { max-width: 1280px; margin: 2rem auto; padding: 0 2rem; display: grid; grid-template-columns: 1fr 300px; gap: 2rem; }
-  .hero { background: linear-gradient(135deg, var(--primary) 0%, #0a2e50 100%); color: #fff; padding: 3rem 2rem; text-align: center; }
-  .hero h1 { color: #fff; font-size: 2.2rem; margin-bottom: 0.5rem; }
+  /* Mobile Menu */
+  .mobile-nav { display: none; flex-direction: column; background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid var(--border); }
+  .mobile-nav.active { display: flex; animation: slideDown 0.3s ease; }
+  .mobile-nav a { padding: 0.75rem 0; color: var(--text-dark); border-bottom: 1px solid var(--border); cursor: pointer; }
+
+  /* --- Layout --- */
+  .layout { max-width: 1280px; margin: 2rem auto; padding: 0 2rem; display: grid; grid-template-columns: 1fr 320px; gap: 2.5rem; }
+  .hero { grid-column: 1 / -1; background: linear-gradient(135deg, var(--primary) 0%, #0a2e50 100%); color: #fff; padding: 4rem 2rem; text-align: center; border-radius: var(--radius); margin-bottom: 2rem; box-shadow: var(--shadow-md); animation: fadeIn 0.8s ease; }
+  .hero h1 { color: #fff; font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .hero p { opacity: 0.9; max-width: 600px; margin: 0 auto; }
+
+  /* --- Main Content --- */
+  main { display: flex; flex-direction: column; gap: 1.5rem; animation: fadeInUp 0.6s ease; }
   
-  .post-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; display: flex; gap: 1.5rem; align-items: flex-start; box-shadow: var(--shadow-sm); }
-  .post-card:hover { box-shadow: var(--shadow-md); }
-  .doc-icon { width: 50px; height: 60px; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-weight: 700; font-size: 0.7rem; flex-shrink: 0; }
+  .group-section, .post-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); transition: transform 0.3s, box-shadow 0.3s; animation: fadeInUp 0.6s ease; }
+  .post-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
+  
+  .post-card { display: flex; gap: 1.5rem; align-items: flex-start; }
+  .doc-icon { width: 50px; height: 60px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-weight: 700; font-size: 0.7rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
   .doc-icon i { font-size: 1.4rem; margin-bottom: 0.2rem; }
-  .bg-pdf { background: #e74c3c; } .bg-docx { background: #2980b9; } .bg-pptx { background: #d35400; } .bg-xlsx { background: #27ae60; }
+  .bg-pdf { background: linear-gradient(135deg, #e74c3c, #c0392b); } 
+  .bg-docx { background: linear-gradient(135deg, #2980b9, #1a5276); } 
+  .bg-pptx { background: linear-gradient(135deg, #d35400, #a04000); } 
+  .bg-xlsx { background: linear-gradient(135deg, #27ae60, #1e8449); }
+  
   .post-content { flex: 1; min-width: 0; }
   .post-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
   .tag { background: var(--bg-color); color: var(--text-light); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border); }
-  .tag.green { color: var(--accent); border-color: var(--accent); }
-  .tag.blue { color: var(--primary); border-color: var(--primary); }
-  .post-title { font-size: 1.15rem; margin-bottom: 0.5rem; cursor: pointer; }
+  .tag.green { color: var(--accent); border-color: var(--accent); background: rgba(30, 181, 58, 0.1); }
+  .tag.blue { color: var(--primary); border-color: var(--primary); background: rgba(15, 76, 129, 0.1); }
+  
+  .post-title { font-size: 1.2rem; margin-bottom: 0.5rem; cursor: pointer; transition: color 0.2s; }
   .post-title:hover { color: var(--primary); }
   .post-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; word-wrap: break-word; }
-  .btn-sm { padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; }
-  .btn-action { background: var(--primary); color: #fff; }
-  .btn-action:hover { background: var(--primary-light); }
-
-  .group-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
-  .group-header { font-size: 1.3rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1rem; }
-  .region-block { margin-bottom: 1.5rem; }
-  .region-title { font-size: 1rem; color: var(--text-dark); margin-bottom: 0.5rem; font-weight: 700; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-  th { background: var(--bg-color); color: var(--text-light); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
   
-  .sidebar-widget { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
-  .widget-title { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--text-mute); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-  .search-box { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-  .search-box input { flex: 1; border: none; padding: 0.6rem; outline: none; background: var(--bg-color); color: var(--text-dark); }
-  .search-box button { background: var(--primary); color: #fff; border: none; padding: 0 1rem; cursor: pointer; }
-  .filter-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .filter-tag { background: var(--bg-color); padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.8rem; color: var(--text-light); cursor: pointer; border: 1px solid var(--border); }
-  .filter-tag:hover, .filter-tag.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .btn-sm { padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; transition: all 0.2s; }
+  .btn-action { background: var(--primary); color: #fff; }
+  .btn-action:hover { background: var(--primary-light); transform: scale(1.05); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-dark); }
+  .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 
+  /* --- Group Tables --- */
+  .group-header { font-size: 1.4rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+  .region-block { margin-bottom: 1.5rem; }
+  .region-title { font-size: 1.1rem; color: var(--text-dark); margin-bottom: 0.5rem; font-weight: 700; padding-left: 0.5rem; border-left: 4px solid var(--primary-light); }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  th { background: var(--bg-color); color: var(--text-light); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
+  tr:hover { background: var(--bg-color); }
+
+  /* --- Sidebar --- */
+  aside { display: flex; flex-direction: column; gap: 1.5rem; position: sticky; top: 90px; height: fit-content; animation: fadeInUp 0.8s ease; }
+  .sidebar-widget { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); }
+  .widget-title { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--text-mute); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  .search-box { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; transition: border-color 0.3s; }
+  .search-box:focus-within { border-color: var(--primary); }
+  .search-box input { flex: 1; border: none; padding: 0.75rem; outline: none; background: var(--bg-color); color: var(--text-dark); font-family: 'Inter'; }
+  .search-box button { background: var(--primary); color: #fff; border: none; padding: 0 1rem; cursor: pointer; transition: background 0.2s; }
+  .search-box button:hover { background: var(--primary-light); }
+  .filter-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .filter-tag { background: var(--bg-color); padding: 0.4rem 0.9rem; border-radius: 50px; font-size: 0.85rem; color: var(--text-light); cursor: pointer; border: 1px solid var(--border); transition: all 0.2s; }
+  .filter-tag:hover { border-color: var(--primary); color: var(--primary); }
+  .filter-tag.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  /* --- Admin --- */
   .admin-grid { display: grid; grid-template-columns: 250px 1fr; gap: 2rem; }
-  .admin-sidebar { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); height: fit-content; }
-  .admin-sidebar button { display: block; width: 100%; text-align: left; padding: 0.75rem; background: none; border: none; cursor: pointer; font-weight: 500; color: var(--text-dark); border-radius: 4px; }
+  .admin-sidebar { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); height: fit-content; box-shadow: var(--shadow-sm); }
+  .admin-sidebar button { display: flex; align-items: center; gap: 0.75rem; width: 100%; text-align: left; padding: 0.75rem; background: none; border: none; cursor: pointer; font-weight: 500; color: var(--text-dark); border-radius: 6px; transition: all 0.2s; }
   .admin-sidebar button:hover, .admin-sidebar button.active { background: var(--bg-color); color: var(--primary); }
-  .stat-box { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); text-align: center; }
-  .stat-box h2 { font-size: 1.8rem; color: var(--primary); }
+  .stat-box { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); text-align: center; box-shadow: var(--shadow-sm); transition: transform 0.3s; }
+  .stat-box:hover { transform: scale(1.05); }
+  .stat-box h2 { font-size: 2rem; color: var(--primary); }
   .form-group { margin-bottom: 1rem; }
   .form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; }
-  .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-dark); }
-  .file-drop { padding: 2rem; border: 2px dashed var(--border); border-radius: 8px; text-align: center; cursor: pointer; color: var(--text-light); background: var(--bg-color); }
-  .wa-bubble { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 999; }
+  .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-dark); transition: border-color 0.2s; }
+  .form-input:focus { outline: none; border-color: var(--primary); }
+  .file-drop { padding: 2rem; border: 2px dashed var(--border); border-radius: 8px; text-align: center; cursor: pointer; color: var(--text-light); background: var(--bg-color); transition: border-color 0.3s; }
+  .file-drop:hover { border-color: var(--primary); color: var(--primary); }
 
-  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .nav-links { display: none; } .admin-grid { grid-template-columns: 1fr; } }
+  /* --- Comments --- */
+  .comment-box { background: var(--bg-color); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid var(--accent); animation: fadeIn 0.4s ease; }
+  .comment-author { font-weight: 700; font-size: 0.85rem; color: var(--primary); }
+
+  /* --- Modal --- */
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; opacity: 0; transition: opacity 0.3s; }
+  .modal-overlay.active { display: flex; opacity: 1; }
+  .modal-content { background: var(--surface); width: 100%; max-width: 900px; max-height: 90vh; border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.3s; }
+  .modal-overlay.active .modal-content { transform: scale(1); }
+  .modal-header { padding: 1rem 1.5rem; background: var(--primary); color: #fff; display: flex; justify-content: space-between; align-items: center; }
+  .modal-close { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+  /* --- Floating Bubble --- */
+  .wa-bubble { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 999; cursor: pointer; animation: pulse 2s infinite; }
+  
+  /* --- Animations --- */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
+
+  @media (max-width: 900px) { 
+    .layout { grid-template-columns: 1fr; } 
+    aside { position: static; } 
+    .nav-links { display: none; } 
+    .mobile-menu-btn { display: block; } 
+    .admin-grid { grid-template-columns: 1fr; } 
+    .hero h1 { font-size: 1.8rem; }
+  }
 </style>
 </head>
 <body>
@@ -90,24 +164,37 @@
       <li><a onclick="navigate('home')">Home</a></li>
       <li><a onclick="navigate('about')">About Us</a></li>
       <li><a onclick="navigate('contact')">Contact</a></li>
-      <li><a onclick="navigate('privacy')">Privacy Policy</a></li>
+      <li><a onclick="navigate('privacy')">Privacy</a></li>
       <li><a onclick="navigate('terms')">Terms</a></li>
     </ul>
-    <button class="btn-admin" onclick="navigate('admin')">Admin</button>
+    <div class="nav-actions">
+      <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon" id="themeIcon"></i></button>
+      <button class="btn-admin" onclick="navigate('admin')">Admin</button>
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+    </div>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a onclick="navigate('home')">Home</a>
+    <a onclick="navigate('about')">About Us</a>
+    <a onclick="navigate('contact')">Contact</a>
+    <a onclick="navigate('privacy')">Privacy</a>
+    <a onclick="navigate('terms')">Terms</a>
+    <a onclick="navigate('admin')">Admin Login</a>
   </div>
 </header>
 
 <div id="appContent" class="layout" style="min-height: 70vh;"></div>
 <a id="waBubble" class="wa-bubble" href="#" target="_blank" style="display: none;"><i class="fab fa-whatsapp"></i></a>
 
-<div id="readModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center; padding:1rem;">
-  <div style="background:#fff; width:100%; max-width:900px; height:90vh; border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
-    <div style="background:var(--primary); color:#fff; padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
+<!-- Read Modal -->
+<div class="modal-overlay" id="readModal">
+  <div class="modal-content">
+    <div class="modal-header">
       <h3 style="color:#fff; font-family:'Inter';">Document Preview</h3>
-      <button onclick="closeModal()" style="background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer;">&times;</button>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
     </div>
-    <iframe id="modalIframe" style="width:100%; flex:1; border:none;"></iframe>
-    <div style="padding:1rem; background:#fff; border-top:1px solid #eee; text-align:right;">
+    <iframe id="modalIframe" style="width:100%; height:60vh; border:none;"></iframe>
+    <div style="padding:1rem; background:var(--surface); border-top:1px solid var(--border); text-align:right;">
       <a id="modalDownloadBtn" href="#" class="btn-sm btn-action" target="_blank"><i class="fas fa-download"></i> Download File</a>
     </div>
   </div>
@@ -118,10 +205,12 @@
 </footer>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwso7_0-GIDxpUQxNwM0JlfxM2EXRmSzoIpkvbv6vx2Qojo5op3Y7qi-0UdiKtXwjA/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwso7_0-GIDxpUQxNwM0JlfxM2EXRmSzoIpkvbv6vx2Qojo5op3Y7qi-0UdiKtXwjA/exec'; // Weka Link Hapa
   let allData = { settings: {}, docs: [], groups: [] };
-  let activeFilters = { form: "All", subject: "All" };
+  let activeFilters = { form: "All", subject: "All", search: "" };
+  let currentExamId = null;
 
+  // --- Init & Data Fetch ---
   async function fetchData() {
     try {
       const res = await fetch(SCRIPT_URL + "?action=getHome");
@@ -132,60 +221,63 @@
     } catch (e) { console.error("Fetch Error:", e); }
   }
 
+  // --- Router ---
   async function navigate(page, id = null) {
+    document.getElementById('mobileNav').classList.remove('active');
     const app = document.getElementById('appContent');
-    app.innerHTML = '<p>Loading...</p>';
+    app.innerHTML = '<p style="text-align:center; padding:5rem;">Loading...</p>';
     if (page === 'home') await renderHome();
     else if (page === 'admin') renderAdminLogin();
+    else if (page === 'comments') await renderComments(id);
     else if (['about','contact','privacy','terms'].includes(page)) renderStaticPage(page);
     window.scrollTo(0, 0);
   }
 
-  // --- HOME PAGE (Unislides + Grouped Tables) ---
+  // --- Home Page ---
   async function renderHome() {
     let docs = allData.docs.filter(d => {
       let matchForm = activeFilters.form === "All" || d.form === activeFilters.form;
       let matchSub = activeFilters.subject === "All" || d.subject === activeFilters.subject;
-      return matchForm && matchSub;
+      let matchSearch = activeFilters.search === "" || (d.title && d.title.toLowerCase().includes(activeFilters.search)) || (d.subject && d.subject.toLowerCase().includes(activeFilters.search));
+      return matchForm && matchSub && matchSearch;
     });
 
     let individualDocs = docs.filter(d => !d.group_id || d.group_id === "");
     let groupedDocs = docs.filter(d => d.group_id && d.group_id !== "");
 
-    // Organize groups: group_id -> region -> [docs]
     let groupsMap = {};
     groupedDocs.forEach(d => {
       let gId = d.group_id;
       if (!groupsMap[gId]) groupsMap[gId] = { title: "", regions: {} };
-      
-      // Find group title
       let groupInfo = allData.groups.find(g => String(g.id) === String(gId));
       if (groupInfo) groupsMap[gId].title = groupInfo.title;
-
       let reg = d.region || "General";
       if (!groupsMap[gId].regions[reg]) groupsMap[gId].regions[reg] = [];
       groupsMap[gId].regions[reg].push(d);
     });
 
     let html = `
-      <div style="grid-column: 1 / -1;" class="hero">
+      <div class="hero">
         <h1>Welcome to SKULiKA</h1>
         <p>Access past papers, examinations, and notes for Form I to Form VI.</p>
       </div>
-      <main style="grid-column: 1;">
+      <main>
     `;
 
-    // Render Grouped Tables
+    // Grouped Tables
     for (let gId in groupsMap) {
       let g = groupsMap[gId];
       html += `<div class="group-section"><h2 class="group-header">${g.title}</h2>`;
       for (let region in g.regions) {
         html += `<div class="region-block"><h3 class="region-title">${region}</h3>
-          <table><thead><tr><th>Subject</th><th>Type</th><th>Year</th><th>Action</th></tr></thead><tbody>`;
+          <table><thead><tr><th>Subject</th><th>Type</th><th>Year</th><th>Actions</th></tr></thead><tbody>`;
         g.regions[region].forEach(ex => {
           html += `<tr>
             <td>${ex.subject}</td><td>${ex.type}</td><td>${ex.year || 'N/A'}</td>
-            <td><button class="btn-sm btn-action" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read / Download</button></td>
+            <td>
+              <button class="btn-sm btn-action" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read</button>
+              <button class="btn-sm btn-outline" onclick="navigate('comments', '${ex.id}')"><i class="fas fa-comments"></i> Comments</button>
+            </td>
           </tr>`;
         });
         html += `</tbody></table></div>`;
@@ -193,7 +285,7 @@
       html += `</div>`;
     }
 
-    // Render Individual Posts
+    // Individual Posts
     if (individualDocs.length === 0 && Object.keys(groupsMap).length === 0) {
       html += '<p style="text-align:center; padding:2rem; color:var(--text-light);">No documents found.</p>';
     }
@@ -211,16 +303,22 @@
             </div>
             <h3 class="post-title" onclick="openModal('${d.file_id}', '${d.id}')">${d.title}</h3>
             <p class="post-desc">${d.description || ''}</p>
-            <button class="btn-sm btn-action" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
+            <div class="actions">
+              <button class="btn-sm btn-action" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
+              <button class="btn-sm btn-outline" onclick="navigate('comments', '${d.id}')"><i class="fas fa-comments"></i> Comments</button>
+            </div>
           </div>
         </div>`;
     });
     html += `</main>
 
-    <aside style="grid-column: 2;">
+    <aside>
       <div class="sidebar-widget">
-        <h3 class="widget-title">Search</h3>
-        <div class="search-box"><input type="text" placeholder="Search..."><button><i class="fas fa-search"></i></button></div>
+        <h3 class="widget-title">Search Library</h3>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search title..." onkeyup="handleSearch(event)">
+          <button onclick="searchManual()"><i class="fas fa-search"></i></button>
+        </div>
       </div>
       <div class="sidebar-widget">
         <h3 class="widget-title">Forms</h3>
@@ -237,7 +335,7 @@
       <div class="sidebar-widget">
         <h3 class="widget-title">Subjects</h3>
         <div class="filter-list">
-          ${[...new Set(allData.docs.map(d => d.subject).filter(Boolean))].map(s => `<span class="filter-tag ${activeFilters.subject === s ? 'active' : ''}" onclick="setFilter('subject','${s}')">${s}</span>`).join('')}
+          ${[...new Set(allData.docs.map(d => d.subject).filter(Boolean))].map(s => `<span class="filter-tag ${activeFilters.subject === s ? 'active' : ''}" onclick="setFilter('subject','${s}')">${s}</span>`).join('') || '<p style="font-size:0.85rem; color:var(--text-mute);">No subjects yet.</p>'}
         </div>
       </div>
     </aside>`;
@@ -246,46 +344,80 @@
   }
 
   function setFilter(key, val) { activeFilters[key] = val; renderHome(); }
+  function handleSearch(e) { activeFilters.search = e.target.value.toLowerCase(); renderHome(); }
+  function searchManual() { let val = document.getElementById('searchInput').value; activeFilters.search = val.toLowerCase(); renderHome(); }
 
+  // --- Modal ---
   function openModal(fileId, examId) {
     document.getElementById('modalIframe').src = "https://drive.google.com/file/d/" + fileId + "/preview";
     document.getElementById('modalDownloadBtn').href = "https://drive.google.com/uc?export=download&id=" + fileId;
-    document.getElementById('readModal').style.display = 'flex';
-    
-    // Increment View
+    document.getElementById('readModal').classList.add('active');
     fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "incrementStat", examId: examId, type: "view" }) });
-    
-    // Increment Download on click
     document.getElementById('modalDownloadBtn').onclick = function() {
       fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "incrementStat", examId: examId, type: "download" }) });
     };
   }
-  function closeModal() { document.getElementById('readModal').style.display = 'none'; document.getElementById('modalIframe').src = ''; }
+  function closeModal() { document.getElementById('readModal').classList.remove('active'); document.getElementById('modalIframe').src = ''; }
 
-  async function renderStaticPage(page) {
-    let title = page.charAt(0).toUpperCase() + page.slice(1);
-    let content = allData.settings[page] || 'Content not available.';
-    document.getElementById('appContent').innerHTML = `<div style="grid-column: 1 / -1; max-width: 800px; margin: 2rem auto;"><h2>${title}</h2><div class="group-section"><p style="white-space: pre-wrap;">${content}</p></div></div>`;
+  // --- Comments ---
+  async function renderComments(examId) {
+    currentExamId = examId;
+    const res = await fetch(SCRIPT_URL + "?action=getComments&examId=" + examId);
+    const comments = await res.json();
+    
+    let html = `<div style="grid-column: 1 / -1; max-width: 800px; margin: 2rem auto; animation: fadeIn 0.5s;">
+      <button onclick="history.back()" class="btn-sm btn-outline" style="margin-bottom:1rem;"><i class="fas fa-arrow-left"></i> Back</button>
+      <h2 style="margin-bottom:1.5rem;">Comments</h2>
+      <div class="group-section" style="margin-bottom:2rem;">
+        <h4>Leave a Comment</h4>
+        <div class="form-group" style="margin-top:1rem;"><label>Your Name</label><input type="text" id="cName" class="form-input" placeholder="John Doe"></div>
+        <div class="form-group"><label>Comment</label><textarea id="cText" class="form-input" rows="3"></textarea></div>
+        <button class="btn-sm btn-action" onclick="postComment()"><i class="fas fa-paper-plane"></i> Post Comment</button>
+      </div>`;
+    
+    if (comments.length === 0) html += '<p style="text-align:center; color:var(--text-mute);">No comments yet. Be the first to comment!</p>';
+    comments.forEach(c => { 
+      let date = new Date(c.created_at).toLocaleString();
+      html += `<div class="comment-box"><div class="comment-author">${c.name} <small style="color:var(--text-mute); font-weight:400;">(${date})</small></div><p style="font-size:0.95rem; margin-top:0.3rem;">${c.comment}</p></div>`; 
+    });
+    html += `</div>`;
+    document.getElementById('appContent').innerHTML = html;
   }
 
-  // --- ADMIN DASHBOARD ---
+  async function postComment() {
+    const name = document.getElementById('cName').value;
+    const comment = document.getElementById('cText').value;
+    if (!name || !comment) return alert('Tafadhali jaza jina na comment.');
+    await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "postComment", examId: currentExamId, name: name, comment: comment }) });
+    alert('Comment posted!');
+    renderComments(currentExamId);
+  }
+
+  // --- Static Pages ---
+  function renderStaticPage(page) {
+    let title = page.charAt(0).toUpperCase() + page.slice(1).replace(/([A-Z])/g, ' $1');
+    let content = allData.settings[page] || 'Content not available. Admin can edit this in Dashboard.';
+    document.getElementById('appContent').innerHTML = `<div style="grid-column: 1 / -1; max-width: 800px; margin: 2rem auto; animation: fadeIn 0.5s;"><h2 style="margin-bottom:1rem;">${title}</h2><div class="group-section"><p style="white-space: pre-wrap;">${content}</p></div></div>`;
+  }
+
+  // --- Admin Dashboard ---
   let isAdmin = false;
   function renderAdminLogin() {
     if (isAdmin) return renderAdminDashboard();
-    document.getElementById('appContent').innerHTML = `<div style="grid-column: 1 / -1; max-width: 400px; margin: 4rem auto;"><div class="group-section"><h2>Admin Login</h2><input type="password" id="adminPass" class="form-input" placeholder="Password" style="margin: 1rem 0;"><button class="btn-admin" style="width:100%;" onclick="checkAdmin()">Login</button></div></div>`;
+    document.getElementById('appContent').innerHTML = `<div style="grid-column: 1 / -1; max-width: 400px; margin: 4rem auto; animation: fadeIn 0.5s;"><div class="group-section"><h2 style="text-align:center; margin-bottom:1rem;">Admin Login</h2><input type="password" id="adminPass" class="form-input" placeholder="Password" style="margin-bottom:1rem;"><button class="btn-admin" style="width:100%;" onclick="checkAdmin()">Login</button></div></div>`;
   }
-  function checkAdmin() { if (document.getElementById('adminPass').value === 'skulika-admin') { isAdmin = true; renderAdminDashboard(); } else { alert('Wrong!'); } }
+  function checkAdmin() { if (document.getElementById('adminPass').value === 'skulika-admin') { isAdmin = true; renderAdminDashboard(); } else { alert('Wrong password!'); } }
 
   function renderAdminDashboard() {
     document.getElementById('appContent').innerHTML = `
-      <div style="grid-column: 1 / -1;">
+      <div style="grid-column: 1 / -1; animation: fadeIn 0.5s;">
         <h2 style="margin-bottom:1.5rem;">Admin Dashboard</h2>
         <div class="admin-grid">
           <div class="admin-sidebar">
-            <button class="active" onclick="showTab('stats', this)">Stats</button>
-            <button onclick="showTab('groups', this)">Manage Groups</button>
-            <button onclick="showTab('upload', this)">Upload Post</button>
-            <button onclick="showTab('settings', this)">Site Settings</button>
+            <button class="active" onclick="showTab('stats', this)"><i class="fas fa-chart-bar"></i> Statistics</button>
+            <button onclick="showTab('groups', this)"><i class="fas fa-folder-plus"></i> Manage Groups</button>
+            <button onclick="showTab('upload', this)"><i class="fas fa-upload"></i> Upload Post</button>
+            <button onclick="showTab('settings', this)"><i class="fas fa-cog"></i> Site Settings</button>
           </div>
           <div id="adminContent"></div>
         </div>
@@ -306,15 +438,14 @@
         <div class="stat-box"><h2>${totalViews}</h2><p>Total Views</p></div>
         <div class="stat-box"><h2>${totalDls}</h2><p>Total Downloads</p></div>
       </div>
-      <h3>Document Stats</h3>
+      <h3>Document Statistics</h3>
       <table><thead><tr><th>Title</th><th>Views</th><th>Downloads</th></tr></thead><tbody>`;
       allData.docs.forEach(d => { html += `<tr><td>${d.title}</td><td>${d.views||0}</td><td>${d.downloads||0}</td></tr>`; });
       html += `</tbody></table>`;
     } 
-    
     else if (tab === 'groups') {
-      html = `<div class="group-section"><h3>Create New Group (e.g., MOCK EXAM 2026)</h3>
-        <div class="form-group"><label>Group Title</label><input type="text" id="gTitle" class="form-input"></div>
+      html = `<div class="group-section"><h3>Create New Group</h3>
+        <div class="form-group"><label>Group Title (e.g., MOCK EXAM 2026)</label><input type="text" id="gTitle" class="form-input"></div>
         <div class="form-group"><label>Description</label><input type="text" id="gDesc" class="form-input"></div>
         <button class="btn-admin" onclick="createGroup()">Create Group</button>
       </div>
@@ -323,11 +454,10 @@
       loadAdminGroupsList();
       return;
     } 
-    
     else if (tab === 'upload') {
       let groupOpts = allData.groups.map(g => `<option value="${g.id}">${g.title}</option>`).join('');
       html = `<div class="group-section"><h3>Upload New Document</h3>
-        <div class="form-group"><label>Select Group (Optional - Leave as None for Individual Post)</label>
+        <div class="form-group"><label>Select Group (Leave as None for Individual Post)</label>
           <select id="uGroup" class="form-input"><option value="">None (Individual Post)</option>${groupOpts}</select>
         </div>
         <div class="form-group"><label>Title</label><input type="text" id="uTitle" class="form-input"></div>
@@ -354,7 +484,6 @@
         <button class="btn-admin" id="uploadBtn" onclick="uploadDoc()">Upload & Publish</button>
       </div>`;
     } 
-    
     else if (tab === 'settings') {
       let s = allData.settings;
       html = `<div class="group-section"><h3>Site Settings</h3>
@@ -374,7 +503,7 @@
     let html = '';
     if (allData.groups.length === 0) html = '<p>No groups created yet.</p>';
     allData.groups.forEach(g => {
-      html += `<div style="padding:0.5rem 0; border-bottom:1px solid #eee;"><strong>${g.title}</strong><br><small>${g.description || ''}</small></div>`;
+      html += `<div style="padding:0.5rem 0; border-bottom:1px solid var(--border);"><strong>${g.title}</strong><br><small>${g.description || ''}</small></div>`;
     });
     document.getElementById('groupList').innerHTML = html;
   }
@@ -419,6 +548,15 @@
     const payload = { action: "saveSettings", whatsapp_link: document.getElementById('sWa').value, about_us: document.getElementById('sAbout').value, contact_us: document.getElementById('sContact').value, privacy_policy: document.getElementById('sPrivacy').value, terms_of_service: document.getElementById('sTerms').value, footer_text: document.getElementById('sFooter').value };
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
     alert('Settings Saved!'); await fetchData(); navigate('home');
+  }
+
+  // --- UI Functions ---
+  function toggleMobileMenu() { document.getElementById('mobileNav').classList.toggle('active'); }
+  function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    let icon = document.getElementById('themeIcon');
+    if (document.body.classList.contains('dark-mode')) { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); } 
+    else { icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); }
   }
 
   window.onload = async function() { await fetchData(); navigate('home'); };
