@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SKULiKA | Exams & Notes Repository</title>
+<title>SKULiKA | Educational Repository</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -28,41 +28,57 @@
   .nav-links a:hover { color: var(--accent); }
   .btn-admin { background: var(--primary); color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; }
   
-  .container { max-width: 1280px; margin: 2rem auto; padding: 0 2rem; min-height: 70vh; }
-  .hero { background: linear-gradient(135deg, var(--primary) 0%, #0a2e50 100%); color: #fff; padding: 4rem 2rem; text-align: center; }
-  .hero h1 { color: #fff; font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .layout { max-width: 1280px; margin: 2rem auto; padding: 0 2rem; display: grid; grid-template-columns: 1fr 300px; gap: 2rem; }
+  .hero { background: linear-gradient(135deg, var(--primary) 0%, #0a2e50 100%); color: #fff; padding: 3rem 2rem; text-align: center; }
+  .hero h1 { color: #fff; font-size: 2.2rem; margin-bottom: 0.5rem; }
   
-  .group-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
-  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-  th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
-  th { background: var(--bg-color); font-weight: 600; color: var(--text-light); font-size: 0.85rem; text-transform: uppercase; }
-  tr:hover { background: var(--bg-color); }
-  .btn-sm { padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.3rem; text-decoration: none; }
-  .btn-view { background: #e6f0f5; color: var(--primary); }
-  .btn-download { background: var(--accent); color: #fff; }
+  .post-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; display: flex; gap: 1.5rem; align-items: flex-start; box-shadow: var(--shadow-sm); }
+  .post-card:hover { box-shadow: var(--shadow-md); }
+  .doc-icon { width: 50px; height: 60px; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-weight: 700; font-size: 0.7rem; flex-shrink: 0; }
+  .doc-icon i { font-size: 1.4rem; margin-bottom: 0.2rem; }
+  .bg-pdf { background: #e74c3c; } .bg-docx { background: #2980b9; } .bg-pptx { background: #d35400; } .bg-xlsx { background: #27ae60; }
+  .post-content { flex: 1; min-width: 0; }
+  .post-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+  .tag { background: var(--bg-color); color: var(--text-light); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border); }
+  .tag.green { color: var(--accent); border-color: var(--accent); }
+  .tag.blue { color: var(--primary); border-color: var(--primary); }
+  .post-title { font-size: 1.15rem; margin-bottom: 0.5rem; cursor: pointer; }
+  .post-title:hover { color: var(--primary); }
+  .post-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; word-wrap: break-word; }
+  .btn-sm { padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; }
+  .btn-action { background: var(--primary); color: #fff; }
+  .btn-action:hover { background: var(--primary-light); }
+
+  .group-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+  .group-header { font-size: 1.3rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+  .region-block { margin-bottom: 1.5rem; }
+  .region-title { font-size: 1rem; color: var(--text-dark); margin-bottom: 0.5rem; font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+  th { background: var(--bg-color); color: var(--text-light); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
   
-  .wa-bubble { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 999; cursor: pointer; }
-  
+  .sidebar-widget { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+  .widget-title { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--text-mute); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  .search-box { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .search-box input { flex: 1; border: none; padding: 0.6rem; outline: none; background: var(--bg-color); color: var(--text-dark); }
+  .search-box button { background: var(--primary); color: #fff; border: none; padding: 0 1rem; cursor: pointer; }
+  .filter-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .filter-tag { background: var(--bg-color); padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.8rem; color: var(--text-light); cursor: pointer; border: 1px solid var(--border); }
+  .filter-tag:hover, .filter-tag.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
   .admin-grid { display: grid; grid-template-columns: 250px 1fr; gap: 2rem; }
   .admin-sidebar { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); height: fit-content; }
   .admin-sidebar button { display: block; width: 100%; text-align: left; padding: 0.75rem; background: none; border: none; cursor: pointer; font-weight: 500; color: var(--text-dark); border-radius: 4px; }
   .admin-sidebar button:hover, .admin-sidebar button.active { background: var(--bg-color); color: var(--primary); }
   .stat-box { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); text-align: center; }
-  .stat-box h2 { font-size: 2rem; color: var(--primary); }
-  .stat-box p { color: var(--text-light); font-size: 0.9rem; }
-  
+  .stat-box h2 { font-size: 1.8rem; color: var(--primary); }
   .form-group { margin-bottom: 1rem; }
   .form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; }
-  .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; }
+  .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-dark); }
   .file-drop { padding: 2rem; border: 2px dashed var(--border); border-radius: 8px; text-align: center; cursor: pointer; color: var(--text-light); background: var(--bg-color); }
-  
-  .comment-box { background: var(--bg-color); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid var(--accent); }
-  .comment-author { font-weight: 700; font-size: 0.85rem; color: var(--primary); }
-  
-  @media (max-width: 768px) {
-    .nav-links { display: none; }
-    .admin-grid { grid-template-columns: 1fr; }
-  }
+  .wa-bubble { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 999; }
+
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .nav-links { display: none; } .admin-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -75,23 +91,25 @@
       <li><a onclick="navigate('about')">About Us</a></li>
       <li><a onclick="navigate('contact')">Contact</a></li>
       <li><a onclick="navigate('privacy')">Privacy Policy</a></li>
-      <li><a onclick="navigate('terms')">Terms of Service</a></li>
+      <li><a onclick="navigate('terms')">Terms</a></li>
     </ul>
     <button class="btn-admin" onclick="navigate('admin')">Admin</button>
   </div>
 </header>
 
-<div id="appContent" class="container"><!-- Content --></div>
-
+<div id="appContent" class="layout" style="min-height: 70vh;"></div>
 <a id="waBubble" class="wa-bubble" href="#" target="_blank" style="display: none;"><i class="fab fa-whatsapp"></i></a>
 
 <div id="readModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center; padding:1rem;">
   <div style="background:#fff; width:100%; max-width:900px; height:90vh; border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
     <div style="background:var(--primary); color:#fff; padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
-      <h3 id="modalTitle" style="color:#fff; font-family:'Inter';">Document Preview</h3>
+      <h3 style="color:#fff; font-family:'Inter';">Document Preview</h3>
       <button onclick="closeModal()" style="background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer;">&times;</button>
     </div>
     <iframe id="modalIframe" style="width:100%; flex:1; border:none;"></iframe>
+    <div style="padding:1rem; background:#fff; border-top:1px solid #eee; text-align:right;">
+      <a id="modalDownloadBtn" href="#" class="btn-sm btn-action" target="_blank"><i class="fas fa-download"></i> Download File</a>
+    </div>
   </div>
 </div>
 
@@ -100,133 +118,173 @@
 </footer>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzfglI8QxBeUZdtS-lo-disEHVDDSO4mJb4V7GVoAUUHzNDnzzJKYDwE8JVCSpq1w/exec'; // Weka Link mpya hapa
-  let allData = { settings: {}, groups: [], exams: [] };
-  let currentExamId = null;
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwso7_0-GIDxpUQxNwM0JlfxM2EXRmSzoIpkvbv6vx2Qojo5op3Y7qi-0UdiKtXwjA/exec';
+  let allData = { settings: {}, docs: [], groups: [] };
+  let activeFilters = { form: "All", subject: "All" };
 
   async function fetchData() {
     try {
       const res = await fetch(SCRIPT_URL + "?action=getHome");
       allData = await res.json();
-      
       document.getElementById('footerText').innerText = allData.settings.footer_text || '© SKULiKA';
-      const wa = document.getElementById('waBubble');
-      wa.href = allData.settings.whatsapp_link || '#';
-      wa.style.display = 'grid';
-    } catch (e) {
-      console.error("Fetch Error:", e);
-    }
+      document.getElementById('waBubble').href = allData.settings.whatsapp_link || '#';
+      document.getElementById('waBubble').style.display = 'grid';
+    } catch (e) { console.error("Fetch Error:", e); }
   }
 
   async function navigate(page, id = null) {
     const app = document.getElementById('appContent');
-    app.innerHTML = '<p style="text-align:center; padding:5rem;">Loading...</p>';
-    
+    app.innerHTML = '<p>Loading...</p>';
     if (page === 'home') await renderHome();
-    else if (page === 'group') await renderGroupDetails(id);
     else if (page === 'admin') renderAdminLogin();
-    else if (page === 'about' || page === 'contact' || page === 'privacy' || page === 'terms') renderStaticPage(page);
-    else if (page === 'comments') await renderComments(id);
+    else if (['about','contact','privacy','terms'].includes(page)) renderStaticPage(page);
     window.scrollTo(0, 0);
   }
 
+  // --- HOME PAGE (Unislides + Grouped Tables) ---
   async function renderHome() {
-    let html = '<div class="hero"><h1>Mitihani & Notes</h1><p>Pakua mitihani ya mikoa tofauti kwa urahisi.</p></div><div class="container" style="padding-top:2rem;">';
-    if (!allData.groups || allData.groups.length === 0) {
-      html += '<p style="text-align:center; color:var(--text-light);">Hakuna Groups zilizoundwa kwa sasa. Nenda Admin -> Manage Groups.</p>';
-    } else {
-      allData.groups.forEach(g => {
-        html += `<div class="group-card"><h3 style="cursor:pointer; color:var(--primary);" onclick="navigate('group', '${g.id}')">${g.title}</h3><p style="color:var(--text-light); font-size:0.9rem;">${g.description || ''}</p><button class="btn-sm btn-view" style="margin-top:1rem;" onclick="navigate('group', '${g.id}')">View Exams <i class="fas fa-arrow-right"></i></button></div>`;
-      });
+    let docs = allData.docs.filter(d => {
+      let matchForm = activeFilters.form === "All" || d.form === activeFilters.form;
+      let matchSub = activeFilters.subject === "All" || d.subject === activeFilters.subject;
+      return matchForm && matchSub;
+    });
+
+    let individualDocs = docs.filter(d => !d.group_id || d.group_id === "");
+    let groupedDocs = docs.filter(d => d.group_id && d.group_id !== "");
+
+    // Organize groups: group_id -> region -> [docs]
+    let groupsMap = {};
+    groupedDocs.forEach(d => {
+      let gId = d.group_id;
+      if (!groupsMap[gId]) groupsMap[gId] = { title: "", regions: {} };
+      
+      // Find group title
+      let groupInfo = allData.groups.find(g => String(g.id) === String(gId));
+      if (groupInfo) groupsMap[gId].title = groupInfo.title;
+
+      let reg = d.region || "General";
+      if (!groupsMap[gId].regions[reg]) groupsMap[gId].regions[reg] = [];
+      groupsMap[gId].regions[reg].push(d);
+    });
+
+    let html = `
+      <div style="grid-column: 1 / -1;" class="hero">
+        <h1>Welcome to SKULiKA</h1>
+        <p>Access past papers, examinations, and notes for Form I to Form VI.</p>
+      </div>
+      <main style="grid-column: 1;">
+    `;
+
+    // Render Grouped Tables
+    for (let gId in groupsMap) {
+      let g = groupsMap[gId];
+      html += `<div class="group-section"><h2 class="group-header">${g.title}</h2>`;
+      for (let region in g.regions) {
+        html += `<div class="region-block"><h3 class="region-title">${region}</h3>
+          <table><thead><tr><th>Subject</th><th>Type</th><th>Year</th><th>Action</th></tr></thead><tbody>`;
+        g.regions[region].forEach(ex => {
+          html += `<tr>
+            <td>${ex.subject}</td><td>${ex.type}</td><td>${ex.year || 'N/A'}</td>
+            <td><button class="btn-sm btn-action" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read / Download</button></td>
+          </tr>`;
+        });
+        html += `</tbody></table></div>`;
+      }
+      html += `</div>`;
     }
-    html += '</div>';
+
+    // Render Individual Posts
+    if (individualDocs.length === 0 && Object.keys(groupsMap).length === 0) {
+      html += '<p style="text-align:center; padding:2rem; color:var(--text-light);">No documents found.</p>';
+    }
+    individualDocs.forEach(d => {
+      let icon = d.type === "PDF" ? '<i class="fas fa-file-pdf"></i>' : d.type === "DOCX" ? '<i class="fas fa-file-word"></i>' : d.type === "PPTX" ? '<i class="fas fa-file-powerpoint"></i>' : '<i class="fas fa-file"></i>';
+      html += `
+        <div class="post-card">
+          <div class="doc-icon bg-${d.type.toLowerCase()}">${icon}<span>${d.type}</span></div>
+          <div class="post-content">
+            <div class="post-meta">
+              ${d.form ? `<span class="tag green">${d.form}</span>` : ''}
+              ${d.subject ? `<span class="tag blue">${d.subject}</span>` : ''}
+              ${d.region ? `<span class="tag">${d.region}</span>` : ''}
+              ${d.year ? `<span class="tag">${d.year}</span>` : ''}
+            </div>
+            <h3 class="post-title" onclick="openModal('${d.file_id}', '${d.id}')">${d.title}</h3>
+            <p class="post-desc">${d.description || ''}</p>
+            <button class="btn-sm btn-action" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
+          </div>
+        </div>`;
+    });
+    html += `</main>
+
+    <aside style="grid-column: 2;">
+      <div class="sidebar-widget">
+        <h3 class="widget-title">Search</h3>
+        <div class="search-box"><input type="text" placeholder="Search..."><button><i class="fas fa-search"></i></button></div>
+      </div>
+      <div class="sidebar-widget">
+        <h3 class="widget-title">Forms</h3>
+        <div class="filter-list">
+          <span class="filter-tag ${activeFilters.form === 'All' ? 'active' : ''}" onclick="setFilter('form','All')">All</span>
+          <span class="filter-tag ${activeFilters.form === 'Form I' ? 'active' : ''}" onclick="setFilter('form','Form I')">Form I</span>
+          <span class="filter-tag ${activeFilters.form === 'Form II' ? 'active' : ''}" onclick="setFilter('form','Form II')">Form II</span>
+          <span class="filter-tag ${activeFilters.form === 'Form III' ? 'active' : ''}" onclick="setFilter('form','Form III')">Form III</span>
+          <span class="filter-tag ${activeFilters.form === 'Form IV' ? 'active' : ''}" onclick="setFilter('form','Form IV')">Form IV</span>
+          <span class="filter-tag ${activeFilters.form === 'Form V' ? 'active' : ''}" onclick="setFilter('form','Form V')">Form V</span>
+          <span class="filter-tag ${activeFilters.form === 'Form VI' ? 'active' : ''}" onclick="setFilter('form','Form VI')">Form VI</span>
+        </div>
+      </div>
+      <div class="sidebar-widget">
+        <h3 class="widget-title">Subjects</h3>
+        <div class="filter-list">
+          ${[...new Set(allData.docs.map(d => d.subject).filter(Boolean))].map(s => `<span class="filter-tag ${activeFilters.subject === s ? 'active' : ''}" onclick="setFilter('subject','${s}')">${s}</span>`).join('')}
+        </div>
+      </div>
+    </aside>`;
+    
     document.getElementById('appContent').innerHTML = html;
   }
 
-  async function renderGroupDetails(groupId) {
-    const group = allData.groups.find(g => String(g.id) === String(groupId));
-    const exams = allData.exams.filter(e => String(e.group_id) === String(groupId));
-    
-    let html = `<div class="container" style="padding-top:2rem;"><button onclick="navigate('home')" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:1rem;">&larr; Back</button><h2>${group ? group.title : 'Group'}</h2><p style="color:var(--text-light); margin-bottom:2rem;">${group ? group.description : ''}</p>`;
-    
-    if (exams.length === 0) html += '<p>No exams added to this group yet.</p>';
-    else {
-      html += '<table><thead><tr><th>Region</th><th>Year</th><th>Views</th><th>Downloads</th><th>Actions</th></tr></thead><tbody>';
-      exams.forEach(ex => {
-        html += `<tr><td style="font-weight:600;">${ex.region}</td><td>${ex.year || 'N/A'}</td><td>${ex.views || 0}</td><td>${ex.downloads || 0}</td><td>
-          <button class="btn-sm btn-view" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read</button>
-          <a href="${ex.download_url}" class="btn-sm btn-download" target="_blank" onclick="incrementStat('${ex.id}', 'download')"><i class="fas fa-download"></i> Download</a>
-          <button class="btn-sm btn-view" onclick="navigate('comments', '${ex.id}')"><i class="fas fa-comments"></i> Comments</button>
-        </td></tr>`;
-      });
-      html += '</tbody></table>';
-    }
-    html += '</div>';
-    document.getElementById('appContent').innerHTML = html;
-  }
+  function setFilter(key, val) { activeFilters[key] = val; renderHome(); }
 
-  async function openModal(fileId, examId) {
+  function openModal(fileId, examId) {
     document.getElementById('modalIframe').src = "https://drive.google.com/file/d/" + fileId + "/preview";
+    document.getElementById('modalDownloadBtn').href = "https://drive.google.com/uc?export=download&id=" + fileId;
     document.getElementById('readModal').style.display = 'flex';
-    incrementStat(examId, 'view');
+    
+    // Increment View
+    fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "incrementStat", examId: examId, type: "view" }) });
+    
+    // Increment Download on click
+    document.getElementById('modalDownloadBtn').onclick = function() {
+      fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "incrementStat", examId: examId, type: "download" }) });
+    };
   }
   function closeModal() { document.getElementById('readModal').style.display = 'none'; document.getElementById('modalIframe').src = ''; }
 
-  async function incrementStat(examId, type) {
-    await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "incrementStat", examId: examId, type: type }) });
-  }
-
   async function renderStaticPage(page) {
-    let title = page.charAt(0).toUpperCase() + page.slice(1).replace(/([A-Z])/g, ' $1');
-    let content = allData.settings[page] || 'Content not available. Admin can edit this in Dashboard.';
-    document.getElementById('appContent').innerHTML = `<div class="container" style="padding-top:2rem;"><h2 style="margin-bottom:1rem;">${title}</h2><div class="group-card"><p style="white-space: pre-wrap;">${content}</p></div></div>`;
+    let title = page.charAt(0).toUpperCase() + page.slice(1);
+    let content = allData.settings[page] || 'Content not available.';
+    document.getElementById('appContent').innerHTML = `<div style="grid-column: 1 / -1; max-width: 800px; margin: 2rem auto;"><h2>${title}</h2><div class="group-section"><p style="white-space: pre-wrap;">${content}</p></div></div>`;
   }
 
-  async function renderComments(examId) {
-    currentExamId = examId;
-    const res = await fetch(SCRIPT_URL + "?action=getComments&examId=" + examId);
-    const comments = await res.json();
-    
-    let html = `<div class="container" style="padding-top:2rem;"><button onclick="history.back()" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:1rem;">&larr; Back</button><h2>Comments</h2>
-      <div class="group-card" style="margin:1.5rem 0;"><h4>Leave a Comment</h4>
-      <div class="form-group"><input type="text" id="cName" class="form-input" placeholder="Your Name"></div>
-      <div class="form-group"><textarea id="cText" class="form-input" rows="3" placeholder="Your Comment..."></textarea></div>
-      <button class="btn-sm btn-download" onclick="postComment()">Post Comment</button></div>`;
-    
-    if (comments.length === 0) html += '<p>No comments yet.</p>';
-    comments.forEach(c => { html += `<div class="comment-box"><div class="comment-author">${c.name}</div><p style="font-size:0.9rem; margin-top:0.2rem;">${c.comment}</p></div>`; });
-    html += '</div>';
-    document.getElementById('appContent').innerHTML = html;
-  }
-
-  async function postComment() {
-    const name = document.getElementById('cName').value;
-    const comment = document.getElementById('cText').value;
-    if (!name || !comment) return alert('Please fill all fields.');
-    await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "postComment", examId: currentExamId, name: name, comment: comment }) });
-    alert('Comment posted!');
-    renderComments(currentExamId);
-  }
-
+  // --- ADMIN DASHBOARD ---
   let isAdmin = false;
   function renderAdminLogin() {
     if (isAdmin) return renderAdminDashboard();
-    document.getElementById('appContent').innerHTML = `<div class="container" style="max-width:400px; padding-top:4rem; text-align:center;"><div class="group-card"><h2>Admin Login</h2><input type="password" id="adminPass" class="form-input" placeholder="Password" style="margin:1rem 0;"><button class="btn-admin" style="width:100%;" onclick="checkAdmin()">Login</button></div></div>`;
+    document.getElementById('appContent').innerHTML = `<div style="grid-column: 1 / -1; max-width: 400px; margin: 4rem auto;"><div class="group-section"><h2>Admin Login</h2><input type="password" id="adminPass" class="form-input" placeholder="Password" style="margin: 1rem 0;"><button class="btn-admin" style="width:100%;" onclick="checkAdmin()">Login</button></div></div>`;
   }
-  function checkAdmin() {
-    if (document.getElementById('adminPass').value === 'skulika-admin') { isAdmin = true; renderAdminDashboard(); }
-    else { alert('Wrong password!'); }
-  }
+  function checkAdmin() { if (document.getElementById('adminPass').value === 'skulika-admin') { isAdmin = true; renderAdminDashboard(); } else { alert('Wrong!'); } }
 
   function renderAdminDashboard() {
     document.getElementById('appContent').innerHTML = `
-      <div class="container" style="padding-top:2rem;">
+      <div style="grid-column: 1 / -1;">
         <h2 style="margin-bottom:1.5rem;">Admin Dashboard</h2>
         <div class="admin-grid">
           <div class="admin-sidebar">
-            <button class="active" onclick="showTab('stats', this)">Statistics</button>
+            <button class="active" onclick="showTab('stats', this)">Stats</button>
             <button onclick="showTab('groups', this)">Manage Groups</button>
-            <button onclick="showTab('upload', this)">Upload Exam</button>
+            <button onclick="showTab('upload', this)">Upload Post</button>
             <button onclick="showTab('settings', this)">Site Settings</button>
           </div>
           <div id="adminContent"></div>
@@ -241,38 +299,65 @@
     let html = '';
 
     if (tab === 'stats') {
-      html = `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem;">
-        <div class="stat-box"><h2>${allData.groups.length}</h2><p>Groups</p></div><div class="stat-box"><h2>${allData.exams.length}</h2><p>Exams</p></div><div class="stat-box"><h2>${allData.exams.reduce((a,b)=>a+(b.views||0),0)}</h2><p>Total Views</p></div></div>`;
+      let totalViews = allData.docs.reduce((a,b)=>a+(b.views||0),0);
+      let totalDls = allData.docs.reduce((a,b)=>a+(b.downloads||0),0);
+      html = `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:2rem;">
+        <div class="stat-box"><h2>${allData.docs.length}</h2><p>Total Posts</p></div>
+        <div class="stat-box"><h2>${totalViews}</h2><p>Total Views</p></div>
+        <div class="stat-box"><h2>${totalDls}</h2><p>Total Downloads</p></div>
+      </div>
+      <h3>Document Stats</h3>
+      <table><thead><tr><th>Title</th><th>Views</th><th>Downloads</th></tr></thead><tbody>`;
+      allData.docs.forEach(d => { html += `<tr><td>${d.title}</td><td>${d.views||0}</td><td>${d.downloads||0}</td></tr>`; });
+      html += `</tbody></table>`;
     } 
+    
     else if (tab === 'groups') {
-      html = `<div class="group-card"><h3>Create New Group (e.g., MOCK 2026)</h3><div class="form-group"><label>Title</label><input type="text" id="gTitle" class="form-input"></div><div class="form-group"><label>Description</label><textarea id="gDesc" class="form-input"></textarea></div><button class="btn-admin" onclick="createGroup()">Create Group</button></div><div id="groupList" style="margin-top:2rem;"></div>`;
+      html = `<div class="group-section"><h3>Create New Group (e.g., MOCK EXAM 2026)</h3>
+        <div class="form-group"><label>Group Title</label><input type="text" id="gTitle" class="form-input"></div>
+        <div class="form-group"><label>Description</label><input type="text" id="gDesc" class="form-input"></div>
+        <button class="btn-admin" onclick="createGroup()">Create Group</button>
+      </div>
+      <div class="group-section"><h3>Existing Groups</h3><div id="groupList"></div></div>`;
       document.getElementById('adminContent').innerHTML = html;
       loadAdminGroupsList();
       return;
     } 
+    
     else if (tab === 'upload') {
-      if(allData.groups.length === 0) {
-        html = `<div class="group-card" style="color:red;"><h3>No Groups Found!</h3><p>Tafadhali nenda kwenye "Manage Groups" na unda Group (mfano: MOCK 2026) kabla ya kupakia mtihani.</p></div>`;
-      } else {
-        let opts = allData.groups.map(g => `<option value="${g.id}">${g.title}</option>`).join('');
-        html = `<div class="group-card"><h3>Upload New Exam</h3>
-          <div class="form-group"><label>Select Group</label><select id="uGroup" class="form-input">${opts}</select></div>
-          <div class="form-group"><label>Region (Mkoa)</label><input type="text" id="uRegion" class="form-input" placeholder="Mtwara"></div>
-          <div class="form-group"><label>Year</label><input type="number" id="uYear" class="form-input" placeholder="2026"></div>
-          <div class="form-group"><label>File (PDF, Word, Excel)</label>
-            <div class="file-drop" onclick="document.getElementById('uFile').click()">
-              <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--primary);"></i>
-              <p id="uFileName">Click to select file</p>
-              <input type="file" id="uFile" style="display:none" onchange="document.getElementById('uFileName').innerText=this.files[0].name">
-            </div>
+      let groupOpts = allData.groups.map(g => `<option value="${g.id}">${g.title}</option>`).join('');
+      html = `<div class="group-section"><h3>Upload New Document</h3>
+        <div class="form-group"><label>Select Group (Optional - Leave as None for Individual Post)</label>
+          <select id="uGroup" class="form-input"><option value="">None (Individual Post)</option>${groupOpts}</select>
+        </div>
+        <div class="form-group"><label>Title</label><input type="text" id="uTitle" class="form-input"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div class="form-group"><label>Subject</label><input type="text" id="uSubject" class="form-input"></div>
+          <div class="form-group"><label>Form</label><select id="uForm" class="form-input"><option value="">None</option><option>Form I</option><option>Form II</option><option>Form III</option><option>Form IV</option><option>Form V</option><option>Form VI</option></select></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div class="form-group"><label>Type</label><select id="uType" class="form-input"><option>PDF</option><option>DOCX</option><option>PPTX</option><option>XLSX</option></select></div>
+          <div class="form-group"><label>Year</label><input type="number" id="uYear" class="form-input"></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div class="form-group"><label>Region (Mkoa)</label><input type="text" id="uRegion" class="form-input" placeholder="Dar es Salaam"></div>
+          <div class="form-group"><label>Exam Type</label><select id="uExamType" class="form-input"><option value="">Notes</option><option>Mock</option><option>Joint</option><option>Mid-term</option><option>Annual</option></select></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="uDesc" class="form-input" rows="3"></textarea></div>
+        <div class="form-group"><label>File</label>
+          <div class="file-drop" onclick="document.getElementById('uFile').click()">
+            <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--primary);"></i>
+            <p id="uFileName">Click to select file</p>
+            <input type="file" id="uFile" style="display:none" onchange="document.getElementById('uFileName').innerText=this.files[0].name">
           </div>
-          <button class="btn-admin" id="uploadBtn" onclick="uploadExam()">Upload & Publish</button>
-        </div>`;
-      }
+        </div>
+        <button class="btn-admin" id="uploadBtn" onclick="uploadDoc()">Upload & Publish</button>
+      </div>`;
     } 
+    
     else if (tab === 'settings') {
       let s = allData.settings;
-      html = `<div class="group-card"><h3>Site Settings</h3>
+      html = `<div class="group-section"><h3>Site Settings</h3>
         <div class="form-group"><label>WhatsApp Link</label><input type="text" id="sWa" class="form-input" value="${s.whatsapp_link || ''}"></div>
         <div class="form-group"><label>About Us</label><textarea id="sAbout" class="form-input" rows="3">${s.about_us || ''}</textarea></div>
         <div class="form-group"><label>Contact Us</label><textarea id="sContact" class="form-input" rows="3">${s.contact_us || ''}</textarea></div>
@@ -286,36 +371,46 @@
   }
 
   async function loadAdminGroupsList() {
-    let html = '<h3>Existing Groups</h3>';
+    let html = '';
+    if (allData.groups.length === 0) html = '<p>No groups created yet.</p>';
     allData.groups.forEach(g => {
-      html += `<div class="group-card" style="display:flex; justify-content:space-between; align-items:center;"><div><strong>${g.title}</strong><br><small>${g.description}</small></div></div>`;
+      html += `<div style="padding:0.5rem 0; border-bottom:1px solid #eee;"><strong>${g.title}</strong><br><small>${g.description || ''}</small></div>`;
     });
     document.getElementById('groupList').innerHTML = html;
   }
 
   async function createGroup() {
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "createGroup", title: document.getElementById('gTitle').value, description: document.getElementById('gDesc').value }) });
-    alert('Group Created!');
-    await fetchData(); renderAdminDashboard(); showTab('groups', document.querySelector('.admin-sidebar button:nth-child(2)'));
+    alert('Group Created!'); await fetchData(); showTab('groups', document.querySelector('.admin-sidebar button:nth-child(2)'));
   }
 
-  async function uploadExam() {
+  async function uploadDoc() {
     const fileInput = document.getElementById('uFile');
     if (!fileInput.files.length) return alert('Select a file!');
-    const btn = document.getElementById('uploadBtn');
-    btn.disabled = true; btn.innerText = "Uploading...";
+    const btn = document.getElementById('uploadBtn'); btn.disabled = true; btn.innerText = "Uploading...";
     
     const file = fileInput.files[0];
     const reader = new FileReader();
     reader.onload = async function() {
       const base64 = reader.result.split(',')[1];
-      const payload = { action: "uploadExam", groupId: document.getElementById('uGroup').value, region: document.getElementById('uRegion').value, year: document.getElementById('uYear').value, fileName: file.name, mimeType: file.type, fileData: base64 };
-      
+      const payload = { 
+        action: "uploadDoc", 
+        group_id: document.getElementById('uGroup').value, 
+        title: document.getElementById('uTitle').value, 
+        subject: document.getElementById('uSubject').value, 
+        form: document.getElementById('uForm').value, 
+        type: document.getElementById('uType').value, 
+        desc: document.getElementById('uDesc').value, 
+        region: document.getElementById('uRegion').value, 
+        exam_type: document.getElementById('uExamType').value, 
+        year: document.getElementById('uYear').value, 
+        fileName: file.name, mimeType: file.type, fileData: base64 
+      };
       await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
-      alert('Exam Uploaded Successfully!');
+      alert('Uploaded Successfully!');
       await fetchData(); 
       btn.disabled = false; btn.innerText = "Upload & Publish";
-      navigate('home'); // Inakupeleka kwenye ukurasa wa kwanza ili uone mtihani wako
+      navigate('home');
     };
     reader.readAsDataURL(file);
   }
@@ -323,15 +418,10 @@
   async function saveSettings() {
     const payload = { action: "saveSettings", whatsapp_link: document.getElementById('sWa').value, about_us: document.getElementById('sAbout').value, contact_us: document.getElementById('sContact').value, privacy_policy: document.getElementById('sPrivacy').value, terms_of_service: document.getElementById('sTerms').value, footer_text: document.getElementById('sFooter').value };
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
-    alert('Settings Saved!');
-    await fetchData();
-    navigate('home');
+    alert('Settings Saved!'); await fetchData(); navigate('home');
   }
 
-  window.onload = async function() {
-    await fetchData();
-    navigate('home');
-  };
+  window.onload = async function() { await fetchData(); navigate('home'); };
 </script>
 </body>
 </html>
