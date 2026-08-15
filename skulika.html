@@ -85,7 +85,6 @@
 
 <a id="waBubble" class="wa-bubble" href="#" target="_blank" style="display: none;"><i class="fab fa-whatsapp"></i></a>
 
-<!-- Read Modal -->
 <div id="readModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center; padding:1rem;">
   <div style="background:#fff; width:100%; max-width:900px; height:90vh; border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
     <div style="background:var(--primary); color:#fff; padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
@@ -101,23 +100,27 @@
 </footer>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw1YOkYEZ2Lu1U_F0f5gzzJV2GEAMVW9HfpAgb6B6KAClQTvGqzvV49b7XcLBujAM4/exec'; // Paste Link Here
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzfglI8QxBeUZdtS-lo-disEHVDDSO4mJb4V7GVoAUUHzNDnzzJKYDwE8JVCSpq1w/exec'; // Weka Link mpya hapa
   let allData = { settings: {}, groups: [], exams: [] };
   let currentExamId = null;
 
   async function fetchData() {
-    const res = await fetch(SCRIPT_URL + "?action=getHome");
-    allData = await res.json();
-    
-    document.getElementById('footerText').innerText = allData.settings.footer_text || '© SKULiKA';
-    const wa = document.getElementById('waBubble');
-    wa.href = allData.settings.whatsapp_link || '#';
-    wa.style.display = 'grid';
+    try {
+      const res = await fetch(SCRIPT_URL + "?action=getHome");
+      allData = await res.json();
+      
+      document.getElementById('footerText').innerText = allData.settings.footer_text || '© SKULiKA';
+      const wa = document.getElementById('waBubble');
+      wa.href = allData.settings.whatsapp_link || '#';
+      wa.style.display = 'grid';
+    } catch (e) {
+      console.error("Fetch Error:", e);
+    }
   }
 
   async function navigate(page, id = null) {
     const app = document.getElementById('appContent');
-    app.innerHTML = '<p>Loading...</p>';
+    app.innerHTML = '<p style="text-align:center; padding:5rem;">Loading...</p>';
     
     if (page === 'home') await renderHome();
     else if (page === 'group') await renderGroupDetails(id);
@@ -130,7 +133,7 @@
   async function renderHome() {
     let html = '<div class="hero"><h1>Mitihani & Notes</h1><p>Pakua mitihani ya mikoa tofauti kwa urahisi.</p></div><div class="container" style="padding-top:2rem;">';
     if (!allData.groups || allData.groups.length === 0) {
-      html += '<p style="text-align:center; color:var(--text-light);">Hakuna mitihani kwa sasa.</p>';
+      html += '<p style="text-align:center; color:var(--text-light);">Hakuna Groups zilizoundwa kwa sasa. Nenda Admin -> Manage Groups.</p>';
     } else {
       allData.groups.forEach(g => {
         html += `<div class="group-card"><h3 style="cursor:pointer; color:var(--primary);" onclick="navigate('group', '${g.id}')">${g.title}</h3><p style="color:var(--text-light); font-size:0.9rem;">${g.description || ''}</p><button class="btn-sm btn-view" style="margin-top:1rem;" onclick="navigate('group', '${g.id}')">View Exams <i class="fas fa-arrow-right"></i></button></div>`;
@@ -144,9 +147,9 @@
     const group = allData.groups.find(g => String(g.id) === String(groupId));
     const exams = allData.exams.filter(e => String(e.group_id) === String(groupId));
     
-    let html = `<div class="container" style="padding-top:2rem;"><button onclick="navigate('home')" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:1rem;">&larr; Back</button><h2>${group.title}</h2><p style="color:var(--text-light); margin-bottom:2rem;">${group.description || ''}</p>`;
+    let html = `<div class="container" style="padding-top:2rem;"><button onclick="navigate('home')" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:1rem;">&larr; Back</button><h2>${group ? group.title : 'Group'}</h2><p style="color:var(--text-light); margin-bottom:2rem;">${group ? group.description : ''}</p>`;
     
-    if (exams.length === 0) html += '<p>No exams added yet.</p>';
+    if (exams.length === 0) html += '<p>No exams added to this group yet.</p>';
     else {
       html += '<table><thead><tr><th>Region</th><th>Year</th><th>Views</th><th>Downloads</th><th>Actions</th></tr></thead><tbody>';
       exams.forEach(ex => {
@@ -175,11 +178,10 @@
 
   async function renderStaticPage(page) {
     let title = page.charAt(0).toUpperCase() + page.slice(1).replace(/([A-Z])/g, ' $1');
-    let content = allData.settings[page] || 'Content not available.';
+    let content = allData.settings[page] || 'Content not available. Admin can edit this in Dashboard.';
     document.getElementById('appContent').innerHTML = `<div class="container" style="padding-top:2rem;"><h2 style="margin-bottom:1rem;">${title}</h2><div class="group-card"><p style="white-space: pre-wrap;">${content}</p></div></div>`;
   }
 
-  // --- COMMENTS ---
   async function renderComments(examId) {
     currentExamId = examId;
     const res = await fetch(SCRIPT_URL + "?action=getComments&examId=" + examId);
@@ -206,7 +208,6 @@
     renderComments(currentExamId);
   }
 
-  // --- ADMIN DASHBOARD ---
   let isAdmin = false;
   function renderAdminLogin() {
     if (isAdmin) return renderAdminDashboard();
@@ -228,20 +229,15 @@
             <button onclick="showTab('upload', this)">Upload Exam</button>
             <button onclick="showTab('settings', this)">Site Settings</button>
           </div>
-          <div id="adminContent">
-            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem;">
-              <div class="stat-box"><h2>${allData.groups.length}</h2><p>Groups</p></div>
-              <div class="stat-box"><h2>${allData.exams.length}</h2><p>Exams</p></div>
-              <div class="stat-box"><h2>${allData.exams.reduce((a,b)=>a+(b.views||0),0)}</h2><p>Total Views</p></div>
-            </div>
-          </div>
+          <div id="adminContent"></div>
         </div>
       </div>`;
+    showTab('stats', document.querySelector('.admin-sidebar button'));
   }
 
   function showTab(tab, btn) {
     document.querySelectorAll('.admin-sidebar button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    if(btn) btn.classList.add('active');
     let html = '';
 
     if (tab === 'stats') {
@@ -255,20 +251,24 @@
       return;
     } 
     else if (tab === 'upload') {
-      let opts = allData.groups.map(g => `<option value="${g.id}">${g.title}</option>`).join('');
-      html = `<div class="group-card"><h3>Upload New Exam</h3>
-        <div class="form-group"><label>Select Group</label><select id="uGroup" class="form-input">${opts}</select></div>
-        <div class="form-group"><label>Region (Mkoa)</label><input type="text" id="uRegion" class="form-input" placeholder="Mtwara"></div>
-        <div class="form-group"><label>Year</label><input type="number" id="uYear" class="form-input" placeholder="2026"></div>
-        <div class="form-group"><label>File (PDF, Word, Excel)</label>
-          <div class="file-drop" onclick="document.getElementById('uFile').click()">
-            <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--primary);"></i>
-            <p id="uFileName">Click to select file</p>
-            <input type="file" id="uFile" style="display:none" onchange="document.getElementById('uFileName').innerText=this.files[0].name">
+      if(allData.groups.length === 0) {
+        html = `<div class="group-card" style="color:red;"><h3>No Groups Found!</h3><p>Tafadhali nenda kwenye "Manage Groups" na unda Group (mfano: MOCK 2026) kabla ya kupakia mtihani.</p></div>`;
+      } else {
+        let opts = allData.groups.map(g => `<option value="${g.id}">${g.title}</option>`).join('');
+        html = `<div class="group-card"><h3>Upload New Exam</h3>
+          <div class="form-group"><label>Select Group</label><select id="uGroup" class="form-input">${opts}</select></div>
+          <div class="form-group"><label>Region (Mkoa)</label><input type="text" id="uRegion" class="form-input" placeholder="Mtwara"></div>
+          <div class="form-group"><label>Year</label><input type="number" id="uYear" class="form-input" placeholder="2026"></div>
+          <div class="form-group"><label>File (PDF, Word, Excel)</label>
+            <div class="file-drop" onclick="document.getElementById('uFile').click()">
+              <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--primary);"></i>
+              <p id="uFileName">Click to select file</p>
+              <input type="file" id="uFile" style="display:none" onchange="document.getElementById('uFileName').innerText=this.files[0].name">
+            </div>
           </div>
-        </div>
-        <button class="btn-admin" id="uploadBtn" onclick="uploadExam()">Upload & Publish</button>
-      </div>`;
+          <button class="btn-admin" id="uploadBtn" onclick="uploadExam()">Upload & Publish</button>
+        </div>`;
+      }
     } 
     else if (tab === 'settings') {
       let s = allData.settings;
@@ -295,7 +295,7 @@
 
   async function createGroup() {
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "createGroup", title: document.getElementById('gTitle').value, description: document.getElementById('gDesc').value }) });
-    alert('Group Created! Refreshing data...');
+    alert('Group Created!');
     await fetchData(); renderAdminDashboard(); showTab('groups', document.querySelector('.admin-sidebar button:nth-child(2)'));
   }
 
@@ -315,7 +315,7 @@
       alert('Exam Uploaded Successfully!');
       await fetchData(); 
       btn.disabled = false; btn.innerText = "Upload & Publish";
-      document.getElementById('uFileName').innerText = "Click to select file";
+      navigate('home'); // Inakupeleka kwenye ukurasa wa kwanza ili uone mtihani wako
     };
     reader.readAsDataURL(file);
   }
@@ -325,9 +325,9 @@
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
     alert('Settings Saved!');
     await fetchData();
+    navigate('home');
   }
 
-  // --- INIT ---
   window.onload = async function() {
     await fetchData();
     navigate('home');
