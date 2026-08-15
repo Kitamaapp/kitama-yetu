@@ -19,14 +19,13 @@
     --text-light: #b0b0b0; --text-mute: #777777; --border: #2a2e36;
     --shadow-sm: 0 2px 8px rgba(0,0,0,0.3); --shadow-md: 0 8px 24px rgba(0,0,0,0.5);
   }
-  /* Textures */
   body.texture-light { background-color: #f0f2f5; background-image: radial-gradient(#dfe4ea 1px, transparent 1px); background-size: 20px 20px; }
   body.texture-ocean { background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); }
   body.texture-forest { background: linear-gradient(135deg, #e6f7e6 0%, #d4e9d4 100%); }
   body.texture-geometric { background-color: #f0f4f8; background-image: linear-gradient(30deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0), linear-gradient(150deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0), linear-gradient(30deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0), linear-gradient(150deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0); background-size: 40px 70px; background-position: 0 0, 0 0, 20px 35px, 20px 35px; }
   
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { overflow-x: hidden; max-width: 100%; }
+  html, body { overflow-x: hidden !important; max-width: 100%; width: 100%; }
   body { font-family: 'Inter', sans-serif; color: var(--text-dark); line-height: 1.6; transition: background 0.3s, color 0.3s; }
   h1, h2, h3, h4 { font-family: 'Merriweather', serif; color: var(--text-dark); }
   a { text-decoration: none; color: var(--primary); }
@@ -50,45 +49,68 @@
   .mobile-nav.active { display: flex; animation: slideDown 0.3s ease; }
   .mobile-nav a { padding: 0.75rem 0; color: var(--text-dark); border-bottom: 1px solid var(--border); cursor: pointer; }
 
-  .layout { max-width: 1280px; margin: 2rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 1fr 300px; gap: 2rem; }
+  .layout { max-width: 1280px; margin: 2rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 1fr 280px; gap: 2rem; }
   .hero { grid-column: 1 / -1; background: linear-gradient(135deg, var(--primary) 0%, #0a2e50 100%); color: #fff; padding: 4rem 1.5rem; text-align: center; border-radius: var(--radius); margin-bottom: 1.5rem; box-shadow: var(--shadow-md); animation: fadeIn 0.8s; }
   .hero h1 { color: #fff; font-size: clamp(1.8rem, 5vw, 2.5rem); margin-bottom: 0.5rem; }
 
-  main { display: flex; flex-direction: column; gap: 1.5rem; }
+  /* Top Search Bar */
+  .top-search { grid-column: 1 / -1; margin-bottom: 1.5rem; }
+  .search-bar { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 50px; overflow: hidden; box-shadow: var(--shadow-sm); }
+  .search-bar input { flex: 1; border: none; padding: 1rem 1.5rem; outline: none; background: var(--surface); color: var(--text-dark); font-size: 1rem; min-width: 0; }
+  .search-bar button { background: var(--primary); color: #fff; border: none; padding: 0 2rem; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+  .search-bar button:hover { background: var(--primary-light); }
+
+  main { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
   
-  .group-section, .post-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); animation: fadeInUp 0.5s; }
-  .post-card { display: flex; gap: 1rem; align-items: flex-start; transition: transform 0.3s, box-shadow 0.3s; }
-  .post-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  /* Post Cards (Darasahuru Style) */
+  .post-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; animation: fadeInUp 0.5s; transition: box-shadow 0.3s; }
+  .post-card:hover { box-shadow: var(--shadow-md); }
+  .post-card.expanded .post-desc { -webkit-line-clamp: unset; max-height: none; }
+  .post-card.expanded .read-more-btn { display: none; }
   
-  .doc-icon { width: 50px; height: 60px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-weight: 700; font-size: 0.7rem; flex-shrink: 0; }
-  .doc-icon i { font-size: 1.4rem; margin-bottom: 0.2rem; }
+  .post-header { display: flex; gap: 1rem; padding: 1.5rem; align-items: flex-start; }
+  .doc-icon { width: 45px; height: 55px; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-weight: 700; font-size: 0.65rem; flex-shrink: 0; }
+  .doc-icon i { font-size: 1.3rem; margin-bottom: 0.2rem; }
   .bg-pdf { background: #e74c3c; } .bg-docx { background: #2980b9; } .bg-pptx { background: #d35400; } .bg-xlsx { background: #27ae60; }
   
-  .post-content { flex: 1; min-width: 0; word-wrap: break-word; }
-  .post-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
-  .tag { background: var(--bg-color); color: var(--text-light); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border); }
-  .post-title { font-size: 1.15rem; margin-bottom: 0.5rem; cursor: pointer; }
-  .post-title:hover { color: var(--primary); }
-  .post-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; }
+  .post-content { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; }
+  .post-title { font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--primary); cursor: pointer; font-family: 'Merriweather', serif; }
+  .post-title:hover { text-decoration: underline; }
   
-  .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  .btn-sm { padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; transition: all 0.2s; }
-  .btn-action { background: var(--primary); color: #fff; }
-  .btn-action:hover { background: var(--primary-light); transform: scale(1.03); }
-  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-dark); }
-  .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+  .post-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .tag-subject { background: rgba(30, 181, 58, 0.1); color: var(--accent); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+  .tag-form { background: rgba(15, 76, 129, 0.1); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+  .tag-type { background: rgba(136, 136, 136, 0.1); color: var(--text-mute); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+  
+  .post-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; transition: max-height 0.3s ease; }
+  .read-more-btn { display: inline-block; color: var(--accent); font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-bottom: 1rem; }
+  .read-more-btn:hover { text-decoration: underline; }
+
+  .post-image { width: 100%; height: 200px; object-fit: cover; border-top: 1px solid var(--border); }
+  
+  .post-actions { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+  .btn-download-prof { background: linear-gradient(135deg, var(--accent), #16a34a); color: #fff; padding: 0.6rem 1.5rem; border-radius: 6px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: transform 0.2s, box-shadow 0.2s; border: none; cursor: pointer; font-size: 0.9rem; }
+  .btn-download-prof:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(30, 181, 58, 0.3); }
+  .btn-comment-prof { background: transparent; color: var(--text-light); padding: 0.6rem 1rem; border-radius: 6px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border); cursor: pointer; font-size: 0.9rem; }
+  .btn-comment-prof:hover { border-color: var(--primary); color: var(--primary); }
 
   /* Group Tables */
-  .group-header { font-size: 1.3rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+  .group-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); animation: fadeInUp 0.5s; }
+  .group-header { font-size: 1.4rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1rem; }
   .region-block { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px dashed var(--border); }
   .region-block:last-of-type { border-bottom: none; margin-bottom: 0; }
   .region-title { font-size: 1.1rem; color: var(--text-dark); margin-bottom: 0.75rem; font-weight: 700; padding-left: 0.5rem; border-left: 4px solid var(--accent); }
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { width: 100%; border-collapse: collapse; min-width: 400px; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 100%; }
   th, td { padding: 0.75rem; text-align: left; border: 1px solid var(--border); font-size: 0.9rem; }
-  th { background: var(--accent); color: #fff; font-weight: 600; }
+  th { background: var(--accent); color: #fff; font-weight: 600; white-space: nowrap; }
   tr:nth-child(even) { background: var(--bg-color); }
   tr:hover { background: rgba(15, 76, 129, 0.05); }
+  /* Hide Type and Year columns on mobile */
+  @media (max-width: 600px) { 
+    .col-type, .col-year { display: none; } 
+    th, td { font-size: 0.85rem; }
+  }
 
   .comment-container { margin-top: 1.5rem; border-top: 2px dashed var(--border); padding-top: 1.5rem; animation: fadeIn 0.3s; }
   .comment-box { background: var(--bg-color); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid var(--accent); }
@@ -96,9 +118,6 @@
   aside { display: flex; flex-direction: column; gap: 1.5rem; position: sticky; top: 90px; height: fit-content; }
   .sidebar-widget { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); }
   .widget-title { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--text-mute); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-  .search-box { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-  .search-box input { flex: 1; border: none; padding: 0.75rem; outline: none; background: var(--bg-color); color: var(--text-dark); min-width: 0; }
-  .search-box button { background: var(--primary); color: #fff; border: none; padding: 0 1rem; cursor: pointer; }
   .filter-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
   .filter-tag { background: var(--bg-color); padding: 0.4rem 0.9rem; border-radius: 50px; font-size: 0.85rem; color: var(--text-light); cursor: pointer; border: 1px solid var(--border); transition: all 0.2s; }
   .filter-tag:hover { border-color: var(--primary); color: var(--primary); }
@@ -123,15 +142,12 @@
   @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
 
-  /* Mobile Responsiveness */
   @media (max-width: 900px) { 
     .layout { grid-template-columns: 1fr; } 
     aside { position: static; } 
     .nav-links { display: none; } 
     .mobile-menu-btn { display: block; } 
     .admin-grid { grid-template-columns: 1fr; } 
-    .post-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    .post-content { width: 100%; }
   }
 </style>
 </head>
@@ -139,7 +155,7 @@
 
 <header>
   <div class="nav-container">
-    <div class="logo" onclick="navigate('home')"><i class="fas fa-graduation-cap"></i> SKU<i>KA</i></div>
+    <div class="logo" onclick="navigate('home')"><i class="fas fa-graduation-cap"></i> SKULiKA</div>
     <ul class="nav-links">
       <li><a onclick="navigate('home')">Home</a></li>
       <li><a onclick="navigate('about')">About Us</a></li>
@@ -169,7 +185,7 @@
     </div>
     <iframe id="modalIframe" style="width:100%; height:80vh; border:none;"></iframe>
     <div style="padding:1rem; text-align:right;">
-      <a id="modalDownloadBtn" href="#" class="btn-sm btn-action" target="_blank"><i class="fas fa-download"></i> Download File</a>
+      <a id="modalDownloadBtn" href="#" class="btn-download-prof" target="_blank"><i class="fas fa-download"></i> Download File</a>
     </div>
   </div>
 </div>
@@ -179,7 +195,7 @@
 </footer>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSgwpZkEM7N0aIGFtLajz-3oIY1MKeMqB6Qu8fmCXezSfd4YP3ADFBHvQuyK4DK3c/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpQILj_a7gWdFwfmq3xDPQ5cg8tfyUY3OHt3mfnbO1T2VQHRajbXUibdNazMLAu8A/exec';
   let allData = { settings: {}, docs: [], groups: [] };
   let activeFilters = { form: "All", subject: "All", search: "" };
 
@@ -195,7 +211,6 @@
   }
 
   function applyTheme() {
-    // Remove all texture classes
     document.body.classList.remove('texture-light', 'texture-ocean', 'texture-forest', 'texture-geometric');
     let theme = allData.settings.bg_theme || 'texture-light';
     if (!document.body.classList.contains('dark-mode')) {
@@ -235,7 +250,11 @@
       groupsMap[gId].regions[reg].push(d);
     });
 
-    let html = `<div class="hero"><h1>Welcome to SKULiKA</h1><p>Access past papers, examinations, and notes for Form I to Form VI.</p></div><main>`;
+    let html = `
+      <div class="hero"><h1>Welcome to SKULiKA</h1><p>Access past papers, examinations, and notes for Form I to Form VI.</p></div>
+      <div class="top-search"><div class="search-bar"><input type="text" id="searchInput" placeholder="Search notes, exams, subjects..." onkeyup="handleSearch(event)" value="${activeFilters.search}"><button onclick="searchManual()"><i class="fas fa-search"></i></button></div></div>
+      <main>
+    `;
 
     for (let gId in groupsMap) {
       let g = groupsMap[gId];
@@ -243,20 +262,19 @@
       
       for (let region in g.regions) {
         html += `<div class="region-block"><h3 class="region-title">${region}</h3>
-          <div class="table-wrap"><table><thead><tr><th>Subject</th><th>Type</th><th>Year</th><th>Action</th></tr></thead><tbody>`;
+          <div class="table-wrap"><table><thead><tr><th>Subject</th><th class="col-type">Type</th><th class="col-year">Year</th><th>Action</th></tr></thead><tbody>`;
         
         g.regions[region].forEach(ex => {
           html += `<tr>
-            <td>${ex.subject}</td><td>${ex.type}</td><td>${ex.year || 'N/A'}</td>
-            <td><button class="btn-sm btn-action" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read</button></td>
+            <td>${ex.subject}</td><td class="col-type">${ex.type}</td><td class="col-year">${ex.year || 'N/A'}</td>
+            <td><button class="btn-sm btn-action" style="background:var(--primary); color:#fff; padding:0.4rem 0.8rem; border-radius:4px; border:none; cursor:pointer;" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read</button></td>
           </tr>`;
         });
         html += `</tbody></table></div></div>`;
       }
       
-      // ONE Comment Section per Group
       html += `<div style="margin-top:1.5rem; text-align:right;">
-        <button class="btn-sm btn-outline" onclick="toggleComments('${gId}', 'group-${gId}')"><i class="fas fa-comments"></i> Group Comments</button>
+        <button class="btn-comment-prof" onclick="toggleComments('${gId}', 'group-${gId}')"><i class="fas fa-comments"></i> Group Comments</button>
         <div id="comments-container-group-${gId}" style="display:none; margin-top:1rem; border-top:2px dashed var(--border); padding-top:1rem;"></div>
       </div>`;
       
@@ -269,55 +287,57 @@
     individualDocs.forEach(d => {
       let icon = d.type === "PDF" ? '<i class="fas fa-file-pdf"></i>' : d.type === "DOCX" ? '<i class="fas fa-file-word"></i>' : d.type === "PPTX" ? '<i class="fas fa-file-powerpoint"></i>' : '<i class="fas fa-file"></i>';
       html += `
-        <div class="post-card">
-          <div class="doc-icon bg-${d.type.toLowerCase()}">${icon}<span>${d.type}</span></div>
-          <div class="post-content">
-            <div class="post-meta">
-              ${d.form ? `<span class="tag">${d.form}</span>` : ''}
-              ${d.subject ? `<span class="tag">${d.subject}</span>` : ''}
-              ${d.region ? `<span class="tag">${d.region}</span>` : ''}
+        <div class="post-card" id="post-${d.id}">
+          <div class="post-header">
+            <div class="doc-icon bg-${d.type.toLowerCase()}">${icon}<span>${d.type}</span></div>
+            <div class="post-content">
+              <h3 class="post-title" onclick="toggleExpand('${d.id}')">${d.title}</h3>
+              <div class="post-tags">
+                ${d.subject ? `<span class="tag-subject">${d.subject}</span>` : ''}
+                ${d.form ? `<span class="tag-form">${d.form}</span>` : ''}
+                ${d.region ? `<span class="tag-form">${d.region}</span>` : ''}
+                ${d.type ? `<span class="tag-type">${d.type}</span>` : ''}
+              </div>
+              <p class="post-desc">${d.description || ''}</p>
+              <span class="read-more-btn" onclick="toggleExpand('${d.id}')">Read More...</span>
             </div>
-            <h3 class="post-title" onclick="openModal('${d.file_id}', '${d.id}')">${d.title}</h3>
-            <p class="post-desc">${d.description || ''}</p>
-            <div class="actions">
-              <button class="btn-sm btn-action" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
-              <button class="btn-sm btn-outline" onclick="toggleComments('${d.id}', 'ind-${d.id}')"><i class="fas fa-comments"></i> Comments</button>
-            </div>
-            <div id="comments-container-ind-${d.id}" style="display:none; margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem;"></div>
           </div>
+          ${d.image_url ? `<img src="${d.image_url}" alt="Post Image" class="post-image">` : ''}
+          <div class="post-actions">
+            <button class="btn-comment-prof" onclick="toggleComments('${d.id}', 'ind-${d.id}')"><i class="fas fa-comments"></i> Comments</button>
+            <button class="btn-download-prof" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
+          </div>
+          <div id="comments-container-ind-${d.id}" style="display:none; padding:0 1.5rem 1.5rem;"></div>
         </div>`;
     });
     html += `</main>
 
     <aside>
       <div class="sidebar-widget">
-        <h3 class="widget-title">Search Library</h3>
-        <div class="search-box">
-          <input type="text" id="searchInput" placeholder="Search..." onkeyup="handleSearch(event)">
-          <button onclick="searchManual()"><i class="fas fa-search"></i></button>
-        </div>
-      </div>
-      <div class="sidebar-widget">
         <h3 class="widget-title">Forms</h3>
         <div class="filter-list">
           <span class="filter-tag ${activeFilters.form === 'All' ? 'active' : ''}" onclick="setFilter('form','All')">All</span>
-          <span class="filter-tag" onclick="setFilter('form','Form I')">Form I</span>
-          <span class="filter-tag" onclick="setFilter('form','Form II')">Form II</span>
-          <span class="filter-tag" onclick="setFilter('form','Form III')">Form III</span>
-          <span class="filter-tag" onclick="setFilter('form','Form IV')">Form IV</span>
-          <span class="filter-tag" onclick="setFilter('form','Form V')">Form V</span>
-          <span class="filter-tag" onclick="setFilter('form','Form VI')">Form VI</span>
+          <span class="filter-tag ${activeFilters.form === 'Form I' ? 'active' : ''}" onclick="setFilter('form','Form I')">Form I</span>
+          <span class="filter-tag ${activeFilters.form === 'Form II' ? 'active' : ''}" onclick="setFilter('form','Form II')">Form II</span>
+          <span class="filter-tag ${activeFilters.form === 'Form III' ? 'active' : ''}" onclick="setFilter('form','Form III')">Form III</span>
+          <span class="filter-tag ${activeFilters.form === 'Form IV' ? 'active' : ''}" onclick="setFilter('form','Form IV')">Form IV</span>
+          <span class="filter-tag ${activeFilters.form === 'Form V' ? 'active' : ''}" onclick="setFilter('form','Form V')">Form V</span>
+          <span class="filter-tag ${activeFilters.form === 'Form VI' ? 'active' : ''}" onclick="setFilter('form','Form VI')">Form VI</span>
         </div>
       </div>
       <div class="sidebar-widget">
         <h3 class="widget-title">Subjects</h3>
         <div class="filter-list">
-          ${[...new Set(allData.docs.map(d => d.subject).filter(Boolean))].map(s => `<span class="filter-tag" onclick="setFilter('subject','${s}')">${s}</span>`).join('') || '<p>No subjects yet.</p>'}
+          ${[...new Set(allData.docs.map(d => d.subject).filter(Boolean))].map(s => `<span class="filter-tag ${activeFilters.subject === s ? 'active' : ''}" onclick="setFilter('subject','${s}')">${s}</span>`).join('') || '<p>No subjects yet.</p>'}
         </div>
       </div>
     </aside>`;
     
     document.getElementById('appContent').innerHTML = html;
+  }
+
+  function toggleExpand(id) {
+    document.getElementById('post-' + id).classList.toggle('expanded');
   }
 
   function setFilter(key, val) { activeFilters[key] = val; renderHome(); }
@@ -335,7 +355,6 @@
   }
   function closeModal() { document.getElementById('readModal').classList.remove('active'); document.getElementById('modalIframe').src = ''; }
 
-  // Unified Comment Toggle (Works for both Group and Individual)
   async function toggleComments(id, prefix) {
     const container = document.getElementById('comments-container-' + prefix);
     if (container.style.display === 'block') { container.style.display = 'none'; return; }
@@ -349,7 +368,7 @@
         <h4>Leave a Comment</h4>
         <div class="form-group" style="margin-top:0.5rem;"><input type="text" id="cName-${prefix}" class="form-input" placeholder="Your Name"></div>
         <div class="form-group"><textarea id="cText-${prefix}" class="form-input" rows="2" placeholder="Write a comment..."></textarea></div>
-        <button class="btn-sm btn-action" onclick="submitComment('${id}', '${prefix}')"><i class="fas fa-paper-plane"></i> Post</button>
+        <button class="btn-download-prof" onclick="submitComment('${id}', '${prefix}')"><i class="fas fa-paper-plane"></i> Post</button>
         <div style="margin-top:1rem;">`;
     
     if (comments.length === 0) html += '<p style="font-size:0.85rem; color:var(--text-mute);">No comments yet.</p>';
@@ -366,13 +385,18 @@
     const comment = document.getElementById('cText-' + prefix).value;
     if (!name || !comment) return alert('Please fill in your name and comment.');
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "postComment", examId: id, name: name, comment: comment }) });
-    toggleComments(id, prefix); // Hide
-    toggleComments(id, prefix); // Show & Refresh
+    toggleComments(id, prefix); toggleComments(id, prefix); // Hide & Refresh
   }
 
   function renderStaticPage(page) {
-    let title = page.charAt(0).toUpperCase() + page.slice(1);
-    let content = allData.settings[page] || 'Content not available.';
+    let key = page;
+    if (page === 'about') key = 'about_us';
+    else if (page === 'contact') key = 'contact_us';
+    else if (page === 'privacy') key = 'privacy_policy';
+    else if (page === 'terms') key = 'terms_of_service';
+    
+    let title = page.charAt(0).toUpperCase() + page.slice(1).replace(/([A-Z])/g, ' $1');
+    let content = allData.settings[key] || 'Content not available. Admin can edit this in Dashboard.';
     document.getElementById('appContent').innerHTML = `<div style="grid-column: 1 / -1; max-width: 800px; margin: 2rem auto;"><h2>${title}</h2><div class="group-section"><p style="white-space: pre-wrap;">${content}</p></div></div>`;
   }
 
@@ -444,6 +468,7 @@
           <div class="form-group"><label>Region (Mkoa)</label><input type="text" id="uRegion" class="form-input"></div>
           <div class="form-group"><label>Exam Type</label><select id="uExamType" class="form-input"><option value="">Notes</option><option>Mock</option><option>Joint</option><option>Mid-term</option><option>Annual</option></select></div>
         </div>
+        <div class="form-group"><label>Image URL (Optional - for post thumbnail)</label><input type="text" id="uImage" class="form-input" placeholder="https://example.com/image.jpg"></div>
         <div class="form-group"><label>Description</label><textarea id="uDesc" class="form-input" rows="3"></textarea></div>
         <div class="form-group"><label>File</label><div class="file-drop" onclick="document.getElementById('uFile').click()"><p id="uFileName">Click to select file</p><input type="file" id="uFile" style="display:none" onchange="document.getElementById('uFileName').innerText=this.files[0].name"></div></div>
         <button class="btn-admin" id="uploadBtn" onclick="uploadDoc()">Upload & Publish</button></div>`;
@@ -488,7 +513,20 @@
     const reader = new FileReader();
     reader.onload = async function() {
       const base64 = reader.result.split(',')[1];
-      const payload = { action: "uploadDoc", group_id: document.getElementById('uGroup').value, title: document.getElementById('uTitle').value, subject: document.getElementById('uSubject').value, form: document.getElementById('uForm').value, type: document.getElementById('uType').value, desc: document.getElementById('uDesc').value, region: document.getElementById('uRegion').value, exam_type: document.getElementById('uExamType').value, year: document.getElementById('uYear').value, fileName: file.name, mimeType: file.type, fileData: base64 };
+      const payload = { 
+        action: "uploadDoc", 
+        group_id: document.getElementById('uGroup').value, 
+        title: document.getElementById('uTitle').value, 
+        subject: document.getElementById('uSubject').value, 
+        form: document.getElementById('uForm').value, 
+        type: document.getElementById('uType').value, 
+        desc: document.getElementById('uDesc').value, 
+        region: document.getElementById('uRegion').value, 
+        exam_type: document.getElementById('uExamType').value, 
+        year: document.getElementById('uYear').value, 
+        image_url: document.getElementById('uImage').value, 
+        fileName: file.name, mimeType: file.type, fileData: base64 
+      };
       await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
       alert('Uploaded Successfully!');
       await fetchData(); btn.disabled = false; btn.innerText = "Upload & Publish"; navigate('home');
@@ -497,7 +535,16 @@
   }
 
   async function saveSettings() {
-    const payload = { action: "saveSettings", whatsapp_link: document.getElementById('sWa').value, about_us: document.getElementById('sAbout').value, contact_us: document.getElementById('sContact').value, privacy_policy: document.getElementById('sPrivacy').value, terms_of_service: document.getElementById('sTerms').value, footer_text: document.getElementById('sFooter').value, bg_theme: document.getElementById('sBgTheme').value };
+    const payload = { 
+      action: "saveSettings", 
+      whatsapp_link: document.getElementById('sWa').value, 
+      about_us: document.getElementById('sAbout').value, 
+      contact_us: document.getElementById('sContact').value, 
+      privacy_policy: document.getElementById('sPrivacy').value, 
+      terms_of_service: document.getElementById('sTerms').value, 
+      footer_text: document.getElementById('sFooter').value, 
+      bg_theme: document.getElementById('sBgTheme').value 
+    };
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
     alert('Settings Saved!'); await fetchData(); navigate('home');
   }
