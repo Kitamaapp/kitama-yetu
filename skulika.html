@@ -3,141 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SKULiKA | Educational Repository for Form I - VI</title>
-<meta name="description" content="SKULiKA - Download and read educational notes for Form I to Form VI.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<title>SKULiKA | Exams & Notes Repository</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   :root {
-    --tanzania-green: #1eb53a; --tanzania-yellow: #fcd116; --tanzania-blue: #00a3dd;
-    --tanzania-black: #1a1a1a; --bg-color: #f4f7f6; --surface: #ffffff;
-    --text-dark: #1a1a1a; --text-light: #555555; --border: #e1e5e4;
-    --shadow: 0 4px 15px rgba(0,0,0,0.05); --shadow-hover: 0 8px 25px rgba(0,0,0,0.08);
-    --modal-bg: #ffffff; --input-bg: #f1f5f4;
+    --primary: #0f4c81; --primary-light: #3a6ea5; --accent: #1eb53a;
+    --bg-color: #f8f9fa; --surface: #ffffff; --text-dark: #1a1a1a;
+    --text-light: #555555; --text-mute: #888888; --border: #e1e5e8;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04); --shadow-md: 0 8px 24px rgba(0,0,0,0.06);
+    --radius: 10px;
   }
-  body.dark-mode {
-    --bg-color: #121212; --surface: #1e1e1e; --text-dark: #f1f1f1; --text-light: #b0b0b0;
-    --border: #333333; --shadow: 0 4px 15px rgba(0,0,0,0.3); --shadow-hover: 0 8px 25px rgba(0,0,0,0.5);
-    --modal-bg: #1e1e1e; --input-bg: #2a2a2a;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
-  body { font-family: 'Open Sans', sans-serif; background: var(--bg-color); color: var(--text-dark); line-height: 1.6; }
-  h1, h2, h3, h4, h5 { font-family: 'Poppins', sans-serif; color: var(--text-dark); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-dark); line-height: 1.6; }
+  h1, h2, h3, h4 { font-family: 'Merriweather', serif; color: var(--text-dark); }
+  a { text-decoration: none; color: var(--primary); }
 
-  /* Header */
-  header { background: var(--surface); box-shadow: var(--shadow); position: sticky; top: 0; z-index: 1000; border-top: 4px solid var(--tanzania-green); }
-  .nav-container { max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-  .logo { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--tanzania-green); }
-  .logo span { color: var(--tanzania-blue); }
-  .nav-actions { display: flex; align-items: center; gap: 1.5rem; }
+  header { background: var(--surface); box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); }
+  .nav-container { max-width: 1280px; margin: 0 auto; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+  .logo { display: flex; align-items: center; gap: 0.75rem; font-size: 1.4rem; font-weight: 700; color: var(--primary); cursor: pointer; }
+  .logo i { color: var(--accent); }
   .nav-links { display: flex; gap: 1.5rem; list-style: none; }
-  .nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 600; font-size: 0.95rem; cursor: pointer; }
-  .nav-links a:hover { color: var(--tanzania-blue); }
-  .theme-toggle { background: var(--input-bg); border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; color: var(--tanzania-yellow); font-size: 1rem; display: grid; place-items: center; }
-  .btn-upload-nav { background: var(--tanzania-green); color: #fff; padding: 0.5rem 1.2rem; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; }
-  .btn-upload-nav:hover { background: #16a34a; }
-  .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text-dark); cursor: pointer; }
-
-  /* Hero */
-  .hero { background: linear-gradient(135deg, var(--tanzania-green) 0%, #16a34a 100%); color: #fff; text-align: center; padding: 4rem 1.5rem; }
-  .hero h1 { font-size: 2.5rem; margin-bottom: 1rem; color: #fff; }
-  .hero p { font-size: 1.1rem; max-width: 700px; margin: 0 auto; opacity: 0.95; }
-
-  /* Layout */
-  .layout-container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 1fr 320px; gap: 2rem; }
-  .controls-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: var(--surface); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow); margin-bottom: 1.5rem; border: 1px solid var(--border); }
-  .form-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  .form-tab { padding: 0.4rem 0.9rem; background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text-light); font-size: 0.85rem; }
-  .form-tab.active, .form-tab:hover { background: var(--tanzania-green); color: #fff; border-color: var(--tanzania-green); }
-  .sort-dropdown select { padding: 0.4rem 0.9rem; background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text-dark); cursor: pointer; font-family: 'Open Sans', sans-serif; }
-
-  /* Notes List */
-  .main-content { min-width: 0; }
-  .list-title { border-bottom: 2px solid var(--tanzania-green); padding-bottom: 0.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-  .list-title h2 { font-size: 1.2rem; }
-  .list-title span { font-size: 0.85rem; color: var(--text-light); }
-  .note-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; gap: 1.5rem; align-items: flex-start; }
-  .note-item:hover { box-shadow: var(--shadow-hover); border-color: var(--tanzania-blue); }
-  .file-icon-box { width: 60px; height: 70px; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
-  .file-icon-box i { font-size: 1.5rem; margin-bottom: 0.2rem; }
-  .pdf { background: #e74c3c; } .docx { background: #2980b9; } .pptx { background: #d35400; } .xlsx { background: #27ae60; } .txt { background: #7f8c8d; }
-  .note-content { flex: 1; min-width: 0; }
-  .note-meta { display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.5rem; flex-wrap: wrap; }
-  .note-meta span { display: flex; align-items: center; gap: 0.3rem; }
-  .note-meta .tag { background: rgba(0, 163, 221, 0.1); color: var(--tanzania-blue); padding: 0.1rem 0.5rem; border-radius: 4px; font-weight: 600; }
-  .note-content h3 { font-size: 1.15rem; margin-bottom: 0.5rem; cursor: pointer; }
-  .note-content h3:hover { color: var(--tanzania-blue); }
-  .note-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; }
-  .note-actions { display: flex; gap: 0.75rem; }
-  .btn-sm { padding: 0.5rem 1rem; text-align: center; border-radius: 6px; font-size: 0.85rem; text-decoration: none; font-weight: 600; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; }
-  .btn-view { background: var(--input-bg); color: var(--tanzania-blue); }
-  .btn-view:hover { background: var(--border); }
-  .btn-download { background: var(--tanzania-green); color: #fff; }
-  .btn-download:hover { background: #16a34a; }
-
-  /* Sidebar */
-  .sidebar { display: flex; flex-direction: column; gap: 2rem; }
-  .widget { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; }
-  .widget-title { font-size: 1.1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
-  .widget-title i { color: var(--tanzania-green); }
-  .search-box { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--input-bg); }
-  .search-box input { flex: 1; border: none; padding: 0.75rem; outline: none; font-family: 'Open Sans', sans-serif; background: transparent; color: var(--text-dark); }
-  .search-box button { background: var(--tanzania-green); color: #fff; border: none; padding: 0 1rem; cursor: pointer; }
-  .labels-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .label-tag { background: var(--input-bg); padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.85rem; color: var(--text-dark); cursor: pointer; border: 1px solid var(--border); }
-  .label-tag:hover { background: var(--tanzania-green); color: #fff; border-color: var(--tanzania-green); }
-  .popular-list { list-style: none; }
-  .popular-list li { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-  .popular-list li:last-child { border-bottom: none; }
-  .popular-list li:hover .pop-title { color: var(--tanzania-blue); }
-  .pop-num { font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--tanzania-yellow); font-size: 1.2rem; -webkit-text-stroke: 1px var(--tanzania-green); }
-  .pop-title { font-size: 0.9rem; font-weight: 600; line-height: 1.4; }
-  .pop-meta { font-size: 0.75rem; color: var(--text-light); }
-
-  /* Admin Dashboard */
-  .admin-section { grid-column: 1 / -1; background: var(--surface); padding: 2rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 2rem; display: none; }
-  .admin-section.active { display: block; }
-  .upload-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-  .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-  .form-group.full { grid-column: 1 / -1; }
-  .form-group label { font-weight: 600; font-size: 0.9rem; color: var(--text-dark); }
-  .form-input { padding: 0.75rem; background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text-dark); font-family: 'Open Sans', sans-serif; }
-  .form-input:focus { outline: none; border-color: var(--tanzania-blue); }
-  .file-drop-area { padding: 2rem; border: 2px dashed var(--border); border-radius: 8px; text-align: center; cursor: pointer; color: var(--text-light); }
-  .file-drop-area i { font-size: 2rem; margin-bottom: 0.5rem; color: var(--tanzania-green); }
-  .btn-submit { grid-column: 1 / -1; background: var(--tanzania-blue); color: #fff; padding: 0.8rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1rem; }
-  .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
-  .admin-login { text-align: center; padding: 2rem; }
-  .admin-login input { padding: 0.75rem; margin: 0 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text-dark); }
-
-  /* Modal */
-  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
-  .modal-overlay.active { display: flex; }
-  .modal-content { background: var(--modal-bg); width: 100%; max-width: 900px; max-height: 90vh; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
-  .modal-header { padding: 1rem 1.5rem; background: var(--tanzania-green); color: #fff; display: flex; justify-content: space-between; align-items: center; }
-  .modal-header h3 { color: #fff; font-size: 1.1rem; }
-  .modal-close { background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; line-height: 1; }
-  .modal-body { padding: 0; overflow-y: auto; flex: 1; background: #000; }
-  .doc-iframe { width: 100%; height: 60vh; border: none; }
-  .modal-footer { padding: 1rem 1.5rem; background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 1rem; }
-
-  /* Footer */
-  footer { background: #1a1a1a; color: #fff; text-align: center; padding: 2rem 1.5rem; margin-top: 3rem; }
-  footer p { opacity: 0.8; font-size: 0.9rem; }
-  .footer-flag { height: 4px; background: linear-gradient(to right, var(--tanzania-green) 33%, var(--tanzania-yellow) 33% 66%, #000 66% 66.5%, var(--tanzania-blue) 66.5%); margin-bottom: 1.5rem; }
-
-  @media (max-width: 900px) {
-    .layout-container { grid-template-columns: 1fr; }
-    .sidebar { order: 2; }
+  .nav-links a { color: var(--text-dark); font-weight: 500; font-size: 0.95rem; cursor: pointer; }
+  .nav-links a:hover { color: var(--accent); }
+  .btn-admin { background: var(--primary); color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; }
+  
+  .container { max-width: 1280px; margin: 2rem auto; padding: 0 2rem; min-height: 70vh; }
+  .hero { background: linear-gradient(135deg, var(--primary) 0%, #0a2e50 100%); color: #fff; padding: 4rem 2rem; text-align: center; }
+  .hero h1 { color: #fff; font-size: 2.5rem; margin-bottom: 0.5rem; }
+  
+  .group-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: var(--bg-color); font-weight: 600; color: var(--text-light); font-size: 0.85rem; text-transform: uppercase; }
+  tr:hover { background: var(--bg-color); }
+  .btn-sm { padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.3rem; text-decoration: none; }
+  .btn-view { background: #e6f0f5; color: var(--primary); }
+  .btn-download { background: var(--accent); color: #fff; }
+  
+  .wa-bubble { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 999; cursor: pointer; }
+  
+  .admin-grid { display: grid; grid-template-columns: 250px 1fr; gap: 2rem; }
+  .admin-sidebar { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); height: fit-content; }
+  .admin-sidebar button { display: block; width: 100%; text-align: left; padding: 0.75rem; background: none; border: none; cursor: pointer; font-weight: 500; color: var(--text-dark); border-radius: 4px; }
+  .admin-sidebar button:hover, .admin-sidebar button.active { background: var(--bg-color); color: var(--primary); }
+  .stat-box { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); text-align: center; }
+  .stat-box h2 { font-size: 2rem; color: var(--primary); }
+  .stat-box p { color: var(--text-light); font-size: 0.9rem; }
+  
+  .form-group { margin-bottom: 1rem; }
+  .form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; }
+  .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; }
+  .file-drop { padding: 2rem; border: 2px dashed var(--border); border-radius: 8px; text-align: center; cursor: pointer; color: var(--text-light); background: var(--bg-color); }
+  
+  .comment-box { background: var(--bg-color); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid var(--accent); }
+  .comment-author { font-weight: 700; font-size: 0.85rem; color: var(--primary); }
+  
+  @media (max-width: 768px) {
     .nav-links { display: none; }
-    .mobile-menu-btn { display: block; }
-    .upload-form { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 600px) {
-    .note-item { flex-direction: column; }
-    .file-icon-box { width: 100%; height: 50px; flex-direction: row; gap: 0.5rem; }
-    .hero h1 { font-size: 1.8rem; }
+    .admin-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -145,385 +69,269 @@
 
 <header>
   <div class="nav-container">
-    <a href="#" class="logo"><i class="fas fa-graduation-cap"></i> SKU<span>L</span>iKA</a>
-    <div class="nav-actions">
-      <ul class="nav-links">
-        <li><a onclick="scrollToSection('home')">Home</a></li>
-        <li><a onclick="scrollToSection('notes')">Library</a></li>
-        <li><a onclick="toggleAdmin()">Admin</a></li>
-      </ul>
-      <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon" id="themeIcon"></i></button>
-      <button class="btn-upload-nav" onclick="toggleAdmin()">Upload Notes</button>
-      <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
-    </div>
+    <div class="logo" onclick="navigate('home')"><i class="fas fa-graduation-cap"></i> SKU<i>KA</i></div>
+    <ul class="nav-links">
+      <li><a onclick="navigate('home')">Home</a></li>
+      <li><a onclick="navigate('about')">About Us</a></li>
+      <li><a onclick="navigate('contact')">Contact</a></li>
+      <li><a onclick="navigate('privacy')">Privacy Policy</a></li>
+      <li><a onclick="navigate('terms')">Terms of Service</a></li>
+    </ul>
+    <button class="btn-admin" onclick="navigate('admin')">Admin</button>
   </div>
 </header>
 
-<section class="hero" id="home">
-  <h1>Welcome to SKULiKA</h1>
-  <p>The premier digital repository for secondary school students. Access, read, and download notes for Form I to Form VI. PDF, Word, PowerPoint, and Excel supported.</p>
-</section>
+<div id="appContent" class="container"><!-- Content --></div>
 
-<!-- Admin Dashboard -->
-<div class="layout-container" style="margin-top: 2rem;">
-  <section id="adminSection" class="admin-section">
-    <div id="adminLogin" class="admin-login">
-      <h2><i class="fas fa-lock"></i> Admin Dashboard</h2>
-      <p style="margin: 1rem 0;">Enter password to access the upload panel.</p>
-      <input type="password" id="adminPass" placeholder="Password" onkeyup="if(event.key==='Enter')checkAdmin()">
-      <button class="btn-upload-nav" onclick="checkAdmin()">Unlock</button>
-    </div>
+<a id="waBubble" class="wa-bubble" href="#" target="_blank" style="display: none;"><i class="fab fa-whatsapp"></i></a>
 
-    <div id="uploadPanel" style="display: none;">
-      <h2 style="margin-bottom: 1rem;"><i class="fas fa-upload"></i> Upload New Material</h2>
-      <p style="margin-bottom: 1.5rem; color: var(--text-light);">Select a file. It will automatically save to Google Drive and be available to students instantly.</p>
-      
-      <form class="upload-form" onsubmit="event.preventDefault(); uploadFile();">
-        <div class="form-group">
-          <label>Title of the Document</label>
-          <input type="text" id="uploadTitle" class="form-input" placeholder="e.g., Introduction to Algebra" required>
-        </div>
-        <div class="form-group">
-          <label>Subject</label>
-          <select id="uploadSubject" class="form-input" required>
-            <option value="">Select Subject...</option>
-            <option>Mathematics</option><option>Physics</option><option>Chemistry</option>
-            <option>Biology</option><option>English</option><option>Kiswahili</option>
-            <option>Geography</option><option>History</option><option>Economics</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Form Level</label>
-          <select id="uploadForm" class="form-input" required>
-            <option value="">Select Form...</option>
-            <option>Form I</option><option>Form II</option><option>Form III</option>
-            <option>Form IV</option><option>Form V</option><option>Form VI</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>File Type</label>
-          <select id="uploadType" class="form-input" required>
-            <option value="">Select Type...</option>
-            <option>PDF</option><option>DOCX</option><option>PPTX</option><option>XLSX</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label>Brief Description</label>
-          <textarea id="uploadDesc" class="form-input" rows="3" placeholder="Write a short summary..." required></textarea>
-        </div>
-        <div class="form-group full">
-          <label>File Upload</label>
-          <div class="file-drop-area" onclick="document.getElementById('fileInput').click()">
-            <i class="fas fa-cloud-upload-alt"></i>
-            <p id="fileNameDisplay">Click to select file (PDF, Word, Excel, PPT)</p>
-            <input type="file" id="fileInput" style="display:none;" onchange="updateFileName()" required>
-          </div>
-        </div>
-        <button type="submit" class="btn-submit" id="submitBtn">Upload & Publish</button>
-      </form>
+<!-- Read Modal -->
+<div id="readModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center; padding:1rem;">
+  <div style="background:#fff; width:100%; max-width:900px; height:90vh; border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
+    <div style="background:var(--primary); color:#fff; padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
+      <h3 id="modalTitle" style="color:#fff; font-family:'Inter';">Document Preview</h3>
+      <button onclick="closeModal()" style="background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer;">&times;</button>
     </div>
-  </section>
-</div>
-
-<!-- Main Layout -->
-<div class="layout-container" id="notes">
-  <main class="main-content">
-    <div class="controls-bar">
-      <div class="form-tabs">
-        <button class="form-tab active" onclick="filterNotes('All')">All</button>
-        <button class="form-tab" onclick="filterNotes('Form I')">Form I</button>
-        <button class="form-tab" onclick="filterNotes('Form II')">Form II</button>
-        <button class="form-tab" onclick="filterNotes('Form III')">Form III</button>
-        <button class="form-tab" onclick="filterNotes('Form IV')">Form IV</button>
-        <button class="form-tab" onclick="filterNotes('Form V')">Form V</button>
-        <button class="form-tab" onclick="filterNotes('Form VI')">Form VI</button>
-      </div>
-      <div class="sort-dropdown">
-        <select id="sortSelect" onchange="renderNotes()">
-          <option value="latest">Sort: Latest</option>
-          <option value="popular">Sort: Most Downloaded</option>
-          <option value="alpha">Sort: A-Z</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="list-title">
-      <h2 id="listHeader">All Notes</h2>
-      <span>Showing <span id="noteCount">0</span> notes</span>
-    </div>
-    <div id="notesList"></div>
-  </main>
-
-  <aside class="sidebar">
-    <div class="widget">
-      <h3 class="widget-title"><i class="fas fa-search"></i> Search Library</h3>
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search by title or subject..." onkeyup="searchNotes()">
-        <button onclick="searchNotes()"><i class="fas fa-arrow-right"></i></button>
-      </div>
-    </div>
-    <div class="widget">
-      <h3 class="widget-title"><i class="fas fa-tags"></i> Subjects</h3>
-      <div class="labels-list">
-        <span class="label-tag" onclick="filterBySubject('Mathematics')">Mathematics</span>
-        <span class="label-tag" onclick="filterBySubject('English')">English</span>
-        <span class="label-tag" onclick="filterBySubject('Biology')">Biology</span>
-        <span class="label-tag" onclick="filterBySubject('Chemistry')">Chemistry</span>
-        <span class="label-tag" onclick="filterBySubject('Physics')">Physics</span>
-        <span class="label-tag" onclick="filterBySubject('Geography')">Geography</span>
-        <span class="label-tag" onclick="filterBySubject('History')">History</span>
-        <span class="label-tag" onclick="filterBySubject('Kiswahili')">Kiswahili</span>
-      </div>
-    </div>
-    <div class="widget">
-      <h3 class="widget-title"><i class="fas fa-fire"></i> Popular Notes</h3>
-      <ul class="popular-list" id="popularList"></ul>
-    </div>
-  </aside>
-</div>
-
-<div class="modal-overlay" id="viewModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 id="modalTitle">Document Preview</h3>
-      <button class="modal-close" onclick="closeModal()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <iframe id="modalIframe" class="doc-iframe" src="about:blank"></iframe>
-    </div>
-    <div class="modal-footer">
-      <a id="modalDownload" href="#" class="btn-sm btn-download" target="_blank"><i class="fas fa-download"></i> Download File</a>
-    </div>
+    <iframe id="modalIframe" style="width:100%; flex:1; border:none;"></iframe>
   </div>
 </div>
 
-<footer>
-  <div class="footer-flag"></div>
-  <p>&copy; 2024 SKULiKA. Built for students and educators across Tanzania.</p>
+<footer style="background: var(--surface); border-top: 1px solid var(--border); padding: 2rem; text-align: center; margin-top: 3rem;">
+  <p id="footerText" style="color: var(--text-light); font-size: 0.9rem;">© 2024 SKULiKA.</p>
 </footer>
 
 <script>
-  // --- PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE ---
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOPinaVbx0tpL5tTyk2YmZQWYa6Rj_2FwKnV2LvBjRkt3OczQYbVfV9AcCICYZZg/exec';
-  
-  let notes = [];
-  let currentFilter = "All";
-  let currentSubjectFilter = null;
-  let currentSearch = "";
+  const SCRIPT_URL = 'PASTE_YOUR_DEPLOYED_APPS_SCRIPT_URL_HERE'; // Paste Link Here
+  let allData = { settings: {}, groups: [], exams: [] };
+  let currentExamId = null;
 
-  // --- Fetch Notes from Google Sheets (via Apps Script) ---
-  async function fetchNotes() {
-    try {
-      const response = await fetch(SCRIPT_URL);
-      const data = await response.json();
-      notes = data.reverse(); // Show latest first
-      renderNotes();
-      renderPopular();
-    } catch (error) {
-      console.error("Error fetching notes:", error);
-      document.getElementById("notesList").innerHTML = '<p style="text-align:center; padding:2rem; color:red;">Failed to load notes. Check if the Apps Script URL is correct.</p>';
+  async function fetchData() {
+    const res = await fetch(SCRIPT_URL + "?action=getHome");
+    allData = await res.json();
+    
+    document.getElementById('footerText').innerText = allData.settings.footer_text || '© SKULiKA';
+    const wa = document.getElementById('waBubble');
+    wa.href = allData.settings.whatsapp_link || '#';
+    wa.style.display = 'grid';
+  }
+
+  async function navigate(page, id = null) {
+    const app = document.getElementById('appContent');
+    app.innerHTML = '<p>Loading...</p>';
+    
+    if (page === 'home') await renderHome();
+    else if (page === 'group') await renderGroupDetails(id);
+    else if (page === 'admin') renderAdminLogin();
+    else if (page === 'about' || page === 'contact' || page === 'privacy' || page === 'terms') renderStaticPage(page);
+    else if (page === 'comments') await renderComments(id);
+    window.scrollTo(0, 0);
+  }
+
+  async function renderHome() {
+    let html = '<div class="hero"><h1>Mitihani & Notes</h1><p>Pakua mitihani ya mikoa tofauti kwa urahisi.</p></div><div class="container" style="padding-top:2rem;">';
+    if (!allData.groups || allData.groups.length === 0) {
+      html += '<p style="text-align:center; color:var(--text-light);">Hakuna mitihani kwa sasa.</p>';
+    } else {
+      allData.groups.forEach(g => {
+        html += `<div class="group-card"><h3 style="cursor:pointer; color:var(--primary);" onclick="navigate('group', '${g.id}')">${g.title}</h3><p style="color:var(--text-light); font-size:0.9rem;">${g.description || ''}</p><button class="btn-sm btn-view" style="margin-top:1rem;" onclick="navigate('group', '${g.id}')">View Exams <i class="fas fa-arrow-right"></i></button></div>`;
+      });
     }
+    html += '</div>';
+    document.getElementById('appContent').innerHTML = html;
   }
 
-  // --- Render Notes to UI ---
-  function renderNotes() {
-    var list = document.getElementById("notesList");
-    list.innerHTML = "";
-    var filteredNotes = notes.filter(note => {
-      var matchesForm = (currentFilter === "All" || note.form === currentFilter);
-      var matchesSubject = (currentSubjectFilter === null || note.subject === currentSubjectFilter);
-      var matchesSearch = (currentSearch === "" || (note.title && note.title.toLowerCase().includes(currentSearch)) || (note.subject && note.subject.toLowerCase().includes(currentSearch)));
-      return matchesForm && matchesSubject && matchesSearch;
-    });
-
-    var sortBy = document.getElementById("sortSelect").value;
-    if (sortBy === "popular") filteredNotes.sort((a, b) => b.downloads - a.downloads);
-    else if (sortBy === "alpha") filteredNotes.sort((a, b) => a.title.localeCompare(b.title));
-
-    document.getElementById("noteCount").innerText = filteredNotes.length;
-    var headerText = "All Notes";
-    if (currentFilter !== "All") headerText = currentFilter + " Notes";
-    if (currentSubjectFilter !== null) headerText = currentSubjectFilter + " Notes";
-    if (currentSearch !== "") headerText = "Search: '" + currentSearch + "'";
-    document.getElementById("listHeader").innerText = headerText;
-
-    if (filteredNotes.length === 0) {
-      list.innerHTML = '<p style="text-align:center; padding:2rem; color:var(--text-light);">No notes found. Try a different search or filter.</p>';
-      return;
+  async function renderGroupDetails(groupId) {
+    const group = allData.groups.find(g => String(g.id) === String(groupId));
+    const exams = allData.exams.filter(e => String(e.group_id) === String(groupId));
+    
+    let html = `<div class="container" style="padding-top:2rem;"><button onclick="navigate('home')" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:1rem;">&larr; Back</button><h2>${group.title}</h2><p style="color:var(--text-light); margin-bottom:2rem;">${group.description || ''}</p>`;
+    
+    if (exams.length === 0) html += '<p>No exams added yet.</p>';
+    else {
+      html += '<table><thead><tr><th>Region</th><th>Year</th><th>Views</th><th>Downloads</th><th>Actions</th></tr></thead><tbody>';
+      exams.forEach(ex => {
+        html += `<tr><td style="font-weight:600;">${ex.region}</td><td>${ex.year || 'N/A'}</td><td>${ex.views || 0}</td><td>${ex.downloads || 0}</td><td>
+          <button class="btn-sm btn-view" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read</button>
+          <a href="${ex.download_url}" class="btn-sm btn-download" target="_blank" onclick="incrementStat('${ex.id}', 'download')"><i class="fas fa-download"></i> Download</a>
+          <button class="btn-sm btn-view" onclick="navigate('comments', '${ex.id}')"><i class="fas fa-comments"></i> Comments</button>
+        </td></tr>`;
+      });
+      html += '</tbody></table>';
     }
-
-    filteredNotes.forEach(n => {
-      var iconHtml = n.type === "PDF" ? '<i class="fas fa-file-pdf"></i>' :
-                     n.type === "DOCX" ? '<i class="fas fa-file-word"></i>' :
-                     n.type === "PPTX" ? '<i class="fas fa-file-powerpoint"></i>' :
-                     n.type === "XLSX" ? '<i class="fas fa-file-excel"></i>' : '<i class="fas fa-file"></i>';
-                     
-      var formattedDate = n.created_at ? new Date(n.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
-      var card = document.createElement("div");
-      card.className = "note-item";
-      card.innerHTML = 
-        '<div class="file-icon-box ' + n.type.toLowerCase() + '">' + iconHtml + '<span>' + n.type + '</span></div>' +
-        '<div class="note-content">' +
-          '<div class="note-meta">' +
-            '<span><i class="fas fa-calendar"></i> ' + formattedDate + '</span>' +
-            '<span><i class="fas fa-download"></i> ' + (n.downloads || 0) + '</span>' +
-            '<span class="tag">' + n.form + '</span>' +
-            '<span class="tag">' + n.subject + '</span>' +
-          '</div>' +
-          '<h3 onclick="openModal(\'' + n.id + '\')">' + n.title + '</h3>' +
-          '<p class="note-desc">' + n.description + '</p>' +
-          '<div class="note-actions">' +
-            '<button class="btn-sm btn-view" onclick="openModal(\'' + n.id + '\')"><i class="fas fa-book-open"></i> Read Online</button>' +
-            '<a href="' + n.download_url + '" class="btn-sm btn-download" target="_blank"><i class="fas fa-download"></i> Download</a>' +
-          '</div>' +
-        '</div>';
-      list.appendChild(card);
-    });
+    html += '</div>';
+    document.getElementById('appContent').innerHTML = html;
   }
 
-  // --- Filters ---
-  function filterNotes(form) {
-    currentFilter = form; currentSubjectFilter = null; currentSearch = "";
-    document.getElementById("searchInput").value = "";
-    var tabs = document.getElementsByClassName("form-tab");
-    for (var i = 0; i < tabs.length; i++) {
-      tabs[i].classList.remove("active");
-      if (tabs[i].innerText === form || (form === "All" && tabs[i].innerText === "All")) tabs[i].classList.add("active");
-    }
-    renderNotes();
+  async function openModal(fileId, examId) {
+    document.getElementById('modalIframe').src = "https://drive.google.com/file/d/" + fileId + "/preview";
+    document.getElementById('readModal').style.display = 'flex';
+    incrementStat(examId, 'view');
   }
-  function filterBySubject(subject) {
-    currentSubjectFilter = subject; currentFilter = "All";
-    var tabs = document.getElementsByClassName("form-tab");
-    for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
-    tabs[0].classList.add("active"); 
-    renderNotes();
-  }
-  function searchNotes() { currentSearch = document.getElementById("searchInput").value.toLowerCase(); renderNotes(); }
+  function closeModal() { document.getElementById('readModal').style.display = 'none'; document.getElementById('modalIframe').src = ''; }
 
-    // --- Modal (Google Drive Preview) ---
-  function openModal(id) {
-    var note = notes.find(n => n.id == id);
-    if (note) {
-      document.getElementById("modalTitle").innerText = note.title;
-      // Google Drive Embed Format
-      document.getElementById("modalIframe").src = "https://drive.google.com/file/d/" + note.file_id + "/preview";
-      document.getElementById("modalDownload").href = note.download_url;
-      document.getElementById("viewModal").classList.add("active");
-      document.body.style.overflow = "hidden";
-    }
-  }
-  function closeModal() {
-    document.getElementById("viewModal").classList.remove("active");
-    document.getElementById("modalIframe").src = "about:blank";
-    document.body.style.overflow = "auto";
-  }
-  document.getElementById("viewModal").addEventListener("click", function(e) { if (e.target === this) closeModal(); });
-
-  // --- Popular List ---
-  function renderPopular() {
-    var list = document.getElementById("popularList");
-    var popular = [...notes].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 5);
-    var html = "";
-    popular.forEach((p, i) => {
-      html += '<li onclick="openModal(\'' + p.id + '\')"><span class="pop-num">' + (i + 1) + '</span><div><div class="pop-title">' + p.title + '</div><div class="pop-meta">' + p.form + ' &bull; ' + p.subject + '</div></div></li>';
-    });
-    list.innerHTML = html;
+  async function incrementStat(examId, type) {
+    await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "incrementStat", examId: examId, type: type }) });
   }
 
-  // --- Dark Mode ---
-  document.getElementById("themeToggle").addEventListener("click", function() {
-    document.body.classList.toggle("dark-mode");
-    var icon = document.getElementById("themeIcon");
-    if (document.body.classList.contains("dark-mode")) { icon.classList.remove("fa-moon"); icon.classList.add("fa-sun"); }
-    else { icon.classList.remove("fa-sun"); icon.classList.add("fa-moon"); }
-  });
+  async function renderStaticPage(page) {
+    let title = page.charAt(0).toUpperCase() + page.slice(1).replace(/([A-Z])/g, ' $1');
+    let content = allData.settings[page] || 'Content not available.';
+    document.getElementById('appContent').innerHTML = `<div class="container" style="padding-top:2rem;"><h2 style="margin-bottom:1rem;">${title}</h2><div class="group-card"><p style="white-space: pre-wrap;">${content}</p></div></div>`;
+  }
 
-  // --- Admin Dashboard ---
-  function scrollToSection(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth' }); }
-  function toggleAdmin() {
-    document.getElementById("adminSection").classList.toggle("active");
-    document.getElementById("adminSection").scrollIntoView({ behavior: 'smooth' });
+  // --- COMMENTS ---
+  async function renderComments(examId) {
+    currentExamId = examId;
+    const res = await fetch(SCRIPT_URL + "?action=getComments&examId=" + examId);
+    const comments = await res.json();
+    
+    let html = `<div class="container" style="padding-top:2rem;"><button onclick="history.back()" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:1rem;">&larr; Back</button><h2>Comments</h2>
+      <div class="group-card" style="margin:1.5rem 0;"><h4>Leave a Comment</h4>
+      <div class="form-group"><input type="text" id="cName" class="form-input" placeholder="Your Name"></div>
+      <div class="form-group"><textarea id="cText" class="form-input" rows="3" placeholder="Your Comment..."></textarea></div>
+      <button class="btn-sm btn-download" onclick="postComment()">Post Comment</button></div>`;
+    
+    if (comments.length === 0) html += '<p>No comments yet.</p>';
+    comments.forEach(c => { html += `<div class="comment-box"><div class="comment-author">${c.name}</div><p style="font-size:0.9rem; margin-top:0.2rem;">${c.comment}</p></div>`; });
+    html += '</div>';
+    document.getElementById('appContent').innerHTML = html;
+  }
+
+  async function postComment() {
+    const name = document.getElementById('cName').value;
+    const comment = document.getElementById('cText').value;
+    if (!name || !comment) return alert('Please fill all fields.');
+    await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "postComment", examId: currentExamId, name: name, comment: comment }) });
+    alert('Comment posted!');
+    renderComments(currentExamId);
+  }
+
+  // --- ADMIN DASHBOARD ---
+  let isAdmin = false;
+  function renderAdminLogin() {
+    if (isAdmin) return renderAdminDashboard();
+    document.getElementById('appContent').innerHTML = `<div class="container" style="max-width:400px; padding-top:4rem; text-align:center;"><div class="group-card"><h2>Admin Login</h2><input type="password" id="adminPass" class="form-input" placeholder="Password" style="margin:1rem 0;"><button class="btn-admin" style="width:100%;" onclick="checkAdmin()">Login</button></div></div>`;
   }
   function checkAdmin() {
-    let pass = document.getElementById("adminPass").value;
-    if (pass === "skulika-admin") { // Change this password!
-      document.getElementById("adminLogin").style.display = "none";
-      document.getElementById("uploadPanel").style.display = "block";
-    } else { alert("Incorrect Password!"); }
-  }
-  function updateFileName() {
-    var fileInput = document.getElementById("fileInput");
-    if (fileInput.files.length > 0) document.getElementById("fileNameDisplay").innerText = fileInput.files[0].name;
+    if (document.getElementById('adminPass').value === 'skulika-admin') { isAdmin = true; renderAdminDashboard(); }
+    else { alert('Wrong password!'); }
   }
 
-  // --- Automated Upload to Google Drive (via Apps Script) ---
-  async function uploadFile() {
-    const submitBtn = document.getElementById("submitBtn");
-    const fileInput = document.getElementById("fileInput");
-    
-    if (!fileInput.files || fileInput.files.length === 0) { alert("Please select a file first."); return; }
-    
-    submitBtn.disabled = true;
-    submitBtn.innerText = "Uploading to Google Drive... Please wait.";
+  function renderAdminDashboard() {
+    document.getElementById('appContent').innerHTML = `
+      <div class="container" style="padding-top:2rem;">
+        <h2 style="margin-bottom:1.5rem;">Admin Dashboard</h2>
+        <div class="admin-grid">
+          <div class="admin-sidebar">
+            <button class="active" onclick="showTab('stats', this)">Statistics</button>
+            <button onclick="showTab('groups', this)">Manage Groups</button>
+            <button onclick="showTab('upload', this)">Upload Exam</button>
+            <button onclick="showTab('settings', this)">Site Settings</button>
+          </div>
+          <div id="adminContent">
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem;">
+              <div class="stat-box"><h2>${allData.groups.length}</h2><p>Groups</p></div>
+              <div class="stat-box"><h2>${allData.exams.length}</h2><p>Exams</p></div>
+              <div class="stat-box"><h2>${allData.exams.reduce((a,b)=>a+(b.views||0),0)}</h2><p>Total Views</p></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
 
+  function showTab(tab, btn) {
+    document.querySelectorAll('.admin-sidebar button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    let html = '';
+
+    if (tab === 'stats') {
+      html = `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem;">
+        <div class="stat-box"><h2>${allData.groups.length}</h2><p>Groups</p></div><div class="stat-box"><h2>${allData.exams.length}</h2><p>Exams</p></div><div class="stat-box"><h2>${allData.exams.reduce((a,b)=>a+(b.views||0),0)}</h2><p>Total Views</p></div></div>`;
+    } 
+    else if (tab === 'groups') {
+      html = `<div class="group-card"><h3>Create New Group (e.g., MOCK 2026)</h3><div class="form-group"><label>Title</label><input type="text" id="gTitle" class="form-input"></div><div class="form-group"><label>Description</label><textarea id="gDesc" class="form-input"></textarea></div><button class="btn-admin" onclick="createGroup()">Create Group</button></div><div id="groupList" style="margin-top:2rem;"></div>`;
+      document.getElementById('adminContent').innerHTML = html;
+      loadAdminGroupsList();
+      return;
+    } 
+    else if (tab === 'upload') {
+      let opts = allData.groups.map(g => `<option value="${g.id}">${g.title}</option>`).join('');
+      html = `<div class="group-card"><h3>Upload New Exam</h3>
+        <div class="form-group"><label>Select Group</label><select id="uGroup" class="form-input">${opts}</select></div>
+        <div class="form-group"><label>Region (Mkoa)</label><input type="text" id="uRegion" class="form-input" placeholder="Mtwara"></div>
+        <div class="form-group"><label>Year</label><input type="number" id="uYear" class="form-input" placeholder="2026"></div>
+        <div class="form-group"><label>File (PDF, Word, Excel)</label>
+          <div class="file-drop" onclick="document.getElementById('uFile').click()">
+            <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--primary);"></i>
+            <p id="uFileName">Click to select file</p>
+            <input type="file" id="uFile" style="display:none" onchange="document.getElementById('uFileName').innerText=this.files[0].name">
+          </div>
+        </div>
+        <button class="btn-admin" id="uploadBtn" onclick="uploadExam()">Upload & Publish</button>
+      </div>`;
+    } 
+    else if (tab === 'settings') {
+      let s = allData.settings;
+      html = `<div class="group-card"><h3>Site Settings</h3>
+        <div class="form-group"><label>WhatsApp Link</label><input type="text" id="sWa" class="form-input" value="${s.whatsapp_link || ''}"></div>
+        <div class="form-group"><label>About Us</label><textarea id="sAbout" class="form-input" rows="3">${s.about_us || ''}</textarea></div>
+        <div class="form-group"><label>Contact Us</label><textarea id="sContact" class="form-input" rows="3">${s.contact_us || ''}</textarea></div>
+        <div class="form-group"><label>Privacy Policy</label><textarea id="sPrivacy" class="form-input" rows="3">${s.privacy_policy || ''}</textarea></div>
+        <div class="form-group"><label>Terms of Service</label><textarea id="sTerms" class="form-input" rows="3">${s.terms_of_service || ''}</textarea></div>
+        <div class="form-group"><label>Footer Text</label><input type="text" id="sFooter" class="form-input" value="${s.footer_text || ''}"></div>
+        <button class="btn-admin" onclick="saveSettings()">Save Settings</button>
+      </div>`;
+    }
+    document.getElementById('adminContent').innerHTML = html;
+  }
+
+  async function loadAdminGroupsList() {
+    let html = '<h3>Existing Groups</h3>';
+    allData.groups.forEach(g => {
+      html += `<div class="group-card" style="display:flex; justify-content:space-between; align-items:center;"><div><strong>${g.title}</strong><br><small>${g.description}</small></div></div>`;
+    });
+    document.getElementById('groupList').innerHTML = html;
+  }
+
+  async function createGroup() {
+    await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "createGroup", title: document.getElementById('gTitle').value, description: document.getElementById('gDesc').value }) });
+    alert('Group Created! Refreshing data...');
+    await fetchData(); renderAdminDashboard(); showTab('groups', document.querySelector('.admin-sidebar button:nth-child(2)'));
+  }
+
+  async function uploadExam() {
+    const fileInput = document.getElementById('uFile');
+    if (!fileInput.files.length) return alert('Select a file!');
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true; btn.innerText = "Uploading...";
+    
     const file = fileInput.files[0];
-    const title = document.getElementById("uploadTitle").value;
-    const subject = document.getElementById("uploadSubject").value;
-    const form = document.getElementById("uploadForm").value;
-    const type = document.getElementById("uploadType").value;
-    const desc = document.getElementById("uploadDesc").value;
-
-    // Convert file to Base64 to send to Google Apps Script
     const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async function () {
-      const base64Data = reader.result.split(',')[1]; // Remove data:mime;base64, prefix
+    reader.onload = async function() {
+      const base64 = reader.result.split(',')[1];
+      const payload = { action: "uploadExam", groupId: document.getElementById('uGroup').value, region: document.getElementById('uRegion').value, year: document.getElementById('uYear').value, fileName: file.name, mimeType: file.type, fileData: base64 };
       
-      const payload = {
-        action: "upload",
-        title: title,
-        subject: subject,
-        form: form,
-        type: type,
-        desc: desc,
-        fileName: file.name,
-        mimeType: file.type,
-        fileData: base64Data
-      };
-
-      try {
-        // Send to Google Apps Script
-        const response = await fetch(SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" }, // Prevents CORS preflight
-          body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-
-        if (result.status === "success") {
-          alert("Success! Note published to SKULiKA.");
-          document.querySelector('.upload-form').reset();
-          document.getElementById("fileNameDisplay").innerText = "Click to select file (PDF, Word, Excel, PPT)";
-          toggleAdmin(); // Hide admin panel
-          fetchNotes(); // Refresh the list on the website
-        } else {
-          alert("Upload failed: " + result.message);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        alert("An error occurred during upload.");
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Upload & Publish";
-      }
+      await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
+      alert('Exam Uploaded Successfully!');
+      await fetchData(); 
+      btn.disabled = false; btn.innerText = "Upload & Publish";
+      document.getElementById('uFileName').innerText = "Click to select file";
     };
+    reader.readAsDataURL(file);
   }
 
-  // --- Initialize ---
-  window.onload = fetchNotes;
-</script>
+  async function saveSettings() {
+    const payload = { action: "saveSettings", whatsapp_link: document.getElementById('sWa').value, about_us: document.getElementById('sAbout').value, contact_us: document.getElementById('sContact').value, privacy_policy: document.getElementById('sPrivacy').value, terms_of_service: document.getElementById('sTerms').value, footer_text: document.getElementById('sFooter').value };
+    await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
+    alert('Settings Saved!');
+    await fetchData();
+  }
 
+  // --- INIT ---
+  window.onload = async function() {
+    await fetchData();
+    navigate('home');
+  };
+</script>
 </body>
-                                           </html>
+</html>
