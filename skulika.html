@@ -3,165 +3,178 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SKULiKA | Educational Repository</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+<title>SKULiKA | Notes for Form I to Form VI</title>
+<meta name="description" content="SKULiKA - Download and read notes for Form I, II, III, IV, V and VI. PDF, Word, PowerPoint, Excel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   :root {
-    --primary: #0f4c81; --primary-light: #3a6ea5; --accent: #1eb53a;
-    --bg-color: #f8f9fa; --surface: #ffffff; --text-dark: #1a1a1a;
-    --text-light: #555555; --text-mute: #888888; --border: #e1e5e8;
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04); --shadow-md: 0 8px 24px rgba(0,0,0,0.1);
-    --radius: 12px;
+    --tanzania-green: #1eb53a;
+    --tanzania-yellow: #fcd116;
+    --tanzania-blue: #00a3dd;
+    --tanzania-black: #1a1a1a;
+    --bg-color: #f4f7f6;
+    --surface: #ffffff;
+    --text-dark: #222;
+    --text-light: #555;
+    --text-mute: #888;
+    --border: #e1e5e4;
+    --shadow: 0 4px 15px rgba(0,0,0,0.05);
+    --shadow-hover: 0 8px 25px rgba(0,0,0,0.08);
   }
   body.dark-mode {
-    --bg-color: #0f1115; --surface: #1a1d23; --text-dark: #f1f1f1;
-    --text-light: #b0b0b0; --text-mute: #777777; --border: #2a2e36;
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.3); --shadow-md: 0 8px 24px rgba(0,0,0,0.5);
+    --bg-color: #121212;
+    --surface: #1e1e1e;
+    --text-dark: #f1f1f1;
+    --text-light: #b0b0b0;
+    --text-mute: #777;
+    --border: #333;
+    --shadow: 0 4px 15px rgba(0,0,0,0.3);
+    --shadow-hover: 0 8px 25px rgba(0,0,0,0.5);
   }
-  body.texture-light { background-color: #f0f2f5; background-image: radial-gradient(#dfe4ea 1px, transparent 1px); background-size: 20px 20px; }
+  body.texture-light { background-color: #f4f7f6; background-image: radial-gradient(#dfe4ea 1px, transparent 1px); background-size: 20px 20px; }
   body.texture-ocean { background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); }
   body.texture-forest { background: linear-gradient(135deg, #e6f7e6 0%, #d4e9d4 100%); }
-  body.texture-geometric { background-color: #f0f4f8; background-image: linear-gradient(30deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0), linear-gradient(150deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0), linear-gradient(30deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0), linear-gradient(150deg, #e1e8f0 12%, transparent 12.5%, transparent 87%, #e1e8f0 87.5%, #e1e8f0); background-size: 40px 70px; background-position: 0 0, 0 0, 20px 35px, 20px 35px; }
-  
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  /* Strict Mobile Fix */
-  html, body { 
-    overflow-x: hidden !important; 
-    max-width: 100% !important; 
-    width: 100% !important; 
-    overflow-wrap: break-word; 
-    word-wrap: break-word; 
-  }
-  body { font-family: 'Inter', sans-serif; color: var(--text-dark); line-height: 1.6; transition: background 0.3s, color 0.3s; }
-  h1, h2, h3, h4 { font-family: 'Merriweather', serif; color: var(--text-dark); }
-  a { text-decoration: none; color: var(--primary); }
-  img { max-width: 100%; height: auto; display: block; }
 
-  header { background: var(--surface); box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); }
-  .nav-container { max-width: 1280px; margin: 0 auto; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; }
-  .logo { display: flex; align-items: center; gap: 0.5rem; font-size: 1.3rem; font-weight: 700; color: var(--primary); cursor: pointer; }
-  .logo i { color: var(--accent); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { overflow-x: hidden !important; max-width: 100%; width: 100%; }
+  body { font-family: 'Open Sans', sans-serif; background: var(--bg-color); color: var(--text-dark); line-height: 1.6; transition: background 0.3s, color 0.3s; }
+  h1, h2, h3, h4, h5 { font-family: 'Poppins', sans-serif; }
+  a { text-decoration: none; color: var(--tanzania-blue); }
+
+  /* --- Header --- */
+  header { background: var(--surface); box-shadow: var(--shadow); position: sticky; top: 0; z-index: 1000; border-top: 4px solid var(--tanzania-green); }
+  .nav-container { max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+  .logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--tanzania-green); cursor: pointer; }
+  .logo span { color: var(--tanzania-blue); }
   .nav-links { display: flex; gap: 1.5rem; list-style: none; align-items: center; }
-  .nav-links a { color: var(--text-dark); font-weight: 500; font-size: 0.95rem; cursor: pointer; position: relative; transition: color 0.2s; }
-  .nav-links a:hover { color: var(--accent); }
-  .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px; background: var(--accent); transition: width 0.3s; }
-  .nav-links a:hover::after { width: 100%; }
-  .nav-actions { display: flex; gap: 0.75rem; align-items: center; }
-  .theme-toggle { background: var(--bg-color); border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; color: var(--text-light); display: grid; place-items: center; transition: all 0.3s; flex-shrink: 0; }
-  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
-  .btn-admin { background: var(--primary); color: #fff; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; transition: transform 0.2s; }
-  .btn-admin:hover { transform: translateY(-2px); }
+  .nav-links a { color: var(--text-dark); font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: color 0.3s; }
+  .nav-links a:hover { color: var(--tanzania-blue); }
+  .nav-actions { display: flex; gap: 1rem; align-items: center; }
+  .theme-toggle { background: var(--bg-color); border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; color: var(--text-light); display: grid; place-items: center; }
+  .btn-admin { background: var(--tanzania-green); color: #fff; padding: 0.5rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; }
   .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text-dark); cursor: pointer; }
-  .mobile-nav { display: none; flex-direction: column; background: var(--surface); padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
-  .mobile-nav.active { display: flex; animation: slideDown 0.3s ease; }
+  .mobile-nav { display: none; flex-direction: column; background: var(--surface); padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+  .mobile-nav.active { display: flex; }
   .mobile-nav a { padding: 0.75rem 0; color: var(--text-dark); border-bottom: 1px solid var(--border); cursor: pointer; }
 
-  /* Layout Padding Matches Header */
-  .layout { max-width: 1280px; margin: 2rem auto; padding: 0 1.25rem; display: grid; grid-template-columns: 1fr 280px; gap: 2rem; width: 100%; }
-  .hero { grid-column: 1 / -1; background: linear-gradient(135deg, var(--primary) 0%, #0a2e50 100%); color: #fff; padding: 4rem 1.5rem; text-align: center; border-radius: var(--radius); margin-bottom: 1.5rem; box-shadow: var(--shadow-md); animation: fadeIn 0.8s; }
-  .hero h1 { color: #fff; font-size: clamp(1.8rem, 5vw, 2.5rem); margin-bottom: 0.5rem; }
+  /* --- Main Wrapper (Fixes Padding Issue) --- */
+  .page-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    min-height: 70vh;
+    width: 100%;
+  }
 
-  .top-search { grid-column: 1 / -1; margin-bottom: 1.5rem; }
-  .search-bar { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 50px; overflow: hidden; box-shadow: var(--shadow-sm); }
-  .search-bar input { flex: 1; border: none; padding: 1rem 1.5rem; outline: none; background: var(--surface); color: var(--text-dark); font-size: 1rem; min-width: 0; }
-  .search-bar button { background: var(--primary); color: #fff; border: none; padding: 0 1.5rem; cursor: pointer; font-weight: 600; flex-shrink: 0; }
+  /* --- Hero --- */
+  .hero { background: linear-gradient(135deg, var(--tanzania-green) 0%, #16a34a 100%); color: #fff; text-align: center; padding: 3rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; width: 100%; box-sizing: border-box; }
+  .hero h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: #fff; }
+  .hero p { font-size: 1.1rem; max-width: 700px; margin: 0 auto; opacity: 0.95; }
 
-  main { display: flex; flex-direction: column; gap: 2rem; min-width: 0; }
+  /* --- Layout Grid --- */
+  .layout-grid { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; width: 100%; }
+  .main-content { min-width: 0; }
+  .section-divider { font-size: 1.4rem; color: var(--tanzania-black); border-left: 5px solid var(--tanzania-green); padding-left: 1rem; margin-bottom: 1.5rem; margin-top: 2rem; }
   
-  .section-divider { font-size: 1.4rem; color: var(--primary); border-left: 5px solid var(--accent); padding-left: 1rem; margin-bottom: 1.5rem; margin-top: 1rem; font-family: 'Merriweather', serif; }
+  /* --- Filter Tabs --- */
+  .form-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: var(--surface); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow); }
+  .form-tab { padding: 0.5rem 1rem; background: #f1f5f4; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: all 0.3s; font-size: 0.9rem; }
+  .form-tab.active, .form-tab:hover { background: var(--tanzania-green); color: #fff; border-color: var(--tanzania-green); }
 
-  .post-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; animation: fadeInUp 0.5s; transition: box-shadow 0.3s; max-width: 100%; }
-  .post-card:hover { box-shadow: var(--shadow-md); }
+  /* --- Expandable Note Item --- */
+  .note-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; transition: all 0.3s; display: flex; flex-direction: column; box-shadow: var(--shadow); }
+  .note-item:hover { box-shadow: var(--shadow-hover); border-color: var(--tanzania-blue); }
+  .note-item.expanded .note-expanded { display: block; animation: fadeIn 0.3s; }
+  .note-item.expanded .read-more-btn { display: none; }
   
-  /* Flex Fix for Collapsed Posts */
-  .post-collapsed { display: flex; gap: 1rem; padding: 1rem; cursor: pointer; align-items: center; min-width: 0; }
-  .post-thumbnail { width: 100px; height: 80px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: var(--bg-color); }
-  .post-thumbnail-placeholder { width: 100px; height: 80px; border-radius: 8px; flex-shrink: 0; display: grid; place-items: center; color: #fff; font-size: 1.5rem; }
-  .bg-pdf { background: #e74c3c; } .bg-docx { background: #2980b9; } .bg-pptx { background: #d35400; } .bg-xlsx { background: #27ae60; }
+  .note-collapsed { display: flex; gap: 1.5rem; align-items: flex-start; cursor: pointer; }
+  .file-icon-box { width: 60px; height: 70px; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+  .file-icon-box i { font-size: 1.5rem; margin-bottom: 0.2rem; }
+  .pdf { background: #e74c3c; } .docx { background: #2980b9; } .pptx { background: #d35400; } .xlsx { background: #27ae60; } .txt { background: #7f8c8d; }
   
-  .post-info { flex: 1; min-width: 0; overflow: hidden; }
-  .post-title { font-size: 1.1rem; margin-bottom: 0.3rem; color: var(--primary); font-family: 'Merriweather', serif; word-wrap: break-word; }
-  .post-author { font-size: 0.8rem; color: var(--text-mute); display: flex; align-items: center; gap: 0.3rem; }
-  
-  .post-expanded { display: none; padding: 0 1rem 1rem; border-top: 1px solid var(--border); margin-top: 0.5rem; animation: fadeIn 0.3s; max-width: 100%; overflow: hidden; }
-  .post-card.expanded .post-expanded { display: block; }
-  .post-card.expanded .post-collapsed { border-bottom: 1px solid var(--border); }
-  
-  .post-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 1rem 0; }
-  .tag-subject { background: rgba(30, 181, 58, 0.1); color: var(--accent); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-  .tag-form { background: rgba(15, 76, 129, 0.1); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-  .tag-type { background: rgba(136, 136, 136, 0.1); color: var(--text-mute); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+  .note-content { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; }
+  .note-meta { display: flex; gap: 0.5rem; font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.5rem; flex-wrap: wrap; }
+  .note-meta .tag { padding: 0.1rem 0.5rem; border-radius: 4px; font-weight: 600; }
+  .tag-form { background: rgba(30, 181, 58, 0.1); color: var(--tanzania-green); }
+  .tag-subject { background: #e6f0f5; color: var(--tanzania-blue); }
+  .tag-type { background: #eee; color: var(--text-mute); }
   body.dark-mode .tag-type { background: #333; }
   
-  .post-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; line-height: 1.7; word-wrap: break-word; overflow-wrap: break-word; }
-  
-  .post-image-full { width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; }
-  
-  .post-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
-  .btn-download-prof { background: linear-gradient(135deg, var(--accent), #16a34a); color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: transform 0.2s, box-shadow 0.2s; border: none; cursor: pointer; font-size: 0.85rem; }
-  .btn-download-prof:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(30, 181, 58, 0.3); }
-  .btn-comment-prof { background: transparent; color: var(--text-light); padding: 0.6rem 1rem; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border); cursor: pointer; font-size: 0.85rem; }
-  .btn-comment-prof:hover { border-color: var(--primary); color: var(--primary); }
+  .note-content h3 { font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--tanzania-black); }
+  body.dark-mode .note-content h3 { color: var(--text-dark); }
+  .note-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .read-more-btn { display: inline-block; color: var(--tanzania-green); font-size: 0.85rem; font-weight: 600; cursor: pointer; }
 
-  /* Continuous Group Table */
-  .group-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); animation: fadeInUp 0.5s; max-width: 100%; }
-  .group-header { font-size: 1.3rem; color: #fff; background: var(--primary); padding: 1rem 1.5rem; font-family: 'Merriweather', serif; }
-  
-  /* Table Wrap ensures it scrolls INSIDE the box, not the page */
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; max-width: 100%; }
-  table { width: 100%; border-collapse: collapse; min-width: 100%; }
+  .note-expanded { display: none; padding-top: 1rem; margin-top: 1rem; border-top: 1px dashed var(--border); }
+  .post-image-full { width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; }
+  .note-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+  .btn-sm { padding: 0.5rem 1rem; text-align: center; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; }
+  .btn-view { background: #eef4f8; color: var(--tanzania-blue); }
+  .btn-view:hover { background: #e1ebf2; }
+  .btn-download { background: var(--tanzania-green); color: #fff; }
+  .btn-download:hover { background: #16a34a; }
+
+  /* --- Group Tables --- */
+  .group-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
+  .group-header { font-size: 1.2rem; color: #fff; background: var(--tanzania-green); padding: 0.8rem 1.5rem; font-family: 'Poppins', sans-serif; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+  table { width: 100%; border-collapse: collapse; min-width: 400px; }
   th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; word-wrap: break-word; }
   th { background: var(--bg-color); color: var(--text-light); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
-  
-  .region-row td { 
-    background: var(--accent) !important; 
-    color: #fff !important; 
-    font-weight: 700; 
-    font-size: 0.95rem; 
-    border-bottom: 2px solid var(--primary) !important; 
-    border-top: 2px solid var(--primary) !important;
-  }
-  tr:hover { background: rgba(15, 76, 129, 0.05); }
-  @media (max-width: 600px) { 
-    .col-type, .col-year { display: none; } 
-    th, td { font-size: 0.85rem; padding: 0.6rem 0.75rem; }
-  }
+  .region-row td { background: var(--tanzania-blue) !important; color: #fff !important; font-weight: 700; border-top: 2px solid var(--tanzania-green); border-bottom: 2px solid var(--tanzania-green); }
+  tr:hover { background: rgba(0, 163, 221, 0.05); }
 
-  .comment-container { margin-top: 1.5rem; border-top: 2px dashed var(--border); padding: 1rem 1.2rem; animation: fadeIn 0.3s; max-width: 100%; overflow: hidden; }
-  .comment-box { background: var(--bg-color); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid var(--accent); word-wrap: break-word; overflow-wrap: break-word; }
+  /* --- Comments --- */
+  .comment-container { margin-top: 1.5rem; border-top: 2px dashed var(--border); padding-top: 1rem; }
+  .comment-box { background: var(--bg-color); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid var(--tanzania-green); }
 
-  aside { display: flex; flex-direction: column; gap: 1.5rem; position: sticky; top: 90px; height: fit-content; min-width: 0; }
-  .sidebar-widget { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); }
-  .widget-title { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--text-mute); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-  .filter-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .filter-tag { background: var(--bg-color); padding: 0.4rem 0.9rem; border-radius: 50px; font-size: 0.85rem; color: var(--text-light); cursor: pointer; border: 1px solid var(--border); transition: all 0.2s; }
-  .filter-tag:hover { border-color: var(--primary); color: var(--primary); }
-  .filter-tag.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+  /* --- Sidebar --- */
+  .sidebar { display: flex; flex-direction: column; gap: 2rem; }
+  .widget { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; box-shadow: var(--shadow); }
+  .widget-title { font-size: 1.1rem; color: var(--tanzania-black); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  body.dark-mode .widget-title { color: var(--text-dark); }
+  .widget-title i { color: var(--tanzania-green); }
+  .search-box { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .search-box input { flex: 1; border: none; padding: 0.75rem; outline: none; background: var(--bg-color); color: var(--text-dark); min-width: 0; }
+  .search-box button { background: var(--tanzania-green); color: #fff; border: none; padding: 0 1rem; cursor: pointer; }
+  .labels-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .label-tag { background: #f1f5f4; padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.85rem; color: var(--text-dark); cursor: pointer; transition: all 0.3s; border: 1px solid var(--border); }
+  body.dark-mode .label-tag { background: var(--bg-color); }
+  .label-tag:hover, .label-tag.active { background: var(--tanzania-green); color: #fff; border-color: var(--tanzania-green); }
 
-  .admin-grid { display: grid; grid-template-columns: 220px 1fr; gap: 2rem; max-width: 100%; }
+  /* --- Admin --- */
+  .admin-grid { display: grid; grid-template-columns: 220px 1fr; gap: 2rem; }
+  .admin-sidebar { background: var(--surface); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); height: fit-content; }
   .admin-sidebar button { display: block; width: 100%; text-align: left; padding: 0.75rem; background: none; border: none; cursor: pointer; font-weight: 500; color: var(--text-dark); border-radius: 6px; }
-  .admin-sidebar button:hover, .admin-sidebar button.active { background: var(--bg-color); color: var(--primary); }
-  .stat-box { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); text-align: center; }
-  .form-group { margin-bottom: 1rem; max-width: 100%; }
+  .admin-sidebar button:hover, .admin-sidebar button.active { background: var(--tanzania-green); color: #fff; }
+  .stat-box { background: var(--surface); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border); text-align: center; box-shadow: var(--shadow); }
+  .stat-box h2 { font-size: 1.8rem; color: var(--tanzania-green); }
+  .form-group { margin-bottom: 1rem; }
   .form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; }
-  .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-dark); max-width: 100%; }
+  .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: 'Open Sans', sans-serif; background: var(--bg-color); color: var(--text-dark); }
   .file-drop { padding: 2rem; border: 2px dashed var(--border); border-radius: 8px; text-align: center; cursor: pointer; color: var(--text-light); background: var(--bg-color); }
 
-  .wa-bubble { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: #fff; width: 55px; height: 55px; border-radius: 50%; display: grid; place-items: center; font-size: 1.6rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 999; animation: pulse 2s infinite; }
-  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; overflow-y: auto; }
-  .modal-overlay.active { display: flex; animation: fadeIn 0.3s; }
+  .wa-bubble { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 999; animation: pulse 2s infinite; }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
+  .modal-overlay.active { display: flex; }
 
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
 
   @media (max-width: 900px) { 
-    .layout { grid-template-columns: 1fr; } 
-    aside { position: static; } 
+    .layout-grid { grid-template-columns: 1fr; } 
+    .sidebar { order: 2; } 
     .nav-links { display: none; } 
     .mobile-menu-btn { display: block; } 
     .admin-grid { grid-template-columns: 1fr; } 
+  }
+  @media (max-width: 600px) { 
+    .note-collapsed { flex-direction: column; gap: 1rem; } 
+    .file-icon-box { width: 100%; height: 40px; flex-direction: row; justify-content: flex-start; padding-left: 1rem; } 
+    .hero h1 { font-size: 1.6rem; }
+    .col-type, .col-year { display: none; } 
   }
 </style>
 </head>
@@ -169,7 +182,7 @@
 
 <header>
   <div class="nav-container">
-    <div class="logo" onclick="navigate('home')"><i class="fas fa-graduation-cap"></i> SKULiKA</div>
+    <div class="logo" onclick="navigate('home')"><i class="fas fa-graduation-cap"></i> SKU<span>L</span>iKA</div>
     <ul class="nav-links">
       <li><a onclick="navigate('home')">Home</a></li>
       <li><a onclick="navigate('about')">About Us</a></li>
@@ -188,24 +201,25 @@
   </div>
 </header>
 
-<div id="appContent" class="layout" style="min-height: 70vh; overflow-x: hidden !important;"></div>
+<div id="appContent" class="page-wrapper"></div>
 <a id="waBubble" class="wa-bubble" href="#" target="_blank" style="display: none;"><i class="fab fa-whatsapp"></i></a>
 
 <div class="modal-overlay" id="readModal">
   <div style="background:var(--surface); width:100%; max-width:900px; height:90vh; border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
-    <div style="background:var(--primary); color:#fff; padding:1rem 1.5rem; display:flex; justify-content:space-between;">
+    <div style="background:var(--tanzania-green); color:#fff; padding:1rem 1.5rem; display:flex; justify-content:space-between;">
       <h3 style="color:#fff;">Document Preview</h3>
       <button onclick="closeModal()" style="background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer;">&times;</button>
     </div>
     <iframe id="modalIframe" style="width:100%; height:80vh; border:none;"></iframe>
     <div style="padding:1rem; text-align:right;">
-      <a id="modalDownloadBtn" href="#" class="btn-download-prof" target="_blank"><i class="fas fa-download"></i> Download File</a>
+      <a id="modalDownloadBtn" href="#" class="btn-sm btn-download" target="_blank"><i class="fas fa-download"></i> Download File</a>
     </div>
   </div>
 </div>
 
-<footer style="background: var(--surface); border-top: 1px solid var(--border); padding: 2rem 1.25rem; text-align: center; margin-top: 3rem;">
-  <p id="footerText" style="color: var(--text-light); font-size: 0.9rem;">© 2024 SKULiKA.</p>
+<footer style="background: var(--tanzania-black); color: #fff; text-align: center; padding: 2rem 1.5rem; margin-top: 3rem;">
+  <div style="height: 4px; background: linear-gradient(to right, var(--tanzania-green) 33%, var(--tanzania-yellow) 33% 66%, var(--tanzania-black) 66% 66.5%, var(--tanzania-blue) 66.5%); margin-bottom: 1.5rem;"></div>
+  <p id="footerText" style="opacity: 0.8; font-size: 0.9rem;">© 2024 SKULiKA. Built for students and teachers in Tanzania.</p>
 </footer>
 
 <script>
@@ -217,7 +231,7 @@
     try {
       const res = await fetch(SCRIPT_URL + "?action=getHome");
       allData = await res.json();
-      document.getElementById('footerText').innerText = allData.settings.footer_text || '© SKULiKA';
+      document.getElementById('footerText').innerText = allData.settings.footer_text || '© 2024 SKULiKA';
       document.getElementById('waBubble').href = allData.settings.whatsapp_link || '#';
       document.getElementById('waBubble').style.display = 'grid';
       applyTheme();
@@ -225,7 +239,7 @@
   }
 
   function applyTheme() {
-    document.body.classList.remove('texture-light', 'texture-ocean', 'texture-forest', 'texture-geometric');
+    document.body.classList.remove('texture-light', 'texture-ocean', 'texture-forest');
     let theme = allData.settings.bg_theme || 'texture-light';
     if (!document.body.classList.contains('dark-mode')) document.body.classList.add(theme);
   }
@@ -262,15 +276,22 @@
       groupsMap[gId].regions[reg].push(d);
     });
 
-    let featuredDocs = individualDocs.filter(d => d.image_url);
-    let latestDocs = individualDocs.filter(d => !d.image_url);
-
     let html = `
-      <div class="hero"><h1>Welcome to SKULiKA</h1><p>Access past papers, examinations, and notes for Form I to Form VI.</p></div>
-      <div class="top-search"><div class="search-bar"><input type="text" id="searchInput" placeholder="Search notes, exams, subjects..." onkeyup="handleSearch(event)" value="${activeFilters.search}"><button onclick="searchManual()"><i class="fas fa-search"></i></button></div></div>
-      <main>
+      <div class="hero"><h1>Welcome to SKULiKA</h1><p>Digital Library for Form I to Form VI Notes. Download or read online. PDF, Word, PowerPoint, Excel.</p></div>
+      <div class="layout-grid">
+        <main class="main-content">
+          <div class="form-tabs">
+            <button class="form-tab ${activeFilters.form === 'All' ? 'active' : ''}" onclick="setFilter('form','All')">All Forms</button>
+            <button class="form-tab ${activeFilters.form === 'Form I' ? 'active' : ''}" onclick="setFilter('form','Form I')">Form I</button>
+            <button class="form-tab ${activeFilters.form === 'Form II' ? 'active' : ''}" onclick="setFilter('form','Form II')">Form II</button>
+            <button class="form-tab ${activeFilters.form === 'Form III' ? 'active' : ''}" onclick="setFilter('form','Form III')">Form III</button>
+            <button class="form-tab ${activeFilters.form === 'Form IV' ? 'active' : ''}" onclick="setFilter('form','Form IV')">Form IV</button>
+            <button class="form-tab ${activeFilters.form === 'Form V' ? 'active' : ''}" onclick="setFilter('form','Form V')">Form V</button>
+            <button class="form-tab ${activeFilters.form === 'Form VI' ? 'active' : ''}" onclick="setFilter('form','Form VI')">Form VI</button>
+          </div>
     `;
 
+    // 1. EXAM GROUPS SECTION
     if (Object.keys(groupsMap).length > 0) {
       html += `<h2 class="section-divider">Exam Groups</h2>`;
       for (let gId in groupsMap) {
@@ -283,77 +304,47 @@
           g.regions[region].forEach(ex => {
             html += `<tr>
               <td>${ex.subject}</td><td class="col-type">${ex.type}</td><td class="col-year">${ex.year || 'N/A'}</td>
-              <td><button class="btn-download-prof" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read</button></td>
+              <td><button class="btn-sm btn-download" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read</button></td>
             </tr>`;
           });
         }
         html += `</tbody></table></div>
-          <div style="padding: 1rem 1.2rem; text-align:right; border-top: 1px solid var(--border);">
-            <button class="btn-comment-prof" onclick="toggleComments('${gId}', 'group-${gId}')"><i class="fas fa-comments"></i> Group Comments</button>
+          <div style="padding: 1rem 1.5rem; text-align:right; border-top: 1px solid var(--border);">
+            <button class="btn-sm btn-view" onclick="toggleComments('${gId}', 'group-${gId}')"><i class="fas fa-comments"></i> Group Comments</button>
             <div id="comments-container-group-${gId}" style="display:none; margin-top:1rem; border-top:2px dashed var(--border); padding-top:1rem; text-align:left;"></div>
           </div>
         </div>`;
       }
     }
 
-    if (featuredDocs.length > 0) {
-      html += `<h2 class="section-divider">Featured Posts</h2>`;
-      featuredDocs.forEach(d => {
+    // 2. INDIVIDUAL POSTS
+    if (individualDocs.length > 0) {
+      html += `<h2 class="section-divider">Latest Articles & Notes</h2>`;
+      individualDocs.forEach(d => {
         let icon = d.type === "PDF" ? '<i class="fas fa-file-pdf"></i>' : d.type === "DOCX" ? '<i class="fas fa-file-word"></i>' : d.type === "PPTX" ? '<i class="fas fa-file-powerpoint"></i>' : '<i class="fas fa-file"></i>';
         html += `
-          <div class="post-card" id="post-${d.id}">
-            <div class="post-collapsed" onclick="toggleExpand('${d.id}')">
-              <img src="${d.image_url}" class="post-thumbnail" alt="Thumbnail">
-              <div class="post-info">
-                <h3 class="post-title">${d.title}</h3>
-                <p class="post-author"><i class="fas fa-user-edit"></i> Posted by SKULiKA</p>
+          <div class="note-item" id="post-${d.id}">
+            <div class="note-collapsed" onclick="toggleExpand('${d.id}')">
+              <div class="file-icon-box ${d.type.toLowerCase()}">${icon}<span>${d.type}</span></div>
+              <div class="note-content">
+                <div class="note-meta">
+                  ${d.form ? `<span class="tag tag-form">${d.form}</span>` : ''}
+                  ${d.subject ? `<span class="tag tag-subject">${d.subject}</span>` : ''}
+                  ${d.region ? `<span class="tag tag-subject">${d.region}</span>` : ''}
+                  ${d.type ? `<span class="tag tag-type">${d.type}</span>` : ''}
+                </div>
+                <h3>${d.title}</h3>
+                <p class="note-desc">${d.description || ''}</p>
+                <span class="read-more-btn">Read More...</span>
               </div>
             </div>
-            <div class="post-expanded">
-              <img src="${d.image_url}" class="post-image-full" alt="Full Image">
-              <div class="post-tags">
-                ${d.subject ? `<span class="tag-subject">${d.subject}</span>` : ''}
-                ${d.form ? `<span class="tag-form">${d.form}</span>` : ''}
-                ${d.region ? `<span class="tag-form">${d.region}</span>` : ''}
-                ${d.type ? `<span class="tag-type">${d.type}</span>` : ''}
+            <div class="note-expanded">
+              ${d.image_url ? `<img src="${d.image_url}" class="post-image-full" alt="Image">` : ''}
+              <div class="note-actions">
+                <button class="btn-sm btn-download" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
+                <button class="btn-sm btn-view" onclick="toggleComments('${d.id}', 'ind-${d.id}')"><i class="fas fa-comments"></i> Comments</button>
               </div>
-              <p class="post-desc">${d.description || ''}</p>
-              <div class="post-actions">
-                <button class="btn-comment-prof" onclick="toggleComments('${d.id}', 'ind-${d.id}')"><i class="fas fa-comments"></i> Comments</button>
-                <button class="btn-download-prof" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
-              </div>
-              <div id="comments-container-ind-${d.id}" style="display:none; margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem;"></div>
-            </div>
-          </div>`;
-      });
-    }
-
-    if (latestDocs.length > 0) {
-      html += `<h2 class="section-divider">Latest Articles</h2>`;
-      latestDocs.forEach(d => {
-        let icon = d.type === "PDF" ? '<i class="fas fa-file-pdf"></i>' : d.type === "DOCX" ? '<i class="fas fa-file-word"></i>' : d.type === "PPTX" ? '<i class="fas fa-file-powerpoint"></i>' : '<i class="fas fa-file"></i>';
-        html += `
-          <div class="post-card" id="post-${d.id}">
-            <div class="post-collapsed" onclick="toggleExpand('${d.id}')">
-              <div class="post-thumbnail-placeholder bg-${d.type.toLowerCase()}">${icon}</div>
-              <div class="post-info">
-                <h3 class="post-title">${d.title}</h3>
-                <p class="post-author"><i class="fas fa-user-edit"></i> Posted by SKULiKA</p>
-              </div>
-            </div>
-            <div class="post-expanded">
-              <div class="post-tags">
-                ${d.subject ? `<span class="tag-subject">${d.subject}</span>` : ''}
-                ${d.form ? `<span class="tag-form">${d.form}</span>` : ''}
-                ${d.region ? `<span class="tag-form">${d.region}</span>` : ''}
-                ${d.type ? `<span class="tag-type">${d.type}</span>` : ''}
-              </div>
-              <p class="post-desc">${d.description || ''}</p>
-              <div class="post-actions">
-                <button class="btn-comment-prof" onclick="toggleComments('${d.id}', 'ind-${d.id}')"><i class="fas fa-comments"></i> Comments</button>
-                <button class="btn-download-prof" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
-              </div>
-              <div id="comments-container-ind-${d.id}" style="display:none; margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem;"></div>
+              <div id="comments-container-ind-${d.id}" style="display:none; margin-top:1rem;"></div>
             </div>
           </div>`;
       });
@@ -364,34 +355,33 @@
     }
 
     html += `</main>
-    <aside>
-      <div class="sidebar-widget">
-        <h3 class="widget-title">Forms</h3>
-        <div class="filter-list">
-          <span class="filter-tag ${activeFilters.form === 'All' ? 'active' : ''}" onclick="setFilter('form','All')">All</span>
-          <span class="filter-tag ${activeFilters.form === 'Form I' ? 'active' : ''}" onclick="setFilter('form','Form I')">Form I</span>
-          <span class="filter-tag ${activeFilters.form === 'Form II' ? 'active' : ''}" onclick="setFilter('form','Form II')">Form II</span>
-          <span class="filter-tag ${activeFilters.form === 'Form III' ? 'active' : ''}" onclick="setFilter('form','Form III')">Form III</span>
-          <span class="filter-tag ${activeFilters.form === 'Form IV' ? 'active' : ''}" onclick="setFilter('form','Form IV')">Form IV</span>
-          <span class="filter-tag ${activeFilters.form === 'Form V' ? 'active' : ''}" onclick="setFilter('form','Form V')">Form V</span>
-          <span class="filter-tag ${activeFilters.form === 'Form VI' ? 'active' : ''}" onclick="setFilter('form','Form VI')">Form VI</span>
-        </div>
-      </div>
-      <div class="sidebar-widget">
-        <h3 class="widget-title">Subjects</h3>
-        <div class="filter-list">
-          ${[...new Set(allData.docs.map(d => d.subject).filter(Boolean))].map(s => `<span class="filter-tag ${activeFilters.subject === s ? 'active' : ''}" onclick="setFilter('subject','${s}')">${s}</span>`).join('') || '<p>No subjects yet.</p>'}
-        </div>
-      </div>
-    </aside>`;
+        <aside class="sidebar">
+          <div class="widget">
+            <h3 class="widget-title"><i class="fas fa-search"></i> Search Notes</h3>
+            <div class="search-box">
+              <input type="text" id="searchInput" placeholder="Type subject name..." onkeyup="handleSearch(event)" value="${activeFilters.search}">
+              <button onclick="searchManual()"><i class="fas fa-arrow-right"></i></button>
+            </div>
+          </div>
+          <div class="widget">
+            <h3 class="widget-title"><i class="fas fa-tags"></i> Subjects</h3>
+            <div class="labels-list">
+              ${[...new Set(allData.docs.map(d => d.subject).filter(Boolean))].map(s => `<span class="label-tag ${activeFilters.subject === s ? 'active' : ''}" onclick="setFilter('subject','${s}')">${s}</span>`).join('') || '<p>No subjects yet.</p>'}
+            </div>
+          </div>
+          <div class="widget">
+            <h3 class="widget-title"><i class="fas fa-info-circle"></i> About SKULiKA</h3>
+            <p style="font-size: 0.9rem; color: var(--text-light); line-height: 1.7;">
+              SKULiKA is an online platform that gives students and teachers the opportunity to access, read, and share school notes from Form I to Form VI.
+            </p>
+          </div>
+        </aside>
+      </div>`;
     
     document.getElementById('appContent').innerHTML = html;
   }
 
-  function toggleExpand(id) {
-    document.getElementById('post-' + id).classList.toggle('expanded');
-  }
-
+  function toggleExpand(id) { document.getElementById('post-' + id).classList.toggle('expanded'); }
   function setFilter(key, val) { activeFilters[key] = val; renderHome(); }
   function handleSearch(e) { activeFilters.search = e.target.value.toLowerCase(); renderHome(); }
   function searchManual() { let val = document.getElementById('searchInput').value; activeFilters.search = val.toLowerCase(); renderHome(); }
@@ -412,21 +402,18 @@
     if (container.style.display === 'block') { container.style.display = 'none'; return; }
     container.style.display = 'block';
     container.innerHTML = '<p>Loading comments...</p>';
-    
     const res = await fetch(SCRIPT_URL + "?action=getComments&examId=" + id);
     const comments = await res.json();
-    
     let html = `<div style="max-width: 600px; margin: 0 auto;">
         <h4>Leave a Comment</h4>
         <div class="form-group" style="margin-top:0.5rem;"><input type="text" id="cName-${prefix}" class="form-input" placeholder="Your Name"></div>
         <div class="form-group"><textarea id="cText-${prefix}" class="form-input" rows="2" placeholder="Write a comment..."></textarea></div>
-        <button class="btn-download-prof" onclick="submitComment('${id}', '${prefix}')"><i class="fas fa-paper-plane"></i> Post</button>
+        <button class="btn-sm btn-download" onclick="submitComment('${id}', '${prefix}')"><i class="fas fa-paper-plane"></i> Post</button>
         <div style="margin-top:1rem;">`;
-    
     if (comments.length === 0) html += '<p style="font-size:0.85rem; color:var(--text-mute);">No comments yet.</p>';
     comments.forEach(c => {
       let date = new Date(c.created_at).toLocaleString();
-      html += `<div class="comment-box"><div style="font-weight:700; font-size:0.85rem; color:var(--primary);">${c.name} <small style="color:var(--text-mute); font-weight:400;">(${date})</small></div><p style="font-size:0.9rem; margin-top:0.3rem;">${c.comment}</p></div>`;
+      html += `<div class="comment-box"><div style="font-weight:700; font-size:0.85rem; color:var(--tanzania-green);">${c.name} <small style="color:var(--text-mute); font-weight:400;">(${date})</small></div><p style="font-size:0.9rem; margin-top:0.3rem;">${c.comment}</p></div>`;
     });
     html += `</div></div>`;
     container.innerHTML = html;
@@ -446,23 +433,22 @@
     else if (page === 'contact') key = 'contact_us';
     else if (page === 'privacy') key = 'privacy_policy';
     else if (page === 'terms') key = 'terms_of_service';
-    
-    let title = page.charAt(0).toUpperCase() + page.slice(1).replace(/([A-Z])/g, ' $1');
+    let title = page.charAt(0).toUpperCase() + page.slice(1);
     let content = allData.settings[key] || 'Content not available. Admin can edit this in Dashboard.';
-    document.getElementById('appContent').innerHTML = `<div style="grid-column: 1 / -1; max-width: 800px; margin: 2rem auto;"><div class="group-section"><div class="group-header">${title}</div><div style="padding:1.5rem;"><p style="white-space: pre-wrap;">${content}</p></div></div></div>`;
+    document.getElementById('appContent').innerHTML = `<div style="max-width: 800px; margin: 0 auto;"><div class="group-section"><div class="group-header">${title}</div><div style="padding:1.5rem;"><p style="white-space: pre-wrap;">${content}</p></div></div></div>`;
   }
 
   let isAdmin = false;
   function renderAdminLogin() {
     if (isAdmin) return renderAdminDashboard();
-    document.getElementById('appContent').innerHTML = `<div style="grid-column: 1 / -1; max-width: 400px; margin: 4rem auto;"><div class="group-section"><div class="group-header">Admin Login</div><div style="padding:1.5rem;"><input type="password" id="adminPass" class="form-input" placeholder="Password" style="margin-bottom:1rem;"><button class="btn-admin" style="width:100%;" onclick="checkAdmin()">Login</button></div></div></div>`;
+    document.getElementById('appContent').innerHTML = `<div style="max-width: 400px; margin: 0 auto;"><div class="group-section"><div class="group-header">Admin Login</div><div style="padding:1.5rem;"><input type="password" id="adminPass" class="form-input" placeholder="Password" style="margin-bottom:1rem;"><button class="btn-admin" style="width:100%;" onclick="checkAdmin()">Login</button></div></div></div>`;
   }
   function checkAdmin() { if (document.getElementById('adminPass').value === 'skulika-admin') { isAdmin = true; renderAdminDashboard(); } else { alert('Wrong!'); } }
 
   function renderAdminDashboard() {
     document.getElementById('appContent').innerHTML = `
-      <div style="grid-column: 1 / -1;">
-        <h2 style="margin-bottom:1.5rem; color:var(--primary);">Admin Dashboard</h2>
+      <div>
+        <h2 style="margin-bottom:1.5rem; color:var(--tanzania-green);">Admin Dashboard</h2>
         <div class="admin-grid">
           <div class="admin-sidebar">
             <button class="active" onclick="showTab('stats', this)">Stats</button>
@@ -480,7 +466,6 @@
     document.querySelectorAll('.admin-sidebar button').forEach(b => b.classList.remove('active'));
     if(btn) btn.classList.add('active');
     let html = '';
-
     if (tab === 'stats') {
       let tv = allData.docs.reduce((a,b)=>a+(b.views||0),0);
       let td = allData.docs.reduce((a,b)=>a+(b.downloads||0),0);
@@ -517,7 +502,7 @@
           <div class="form-group"><label>Year</label><input type="number" id="uYear" class="form-input"></div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-          <div class="form-group"><label>Region (Mkoa)</label><input type="text" id="uRegion" class="form-input"></div>
+          <div class="form-group"><label>Region</label><input type="text" id="uRegion" class="form-input"></div>
           <div class="form-group"><label>Exam Type</label><select id="uExamType" class="form-input"><option value="">Notes</option><option>Mock</option><option>Joint</option><option>Mid-term</option><option>Annual</option></select></div>
         </div>
         <div class="form-group"><label>Image URL (Optional)</label><input type="text" id="uImage" class="form-input" placeholder="https://example.com/image.jpg"></div>
@@ -532,7 +517,6 @@
           <option value="texture-light" ${s.bg_theme==='texture-light'?'selected':''}>Light Dots</option>
           <option value="texture-ocean" ${s.bg_theme==='texture-ocean'?'selected':''}>Ocean Blue</option>
           <option value="texture-forest" ${s.bg_theme==='texture-forest'?'selected':''}>Forest Green</option>
-          <option value="texture-geometric" ${s.bg_theme==='texture-geometric'?'selected':''}>Geometric</option>
         </select></div>
         <div class="form-group"><label>WhatsApp Link</label><input type="text" id="sWa" class="form-input" value="${s.whatsapp_link || ''}"></div>
         <div class="form-group"><label>About Us</label><textarea id="sAbout" class="form-input" rows="3">${s.about_us || ''}</textarea></div>
