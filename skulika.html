@@ -26,6 +26,14 @@
   h1, h2, h3, h4, h5 { font-family: 'Poppins', sans-serif; }
   a { text-decoration: none; color: var(--tanzania-blue); }
 
+  /* Toast Notifications CSS */
+  .toast-container { position: fixed; top: 70px; right: 15px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+  .toast { background: #333; color: #fff; padding: 12px 20px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 0.9rem; opacity: 0; transform: translateX(120%); transition: all 0.3s ease; max-width: 300px; word-wrap: break-word; font-weight: 500; }
+  .toast.show { opacity: 1; transform: translateX(0); }
+  .toast.success { background: var(--tanzania-green); }
+  .toast.error { background: #e74c3c; }
+  .toast.info { background: var(--tanzania-blue); }
+
   /* Static & Compact Header */
   header { background: var(--surface); box-shadow: var(--shadow); position: sticky; top: 0; z-index: 1000; border-top: 3px solid var(--tanzania-green); width: 100%; }
   .nav-container { max-width: 1200px; margin: 0 auto; padding: 0.5rem 1rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
@@ -74,7 +82,7 @@
   .form-tab { padding: 0.3rem 0.7rem; background: #f1f5f4; border: 1px solid var(--border); border-radius: 5px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: all 0.3s; font-size: 0.8rem; }
   .form-tab.active, .form-tab:hover { background: var(--tanzania-green); color: #fff; border-color: var(--tanzania-green); }
 
-  /* HORIZONTAL POST LAYOUT (Darasahuru/Unislides Style) */
+  /* HORIZONTAL POST LAYOUT */
   .note-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; box-shadow: var(--shadow); width: 100%; transition: box-shadow 0.3s; }
   .note-item:hover { box-shadow: var(--shadow-hover); }
   .note-item.expanded .note-expanded { display: block; animation: fadeIn 0.3s; }
@@ -149,10 +157,12 @@
   @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
 
   @media (max-width: 900px) { .layout-grid { grid-template-columns: 1fr; } .sidebar { order: 2; } .nav-links { display: none; } .admin-grid { grid-template-columns: 1fr; } }
-  @media (max-width: 600px) { .post-thumb { width: 90px; height: 70px; } .note-content h3 { font-size: 14px; } .hero h1 { font-size: 1.4rem; } .col-type, .col-year { display: none; } .logo { font-size: 1.1rem; } }
+  @media (max-width: 600px) { .post-thumb { width: 90px; height: 70px; } .note-content h3 { font-size: 14px; } .hero h1 { font-size: 1.4rem; } .col-type, .col-year { display: none; } .logo { font-size: 1.1rem; } .toast-container { top: auto; bottom: 80px; right: 10px; } }
 </style>
 </head>
 <body>
+
+<div id="toastContainer" class="toast-container"></div>
 
 <header>
   <div class="nav-container">
@@ -197,17 +207,30 @@
 </footer>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOLtNbitSb5hZrBTWsmyCl0B3Nojvqu0XzXvFi1NEyFIrwtnu705jypbUlsqkYMQ/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOLtNbitSb5hZrBTWsmyCl0B3Nojvqu0XzXvFi1NEyFIrwtnu705jypbUlsqkYMQ/exec'; // Weka link mpya ya Apps Script hapa!
   let allData = { settings: {}, docs: [], groups: [] };
   let activeFilters = { form: "All", subject: "All", search: "" };
 
-  // Ads Array for Hero Banner
-  const heroAds = [
-    'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=1200&q=80'
+  // Ads Array (Will be populated from Admin Dashboard uploads)
+  let heroAds = [
+    'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80'
   ];
   let currentAd = 0;
+
+  // --- TOAST NOTIFICATION FUNCTION ---
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerText = message;
+    container.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
 
   async function fetchData() {
     try {
@@ -217,6 +240,10 @@
       document.getElementById('waBubble').href = allData.settings.whatsapp_link || '#';
       document.getElementById('waBubble').style.display = 'grid';
       applyTheme();
+      
+      if (allData.settings.ads_urls && allData.settings.ads_urls.trim() !== "") {
+        heroAds = allData.settings.ads_urls.split(',').map(url => url.trim()).filter(url => url !== "");
+      }
     } catch (e) { console.error("Fetch Error:", e); }
   }
 
@@ -375,14 +402,13 @@
     
     document.getElementById('appContent').innerHTML = html;
     
-    // Start Ticker and Ads
     startHeroAds();
     startTicker();
   }
 
   function startHeroAds() {
     const hero = document.getElementById('heroAd');
-    if (!hero) return;
+    if (!hero || heroAds.length <= 1) return;
     setInterval(() => {
         currentAd = (currentAd + 1) % heroAds.length;
         hero.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('${heroAds[currentAd]}')`;
@@ -426,7 +452,6 @@
         postEl.classList.add('expanded');
         postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
-        // Reset filters and try to find it
         activeFilters = { form: "All", subject: "All", search: "" };
         renderHome().then(() => {
             setTimeout(() => {
@@ -518,8 +543,9 @@
   async function submitComment(id, prefix) {
     const name = document.getElementById('cName-' + prefix).value;
     const comment = document.getElementById('cText-' + prefix).value;
-    if (!name || !comment) return alert('Please fill in your name and comment.');
+    if (!name || !comment) { return showToast('Please fill in your name and comment.', 'error'); }
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "postComment", examId: id, name: name, comment: comment }) });
+    showToast('Comment posted successfully!', 'success');
     toggleComments(id, prefix); toggleComments(id, prefix);
   }
 
@@ -539,7 +565,31 @@
     if (isAdmin) return renderAdminDashboard();
     document.getElementById('appContent').innerHTML = `<div style="max-width: 400px; margin: 0 auto;"><div class="group-section"><div class="group-header">Admin Login</div><div style="padding:1rem;"><input type="password" id="adminPass" class="form-input" placeholder="Password" style="margin-bottom:0.8rem;"><button class="btn-admin" style="width:100%;" onclick="checkAdmin()">Login</button></div></div></div>`;
   }
-  function checkAdmin() { if (document.getElementById('adminPass').value === 'skulika-admin') { isAdmin = true; renderAdminDashboard(); } else { alert('Wrong!'); } }
+  
+  async function checkAdmin() {
+    const pass = document.getElementById('adminPass').value;
+    const loginBtn = document.querySelector('button[onclick="checkAdmin()"]');
+    loginBtn.disabled = true;
+    loginBtn.innerText = "Checking...";
+    try {
+      const res = await fetch(SCRIPT_URL + "?action=login&password=" + encodeURIComponent(pass));
+      const data = await res.json();
+      if (data.status === "success") {
+        isAdmin = true;
+        showToast("Welcome Admin!", "success");
+        renderAdminDashboard();
+      } else {
+        showToast("Wrong Password! Access Denied.", "error");
+        loginBtn.disabled = false;
+        loginBtn.innerText = "Login";
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
+      showToast("Network error during login.", "error");
+      loginBtn.disabled = false;
+      loginBtn.innerText = "Login";
+    }
+  }
 
   function renderAdminDashboard() {
     document.getElementById('appContent').innerHTML = `
@@ -626,6 +676,11 @@
     else if (tab === 'settings') {
       let s = allData.settings;
       html = `<div class="group-section"><div class="group-header">Site Settings</div><div style="padding:1rem;">
+        
+        <div class="form-group"><label>Upload New Ad Image (Will appear on Homepage)</label><div class="file-drop" onclick="document.getElementById('adFile').click()"><p id="adFileName" style="font-size:0.85rem;">Click to select Ad image</p><input type="file" id="adFile" style="display:none" accept="image/*" onchange="document.getElementById('adFileName').innerText=this.files[0].name"></div>
+        <button class="btn-admin" style="margin-top:0.5rem; background: var(--tanzania-blue);" id="uploadAdBtn" onclick="uploadAd()">Upload Ad Image</button>
+        </div>
+        
         <div class="form-group"><label>Background Texture Theme</label><select id="sBgTheme" class="form-input">
           <option value="texture-light" ${s.bg_theme==='texture-light'?'selected':''}>Light Dots</option>
           <option value="texture-ocean" ${s.bg_theme==='texture-ocean'?'selected':''}>Ocean Blue</option>
@@ -651,12 +706,14 @@
 
   async function createGroup() {
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify({ action: "createGroup", title: document.getElementById('gTitle').value, description: document.getElementById('gDesc').value }) });
-    alert('Group Created!'); await fetchData(); showTab('groups', document.querySelector('.admin-sidebar button:nth-child(2)'));
+    showToast('Group Created Successfully!', 'success'); 
+    await fetchData(); 
+    showTab('groups', document.querySelector('.admin-sidebar button:nth-child(2)'));
   }
 
   async function uploadDoc() {
     const fileInput = document.getElementById('uFile');
-    if (!fileInput.files.length) return alert('Select a file!');
+    if (!fileInput.files.length) { return showToast('Please select a file!', 'error'); }
     const btn = document.getElementById('uploadBtn'); btn.disabled = true; btn.innerText = "Uploading...";
     const file = fileInput.files[0];
     const reader = new FileReader();
@@ -678,8 +735,27 @@
         fileName: file.name, mimeType: file.type, fileData: base64 
       };
       await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
-      alert('Uploaded Successfully!');
+      showToast('Uploaded Successfully!', 'success');
       await fetchData(); btn.disabled = false; btn.innerText = "Upload & Publish"; navigate('home');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function uploadAd() {
+    const fileInput = document.getElementById('adFile');
+    if (!fileInput.files.length) { return showToast('Please select an image!', 'error'); }
+    const btn = document.getElementById('uploadAdBtn'); btn.disabled = true; btn.innerText = "Uploading Ad...";
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = async function() {
+      const base64 = reader.result.split(',')[1];
+      const payload = { action: "uploadAd", fileName: file.name, mimeType: file.type, fileData: base64 };
+      await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
+      showToast('Ad Uploaded! It will appear on the Homepage.', 'success');
+      await fetchData(); 
+      btn.disabled = false; btn.innerText = "Upload Ad Image";
+      document.getElementById('adFileName').innerText = "Click to select Ad image";
+      fileInput.value = "";
     };
     reader.readAsDataURL(file);
   }
@@ -696,10 +772,9 @@
       bg_theme: document.getElementById('sBgTheme').value 
     };
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
-    alert('Settings Saved!'); await fetchData(); navigate('home');
+    showToast('Settings Saved!', 'success'); await fetchData(); navigate('home');
   }
 
-  // --- FUNCTION MPYA YA KUFUTA POST ---
   async function deletePost(id) {
     if (!confirm("Are you sure you want to permanently delete this post? This action cannot be undone.")) return;
     try {
@@ -708,12 +783,12 @@
         headers: { "Content-Type": "text/plain" },
         body: JSON.stringify({ action: "deletePost", id: id })
       });
-      alert("Post deleted successfully!");
+      showToast("Post deleted successfully!", "success");
       await fetchData(); 
       showTab('stats', document.querySelector('.admin-sidebar button.active'));
     } catch (error) {
       console.error("Delete Error:", error);
-      alert("Failed to delete post. Check console for details.");
+      showToast("Failed to delete post.", "error");
     }
   }
 
