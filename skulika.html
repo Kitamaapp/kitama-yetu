@@ -4,35 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SKULiKA | Notes for Form I to Form VI</title>
-<meta name="description" content="SKULiKA - Download and read notes for Form I, II, III, IV, V and VI. PDF, Word, PowerPoint, Excel.">
+<meta name="description" content="SKULiKA - Download and read notes for Form I, II, III, IV, V and VI.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   :root {
-    --tanzania-green: #1eb53a;
-    --tanzania-yellow: #fcd116;
-    --tanzania-blue: #00a3dd;
-    --tanzania-black: #1a1a1a;
-    --bg-color: #f4f7f6;
-    --surface: #ffffff;
-    --text-dark: #222;
-    --text-light: #555;
-    --text-mute: #888;
-    --border: #e1e5e4;
-    --shadow: 0 4px 15px rgba(0,0,0,0.05);
-    --shadow-hover: 0 8px 25px rgba(0,0,0,0.08);
+    --tanzania-green: #1eb53a; --tanzania-yellow: #fcd116; --tanzania-blue: #00a3dd;
+    --tanzania-black: #1a1a1a; --bg-color: #f4f7f6; --surface: #ffffff;
+    --text-dark: #222; --text-light: #555; --text-mute: #888; --border: #e1e5e4;
+    --shadow: 0 4px 15px rgba(0,0,0,0.05); --shadow-hover: 0 8px 25px rgba(0,0,0,0.08);
   }
-  body.dark-mode {
-    --bg-color: #121212;
-    --surface: #1e1e1e;
-    --text-dark: #f1f1f1;
-    --text-light: #b0b0b0;
-    --text-mute: #777;
-    --border: #333;
-    --shadow: 0 4px 15px rgba(0,0,0,0.3);
-    --shadow-hover: 0 8px 25px rgba(0,0,0,0.5);
-  }
+  body.dark-mode { --bg-color: #121212; --surface: #1e1e1e; --text-dark: #f1f1f1; --text-light: #b0b0b0; --text-mute: #777; --border: #333; --shadow: 0 4px 15px rgba(0,0,0,0.3); --shadow-hover: 0 8px 25px rgba(0,0,0,0.5); }
   body.texture-light { background-color: #f4f7f6; background-image: radial-gradient(#dfe4ea 1px, transparent 1px); background-size: 20px 20px; }
   body.texture-ocean { background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); }
   body.texture-forest { background: linear-gradient(135deg, #e6f7e6 0%, #d4e9d4 100%); }
@@ -43,8 +26,7 @@
   h1, h2, h3, h4, h5 { font-family: 'Poppins', sans-serif; }
   a { text-decoration: none; color: var(--tanzania-blue); }
 
-  /* --- Header --- */
-  header { background: var(--surface); box-shadow: var(--shadow); position: sticky; top: 0; z-index: 1000; border-top: 4px solid var(--tanzania-green); }
+  header { background: var(--surface); box-shadow: var(--shadow); position: sticky; top: 0; z-index: 1000; border-top: 4px solid var(--tanzania-green); width: 100%; }
   .nav-container { max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
   .logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--tanzania-green); cursor: pointer; }
   .logo span { color: var(--tanzania-blue); }
@@ -54,47 +36,43 @@
   .nav-actions { display: flex; gap: 1rem; align-items: center; }
   .theme-toggle { background: var(--bg-color); border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; color: var(--text-light); display: grid; place-items: center; }
   .btn-admin { background: var(--tanzania-green); color: #fff; padding: 0.5rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; }
-  .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text-dark); cursor: pointer; }
-  .mobile-nav { display: none; flex-direction: column; background: var(--surface); padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
-  .mobile-nav.active { display: flex; }
-  .mobile-nav a { padding: 0.75rem 0; color: var(--text-dark); border-bottom: 1px solid var(--border); cursor: pointer; }
-
-  /* --- Main Wrapper (Fixes Padding Issue) --- */
-  .page-wrapper {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-    min-height: 70vh;
-    width: 100%;
-  }
-
-  /* --- Hero --- */
-  .hero { background: linear-gradient(135deg, var(--tanzania-green) 0%, #16a34a 100%); color: #fff; text-align: center; padding: 3rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; width: 100%; box-sizing: border-box; }
-  .hero h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: #fff; }
-  .hero p { font-size: 1.1rem; max-width: 700px; margin: 0 auto; opacity: 0.95; }
-
-  /* --- Layout Grid --- */
-  .layout-grid { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; width: 100%; }
-  .main-content { min-width: 0; }
-  .section-divider { font-size: 1.4rem; color: var(--tanzania-black); border-left: 5px solid var(--tanzania-green); padding-left: 1rem; margin-bottom: 1.5rem; margin-top: 2rem; }
   
-  /* --- Filter Tabs --- */
-  .form-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: var(--surface); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow); }
+  /* Hamburger Menu Visible Always */
+  .mobile-menu-btn { background: none; border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 4px; font-size: 1.2rem; color: var(--tanzania-green); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .mobile-nav { display: none; flex-direction: column; background: var(--surface); padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+  .mobile-nav.active { display: flex; animation: slideDown 0.3s ease; }
+  .mobile-nav a { padding: 0.75rem 0; color: var(--text-dark); border-bottom: 1px solid var(--border); cursor: pointer; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .page-wrapper { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; min-height: 70vh; width: 100%; }
+  .hero { background: linear-gradient(135deg, var(--tanzania-green) 0%, #16a34a 100%); color: #fff; text-align: center; padding: 3rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; width: 100%; }
+  .hero h1 { font-size: 2.2rem; margin-bottom: 0.5rem; color: #fff; }
+
+  .top-search-bar { width: 100%; margin-bottom: 2rem; }
+  .search-box { display: flex; width: 100%; max-width: 800px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: 50px; overflow: hidden; box-shadow: var(--shadow); }
+  .search-box input { flex: 1; border: none; padding: 1rem 1.5rem; outline: none; background: transparent; color: var(--text-dark); font-size: 1rem; min-width: 0; }
+  .search-box button { background: var(--tanzania-green); color: #fff; border: none; padding: 0 2rem; cursor: pointer; font-weight: 600; }
+
+  .layout-grid { display: grid; grid-template-columns: 1fr 300px; gap: 2rem; width: 100%; }
+  .main-content { min-width: 0; width: 100%; }
+  .section-divider { font-size: 1.4rem; color: var(--tanzania-black); border-left: 5px solid var(--tanzania-green); padding-left: 1rem; margin-bottom: 1.5rem; margin-top: 2rem; }
+  body.dark-mode .section-divider { color: var(--text-dark); }
+  
+  .form-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: var(--surface); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow); width: 100%; }
   .form-tab { padding: 0.5rem 1rem; background: #f1f5f4; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: all 0.3s; font-size: 0.9rem; }
   .form-tab.active, .form-tab:hover { background: var(--tanzania-green); color: #fff; border-color: var(--tanzania-green); }
 
-  /* --- Expandable Note Item --- */
-  .note-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; transition: all 0.3s; display: flex; flex-direction: column; box-shadow: var(--shadow); }
+  .note-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; box-shadow: var(--shadow); width: 100%; }
   .note-item:hover { box-shadow: var(--shadow-hover); border-color: var(--tanzania-blue); }
   .note-item.expanded .note-expanded { display: block; animation: fadeIn 0.3s; }
   .note-item.expanded .read-more-btn { display: none; }
   
-  .note-collapsed { display: flex; gap: 1.5rem; align-items: flex-start; cursor: pointer; }
+  .note-collapsed { display: flex; gap: 1.5rem; align-items: flex-start; cursor: pointer; width: 100%; }
   .file-icon-box { width: 60px; height: 70px; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
   .file-icon-box i { font-size: 1.5rem; margin-bottom: 0.2rem; }
   .pdf { background: #e74c3c; } .docx { background: #2980b9; } .pptx { background: #d35400; } .xlsx { background: #27ae60; } .txt { background: #7f8c8d; }
   
-  .note-content { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; }
+  .note-content { flex: 1; min-width: 0; width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
   .note-meta { display: flex; gap: 0.5rem; font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.5rem; flex-wrap: wrap; }
   .note-meta .tag { padding: 0.1rem 0.5rem; border-radius: 4px; font-weight: 600; }
   .tag-form { background: rgba(30, 181, 58, 0.1); color: var(--tanzania-green); }
@@ -104,57 +82,47 @@
   
   .note-content h3 { font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--tanzania-black); }
   body.dark-mode .note-content h3 { color: var(--text-dark); }
-  .note-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .note-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%; }
   .read-more-btn { display: inline-block; color: var(--tanzania-green); font-size: 0.85rem; font-weight: 600; cursor: pointer; }
 
-  .note-expanded { display: none; padding-top: 1rem; margin-top: 1rem; border-top: 1px dashed var(--border); }
+  .note-expanded { display: none; padding-top: 1rem; margin-top: 1rem; border-top: 1px dashed var(--border); width: 100%; }
   .post-image-full { width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; }
   .note-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
   .btn-sm { padding: 0.5rem 1rem; text-align: center; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; }
   .btn-view { background: #eef4f8; color: var(--tanzania-blue); }
-  .btn-view:hover { background: #e1ebf2; }
   .btn-download { background: var(--tanzania-green); color: #fff; }
-  .btn-download:hover { background: #16a34a; }
 
-  /* --- Group Tables --- */
-  .group-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
-  .group-header { font-size: 1.2rem; color: #fff; background: var(--tanzania-green); padding: 0.8rem 1.5rem; font-family: 'Poppins', sans-serif; }
+  .group-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1.5rem; width: 100%; }
+  .group-header { font-size: 1.2rem; color: #fff; background: var(--tanzania-green); padding: 0.8rem 1.5rem; }
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
   table { width: 100%; border-collapse: collapse; min-width: 400px; }
   th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; word-wrap: break-word; }
   th { background: var(--bg-color); color: var(--text-light); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
   .region-row td { background: var(--tanzania-blue) !important; color: #fff !important; font-weight: 700; border-top: 2px solid var(--tanzania-green); border-bottom: 2px solid var(--tanzania-green); }
-  tr:hover { background: rgba(0, 163, 221, 0.05); }
 
-  /* --- Comments --- */
-  .comment-container { margin-top: 1.5rem; border-top: 2px dashed var(--border); padding-top: 1rem; }
-  .comment-box { background: var(--bg-color); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid var(--tanzania-green); }
+  .comment-container { margin-top: 1.5rem; border-top: 2px dashed var(--border); padding-top: 1rem; width: 100%; }
+  .comment-box { background: var(--bg-color); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid var(--tanzania-green); width: 100%; }
 
-  /* --- Sidebar --- */
-  .sidebar { display: flex; flex-direction: column; gap: 2rem; }
-  .widget { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; box-shadow: var(--shadow); }
+  .sidebar { display: flex; flex-direction: column; gap: 2rem; width: 100%; }
+  .widget { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; box-shadow: var(--shadow); width: 100%; }
   .widget-title { font-size: 1.1rem; color: var(--tanzania-black); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
   body.dark-mode .widget-title { color: var(--text-dark); }
   .widget-title i { color: var(--tanzania-green); }
-  .search-box { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-  .search-box input { flex: 1; border: none; padding: 0.75rem; outline: none; background: var(--bg-color); color: var(--text-dark); min-width: 0; }
-  .search-box button { background: var(--tanzania-green); color: #fff; border: none; padding: 0 1rem; cursor: pointer; }
   .labels-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .label-tag { background: #f1f5f4; padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.85rem; color: var(--text-dark); cursor: pointer; transition: all 0.3s; border: 1px solid var(--border); }
+  .label-tag { background: #f1f5f4; padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.85rem; color: var(--text-dark); cursor: pointer; border: 1px solid var(--border); }
   body.dark-mode .label-tag { background: var(--bg-color); }
   .label-tag:hover, .label-tag.active { background: var(--tanzania-green); color: #fff; border-color: var(--tanzania-green); }
 
-  /* --- Admin --- */
-  .admin-grid { display: grid; grid-template-columns: 220px 1fr; gap: 2rem; }
+  .admin-grid { display: grid; grid-template-columns: 220px 1fr; gap: 2rem; width: 100%; }
   .admin-sidebar { background: var(--surface); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); height: fit-content; }
   .admin-sidebar button { display: block; width: 100%; text-align: left; padding: 0.75rem; background: none; border: none; cursor: pointer; font-weight: 500; color: var(--text-dark); border-radius: 6px; }
   .admin-sidebar button:hover, .admin-sidebar button.active { background: var(--tanzania-green); color: #fff; }
   .stat-box { background: var(--surface); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border); text-align: center; box-shadow: var(--shadow); }
   .stat-box h2 { font-size: 1.8rem; color: var(--tanzania-green); }
-  .form-group { margin-bottom: 1rem; }
+  .form-group { margin-bottom: 1rem; width: 100%; }
   .form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; }
   .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: 'Open Sans', sans-serif; background: var(--bg-color); color: var(--text-dark); }
-  .file-drop { padding: 2rem; border: 2px dashed var(--border); border-radius: 8px; text-align: center; cursor: pointer; color: var(--text-light); background: var(--bg-color); }
+  .file-drop { padding: 2rem; border: 2px dashed var(--border); border-radius: 8px; text-align: center; cursor: pointer; color: var(--text-light); background: var(--bg-color); width: 100%; }
 
   .wa-bubble { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 999; animation: pulse 2s infinite; }
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
@@ -167,7 +135,6 @@
     .layout-grid { grid-template-columns: 1fr; } 
     .sidebar { order: 2; } 
     .nav-links { display: none; } 
-    .mobile-menu-btn { display: block; } 
     .admin-grid { grid-template-columns: 1fr; } 
   }
   @media (max-width: 600px) { 
@@ -197,7 +164,7 @@
     </div>
   </div>
   <div class="mobile-nav" id="mobileNav">
-    <a onclick="navigate('home')">Home</a><a onclick="navigate('about')">About Us</a><a onclick="navigate('contact')">Contact</a><a onclick="navigate('admin')">Admin Login</a>
+    <a onclick="navigate('home')">Home</a><a onclick="navigate('about')">About Us</a><a onclick="navigate('contact')">Contact</a><a onclick="navigate('privacy')">Privacy</a><a onclick="navigate('terms')">Terms</a><a onclick="navigate('admin')">Admin Login</a>
   </div>
 </header>
 
@@ -223,7 +190,7 @@
 </footer>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpQILj_a7gWdFwfmq3xDPQ5cg8tfyUY3OHt3mfnbO1T2VQHRajbXUibdNazMLAu8A/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQhHYv_J32JGWDVz_hLJx44sMVc9ol5ohlwPLdPEUBKxQFucrknoV02PiSeuv3b1E/exec';
   let allData = { settings: {}, docs: [], groups: [] };
   let activeFilters = { form: "All", subject: "All", search: "" };
 
@@ -276,8 +243,29 @@
       groupsMap[gId].regions[reg].push(d);
     });
 
+    // Categories Configuration
+    let categories = [
+      { name: "Secondary School Notes", key: "Secondary Notes" },
+      { name: "Primary School Notes", key: "Primary Notes" },
+      { name: "Examinations", key: "Examinations" },
+      { name: "Featured Posts", key: "Featured" },
+      { name: "Latest Posts", key: "Latest Posts" },
+      { name: "Secondary Books", key: "Secondary Books" },
+      { name: "Primary Books", key: "Primary Books" }
+    ];
+
+    let isFiltering = activeFilters.form !== "All" || activeFilters.subject !== "All" || activeFilters.search !== "";
+
     let html = `
       <div class="hero"><h1>Welcome to SKULiKA</h1><p>Digital Library for Form I to Form VI Notes. Download or read online. PDF, Word, PowerPoint, Excel.</p></div>
+      
+      <div class="top-search-bar">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search for notes, exams, subjects..." onkeyup="handleSearch(event)" value="${activeFilters.search}">
+          <button onclick="searchManual()"><i class="fas fa-search"></i></button>
+        </div>
+      </div>
+
       <div class="layout-grid">
         <main class="main-content">
           <div class="form-tabs">
@@ -291,78 +279,52 @@
           </div>
     `;
 
-    // 1. EXAM GROUPS SECTION
-    if (Object.keys(groupsMap).length > 0) {
-      html += `<h2 class="section-divider">Exam Groups</h2>`;
-      for (let gId in groupsMap) {
-        let g = groupsMap[gId];
-        html += `<div class="group-section"><div class="group-header">${g.title}</div>
-          <div class="table-wrap"><table><thead><tr><th>Subject</th><th class="col-type">Type</th><th class="col-year">Year</th><th>Action</th></tr></thead><tbody>`;
-        
-        for (let region in g.regions) {
-          html += `<tr class="region-row"><td colspan="4"><i class="fas fa-map-marker-alt"></i> ${region}</td></tr>`;
-          g.regions[region].forEach(ex => {
-            html += `<tr>
-              <td>${ex.subject}</td><td class="col-type">${ex.type}</td><td class="col-year">${ex.year || 'N/A'}</td>
-              <td><button class="btn-sm btn-download" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read</button></td>
-            </tr>`;
-          });
-        }
-        html += `</tbody></table></div>
-          <div style="padding: 1rem 1.5rem; text-align:right; border-top: 1px solid var(--border);">
-            <button class="btn-sm btn-view" onclick="toggleComments('${gId}', 'group-${gId}')"><i class="fas fa-comments"></i> Group Comments</button>
-            <div id="comments-container-group-${gId}" style="display:none; margin-top:1rem; border-top:2px dashed var(--border); padding-top:1rem; text-align:left;"></div>
-          </div>
-        </div>`;
+    if (isFiltering) {
+      html += `<h2 class="section-divider">Search Results</h2>`;
+      if (individualDocs.length === 0 && Object.keys(groupsMap).length === 0) {
+        html += '<p style="text-align:center; padding:2rem; color:var(--text-light);">No documents found matching your filters.</p>';
+      } else {
+        individualDocs.forEach(d => html += renderPostCard(d));
       }
-    }
-
-    // 2. INDIVIDUAL POSTS
-    if (individualDocs.length > 0) {
-      html += `<h2 class="section-divider">Latest Articles & Notes</h2>`;
-      individualDocs.forEach(d => {
-        let icon = d.type === "PDF" ? '<i class="fas fa-file-pdf"></i>' : d.type === "DOCX" ? '<i class="fas fa-file-word"></i>' : d.type === "PPTX" ? '<i class="fas fa-file-powerpoint"></i>' : '<i class="fas fa-file"></i>';
-        html += `
-          <div class="note-item" id="post-${d.id}">
-            <div class="note-collapsed" onclick="toggleExpand('${d.id}')">
-              <div class="file-icon-box ${d.type.toLowerCase()}">${icon}<span>${d.type}</span></div>
-              <div class="note-content">
-                <div class="note-meta">
-                  ${d.form ? `<span class="tag tag-form">${d.form}</span>` : ''}
-                  ${d.subject ? `<span class="tag tag-subject">${d.subject}</span>` : ''}
-                  ${d.region ? `<span class="tag tag-subject">${d.region}</span>` : ''}
-                  ${d.type ? `<span class="tag tag-type">${d.type}</span>` : ''}
-                </div>
-                <h3>${d.title}</h3>
-                <p class="note-desc">${d.description || ''}</p>
-                <span class="read-more-btn">Read More...</span>
-              </div>
-            </div>
-            <div class="note-expanded">
-              ${d.image_url ? `<img src="${d.image_url}" class="post-image-full" alt="Image">` : ''}
-              <div class="note-actions">
-                <button class="btn-sm btn-download" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
-                <button class="btn-sm btn-view" onclick="toggleComments('${d.id}', 'ind-${d.id}')"><i class="fas fa-comments"></i> Comments</button>
-              </div>
-              <div id="comments-container-ind-${d.id}" style="display:none; margin-top:1rem;"></div>
+    } else {
+      // 1. Exam Groups Section
+      if (Object.keys(groupsMap).length > 0) {
+        html += `<h2 class="section-divider">Exam Groups</h2>`;
+        for (let gId in groupsMap) {
+          let g = groupsMap[gId];
+          html += `<div class="group-section"><div class="group-header">${g.title}</div>
+            <div class="table-wrap"><table><thead><tr><th>Subject</th><th class="col-type">Type</th><th class="col-year">Year</th><th>Action</th></tr></thead><tbody>`;
+          for (let region in g.regions) {
+            html += `<tr class="region-row"><td colspan="4"><i class="fas fa-map-marker-alt"></i> ${region}</td></tr>`;
+            g.regions[region].forEach(ex => {
+              html += `<tr><td>${ex.subject}</td><td class="col-type">${ex.type}</td><td class="col-year">${ex.year || 'N/A'}</td><td><button class="btn-sm btn-download" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="openModal('${ex.file_id}', '${ex.id}')"><i class="fas fa-book-open"></i> Read</button></td></tr>`;
+            });
+          }
+          html += `</tbody></table></div>
+            <div style="padding: 1rem 1.5rem; text-align:right; border-top: 1px solid var(--border);">
+              <button class="btn-sm btn-view" onclick="toggleComments('${gId}', 'group-${gId}')"><i class="fas fa-comments"></i> Group Comments</button>
+              <div id="comments-container-group-${gId}" style="display:none; margin-top:1rem; border-top:2px dashed var(--border); padding-top:1rem; text-align:left;"></div>
             </div>
           </div>`;
-      });
-    }
+        }
+      }
 
-    if (individualDocs.length === 0 && Object.keys(groupsMap).length === 0) {
-      html += '<p style="text-align:center; padding:2rem; color:var(--text-light);">No documents found.</p>';
+      // 2. Category Based Divisions
+      categories.forEach(cat => {
+        let catDocs = individualDocs.filter(d => (d.category || "Latest Posts") === cat.name);
+        if (catDocs.length > 0) {
+          html += `<h2 class="section-divider">${cat.name}</h2>`;
+          catDocs.forEach(d => html += renderPostCard(d));
+        }
+      });
+
+      if (individualDocs.length === 0 && Object.keys(groupsMap).length === 0) {
+        html += '<p style="text-align:center; padding:2rem; color:var(--text-light);">No documents posted yet.</p>';
+      }
     }
 
     html += `</main>
         <aside class="sidebar">
-          <div class="widget">
-            <h3 class="widget-title"><i class="fas fa-search"></i> Search Notes</h3>
-            <div class="search-box">
-              <input type="text" id="searchInput" placeholder="Type subject name..." onkeyup="handleSearch(event)" value="${activeFilters.search}">
-              <button onclick="searchManual()"><i class="fas fa-arrow-right"></i></button>
-            </div>
-          </div>
           <div class="widget">
             <h3 class="widget-title"><i class="fas fa-tags"></i> Subjects</h3>
             <div class="labels-list">
@@ -379,6 +341,35 @@
       </div>`;
     
     document.getElementById('appContent').innerHTML = html;
+  }
+
+  function renderPostCard(d) {
+    let icon = d.type === "PDF" ? '<i class="fas fa-file-pdf"></i>' : d.type === "DOCX" ? '<i class="fas fa-file-word"></i>' : d.type === "PPTX" ? '<i class="fas fa-file-powerpoint"></i>' : '<i class="fas fa-file"></i>';
+    return `
+      <div class="note-item" id="post-${d.id}">
+        <div class="note-collapsed" onclick="toggleExpand('${d.id}')">
+          <div class="file-icon-box ${d.type.toLowerCase()}">${icon}<span>${d.type}</span></div>
+          <div class="note-content">
+            <div class="note-meta">
+              ${d.form ? `<span class="tag tag-form">${d.form}</span>` : ''}
+              ${d.subject ? `<span class="tag tag-subject">${d.subject}</span>` : ''}
+              ${d.region ? `<span class="tag tag-subject">${d.region}</span>` : ''}
+              ${d.type ? `<span class="tag tag-type">${d.type}</span>` : ''}
+            </div>
+            <h3>${d.title}</h3>
+            <p class="note-desc">${d.description || ''}</p>
+            <span class="read-more-btn">Read More...</span>
+          </div>
+        </div>
+        <div class="note-expanded">
+          ${d.image_url ? `<img src="${d.image_url}" class="post-image-full" alt="Image">` : ''}
+          <div class="note-actions">
+            <button class="btn-sm btn-download" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
+            <button class="btn-sm btn-view" onclick="toggleComments('${d.id}', 'ind-${d.id}')"><i class="fas fa-comments"></i> Comments</button>
+          </div>
+          <div id="comments-container-ind-${d.id}" style="display:none; margin-top:1rem;"></div>
+        </div>
+      </div>`;
   }
 
   function toggleExpand(id) { document.getElementById('post-' + id).classList.toggle('expanded'); }
@@ -492,6 +483,17 @@
       let groupOpts = allData.groups.map(g => `<option value="${g.id}">${g.title}</option>`).join('');
       html = `<div class="group-section"><div class="group-header">Upload New Document</div><div style="padding:1.5rem;">
         <div class="form-group"><label>Select Group</label><select id="uGroup" class="form-input"><option value="">None (Individual Post)</option>${groupOpts}</select></div>
+        
+        <div class="form-group"><label>Category / Section</label><select id="uCategory" class="form-input">
+          <option value="Secondary School Notes">Secondary School Notes</option>
+          <option value="Primary School Notes">Primary School Notes</option>
+          <option value="Examinations">Examinations</option>
+          <option value="Featured Posts">Featured Posts</option>
+          <option value="Latest Posts" selected>Latest Posts</option>
+          <option value="Secondary Books">Secondary Books</option>
+          <option value="Primary Books">Primary Books</option>
+        </select></div>
+
         <div class="form-group"><label>Title</label><input type="text" id="uTitle" class="form-input"></div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
           <div class="form-group"><label>Subject</label><input type="text" id="uSubject" class="form-input"></div>
@@ -552,6 +554,7 @@
       const payload = { 
         action: "uploadDoc", 
         group_id: document.getElementById('uGroup').value, 
+        category: document.getElementById('uCategory').value, 
         title: document.getElementById('uTitle').value, 
         subject: document.getElementById('uSubject').value, 
         form: document.getElementById('uForm').value, 
