@@ -60,45 +60,35 @@
   .form-tab { padding: 0.5rem 1rem; background: #f1f5f4; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: all 0.3s; font-size: 0.9rem; }
   .form-tab.active, .form-tab:hover { background: var(--tanzania-green); color: #fff; border-color: var(--tanzania-green); }
 
-  /* Expandable Note Item - Horizontal Layout */
+  /* Post Layout - Balanced and No Duplication */
   .note-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; box-shadow: var(--shadow); width: 100%; }
   .note-item:hover { box-shadow: var(--shadow-hover); border-color: var(--tanzania-blue); }
   .note-item.expanded .note-expanded { display: block; animation: fadeIn 0.3s; }
+  .note-item.expanded .post-thumb { display: none; } /* Hide thumbnail when expanded to avoid duplicate */
+  .note-item.expanded .note-content { width: 100%; }
   
-  /* Collapsed View - Strictly Horizontal */
   .note-collapsed { display: flex; flex-direction: row; align-items: center; gap: 1.5rem; cursor: pointer; width: 100%; }
   
-  /* Thumbnail - Always Left */
-  .post-thumb { width: 100px; height: 80px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #f1f5f4; display: flex; align-items: center; justify-content: center; }
+  .post-thumb { width: 120px; height: 90px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #f1f5f4; display: flex; align-items: center; justify-content: center; }
   .post-thumb img { width: 100%; height: 100%; object-fit: cover; }
   .file-icon-box { width: 100%; height: 100%; border-radius: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-weight: 700; font-size: 0.8rem; }
   .file-icon-box i { font-size: 1.5rem; margin-bottom: 0.2rem; }
   .pdf { background: #e74c3c; } .docx { background: #2980b9; } .pptx { background: #d35400; } .xlsx { background: #27ae60; } .txt { background: #7f8c8d; }
   
-  /* Content - Always Right */
   .note-content { flex: 1; min-width: 0; width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
-  .note-content h3 { font-size: 1.1rem; margin-bottom: 0.3rem; color: var(--tanzania-black); }
+  .note-content h3 { font-size: 1rem; margin-bottom: 0.4rem; color: var(--tanzania-black); line-height: 1.4; }
   body.dark-mode .note-content h3 { color: var(--text-dark); }
-  .post-info-line { display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-mute); flex-wrap: wrap; margin-bottom: 0; }
+  .post-info-line { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--text-mute); flex-wrap: wrap; margin-bottom: 0; }
   .post-info-line span { display: flex; align-items: center; gap: 0.3rem; }
 
-  /* Expanded View - Shows Description & Actions */
   .note-expanded { display: none; padding-top: 1rem; margin-top: 1rem; border-top: 1px dashed var(--border); width: 100%; }
-  .post-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
-  .tag { padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-  .tag-form { background: rgba(30, 181, 58, 0.1); color: var(--tanzania-green); }
-  .tag-subject { background: #e6f0f5; color: var(--tanzania-blue); }
-  .tag-type { background: #eee; color: var(--text-mute); }
-  body.dark-mode .tag-type { background: #333; }
-  
-  .post-image-full { width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; }
+  .post-image-full { width: 100%; max-height: 350px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; }
   .note-desc-full { font-size: 0.95rem; color: var(--text-light); margin-bottom: 1rem; line-height: 1.7; }
   .note-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
   .btn-sm { padding: 0.5rem 1rem; text-align: center; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; }
   .btn-view { background: #eef4f8; color: var(--tanzania-blue); }
   .btn-download { background: var(--tanzania-green); color: #fff; }
 
-  /* Table Fixed for Mobile */
   .group-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1.5rem; width: 100%; }
   .group-header { font-size: 1.2rem; color: #fff; background: var(--tanzania-green); padding: 0.8rem 1.5rem; }
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
@@ -145,7 +135,8 @@
     .admin-grid { grid-template-columns: 1fr; } 
   }
   @media (max-width: 600px) { 
-    .post-thumb { width: 80px; height: 70px; } 
+    .post-thumb { width: 90px; height: 70px; } 
+    .note-content h3 { font-size: 0.9rem; }
     .hero h1 { font-size: 1.6rem; }
     .col-type, .col-year { display: none; } 
   }
@@ -249,7 +240,6 @@
       groupsMap[gId].regions[reg].push(d);
     });
 
-    // Manual Categories
     let categories = [
       { name: "Secondary School Notes" },
       { name: "Primary School Notes" },
@@ -258,7 +248,6 @@
       { name: "Primary Books" }
     ];
 
-    // Automated Sorting
     let latestPosts = [...individualDocs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 6);
     let featuredPosts = [...individualDocs].sort((a, b) => ((b.views||0) + (b.downloads||0)) - ((a.views||0) + (a.downloads||0))).slice(0, 4);
 
@@ -295,7 +284,6 @@
         individualDocs.forEach(d => html += renderPostCard(d));
       }
     } else {
-      // 1. Exam Groups Section
       if (Object.keys(groupsMap).length > 0) {
         html += `<h2 class="section-divider">Exam Groups</h2>`;
         for (let gId in groupsMap) {
@@ -317,19 +305,16 @@
         }
       }
 
-      // 2. Featured Posts (Automatic)
       if (featuredPosts.length > 0) {
         html += `<h2 class="section-divider">Featured Posts</h2>`;
         featuredPosts.forEach(d => html += renderPostCard(d));
       }
 
-      // 3. Latest Posts (Automatic)
       if (latestPosts.length > 0) {
         html += `<h2 class="section-divider">Latest Posts</h2>`;
         latestPosts.forEach(d => html += renderPostCard(d));
       }
 
-      // 4. Manual Categories
       categories.forEach(cat => {
         let catDocs = individualDocs.filter(d => d.category === cat.name);
         if (catDocs.length > 0) {
@@ -367,6 +352,7 @@
     let icon = d.type === "PDF" ? '<i class="fas fa-file-pdf"></i>' : d.type === "DOCX" ? '<i class="fas fa-file-word"></i>' : d.type === "PPTX" ? '<i class="fas fa-file-powerpoint"></i>' : '<i class="fas fa-file"></i>';
     let dateStr = d.created_at ? new Date(d.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
     
+    // Tags removed from here to avoid duplication, they are in the info line.
     return `
       <div class="note-item" id="post-${d.id}">
         <div class="note-collapsed" onclick="toggleExpand('${d.id}')">
@@ -376,7 +362,7 @@
           <div class="note-content">
             <h3>${d.title}</h3>
             <div class="post-info-line">
-              <span><i class="fas fa-user-edit"></i> Posted by SKULiKA</span>
+              <span><i class="fas fa-user-edit"></i> SKULiKA</span>
               <span><i class="fas fa-calendar-alt"></i> ${dateStr}</span>
               ${d.form ? `<span><i class="fas fa-layer-group"></i> ${d.form}</span>` : ''}
             </div>
@@ -385,12 +371,6 @@
         
         <div class="note-expanded">
           ${d.image_url ? `<img src="${d.image_url}" class="post-image-full" alt="Image">` : ''}
-          <div class="post-tags">
-            ${d.form ? `<span class="tag tag-form">${d.form}</span>` : ''}
-            ${d.subject ? `<span class="tag tag-subject">${d.subject}</span>` : ''}
-            ${d.region ? `<span class="tag tag-subject">${d.region}</span>` : ''}
-            ${d.type ? `<span class="tag tag-type">${d.type}</span>` : ''}
-          </div>
           <p class="note-desc-full">${d.description || ''}</p>
           <div class="note-actions">
             <button class="btn-sm btn-download" onclick="openModal('${d.file_id}', '${d.id}')"><i class="fas fa-book-open"></i> Read / Download</button>
