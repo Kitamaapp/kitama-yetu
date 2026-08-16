@@ -207,11 +207,11 @@
 </footer>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOLtNbitSb5hZrBTWsmyCl0B3Nojvqu0XzXvFi1NEyFIrwtnu705jypbUlsqkYMQ/exec'; // Weka link mpya ya Apps Script hapa!
+  // HAPA WEKA LINK YAKO YA APPS SCRIPT ULIONAKILI
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOPXKCfzTpQNmA1Mm58D-ML6EcXrIL-CCyz41Z-vz4jSik7Ygk-b08Jg51DB9wuRU/exec'; 
   let allData = { settings: {}, docs: [], groups: [] };
   let activeFilters = { form: "All", subject: "All", search: "" };
 
-  // Ads Array (Will be populated from Admin Dashboard uploads)
   let heroAds = [
     'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80'
   ];
@@ -287,9 +287,27 @@
 
     let categories = [
       { name: "Secondary School Notes" },
+      { name: "Advanced Secondary Notes" },
       { name: "Primary School Notes" },
+      { name: "Unislides" },
+      { name: "Politics" },
+      { name: "Higher Education" },
+      { name: "NECTA" },
+      { name: "Heslb" },
+      { name: "TIE" },
+      { name: "Pre-Primary Books" },
+      { name: "Pre-Primary Notes" },
+      { name: "Timetable" },
+      { name: "Sports and games" },
+      { name: "Entertainment" },
+      { name: "Science and technology" },
+      { name: "Talents" },
+      { name: "AI World" },
+      { name: "Forecast" },
+      { name: "Health" },
       { name: "Examinations" },
       { name: "Secondary Books" },
+      { name: "Advanced Secondary Books" },
       { name: "Primary Books" }
     ];
 
@@ -572,8 +590,14 @@
     loginBtn.disabled = true;
     loginBtn.innerText = "Checking...";
     try {
-      const res = await fetch(SCRIPT_URL + "?action=login&password=" + encodeURIComponent(pass));
+      // Tuma ombi la POST kuepuka CORS issues
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ action: "login", password: pass })
+      });
       const data = await res.json();
+      
       if (data.status === "success") {
         isAdmin = true;
         showToast("Welcome Admin!", "success");
@@ -585,7 +609,7 @@
       }
     } catch (error) {
       console.error("Login Error:", error);
-      showToast("Network error during login.", "error");
+      showToast("Network error. Check Apps Script URL.", "error");
       loginBtn.disabled = false;
       loginBtn.innerText = "Login";
     }
