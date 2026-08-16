@@ -47,36 +47,14 @@
   .page-wrapper { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; min-height: 70vh; width: 100%; }
   
   /* Hero Ads Banner */
-  .hero { 
-    position: relative; 
-    background-size: cover; 
-    background-position: center; 
-    color: #fff; 
-    text-align: center; 
-    padding: 3rem 1rem; 
-    border-radius: 10px; 
-    margin-bottom: 1rem; 
-    width: 100%; 
-    transition: background-image 1s ease-in-out; 
-    box-shadow: var(--shadow); 
-  }
+  .hero { position: relative; background-size: cover; background-position: center; color: #fff; text-align: center; padding: 3rem 1rem; border-radius: 10px; margin-bottom: 1rem; width: 100%; transition: background-image 1s ease-in-out; box-shadow: var(--shadow); }
   .hero-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); border-radius: 10px; z-index: 1; }
   .hero-content { position: relative; z-index: 2; }
   .hero h1 { font-size: 1.8rem; margin-bottom: 0.3rem; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
   .hero p { font-size: 0.95rem; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
 
   /* Fading Ticker */
-  .ticker-container { 
-    text-align: center; 
-    margin-bottom: 1.5rem; 
-    padding: 0.8rem 1rem; 
-    background: var(--surface); 
-    border-radius: 8px; 
-    box-shadow: var(--shadow); 
-    cursor: pointer; 
-    transition: transform 0.2s; 
-    border-left: 4px solid var(--tanzania-green); 
-  }
+  .ticker-container { text-align: center; margin-bottom: 1.5rem; padding: 0.8rem 1rem; background: var(--surface); border-radius: 8px; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.2s; border-left: 4px solid var(--tanzania-green); }
   .ticker-container:hover { transform: translateY(-2px); }
   .ticker-label { font-size: 0.75rem; color: var(--tanzania-blue); font-weight: 700; text-transform: uppercase; margin-right: 8px; }
   .ticker-text { font-weight: 600; color: var(--tanzania-green); transition: opacity 0.5s ease; font-size: 0.95rem; }
@@ -96,7 +74,7 @@
   .form-tab { padding: 0.3rem 0.7rem; background: #f1f5f4; border: 1px solid var(--border); border-radius: 5px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: all 0.3s; font-size: 0.8rem; }
   .form-tab.active, .form-tab:hover { background: var(--tanzania-green); color: #fff; border-color: var(--tanzania-green); }
 
-  /* HORIZONTAL POST LAYOUT */
+  /* HORIZONTAL POST LAYOUT (Darasahuru/Unislides Style) */
   .note-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; box-shadow: var(--shadow); width: 100%; transition: box-shadow 0.3s; }
   .note-item:hover { box-shadow: var(--shadow-hover); }
   .note-item.expanded .note-expanded { display: block; animation: fadeIn 0.3s; }
@@ -178,7 +156,7 @@
 
 <header>
   <div class="nav-container">
-    <div class="logo" onclick="navigate('home')"><i class="fas fa-graduation-cap"></i> SKU<span>Li</span>KA</div>
+    <div class="logo" onclick="navigate('home')"><i class="fas fa-graduation-cap"></i> SKU<span>L</span>iKA</div>
     <ul class="nav-links">
       <li><a onclick="navigate('home')">Home</a></li>
       <li><a onclick="navigate('about')">About Us</a></li>
@@ -188,12 +166,12 @@
     </ul>
     <div class="nav-actions">
       <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon" id="themeIcon"></i></button>
-      <button class="btn-admin" onclick="navigate('admin')">Login</button>
+      <button class="btn-admin" onclick="navigate('admin')">Admin</button>
       <button class="mobile-menu-btn" onclick="document.getElementById('mobileNav').classList.toggle('active')"><i class="fas fa-bars"></i></button>
     </div>
   </div>
   <div class="mobile-nav" id="mobileNav">
-    <a onclick="navigate('home')">Home</a><a onclick="navigate('about')">About Us</a><a onclick="navigate('contact')">Contact Us</a><a onclick="navigate('privacy')">Privacy Policy</a><a onclick="navigate('terms')">Terms of Service</a><a onclick="navigate('admin')">Admin Login</a>
+    <a onclick="navigate('home')">Home</a><a onclick="navigate('about')">About Us</a><a onclick="navigate('contact')">Contact</a><a onclick="navigate('privacy')">Privacy</a><a onclick="navigate('terms')">Terms</a><a onclick="navigate('admin')">Admin Login</a>
   </div>
 </header>
 
@@ -219,7 +197,7 @@
 </footer>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQhHYv_J32JGWDVz_hLJx44sMVc9ol5ohlwPLdPEUBKxQFucrknoV02PiSeuv3b1E/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOLtNbitSb5hZrBTWsmyCl0B3Nojvqu0XzXvFi1NEyFIrwtnu705jypbUlsqkYMQ/exec';
   let allData = { settings: {}, docs: [], groups: [] };
   let activeFilters = { form: "All", subject: "All", search: "" };
 
@@ -297,12 +275,12 @@
       <div class="hero" id="heroAd" style="background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('${heroAds[0]}');">
         <div class="hero-content">
           <h1>Welcome to SKULiKA</h1>
-          <p>Digital Library for versatile educational materials. Download or read online.</p>
+          <p>Digital Library for Form I to Form VI Notes. Download or read online.</p>
         </div>
       </div>
       
       <div class="ticker-container" id="tickerContainer">
-        <span class="ticker-label"></span>
+        <span class="ticker-label">Recent Post:</span>
         <span class="ticker-text" id="tickerText">Loading...</span>
       </div>
 
@@ -592,8 +570,16 @@
         <div class="stat-box"><h2>${tv}</h2><p>Views</p></div>
         <div class="stat-box"><h2>${td}</h2><p>Downloads</p></div>
       </div>
-      <div class="table-wrap"><table><thead><tr><th>Title</th><th>Views</th><th>Downloads</th></tr></thead><tbody>`;
-      allData.docs.forEach(d => { html += `<tr><td>${d.title}</td><td>${d.views||0}</td><td>${d.downloads||0}</td></tr>`; });
+      <h3 style="margin-bottom:0.8rem; font-size:1rem;">Manage Documents (Delete Posts)</h3>
+      <div class="table-wrap"><table><thead><tr><th>Title</th><th>Views</th><th>Downloads</th><th>Action</th></tr></thead><tbody>`;
+      allData.docs.forEach(d => { 
+        html += `<tr>
+                   <td>${d.title}</td>
+                   <td>${d.views||0}</td>
+                   <td>${d.downloads||0}</td>
+                   <td><button class="btn-sm" style="background:#e74c3c; color:#fff; padding:4px 8px; font-size:12px; border:none; cursor:pointer;" onclick="deletePost('${d.id}')"><i class="fas fa-trash"></i> Delete</button></td>
+                 </tr>`; 
+      });
       html += `</tbody></table></div>`;
     } 
     else if (tab === 'groups') {
@@ -711,6 +697,24 @@
     };
     await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type":"text/plain"}, body: JSON.stringify(payload) });
     alert('Settings Saved!'); await fetchData(); navigate('home');
+  }
+
+  // --- FUNCTION MPYA YA KUFUTA POST ---
+  async function deletePost(id) {
+    if (!confirm("Are you sure you want to permanently delete this post? This action cannot be undone.")) return;
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ action: "deletePost", id: id })
+      });
+      alert("Post deleted successfully!");
+      await fetchData(); 
+      showTab('stats', document.querySelector('.admin-sidebar button.active'));
+    } catch (error) {
+      console.error("Delete Error:", error);
+      alert("Failed to delete post. Check console for details.");
+    }
   }
 
   function toggleTheme() {
