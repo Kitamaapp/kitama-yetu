@@ -1268,6 +1268,7 @@
     let citizenReplyName = null;
     let citizenReplyText = null;
     let isAtBottom = true;
+    let CURRENT_APP_VERSION = "1.0.0"; // Badilisha hii kila unapojenga APK mpya
     let unreadChatCount = 0;
     let scrollToBottomOnNextFetch = false; // Mpya
     let lastForumMsgTime = null; // Mpya
@@ -1667,6 +1668,7 @@
         
         // OMBA RUHUSA YA NOTIFICATIONS
         requestNotificationPermission();
+        checkForUpdates(); // ONGEZA HII: Kagua kama kuna toleo jipya
         
         // FUTA STATUS ZILIZOKWISHA MUDA (Auto-clean)
         cleanExpiredStatuses();
@@ -6509,6 +6511,31 @@
             const previewBox = document.getElementById('official-video-preview');
             previewBox.innerHTML = `<video src="${URL.createObjectURL(file)}" style="width:100%; height:100%; object-fit:cover;" controls></video>`;
         }
+    
+    async function checkForUpdates() {
+        try {
+            // Pata taarifa za toleo jipya kutoka Supabase
+            const { data, error } = await sb.from('app_updates').select('latest_version, download_url').eq('id', '00000000-0000-0000-0000-000000000000').maybeSingle();
+            if(error) throw error;
+            
+            // Kama toleo lilipo kwenye mtandao si sawa na lile la App ya mtumiaji
+            if(data && data.latest_version && data.latest_version !== CURRENT_APP_VERSION) {
+                // Fungua dirisha la kumwomba apakue
+                openModal("Toleo Jipya La App!", "Kuna toleo jipya la <b>Kitama Yetu</b> . Tafadhali pakua na kusasisha App yako ili kuendelea kuitumia bila matatizo.", false, () => {
+                    // Mpeleke kwenye mtandao apakue
+                    window.open(data.download_url, '_blank');
+                });
+                
+                // Badilisha jina la kitufe ili liwe wazi ni "Pakua APK"
+                const okBtn = document.getElementById('modal-ok');
+                okBtn.innerText = "Pakua APK";
+                okBtn.style.background = "#3B82F6"; // Rangi ya bluu kama WhatsApp
+            }
+        } catch(e) {
+            console.error("Update check error:", e);
+        }
+    }
+    
     window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
 </script>
 </body>
