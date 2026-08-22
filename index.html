@@ -2495,7 +2495,6 @@
             </div>`;
             
             let firstUnreadId = null;
-            // FIX: Kama hakuna muda uliosomwa awali, tumia muda wa sasa ili asirudishwe juu kabisa
             const lastReadTime = u.last_forum_read ? new Date(u.last_forum_read).getTime() : Date.now();
             
             if(data.length > 0) {
@@ -2561,42 +2560,44 @@
                 saveToCache('forum_html', chatHtml);
             }
             
-            // LOGIC YA SCROLL
-            if (isIncoming) {
-                if (isAtBottom || scrollToBottomOnNextFetch) {
-                    div.scrollTop = div.scrollHeight;
-                    isAtBottom = true;
-                    scrollToBottomOnNextFetch = false;
-                    
-                    if (lastForumMsgTime) {
-                        u.last_forum_read = lastForumMsgTime;
-                        localStorage.setItem('kitama_user', JSON.stringify(u));
-                        sb.from('users').update({ last_forum_read: lastForumMsgTime }).eq('id', u.id).then();
+            // LOGIC YA SCROLL (Imezungushwa kwenye setTimeout kuepuka kuruja juu)
+            setTimeout(() => {
+                if (isIncoming) {
+                    if (isAtBottom || scrollToBottomOnNextFetch) {
+                        div.scrollTop = div.scrollHeight;
+                        isAtBottom = true;
+                        scrollToBottomOnNextFetch = false;
+                        
+                        if (lastForumMsgTime) {
+                            u.last_forum_read = lastForumMsgTime;
+                            localStorage.setItem('kitama_user', JSON.stringify(u));
+                            sb.from('users').update({ last_forum_read: lastForumMsgTime }).eq('id', u.id).then();
+                        }
+                    } else {
+                        div.scrollTop = oldScrollTop;
+                        unreadChatCount++;
+                        document.getElementById('new-msg-count').innerText = unreadChatCount;
+                        document.getElementById('new-msg-banner').style.display = 'block';
                     }
                 } else {
-                    div.scrollTop = oldScrollTop;
-                    unreadChatCount++;
-                    document.getElementById('new-msg-count').innerText = unreadChatCount;
-                    document.getElementById('new-msg-banner').style.display = 'block';
-                }
-            } else {
-                if (scrollToBottomOnNextFetch) {
-                    div.scrollTop = div.scrollHeight;
-                    isAtBottom = true;
-                    scrollToBottomOnNextFetch = false;
-                } else if (firstUnreadId) {
-                    const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
-                    if(unreadEl) {
-                        unreadEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (scrollToBottomOnNextFetch) {
+                        div.scrollTop = div.scrollHeight;
+                        isAtBottom = true;
+                        scrollToBottomOnNextFetch = false;
+                    } else if (firstUnreadId) {
+                        const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
+                        if(unreadEl) {
+                            unreadEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        } else {
+                            div.scrollTop = div.scrollHeight;
+                        }
+                        isAtBottom = false;
                     } else {
                         div.scrollTop = div.scrollHeight;
+                        isAtBottom = true;
                     }
-                    isAtBottom = false;
-                } else {
-                    div.scrollTop = div.scrollHeight;
-                    isAtBottom = true;
                 }
-            }
+            }, 50); // SUBIRI DOM IPAKIE KISHA SHUKA CHINI
         } catch(e) { 
             if(!hasContent) div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`;
         }
@@ -2964,19 +2965,29 @@
     let leaderUnreadCount = 0;
     let leaderReplyTo = null;
 
-    function handleLeaderChatScroll(el) {
-        const threshold = 150; 
-        const position = el.scrollTop + el.clientHeight;
-        const height = el.scrollHeight;
-        if (height - position <= threshold) {
-            leaderIsAtBottom = true;
-            leaderUnreadCount = 0;
-            const banner = document.getElementById('leader-new-msg-banner');
-            if(banner) banner.style.display = 'none';
-        } else {
-            leaderIsAtBottom = false;
+            function handleLeaderChatScroll(el) {
+            const threshold = 150; 
+            const position = el.scrollTop + el.clientHeight;
+            const height = el.scrollHeight;
+            if (height - position <= threshold) {
+                leaderIsAtBottom = true;
+                leaderUnreadCount = 0;
+                const banner = document.getElementById('leader-new-msg-banner');
+                if(banner) banner.style.display = 'none';
+                
+                // Hifadhi muda wa mwisho wa kusoma
+                if (lastLeaderMsgTime) {
+                    const u = JSON.parse(localStorage.getItem('kitama_user'));
+                    if (u.last_leader_read !== lastLeaderMsgTime) {
+                        u.last_leader_read = lastLeaderMsgTime;
+                        localStorage.setItem('kitama_user', JSON.stringify(u));
+                        sb.from('users').update({ last_leader_read: lastLeaderMsgTime }).eq('id', u.id).then();
+                    }
+                }
+            } else {
+                leaderIsAtBottom = false;
+            }
         }
-    }
 
     function scrollToBottomLeaderChat() {
         const div = document.getElementById('chat-list');
@@ -2998,7 +3009,10 @@
         document.getElementById('leader-reply-context').style.display = 'none'; 
     }
 
-            async function fetchLeaderChat(isIncoming = false) {
+        let scrollToBottomOnNextFetchLeader = false;
+        let lastLeaderMsgTime = null;
+
+        async function fetchLeaderChat(isIncoming = false) {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const div = document.getElementById('chat-list');
             const oldScrollTop = div.scrollTop;
@@ -3009,11 +3023,6 @@
             }
             
             try {
-                if(!isIncoming || leaderIsAtBottom) {
-                    await sb.from('users').update({ last_leader_read: new Date().toISOString() }).eq('id', u.id);
-                    updateBadges();
-                }
-                
                 const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending: true }).limit(100);
                 if (error) throw error;
 
@@ -3024,7 +3033,12 @@
                     </p>
                 </div>`;
                 
+                let firstUnreadId = null;
+                const lastReadTime = u.last_leader_read ? new Date(u.last_leader_read).getTime() : 0;
+                
                 if (data.length > 0) {
+                    lastLeaderMsgTime = data[data.length - 1].created_at;
+                    
                     let lastDateStr = '';
                     data.forEach(c => {
                         const msgDate = new Date(c.created_at);
@@ -3035,12 +3049,15 @@
                             lastDateStr = dateStr;
                         }
 
-                        if (c.sender_role === 'system_admin') {
-                            chatHtml += `<div class="chat-msg system-alert"><p><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${c.content}</p></div>`;
-                            return;
-                        }
-
                         const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); 
+                        
+                        // Pata ujumbe wa kwanza hajasoma
+                        if (!isSelf && !firstUnreadId && !isIncoming) {
+                            if (msgDate.getTime() > lastReadTime) {
+                                firstUnreadId = c.id;
+                            }
+                        }
+                        
                         let sharedHtml = c.shared_report_id ? `<div class="reply-quote" style="border-left-color: var(--text-sec);"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
                         let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
                         
@@ -3050,7 +3067,7 @@
                         let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
 
                         let displayName = `<span style="cursor:pointer;" onclick="event.stopPropagation(); viewUserProfile('${c.sender_phone}')">${c.sender_name}</span> (${c.sender_role.replace(/_/g,' ')})`;
-                        chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${cleanContent}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                        chatHtml += `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${cleanContent}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
                     });
                 } else {
                     chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
@@ -3058,18 +3075,38 @@
                 
                 div.innerHTML = chatHtml;
 
-                if (isIncoming && !leaderIsAtBottom) {
-                    leaderUnreadCount++;
-                    const banner = document.getElementById('leader-new-msg-banner');
-                    if(banner) {
-                        document.getElementById('leader-new-msg-count').innerText = leaderUnreadCount;
-                        banner.style.display = 'block';
+                // LOGIC YA SCROLL
+                if (isIncoming) {
+                    if (leaderIsAtBottom || scrollToBottomOnNextFetchLeader) {
+                        setTimeout(() => { div.scrollTop = div.scrollHeight; }, 50); // SUBIRI DOM IPAKIE KISHA SHUKA CHINI
+                        leaderIsAtBottom = true;
+                        scrollToBottomOnNextFetchLeader = false;
+                    } else {
+                        div.scrollTop = oldScrollTop;
+                        leaderUnreadCount++;
+                        const banner = document.getElementById('leader-new-msg-banner');
+                        if(banner) {
+                            document.getElementById('leader-new-msg-count').innerText = leaderUnreadCount;
+                            banner.style.display = 'block';
+                        }
                     }
-                    div.scrollTop = oldScrollTop;
                 } else {
-                    div.scrollTop = div.scrollHeight;
-                    leaderIsAtBottom = true;
-                    leaderUnreadCount = 0;
+                    if (scrollToBottomOnNextFetchLeader) {
+                        setTimeout(() => { div.scrollTop = div.scrollHeight; }, 50);
+                        leaderIsAtBottom = true;
+                        scrollToBottomOnNextFetchLeader = false;
+                    } else if (firstUnreadId) {
+                        const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
+                        if(unreadEl) {
+                            setTimeout(() => { unreadEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50);
+                        } else {
+                            setTimeout(() => { div.scrollTop = div.scrollHeight; }, 50);
+                        }
+                        leaderIsAtBottom = false;
+                    } else {
+                        setTimeout(() => { div.scrollTop = div.scrollHeight; }, 50);
+                        leaderIsAtBottom = true;
+                    }
                 }
             } catch (e) {
                 if(!hasContent) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
@@ -3077,20 +3114,21 @@
         }
 
     async function postChat() { 
-        const u = JSON.parse(localStorage.getItem('kitama_user')); 
-        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
-        const content = document.getElementById('chat-input').value.trim(); 
-        if(!content) return; 
-        if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
-        try { 
-            await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content, reply_to: leaderReplyTo }]); 
-            document.getElementById('chat-input').value = ''; 
-            cancelLeaderReply(); 
-            playBeep(); 
-            leaderIsAtBottom = true; 
-            fetchLeaderChat(false); 
-        } catch(e) { openModal("Kosa", e.message); } 
-    }
+            const u = JSON.parse(localStorage.getItem('kitama_user')); 
+            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
+            const content = document.getElementById('chat-input').value.trim(); 
+            if(!content) return; 
+            if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+            try { 
+                await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content, reply_to: leaderReplyTo }]); 
+                document.getElementById('chat-input').value = ''; 
+                cancelLeaderReply(); 
+                playBeep(); 
+                scrollToBottomOnNextFetchLeader = true; // ONGEZA HII: LIFORCE KUSHUKA CHINI
+                leaderIsAtBottom = true; 
+                fetchLeaderChat(false); 
+            } catch(e) { openModal("Kosa", e.message); } 
+        }
     async function editLeaderChat(id, oldText) {
         openModal("Hariri Ujumbe", "Badilisha ujumbe wako hapa chini.", true, async (newText) => {
             if(!newText || newText === oldText) return;
