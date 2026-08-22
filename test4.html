@@ -12,6 +12,34 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <style>
+                /* PREMIUM HOME DASHBOARD GRID CSS */
+        .home-section { margin: 0 16px 30px 16px; }
+        .home-section-title { font-size: 13px; font-weight: 700; color: var(--text-sec); margin: 0 4px 15px 4px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+        .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .home-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        .home-card:active { transform: scale(0.95); background: var(--bg); }
+        .home-card-icon {
+            width: 48px; height: 48px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .home-card-text h4 { font-size: 14px; font-weight: 700; color: var(--text); }
+        .home-card-text p { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
         :root {
             --primary: #0F172A; --accent: #10B981; --accent-dark: #059669;
             --bg: #F8FAFC; --surface: #FFFFFF; --text: #0F172A; --text-sec: #64748B;
@@ -178,7 +206,18 @@
         .chat-header small { font-size: 11px; color: var(--text-sec); margin-top: 2px; display: block; font-weight: 500; }
         .chat-header-btn { font-size: 12px; color: var(--accent); font-weight: 700; cursor: pointer; padding: 6px 10px; background: rgba(16,185,129,0.1); border-radius: 8px; display: flex; align-items: center; gap: 4px; }
         
-        .chat-body { background-color: var(--chat-bg); background-image: radial-gradient(var(--chat-pattern) 1px, transparent 1px); background-size: 20px 20px; padding: 20px 10px 90px 10px; display: flex; flex-direction: column; gap: 8px; min-height: calc(100vh - 150px); overflow-y: auto; }
+        .chat-body { 
+            background-color: var(--chat-bg); 
+            background-image: radial-gradient(var(--chat-pattern) 1px, transparent 1px); 
+            background-size: 20px 20px; 
+            padding: 20px 10px 90px 10px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            height: calc(100vh - 110px); 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+        }
         
         .chat-msg { background: var(--surface); padding: 8px 12px; border-radius: 12px 12px 12px 2px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); align-self: flex-start; position: relative; word-wrap: break-word; transition: transform 0.2s ease, background 0.2s; touch-action: pan-y; cursor: pointer; }
         .chat-msg.self { align-self: flex-end; background: #DCF8C6; color: #111; border-radius: 12px 12px 2px 12px; border: none; }
@@ -566,15 +605,6 @@
 </head>
 <body>
 
-<div class="splash-screen" id="splash-screen">
-    <div class="splash-logo">
-        <img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" alt="Kitama Yetu Logo">
-    </div>
-    <h1 class="splash-title">Kitama Yetu</h1>
-    <p class="splash-subtitle">Jukwaa Rasmi la Maendeleo</p>
-    <div class="splash-spinner"></div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <!-- FLOATING DEVELOPER BUBBLE -->
@@ -926,16 +956,33 @@
             <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Orodha ya shule kataani pamoja na taarifa za wanafunzi na viongozi.</p>
             <div id="public-schools-list"></div>
         </div>
+                <!-- KITAMA MAP SECTION -->
+        <div id="kitama-map-sec" class="sec">
+            <div class="chat-header">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <button onclick="handleNav('home-sec')" style="background:var(--bg); border:none; padding:8px; border-radius:12px; cursor:pointer; color:var(--text); display:flex;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    </button>
+                    <h2>Ramani ya Kitama</h2>
+                </div>
+                <span onclick="loadMapMarkers()" style="font-size:12px; color:var(--accent); font-weight:700; cursor:pointer;">Refresh</span>
+            </div>
+            <div id="kitama-map" style="height: calc(100vh - 60px); width: 100%; z-index: 1; background:var(--bg);"></div>
+        </div>
                 <!-- STATUS SECTION -->
         <div id="status-sec" class="sec">
             <div class="sec-h">
                 <h2>Status</h2>
-                <span onclick="openStatusUploadModal()">+ Weka Status</span>
+                <label for="status-direct-input" style="font-size:12px; color:var(--accent); font-weight:700; cursor:pointer; padding: 5px 10px; background: rgba(16,185,129,0.1); border-radius: 8px; display: flex; align-items:center; gap: 4px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Weka Status
+                </label>
+                <input type="file" id="status-direct-input" accept="image/*, video/*" style="display:none;" onchange="handleDirectStatusSelect(this)">
             </div>
             
             <!-- OFFICIAL STATUS SECTION (Kitama Yetu) -->
             <div id="official-status-container" style="padding: 0 20px; margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
-                <h4 style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Maufc ya Kitama Yetu</h4>
+                <h4 style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;"></h4>
                 <div id="official-status-list" style="display:flex; gap: 15px; overflow-x: auto;"></div>
             </div>
             
@@ -1793,21 +1840,10 @@
         );
     }
 
-     function setupDashboard(u) {
+         function setupDashboard(u) {
         const content = document.getElementById('home-content'), nav = document.getElementById('b-nav');
         
         let isPending = u.status === 'pending' && u.role === 'citizen';
-        let navHtml = '';
-        
-        if (isPending) {
-            navHtml += `<button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
-            navHtml += `<button class="nav-b" onclick="handleNav('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
-    } else {
-            navHtml += `<button class="nav-b" onclick="handleNav('citizen-chat-sec')" style="position: relative;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span><span id="forum-badge" style="position: absolute; top: 2px; right: 8px; background: #EF4444; color: white; font-size: 9px; min-width: 14px; height: 14px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span></button>`;
-            navHtml += `<button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
-            navHtml += `<button class="nav-b" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>`;
-    }
-        
         let roleText = u.role === 'system_admin' ? 'Admin wa Mfumo' : u.role.replace(/_/g, ' ');
         let initial = u.full_name.charAt(0).toUpperCase();
         let avatarHtml = u.avatar_url ? `<img src="${u.avatar_url}" class="hero-avatar">` : `<div class="hero-avatar">${initial}</div>`;
@@ -1822,105 +1858,118 @@
                 </div>
             </div>
         `;
-                // --- LOGIC YA MWALIMU MKUU ---
+                
+        // --- LOGIC YA MWALIMU MKUU ---
         if(u.role === 'citizen' || u.role === 'system_admin') {
             sb.from('schools').select('*').eq('headmaster_phone', u.phone_number).maybeSingle().then(({ data: school }) => {
-                const shopDiv = document.getElementById('shop-action-item'); // Tunatumia hii sehemu yoyote
                 if(school) {
-                    const hmBtn = document.createElement('div');
-                    hmBtn.className = 'action-item';
-                    hmBtn.onclick = () => fetchMySchoolStats(school.id);
-                    hmBtn.innerHTML = `<div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div><div class="action-text"><h4>Taarifa za Shule</h4><p>${school.school_name}</p></div><div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>`;
-                    if(shopDiv) shopDiv.insertAdjacentElement('beforebegin', hmBtn);
+                    const shopDiv = document.getElementById('shop-action-item'); 
+                    if(shopDiv) {
+                        const hmBtn = document.createElement('div');
+                        hmBtn.className = 'home-card';
+                        hmBtn.onclick = () => fetchMySchoolStats(school.id);
+                        hmBtn.innerHTML = `<div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div><div class="home-card-text"><h4>Taarifa za Shule</h4><p>${school.school_name}</p></div>`;
+                        shopDiv.insertAdjacentElement('beforebegin', hmBtn);
+                    }
                 }
             });
         }
+
         if (isPending) {
             html += `<div class="warning-box" style="margin: 0 16px 20px 16px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Akaunti yako inasubiri kuidhinishwa na Kiongozi wako wa Kijiji cha ${u.village}.</div>`;
-            html += `<div class="action-list">
-                <div class="action-item" onclick="handleNav('market-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div>
-                    <div class="action-text"><h4>Soko la Kitama</h4><p>Angalia bidhaa na maduka</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
+            
+            html += `
+                <div class="home-section">
+                    <div class="home-grid">
+                        <div class="home-card" onclick="handleNav('market-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div>
+                            <div class="home-card-text"><h4>Soko la Kitama</h4><p>Angalia bidhaa</p></div>
+                        </div>
+                        <div class="home-card" onclick="handleNav('schools-public-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+                            <div class="home-card-text"><h4>Shule za Kitama</h4><p>Taarifa za Wanafunzi</p></div>
+                        </div>
+                        <div class="home-card" onclick="handleNav('profile-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div>
+                            <div class="home-card-text"><h4>Akaunti Yangu</h4><p>Angalia taarifa zako</p></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="action-item" onclick="handleNav('schools-public-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
-                    <div class="action-text"><h4>Shule za Kitama</h4><p>Taarifa za Wanafunzi</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                </div>
-                <div class="action-item" onclick="handleNav('profile-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div>
-                    <div class="action-text"><h4>Akaunti Yangu</h4><p>Angalia taarifa zako</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                </div>
-            </div>`;
+            `;
         } else if(u.role === 'citizen') {
-                        html += `<div class="action-list">
-                <div class="action-item" onclick="handleNav('report-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #ef4444, #b91c1c); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-                    <div class="action-text"><h4>Tuma Ripoti / Kero</h4><p>Fichua kero na picha</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
+            html += `
+                <div class="home-section">
+                    <h3 class="home-section-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Msaada wa Haraka</h3>
+                    <div class="home-grid">
+                        <div class="home-card" onclick="handleNav('report-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #ef4444, #b91c1c); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                            <div class="home-card-text"><h4>Tuma Kero</h4><p>Fichua kero na picha</p></div>
+                        </div>
+                        <div class="home-card" onclick="handleNav('progress-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #10b981, #047857); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                            <div class="home-card-text"><h4>Tazama Kero Zote</h4><p>Fuatilia kero</p></div>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="action-item" onclick="handleNav('progress-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #10b981, #047857); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
-                    <div class="action-text"><h4>Tazama Kero Zote</h4><p>Fuatilia kero</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
+
+                <div class="home-section">
+                    <h3 class="home-section-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Maendeleo ya Kata</h3>
+                    <div class="home-grid">
+                        <div class="home-card" onclick="handleNav('campaign-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #6366f1, #4338ca); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                            <div class="home-card-text"><h4>Miradi & Dira</h4><p>Fuatilia kampeni</p></div>
+                        </div>
+                        <div class="home-card" onclick="handleNav('solidarity-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4zM6 1v3M10 1v3M14 1v3"/></svg></div>
+                            <div class="home-card-text"><h4>Nondo za Kimaendeleo</h4><p>Kuunga mkono hoja</p></div>
+                        </div>
+                        <div class="home-card" onclick="handleNav('events-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+                            <div class="home-card-text"><h4>Matukio</h4><p>Kalenda ya Kata</p></div>
+                        </div>
+                        <div class="home-card" onclick="handleNav('schools-public-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+                            <div class="home-card-text"><h4>Shule za Kitama</h4><p>Taarifa za Wanafunzi</p></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="action-item" onclick="handleNav('campaign-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #6366f1, #4338ca); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-                    <div class="action-text"><h4>Miradi & Dira</h4><p>Fuatilia kampeni</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
+
+                <div class="home-section">
+                    <h3 class="home-section-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg> Uchumi & Huduma</h3>
+                    <div class="home-grid">
+                        <div class="home-card" onclick="handleNav('boda-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #10b981, #047857); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"/></svg></div>
+                            <div class="home-card-text"><h4>Kitama Boda</h4><p>Ita Boda haraka</p></div>
+                        </div>
+                        <div class="home-card" onclick="handleNav('kitama-map-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+                            <div class="home-card-text"><h4>Ramani ya Kitama</h4><p>Watu na Maeneo</p></div>
+                        </div>
+                        <div class="home-card" onclick="handleNav('activist-hub-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #b45309); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></div>
+                            <div class="home-card-text"><h4>Makala za Wanaharakati</h4><p>Makala za hoja</p></div>
+                        </div>
+                        <div id="shop-action-item" class="home-card" style="display: flex; align-items: center; justify-content: center; border: 2px dashed var(--border); background: transparent;">
+                            <div class="home-card-text" style="color: var(--text-sec);">Mboa Duka...</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="action-item" onclick="handleNav('solidarity-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4zM6 1v3M10 1v3M14 1v3"/></svg></div>
-                    <div class="action-text"><h4>Nondo za Kimaendeleo</h4><p>Kuunga mkono hoja</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                </div>
-                <div class="action-item" onclick="handleNav('events-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-                    <div class="action-text"><h4>Matukio</h4><p>Kalenda ya Kata</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                </div>
-                               
-                <div class="action-item" onclick="handleNav('schools-public-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
-                    <div class="action-text"><h4>Shule za Kitama</h4><p>Taarifa za Wanafunzi</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                </div>
-                
-                <div class="action-item" onclick="handleNav('activist-hub-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #b45309); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></div>
-                    <div class="action-text"><h4>Makala za Wanaharakati</h4><p>Makala za hoja</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                </div>
-                <div class="action-item" onclick="handleNav('boda-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #10b981, #047857); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"/></svg></div>
-                    <div class="action-text"><h4>Kitama Boda</h4><p>Ita Boda haraka</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                </div>
-                <div class="action-item" onclick="handleNav('opportunities-sec')">
-                    <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-                    <div class="action-text"><h4>Fursa & Michongo</h4><p>Tangaza ajira/tenda</p></div>
-                    <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                </div>
-                <div id="shop-action-item"></div>
-            </div>`;
+            `;
         } else {
             // Hapa kuna separation ya Admin na Leaders
             if(u.role === 'system_admin') {
-                window.adminPhone = u.phone_number; // Hifadhi namba ya admin kwa System Alerts
+                window.adminPhone = u.phone_number; 
                 html += `<div class="admin-console">
                     <div style="text-align: center; color: var(--text-sec); margin-bottom: 20px;">
                         <h2 style="font-size: 20px; font-weight: 800; color: var(--text);">Developer Console</h2>
                         <p style="font-size: 12px;">Mfumo wa Udhibiti wa Kitama Yetu</p>
                     </div>
+                    <div class="admin-console-grid">
                         <div class="admin-tool-card" onclick="handleNav('admin-users-sec')">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 98l4 4M9 17l-5-5m12-4l5 5-5 5M3 7l5 5"/></svg>
                             <h4>Watumiaji</h4>
                             <p>Zuia / Fungua Akaunti</p>
                         </div>
-                    <div class="admin-console-grid">
                         <div class="admin-tool-card" onclick="handleNav('admin-activists-sec')">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                             <h4>Activists</h4>
@@ -1973,10 +2022,6 @@
                         </div>
                     </div>
                 </div>`;
-                // Admin Nav
-                navHtml += `<button class="nav-b" onclick="handleNav('citizen-chat-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span></button>`;
-                navHtml += `<button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
-                navHtml += `<button class="nav-b" onclick="handleNav('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
             } else {
                 // Leader Dashboard
                 html += `<div class="premium-stats">
@@ -1984,57 +2029,41 @@
                     <div class="premium-stat-card"><h3 id="stat-reports" style="color: #ef4444;">0</h3><p>Malalamishi</p></div>
                     <div class="premium-stat-card"><h3 id="stat-resolved" style="color: #10b981;">0</h3><p>Yaliyokamilika</p></div>
                 </div>`;
-                html += `<div class="action-list">
-                <div class="action-item" onclick="chatWithDeveloper()" style="border: 2px solid var(--accent); background: rgba(16,185,129,0.05);">
-                        <div class="action-icon" style="background: linear-gradient(135deg, #6366f1, #4338ca); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-                        <div class="action-text"><h4>Chat na Developer (IT)</h4><p>Ongea moja kwa moja kuhusu changamoto</p></div>
-                        <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
+                html += `
+                    <div class="home-section">
+                        <h3 class="home-section-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Uendeshaji</h3>
+                        <div class="home-grid">
+                            <div class="home-card" onclick="handleNav('leader-reports-sec')">
+                                <div class="home-card-icon" style="background: linear-gradient(135deg, #ef4444, #b91c1c); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div>
+                                <div class="home-card-text"><h4>Malalamishi</h4><p>Ya wananchi</p></div>
+                            </div>
+                            <div class="home-card" onclick="handleNav('pending-users-sec')">
+                                <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg></div>
+                                <div class="home-card-text"><h4>Watu Wapya</h4><p>Waidhinishe</p></div>
+                            </div>
+                            <div class="home-card" onclick="handleNav('campaign-sec')">
+                                <div class="home-card-icon" style="background: linear-gradient(135deg, #6366f1, #4338ca); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                                <div class="home-card-text"><h4>Miradi & Dira</h4><p>Weka/Tangaza</p></div>
+                            </div>
+                            <div class="home-card" onclick="handleNav('events-sec')">
+                                <div class="home-card-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+                                <div class="home-card-text"><h4>Matukio</h4><p>Tangaza mikutano</p></div>
+                            </div>
+                            <div class="home-card" onclick="handleNav('schools-public-sec')">
+                                <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+                                <div class="home-card-text"><h4>Shule za Kitama</h4><p>Taarifa za Wanafunzi</p></div>
+                            </div>
+                            <div class="home-card" onclick="handleNav('leader-chat-sec')">
+                                <div class="home-card-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+                                <div class="home-card-text"><h4>Kundi la Viongozi</h4><p>Jadiliana</p></div>
+                            </div>
+                            <div id="shop-action-item" class="home-card" style="display: flex; align-items: center; justify-content: center; border: 2px dashed var(--border); background: transparent;">
+                                <div class="home-card-text" style="color: var(--text-sec);">Mboa Duka...</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="action-item" onclick="handleNav('leader-reports-sec')">
-                        <div class="action-icon" style="background: linear-gradient(135deg, #ef4444, #b91c1c); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div>
-                        <div class="action-text"><h4>Malalamishi</h4><p>Ya wananchi</p></div>
-                        <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                    </div>
-                    <div class="action-item" onclick="handleNav('campaign-sec')">
-                        <div class="action-icon" style="background: linear-gradient(135deg, #6366f1, #4338ca); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-                        <div class="action-text"><h4>Miradi & Dira</h4><p>Weka/Tangaza</p></div>
-                        <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                    </div>
-                    <div class="action-item" onclick="handleNav('events-sec')">
-                        <div class="action-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-                        <div class="action-text"><h4>Matukio</h4><p>Tangaza mikutano</p></div>
-                        <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                    </div>
-                    <div class="action-item" onclick="handleNav('pending-users-sec')">
-                        <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg></div>
-                        <div class="action-text"><h4>Watu Wapya</h4><p>Waidhinishe</p></div>
-                        <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                    </div>
-                    <div class="action-item" onclick="handleNav('schools-public-sec')">
-                        <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
-                        <div class="action-text"><h4>Shule za Kitama</h4><p>Taarifa za Wanafunzi</p></div>
-                        <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                    </div>
-                    <div class="action-item" onclick="handleNav('leader-chat-sec')">
-                        <div class="action-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-                        <div class="action-text"><h4>Kundi la Viongozi</h4><p>Jadiliana</p></div>
-                        <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                    </div>`;
-                    if(u.role === 'system_admin') {
-                    html += `<div class="action-item" onclick="handleNav('admin-moderation-sec')">
-                        <div class="action-icon" style="background: linear-gradient(135deg, #ef4444, #b91c1c); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-                        <div class="action-text"><h4>Udhibiti wa Bidhaa</h4><p>Futa picha/intango</p></div>
-                        <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                    </div>`;
-                }
-                html += `<div id="shop-action-item"></div></div>`;
+                `;
                 fetchLeaderStats(u);
-                
-                // Leader Nav
-                                navHtml += `<button class="nav-b" onclick="handleNav('leader-chat-sec')" style="position: relative;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Viongozi</span><span id="leader-chat-badge" style="position: absolute; top: 2px; right: 8px; background: #EF4444; color: white; font-size: 9px; min-width: 14px; height: 14px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span></button>`;
-                navHtml += `<button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
-                navHtml += `<button class="nav-b" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>`;
-                navHtml += `<button class="nav-b" onclick="handleNav('profile-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/></svg><span>Akaunti</span></button>`;
             }
         }
         content.innerHTML = html; showSec('home-sec');
@@ -2045,17 +2074,15 @@
                 if(shopDiv) {
                     if(shop) {
                         currentShopId = shop.id;
-                        shopDiv.innerHTML = `<div class="action-item" onclick="viewMyShop()">
-                            <div class="action-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div>
-                            <div class="action-text"><h4>Duka Langu</h4><p>${shop.shop_name}</p></div>
-                            <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                        </div>`;
+                        shopDiv.style.border = '1px solid var(--border)';
+                        shopDiv.style.background = 'var(--surface)';
+                        shopDiv.innerHTML = `<div class="home-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div><div class="home-card-text"><h4>Duka Langu</h4><p>${shop.shop_name}</p></div>`;
+                        shopDiv.onclick = () => viewMyShop();
                     } else {
-                        shopDiv.innerHTML = `<div class="action-item" onclick="handleNav('create-shop-sec')">
-                            <div class="action-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div>
-                            <div class="action-text"><h4>Fungua Duka</h4><p>Tangaza biashara yako</p></div>
-                            <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-                        </div>`;
+                        shopDiv.style.border = '1px solid var(--border)';
+                        shopDiv.style.background = 'var(--surface)';
+                        shopDiv.innerHTML = `<div class="home-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div><div class="home-card-text"><h4>Fungua Duka</h4><p>Tangaza biashara yako</p></div>`;
+                        shopDiv.onclick = () => handleNav('create-shop-sec');
                     }
                 }
             });
@@ -2172,6 +2199,7 @@
         if(id==='schools-public-sec') fetchPublicSchools();
         if(id==='headmaster-sec') initHmClassInputs();
         if(id==='status-sec') loadStatusUI();
+        if(id==='kitama-map-sec') initKitamaMap();
         const marketAddBtn = document.getElementById('market-add-btn');
         if(marketAddBtn) {
             if(u.status === 'pending' || u.role !== 'citizen') marketAddBtn.style.display = 'none';
@@ -2336,14 +2364,7 @@
             isAtBottom = false;
         }
     }
-
-    function scrollToBottomChat() {
-        const div = document.getElementById('citizen-chat-list');
-        div.scrollTop = div.scrollHeight;
-        isAtBottom = true;
-        unreadChatCount = 0;
-        document.getElementById('new-msg-banner').style.display = 'none';
-    }
+    
 
     async function viewCitizensList() {
         if(activeCitizens.length === 0) return showToast("Inapakia orodha...");
@@ -2451,7 +2472,7 @@
         else return msgDate.toLocaleDateString('sw-KE', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
-            async function fetchCitizenChat(isIncoming = false) {
+        async function fetchCitizenChat(isIncoming = false) {
         const u = JSON.parse(localStorage.getItem('kitama_user')); 
         if (!u || !u.phone_number) return; 
         
@@ -2495,7 +2516,6 @@
             </div>`;
             
             let firstUnreadId = null;
-            // FIX: Kama hakuna muda uliosomwa awali, tumia muda wa sasa ili asirudishwe juu kabisa
             const lastReadTime = u.last_forum_read ? new Date(u.last_forum_read).getTime() : Date.now();
             
             if(data.length > 0) {
@@ -2561,48 +2581,53 @@
                 saveToCache('forum_html', chatHtml);
             }
             
-            // LOGIC YA SCROLL
-            if (isIncoming) {
-                if (isAtBottom || scrollToBottomOnNextFetch) {
-                    div.scrollTop = div.scrollHeight;
-                    isAtBottom = true;
-                    scrollToBottomOnNextFetch = false;
-                    
-                    if (lastForumMsgTime) {
-                        u.last_forum_read = lastForumMsgTime;
-                        localStorage.setItem('kitama_user', JSON.stringify(u));
-                        sb.from('users').update({ last_forum_read: lastForumMsgTime }).eq('id', u.id).then();
-                    }
-                } else {
-                    div.scrollTop = oldScrollTop;
-                    unreadChatCount++;
-                    document.getElementById('new-msg-count').innerText = unreadChatCount;
-                    document.getElementById('new-msg-banner').style.display = 'block';
-                }
-            } else {
-                if (scrollToBottomOnNextFetch) {
-                    div.scrollTop = div.scrollHeight;
-                    isAtBottom = true;
-                    scrollToBottomOnNextFetch = false;
-                } else if (firstUnreadId) {
-                    const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
-                    if(unreadEl) {
-                        unreadEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // WHATSAPP EXACT SCROLL LOGIC (Double rAF inasubiri browser amalizwe kuandika ujumbe kwa 100%)
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (isIncoming) {
+                        if (isAtBottom || scrollToBottomOnNextFetch) {
+                            div.scrollTop = div.scrollHeight; // Shuka chini kabisa kama ujumbe unakuja au umetuma
+                            isAtBottom = true;
+                            scrollToBottomOnNextFetch = false;
+                            
+                            if (lastForumMsgTime) {
+                                u.last_forum_read = lastForumMsgTime;
+                                localStorage.setItem('kitama_user', JSON.stringify(u));
+                                sb.from('users').update({ last_forum_read: lastForumMsgTime }).eq('id', u.id).then();
+                            }
+                        } else {
+                            div.scrollTop = oldScrollTop; // Bakia pale ulipokuwa ukisoma juu
+                            unreadChatCount++;
+                            document.getElementById('new-msg-count').innerText = unreadChatCount;
+                            document.getElementById('new-msg-banner').style.display = 'block';
+                        }
                     } else {
-                        div.scrollTop = div.scrollHeight;
+                        if (scrollToBottomOnNextFetch) {
+                            div.scrollTop = div.scrollHeight;
+                            isAtBottom = true;
+                            scrollToBottomOnNextFetch = false;
+                        } else if (firstUnreadId) {
+                            const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
+                            if(unreadEl) {
+                                // Nenda kwenye ujumbe wa kwanza hujasoma (tumia offsetTop kuepuka kusumbua screen nzima)
+                                div.scrollTop = unreadEl.offsetTop - (div.clientHeight / 3);
+                            } else {
+                                div.scrollTop = div.scrollHeight;
+                            }
+                            isAtBottom = false;
+                        } else {
+                            div.scrollTop = div.scrollHeight; // Kama umeshasoma yote, nenda chini tu
+                            isAtBottom = true;
+                        }
                     }
-                    isAtBottom = false;
-                } else {
-                    div.scrollTop = div.scrollHeight;
-                    isAtBottom = true;
-                }
-            }
+                });
+            });
         } catch(e) { 
             if(!hasContent) div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`;
         }
     }
 
-       async function postCitizenChat() {
+        async function postCitizenChat() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma ujumbe kwa sasa.");
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
@@ -2632,8 +2657,8 @@
             document.getElementById('citizen-chat-input').value = '';
             cancelCitizenReply();
             playBeep();
-            scrollToBottomOnNextFetch = true; // ONGEZA HII: Liforce ku-scroll chini unapotuma
-            isAtBottom = true;
+            isAtBottom = true; 
+            scrollToBottomOnNextFetch = true; // Mwambia browser ashuke chini kabisa
             fetchCitizenChat(false);
         } catch(e) { 
             openModal("Kosa la Kutuma", e.message); 
@@ -2964,23 +2989,45 @@
     let leaderUnreadCount = 0;
     let leaderReplyTo = null;
 
-    function handleLeaderChatScroll(el) {
-        const threshold = 150; 
-        const position = el.scrollTop + el.clientHeight;
-        const height = el.scrollHeight;
-        if (height - position <= threshold) {
-            leaderIsAtBottom = true;
-            leaderUnreadCount = 0;
-            const banner = document.getElementById('leader-new-msg-banner');
-            if(banner) banner.style.display = 'none';
-        } else {
-            leaderIsAtBottom = false;
+            function handleLeaderChatScroll(el) {
+            const threshold = 150; 
+            const position = el.scrollTop + el.clientHeight;
+            const height = el.scrollHeight;
+            if (height - position <= threshold) {
+                leaderIsAtBottom = true;
+                leaderUnreadCount = 0;
+                const banner = document.getElementById('leader-new-msg-banner');
+                if(banner) banner.style.display = 'none';
+                
+                // Hifadhi muda wa mwisho wa kusoma
+                if (lastLeaderMsgTime) {
+                    const u = JSON.parse(localStorage.getItem('kitama_user'));
+                    if (u.last_leader_read !== lastLeaderMsgTime) {
+                        u.last_leader_read = lastLeaderMsgTime;
+                        localStorage.setItem('kitama_user', JSON.stringify(u));
+                        sb.from('users').update({ last_leader_read: lastLeaderMsgTime }).eq('id', u.id).then();
+                    }
+                }
+            } else {
+                leaderIsAtBottom = false;
+            }
         }
-    }
 
+    function scrollToBottomChat() {
+        const div = document.getElementById('citizen-chat-list');
+        if(div) {
+            div.scrollTo({ top: div.scrollHeight, behavior: 'smooth' });
+        }
+        isAtBottom = true;
+        unreadChatCount = 0;
+        document.getElementById('new-msg-banner').style.display = 'none';
+    }
+    
     function scrollToBottomLeaderChat() {
         const div = document.getElementById('chat-list');
-        if(div) div.scrollTop = div.scrollHeight;
+        if(div) {
+            div.scrollTo({ top: div.scrollHeight, behavior: 'smooth' });
+        }
         leaderIsAtBottom = true;
         leaderUnreadCount = 0;
         const banner = document.getElementById('leader-new-msg-banner');
@@ -2998,97 +3045,129 @@
         document.getElementById('leader-reply-context').style.display = 'none'; 
     }
 
-    async function fetchLeaderChat(isIncoming = false) {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const div = document.getElementById('chat-list');
-        const oldScrollTop = div.scrollTop;
-        const hasContent = div.children.length > 0;
+        let scrollToBottomOnNextFetchLeader = false;
+        let lastLeaderMsgTime = null;
 
-        if(!hasContent) {
-            div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div>';
-        }
-        
-        try {
-            if(!isIncoming || leaderIsAtBottom) {
-                await sb.from('users').update({ last_leader_read: new Date().toISOString() }).eq('id', u.id);
-                updateBadges();
+            async function fetchLeaderChat(isIncoming = false) {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            const div = document.getElementById('chat-list');
+            const oldScrollTop = div.scrollTop;
+            const hasContent = div.children.length > 0;
+
+            if(!hasContent) {
+                div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div>';
             }
             
-            const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending: true }).limit(100);
-            if (error) throw error;
-            let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
-            let chatHtml = `<div class="chat-msg system-alert" style="margin-top: 15px;">
-                <p>
-                    <svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
-                    Mazungumzo yamewekwa kwenye usaluma (End-to-end encrypted). Hakuna mtu wa nje ya chumba hiki anayeweza kusoma.
-                </p>
-            </div>`;
-            
-            if (data.length > 0) {
-                let lastDateStr = '';
-                data.forEach(c => {
-                    const msgDate = new Date(c.created_at);
-                    const dateStr = msgDate.toDateString();
-                    if (dateStr !== lastDateStr) {
-                        const label = getDateLabel(c.created_at);
-                        chatHtml += `<div style="display: flex; justify-content: center; margin: 15px 0 10px 0;"><span style="background: var(--surface); color: var(--text-sec); padding: 5px 14px; border-radius: 12px; font-size: 11px; font-weight: 700; box-shadow: var(--shadow-sm);">${label}</span></div>`;
-                        lastDateStr = dateStr;
-                    }
+            try {
+                const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending: true }).limit(100);
+                if (error) throw error;
 
-                    if (c.sender_role === 'system_admin') {
-                        chatHtml += `<div class="chat-msg system-alert"><p><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${c.content}</p></div>`;
-                        return;
-                    }
+                let chatHtml = `<div class="chat-msg system-alert" style="margin-top: 15px;">
+                    <p>
+                        <svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+                        Mazungumzo yamewekwa kwenye usaluma (End-to-end encrypted). Hakuna mtu wa nje ya chumba hiki anayeweza kusoma.
+                    </p>
+                </div>`;
+                
+                let firstUnreadId = null;
+                const lastReadTime = u.last_leader_read ? new Date(u.last_leader_read).getTime() : 0;
+                
+                if (data.length > 0) {
+                    lastLeaderMsgTime = data[data.length - 1].created_at;
+                    
+                    let lastDateStr = '';
+                    data.forEach(c => {
+                        const msgDate = new Date(c.created_at);
+                        const dateStr = msgDate.toDateString();
+                        if (dateStr !== lastDateStr) {
+                            const label = getDateLabel(c.created_at);
+                            chatHtml += `<div style="display: flex; justify-content: center; margin: 15px 0 10px 0;"><span style="background: var(--surface); color: var(--text-sec); padding: 5px 14px; border-radius: 12px; font-size: 11px; font-weight: 700; box-shadow: var(--shadow-sm);">${label}</span></div>`;
+                            lastDateStr = dateStr;
+                        }
 
-                    const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); 
-                    let sharedHtml = c.shared_report_id ? `<div class="reply-quote" style="border-left-color: var(--text-sec);"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
-                    let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
-                    let cleanContent = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    let safeContent = cleanContent.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
+                        const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); 
+                        
+                        if (!isSelf && !firstUnreadId && !isIncoming) {
+                            if (msgDate.getTime() > lastReadTime) {
+                                firstUnreadId = c.id;
+                            }
+                        }
+                        
+                        let sharedHtml = c.shared_report_id ? `<div class="reply-quote" style="border-left-color: var(--text-sec);"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
+                        let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
+                        
+                        let cleanContent = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                        let safeContent = cleanContent.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        
+                        let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
 
-                    let displayName = `<span style="cursor:pointer;" onclick="event.stopPropagation(); viewUserProfile('${c.sender_phone}')">${c.sender_name}</span> (${c.sender_role.replace(/_/g,' ')})`;
-                    chatHtml += `<div class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${cleanContent}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
-                });
-            } else {
-                chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
-            }
-            
-            div.innerHTML = chatHtml;
-
-            if (isIncoming && !leaderIsAtBottom) {
-                leaderUnreadCount++;
-                const banner = document.getElementById('leader-new-msg-banner');
-                if(banner) {
-                    document.getElementById('leader-new-msg-count').innerText = leaderUnreadCount;
-                    banner.style.display = 'block';
+                        let displayName = `<span style="cursor:pointer;" onclick="event.stopPropagation(); viewUserProfile('${c.sender_phone}')">${c.sender_name}</span> (${c.sender_role.replace(/_/g,' ')})`;
+                        chatHtml += `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${cleanContent}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                    });
+                } else {
+                    chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
                 }
-                div.scrollTop = oldScrollTop;
-            } else {
-                div.scrollTop = div.scrollHeight;
-                leaderIsAtBottom = true;
-                leaderUnreadCount = 0;
+                
+                div.innerHTML = chatHtml;
+
+                // WHATSAPP EXACT SCROLL LOGIC (Double rAF)
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        if (isIncoming) {
+                            if (leaderIsAtBottom || scrollToBottomOnNextFetchLeader) {
+                                div.scrollTop = div.scrollHeight;
+                                leaderIsAtBottom = true;
+                                scrollToBottomOnNextFetchLeader = false;
+                            } else {
+                                div.scrollTop = oldScrollTop;
+                                leaderUnreadCount++;
+                                const banner = document.getElementById('leader-new-msg-banner');
+                                if(banner) {
+                                    document.getElementById('leader-new-msg-count').innerText = leaderUnreadCount;
+                                    banner.style.display = 'block';
+                                }
+                            }
+                        } else {
+                            if (scrollToBottomOnNextFetchLeader) {
+                                div.scrollTop = div.scrollHeight;
+                                leaderIsAtBottom = true;
+                                scrollToBottomOnNextFetchLeader = false;
+                            } else if (firstUnreadId) {
+                                const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
+                                if(unreadEl) {
+                                    div.scrollTop = unreadEl.offsetTop - (div.clientHeight / 3);
+                                } else {
+                                    div.scrollTop = div.scrollHeight;
+                                }
+                                leaderIsAtBottom = false;
+                            } else {
+                                div.scrollTop = div.scrollHeight;
+                                leaderIsAtBottom = true;
+                            }
+                        }
+                    });
+                });
+            } catch (e) {
+                if(!hasContent) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
             }
-        } catch (e) {
-            if(!hasContent) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
         }
-    }
 
     async function postChat() { 
-        const u = JSON.parse(localStorage.getItem('kitama_user')); 
-        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
-        const content = document.getElementById('chat-input').value.trim(); 
-        if(!content) return; 
-        if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
-        try { 
-            await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content, reply_to: leaderReplyTo }]); 
-            document.getElementById('chat-input').value = ''; 
-            cancelLeaderReply(); 
-            playBeep(); 
-            leaderIsAtBottom = true; 
-            fetchLeaderChat(false); 
-        } catch(e) { openModal("Kosa", e.message); } 
-    }
+            const u = JSON.parse(localStorage.getItem('kitama_user')); 
+            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
+            const content = document.getElementById('chat-input').value.trim(); 
+            if(!content) return; 
+            if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+            try { 
+                await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content, reply_to: leaderReplyTo }]); 
+                document.getElementById('chat-input').value = ''; 
+                cancelLeaderReply(); 
+                playBeep(); 
+                scrollToBottomOnNextFetchLeader = true; // ONGEZA HII: LIFORCE KUSHUKA CHINI
+                leaderIsAtBottom = true; 
+                fetchLeaderChat(false); 
+            } catch(e) { openModal("Kosa", e.message); } 
+        }
     async function editLeaderChat(id, oldText) {
         openModal("Hariri Ujumbe", "Badilisha ujumbe wako hapa chini.", true, async (newText) => {
             if(!newText || newText === oldText) return;
@@ -5794,38 +5873,26 @@
         }
 
         // 4. Upload Modal
-           function openStatusUploadModal() {
+        function openStatusCaptionModal() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
-            if (activeCitizens.length === 0) return showToast("Inapakia orodha ya watumiaji...");
-            
             const citizensList = activeCitizens.filter(c => c.role !== 'system_admin');
             const isVerified = u.is_activist;
             const videoLimitText = isVerified ? "dakika 3" : "sekunde 40";
             
             const html = `
                 <div class="form-g">
-                    <label class="form-l">Chagua Picha au Video</label>
-                    <input type="file" id="status-media-input" accept="image/*, video/*" style="display:none;" onchange="previewStatusMedia(this)">
-                    <div id="status-media-preview" onclick="document.getElementById('status-media-input').click()" style="width: 100%; height: 200px; background: var(--bg); border: 2px dashed var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-sec); flex-direction: column; gap: 10px; overflow: hidden; position: relative;">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                        <span>Bonyeza hapa kuchagua</span>
+                    <label class="form-l">Picha/Video Iliyochaguliwa</label>
+                    <div style="width: 100%; height: 200px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
+                        ${statusMediaType === 'video' ? 
+                            `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;" controls></video>` : 
+                            `<img src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;">`
+                        }
                     </div>
                 </div>
-                <div class="form-g" id="caption-box" style="display:none;">
+                <div class="form-g">
                     <label class="form-l">Andika Caption (Optional)</label>
                     <input type="text" id="status-caption" class="modal-input" placeholder="Ongeza maandishi..." style="padding-left: 16px;">
                 </div>
-                
-                <!-- ONGEZA HII: KUCHAGUA MUDA WA STATUS KUWEPo -->
-                <div class="form-g">
-                    <label class="form-l">Status Iwekee Muda Gani? (Max 24 Hrs)</label>
-                    <select id="status-duration" class="modal-input" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg);">
-                        <option value="1">Saa 1</option>
-                        <option value="6">Masaa 6</option>
-                        <option value="24" selected>Siku 1 (24 Hrs)</option>
-                    </select>
-                </div>
-                
                 <div class="form-g">
                     <label class="form-l">Mfichie Nani? (Acha wazi kwa wote)</label>
                     <select id="status-hide-from" multiple class="modal-input" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg);">
@@ -5840,7 +5907,7 @@
             `;
             
             openModal("Weka Status", html, false, async () => {
-                if (!statusMediaBase64) return showToast("Chagua picha au video kwanza.");
+                if (!statusMediaBase64) return showToast("Kosa la kupakia. Rudi nyuma uchague tena.");
                 
                 const btn = document.getElementById('modal-ok');
                 btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
@@ -5848,9 +5915,7 @@
                 const hideFrom = Array.from(document.getElementById('status-hide-from').selectedOptions).map(o => o.value);
                 const hideSeen = document.getElementById('status-hide-seen').checked;
                 const caption = document.getElementById('status-caption').value.trim();
-                
-                // PATA MUDA ULIOCHAGULIWA
-                const duration = parseInt(document.getElementById('status-duration').value);
+                const duration = parseInt(document.getElementById('status-duration') ? document.getElementById('status-duration').value : 24);
                 
                 let maxPlayDuration = 30; 
                 if (statusMediaType === 'video') {
@@ -5866,7 +5931,6 @@
                     caption: caption,
                     max_play_duration: maxPlayDuration,
                     timestamp: new Date().toISOString(),
-                    // HAPA NDIO MUDA WA KUJIFUTA UNAWEKWA KULINGANA NA UCHAGUZI
                     expiry: new Date(Date.now() + (duration * 3600000)).toISOString(), 
                     hide_from: hideFrom,
                     hide_seen_receipts: hideSeen,
@@ -5892,6 +5956,7 @@
                 statusMediaBase64 = null;
             });
         }
+    
         function viewOfficialStatus() {
             currentStatusList = getStatusFromStorage().filter(s => s.is_official);
             if (currentStatusList.length === 0) return showToast("Status imeisha muda.");
@@ -6535,8 +6600,100 @@
             console.error("Update check error:", e);
         }
     }
-    
-    window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
+            function handleDirectStatusSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            statusMediaBase64 = null;
+            const previewBox = null; // Tutatumia modal kama preview
+            
+            if (file.type.startsWith('video')) {
+                if (file.size > 2.5 * 1024 * 1024) {
+                    showToast("Video kubwa sana (zaidi ya 2.5MB). Tafadhali chagua video fupi au punguza ukubwa.");
+                    input.value = '';
+                    return;
+                }
+                
+                statusMediaType = 'video';
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    statusMediaBase64 = e.target.result;
+                    openStatusCaptionModal();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                statusMediaType = 'image';
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    statusMediaBase64 = e.target.result;
+                    const img = new Image();
+                    img.onload = () => {
+                        let canvas = document.createElement('canvas');
+                        let ctx = canvas.getContext('2d');
+                        const maxW = 600;
+                        const scale = Math.min(maxW / img.width, maxW / img.height);
+                        canvas.width = img.width * scale;
+                        canvas.height = img.height * scale;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        statusMediaBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        openStatusCaptionModal();
+                    };
+                    img.src = statusMediaBase64;
+                };
+                reader.readAsDataURL(file);
+            }
+            // Reset input ili iweze kuruhusu kuchagua tena
+            input.value = '';
+        }
+            // --- KITAMA MAP FUNCTIONS ---
+        let kitamaMap = null;
+        let mapMarkers = [];
+
+        function initKitamaMap() {
+            if(kitamaMap) {
+                setTimeout(() => { kitamaMap.invalidateSize(); }, 200);
+                loadMapMarkers();
+                return;
+            }
+            
+            kitamaMap = L.map('kitama-map').setView([-6.2, 35.0], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(kitamaMap);
+            loadMapMarkers();
+        }
+
+        async function loadMapMarkers() {
+            if(!kitamaMap) return;
+            
+            // Futa markers za zamani
+            mapMarkers.forEach(m => kitamaMap.removeLayer(m));
+            mapMarkers = [];
+            
+            try {
+                const { data: users, error } = await sb.from('users').select('full_name, phone_number, lat, lng, is_activist, role').not('lat', 'is', null);
+                if(error) throw error;
+                
+                users.forEach(u => {
+                    if(u.lat && u.lng) {
+                        let lat = parseFloat(u.lat);
+                        let lng = parseFloat(u.lng);
+                        
+                        // Rangi tofauti kulingana na hadhi
+                        let iconColor = u.is_activist ? '#3B82F6' : (u.role !== 'citizen' ? '#EF4444' : '#10B981');
+                        
+                        const customIcon = L.divIcon({
+                            className: 'blink-marker',
+                            html: `<div style="width:15px; height:15px; background:${iconColor}; border-radius:50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
+                            iconSize: [15, 15]
+                        });
+                        
+                        const marker = L.marker([lat, lng], { icon: customIcon }).addTo(kitamaMap);
+                        marker.bindPopup(`<b>${u.full_name}</b><br><small>${u.role.replace(/_/g, ' ')}</small>`);
+                        mapMarkers.push(marker);
+                    }
+                });
+            } catch(e) { console.error(e); }
+        }
+    window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
 </html>
