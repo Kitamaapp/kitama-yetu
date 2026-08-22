@@ -178,7 +178,18 @@
         .chat-header small { font-size: 11px; color: var(--text-sec); margin-top: 2px; display: block; font-weight: 500; }
         .chat-header-btn { font-size: 12px; color: var(--accent); font-weight: 700; cursor: pointer; padding: 6px 10px; background: rgba(16,185,129,0.1); border-radius: 8px; display: flex; align-items: center; gap: 4px; }
         
-        .chat-body { background-color: var(--chat-bg); background-image: radial-gradient(var(--chat-pattern) 1px, transparent 1px); background-size: 20px 20px; padding: 20px 10px 90px 10px; display: flex; flex-direction: column; gap: 8px; min-height: calc(100vh - 150px); overflow-y: auto; }
+        .chat-body { 
+            background-color: var(--chat-bg); 
+            background-image: radial-gradient(var(--chat-pattern) 1px, transparent 1px); 
+            background-size: 20px 20px; 
+            padding: 20px 10px 90px 10px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            height: calc(100vh - 110px); 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+        }
         
         .chat-msg { background: var(--surface); padding: 8px 12px; border-radius: 12px 12px 12px 2px; max-width: 85%; box-shadow: var(--shadow-sm); border: 1px solid var(--border); align-self: flex-start; position: relative; word-wrap: break-word; transition: transform 0.2s ease, background 0.2s; touch-action: pan-y; cursor: pointer; }
         .chat-msg.self { align-self: flex-end; background: #DCF8C6; color: #111; border-radius: 12px 12px 2px 12px; border: none; }
@@ -566,15 +577,6 @@
 </head>
 <body>
 
-<div class="splash-screen" id="splash-screen">
-    <div class="splash-logo">
-        <img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" alt="Kitama Yetu Logo">
-    </div>
-    <h1 class="splash-title">Kitama Yetu</h1>
-    <p class="splash-subtitle">Jukwaa Rasmi la Maendeleo</p>
-    <div class="splash-spinner"></div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <!-- FLOATING DEVELOPER BUBBLE -->
@@ -927,15 +929,18 @@
             <div id="public-schools-list"></div>
         </div>
                 <!-- STATUS SECTION -->
-        <div id="status-sec" class="sec">
-            <div class="sec-h">
+                    <div class="sec-h">
                 <h2>Status</h2>
-                <span onclick="openStatusUploadModal()">+ Weka Status</span>
+                <label for="status-direct-input" style="font-size:12px; color:var(--accent); font-weight:700; cursor:pointer; padding: 5px 10px; background: rgba(16,185,129,0.1); border-radius: 8px; display: flex; align-items:center; gap: 4px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Weka Status
+                </label>
+                <input type="file" id="status-direct-input" accept="image/*, video/*" style="display:none;" onchange="handleDirectStatusSelect(this)">
             </div>
             
             <!-- OFFICIAL STATUS SECTION (Kitama Yetu) -->
             <div id="official-status-container" style="padding: 0 20px; margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
-                <h4 style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Maufc ya Kitama Yetu</h4>
+                <h4 style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;"></h4>
                 <div id="official-status-list" style="display:flex; gap: 15px; overflow-x: auto;"></div>
             </div>
             
@@ -2336,14 +2341,7 @@
             isAtBottom = false;
         }
     }
-
-    function scrollToBottomChat() {
-        const div = document.getElementById('citizen-chat-list');
-        div.scrollTop = div.scrollHeight;
-        isAtBottom = true;
-        unreadChatCount = 0;
-        document.getElementById('new-msg-banner').style.display = 'none';
-    }
+    
 
     async function viewCitizensList() {
         if(activeCitizens.length === 0) return showToast("Inapakia orodha...");
@@ -2451,7 +2449,7 @@
         else return msgDate.toLocaleDateString('sw-KE', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
-            async function fetchCitizenChat(isIncoming = false) {
+        async function fetchCitizenChat(isIncoming = false) {
         const u = JSON.parse(localStorage.getItem('kitama_user')); 
         if (!u || !u.phone_number) return; 
         
@@ -2560,50 +2558,53 @@
                 saveToCache('forum_html', chatHtml);
             }
             
-            // LOGIC YA SCROLL (Imezungushwa kwenye setTimeout kuepuka kuruja juu)
-            setTimeout(() => {
-                if (isIncoming) {
-                    if (isAtBottom || scrollToBottomOnNextFetch) {
-                        div.scrollTop = div.scrollHeight;
-                        isAtBottom = true;
-                        scrollToBottomOnNextFetch = false;
-                        
-                        if (lastForumMsgTime) {
-                            u.last_forum_read = lastForumMsgTime;
-                            localStorage.setItem('kitama_user', JSON.stringify(u));
-                            sb.from('users').update({ last_forum_read: lastForumMsgTime }).eq('id', u.id).then();
-                        }
-                    } else {
-                        div.scrollTop = oldScrollTop;
-                        unreadChatCount++;
-                        document.getElementById('new-msg-count').innerText = unreadChatCount;
-                        document.getElementById('new-msg-banner').style.display = 'block';
-                    }
-                } else {
-                    if (scrollToBottomOnNextFetch) {
-                        div.scrollTop = div.scrollHeight;
-                        isAtBottom = true;
-                        scrollToBottomOnNextFetch = false;
-                    } else if (firstUnreadId) {
-                        const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
-                        if(unreadEl) {
-                            unreadEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // WHATSAPP EXACT SCROLL LOGIC (Double rAF inasubiri browser amalizwe kuandika ujumbe kwa 100%)
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (isIncoming) {
+                        if (isAtBottom || scrollToBottomOnNextFetch) {
+                            div.scrollTop = div.scrollHeight; // Shuka chini kabisa kama ujumbe unakuja au umetuma
+                            isAtBottom = true;
+                            scrollToBottomOnNextFetch = false;
+                            
+                            if (lastForumMsgTime) {
+                                u.last_forum_read = lastForumMsgTime;
+                                localStorage.setItem('kitama_user', JSON.stringify(u));
+                                sb.from('users').update({ last_forum_read: lastForumMsgTime }).eq('id', u.id).then();
+                            }
                         } else {
-                            div.scrollTop = div.scrollHeight;
+                            div.scrollTop = oldScrollTop; // Bakia pale ulipokuwa ukisoma juu
+                            unreadChatCount++;
+                            document.getElementById('new-msg-count').innerText = unreadChatCount;
+                            document.getElementById('new-msg-banner').style.display = 'block';
                         }
-                        isAtBottom = false;
                     } else {
-                        div.scrollTop = div.scrollHeight;
-                        isAtBottom = true;
+                        if (scrollToBottomOnNextFetch) {
+                            div.scrollTop = div.scrollHeight;
+                            isAtBottom = true;
+                            scrollToBottomOnNextFetch = false;
+                        } else if (firstUnreadId) {
+                            const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
+                            if(unreadEl) {
+                                // Nenda kwenye ujumbe wa kwanza hujasoma (tumia offsetTop kuepuka kusumbua screen nzima)
+                                div.scrollTop = unreadEl.offsetTop - (div.clientHeight / 3);
+                            } else {
+                                div.scrollTop = div.scrollHeight;
+                            }
+                            isAtBottom = false;
+                        } else {
+                            div.scrollTop = div.scrollHeight; // Kama umeshasoma yote, nenda chini tu
+                            isAtBottom = true;
+                        }
                     }
-                }
-            }, 50); // SUBIRI DOM IPAKIE KISHA SHUKA CHINI
+                });
+            });
         } catch(e) { 
             if(!hasContent) div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`;
         }
     }
 
-       async function postCitizenChat() {
+        async function postCitizenChat() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma ujumbe kwa sasa.");
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
@@ -2633,8 +2634,8 @@
             document.getElementById('citizen-chat-input').value = '';
             cancelCitizenReply();
             playBeep();
-            scrollToBottomOnNextFetch = true; // ONGEZA HII: Liforce ku-scroll chini unapotuma
-            isAtBottom = true;
+            isAtBottom = true; 
+            scrollToBottomOnNextFetch = true; // Mwambia browser ashuke chini kabisa
             fetchCitizenChat(false);
         } catch(e) { 
             openModal("Kosa la Kutuma", e.message); 
@@ -2989,9 +2990,21 @@
             }
         }
 
+    function scrollToBottomChat() {
+        const div = document.getElementById('citizen-chat-list');
+        if(div) {
+            div.scrollTo({ top: div.scrollHeight, behavior: 'smooth' });
+        }
+        isAtBottom = true;
+        unreadChatCount = 0;
+        document.getElementById('new-msg-banner').style.display = 'none';
+    }
+    
     function scrollToBottomLeaderChat() {
         const div = document.getElementById('chat-list');
-        if(div) div.scrollTop = div.scrollHeight;
+        if(div) {
+            div.scrollTo({ top: div.scrollHeight, behavior: 'smooth' });
+        }
         leaderIsAtBottom = true;
         leaderUnreadCount = 0;
         const banner = document.getElementById('leader-new-msg-banner');
@@ -3012,7 +3025,7 @@
         let scrollToBottomOnNextFetchLeader = false;
         let lastLeaderMsgTime = null;
 
-        async function fetchLeaderChat(isIncoming = false) {
+            async function fetchLeaderChat(isIncoming = false) {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const div = document.getElementById('chat-list');
             const oldScrollTop = div.scrollTop;
@@ -3051,7 +3064,6 @@
 
                         const isSelf = (u.full_name === c.sender_name && u.role === c.sender_role); 
                         
-                        // Pata ujumbe wa kwanza hajasoma
                         if (!isSelf && !firstUnreadId && !isIncoming) {
                             if (msgDate.getTime() > lastReadTime) {
                                 firstUnreadId = c.id;
@@ -3075,39 +3087,43 @@
                 
                 div.innerHTML = chatHtml;
 
-                // LOGIC YA SCROLL
-                if (isIncoming) {
-                    if (leaderIsAtBottom || scrollToBottomOnNextFetchLeader) {
-                        setTimeout(() => { div.scrollTop = div.scrollHeight; }, 50); // SUBIRI DOM IPAKIE KISHA SHUKA CHINI
-                        leaderIsAtBottom = true;
-                        scrollToBottomOnNextFetchLeader = false;
-                    } else {
-                        div.scrollTop = oldScrollTop;
-                        leaderUnreadCount++;
-                        const banner = document.getElementById('leader-new-msg-banner');
-                        if(banner) {
-                            document.getElementById('leader-new-msg-count').innerText = leaderUnreadCount;
-                            banner.style.display = 'block';
-                        }
-                    }
-                } else {
-                    if (scrollToBottomOnNextFetchLeader) {
-                        setTimeout(() => { div.scrollTop = div.scrollHeight; }, 50);
-                        leaderIsAtBottom = true;
-                        scrollToBottomOnNextFetchLeader = false;
-                    } else if (firstUnreadId) {
-                        const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
-                        if(unreadEl) {
-                            setTimeout(() => { unreadEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50);
+                // WHATSAPP EXACT SCROLL LOGIC (Double rAF)
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        if (isIncoming) {
+                            if (leaderIsAtBottom || scrollToBottomOnNextFetchLeader) {
+                                div.scrollTop = div.scrollHeight;
+                                leaderIsAtBottom = true;
+                                scrollToBottomOnNextFetchLeader = false;
+                            } else {
+                                div.scrollTop = oldScrollTop;
+                                leaderUnreadCount++;
+                                const banner = document.getElementById('leader-new-msg-banner');
+                                if(banner) {
+                                    document.getElementById('leader-new-msg-count').innerText = leaderUnreadCount;
+                                    banner.style.display = 'block';
+                                }
+                            }
                         } else {
-                            setTimeout(() => { div.scrollTop = div.scrollHeight; }, 50);
+                            if (scrollToBottomOnNextFetchLeader) {
+                                div.scrollTop = div.scrollHeight;
+                                leaderIsAtBottom = true;
+                                scrollToBottomOnNextFetchLeader = false;
+                            } else if (firstUnreadId) {
+                                const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
+                                if(unreadEl) {
+                                    div.scrollTop = unreadEl.offsetTop - (div.clientHeight / 3);
+                                } else {
+                                    div.scrollTop = div.scrollHeight;
+                                }
+                                leaderIsAtBottom = false;
+                            } else {
+                                div.scrollTop = div.scrollHeight;
+                                leaderIsAtBottom = true;
+                            }
                         }
-                        leaderIsAtBottom = false;
-                    } else {
-                        setTimeout(() => { div.scrollTop = div.scrollHeight; }, 50);
-                        leaderIsAtBottom = true;
-                    }
-                }
+                    });
+                });
             } catch (e) {
                 if(!hasContent) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
             }
@@ -5834,38 +5850,26 @@
         }
 
         // 4. Upload Modal
-           function openStatusUploadModal() {
+        function openStatusCaptionModal() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
-            if (activeCitizens.length === 0) return showToast("Inapakia orodha ya watumiaji...");
-            
             const citizensList = activeCitizens.filter(c => c.role !== 'system_admin');
             const isVerified = u.is_activist;
             const videoLimitText = isVerified ? "dakika 3" : "sekunde 40";
             
             const html = `
                 <div class="form-g">
-                    <label class="form-l">Chagua Picha au Video</label>
-                    <input type="file" id="status-media-input" accept="image/*, video/*" style="display:none;" onchange="previewStatusMedia(this)">
-                    <div id="status-media-preview" onclick="document.getElementById('status-media-input').click()" style="width: 100%; height: 200px; background: var(--bg); border: 2px dashed var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-sec); flex-direction: column; gap: 10px; overflow: hidden; position: relative;">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                        <span>Bonyeza hapa kuchagua</span>
+                    <label class="form-l">Picha/Video Iliyochaguliwa</label>
+                    <div style="width: 100%; height: 200px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
+                        ${statusMediaType === 'video' ? 
+                            `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;" controls></video>` : 
+                            `<img src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;">`
+                        }
                     </div>
                 </div>
-                <div class="form-g" id="caption-box" style="display:none;">
+                <div class="form-g">
                     <label class="form-l">Andika Caption (Optional)</label>
                     <input type="text" id="status-caption" class="modal-input" placeholder="Ongeza maandishi..." style="padding-left: 16px;">
                 </div>
-                
-                <!-- ONGEZA HII: KUCHAGUA MUDA WA STATUS KUWEPo -->
-                <div class="form-g">
-                    <label class="form-l">Status Iwekee Muda Gani? (Max 24 Hrs)</label>
-                    <select id="status-duration" class="modal-input" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg);">
-                        <option value="1">Saa 1</option>
-                        <option value="6">Masaa 6</option>
-                        <option value="24" selected>Siku 1 (24 Hrs)</option>
-                    </select>
-                </div>
-                
                 <div class="form-g">
                     <label class="form-l">Mfichie Nani? (Acha wazi kwa wote)</label>
                     <select id="status-hide-from" multiple class="modal-input" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg);">
@@ -5880,7 +5884,7 @@
             `;
             
             openModal("Weka Status", html, false, async () => {
-                if (!statusMediaBase64) return showToast("Chagua picha au video kwanza.");
+                if (!statusMediaBase64) return showToast("Kosa la kupakia. Rudi nyuma uchague tena.");
                 
                 const btn = document.getElementById('modal-ok');
                 btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
@@ -5888,9 +5892,7 @@
                 const hideFrom = Array.from(document.getElementById('status-hide-from').selectedOptions).map(o => o.value);
                 const hideSeen = document.getElementById('status-hide-seen').checked;
                 const caption = document.getElementById('status-caption').value.trim();
-                
-                // PATA MUDA ULIOCHAGULIWA
-                const duration = parseInt(document.getElementById('status-duration').value);
+                const duration = parseInt(document.getElementById('status-duration') ? document.getElementById('status-duration').value : 24);
                 
                 let maxPlayDuration = 30; 
                 if (statusMediaType === 'video') {
@@ -5906,7 +5908,6 @@
                     caption: caption,
                     max_play_duration: maxPlayDuration,
                     timestamp: new Date().toISOString(),
-                    // HAPA NDIO MUDA WA KUJIFUTA UNAWEKWA KULINGANA NA UCHAGUZI
                     expiry: new Date(Date.now() + (duration * 3600000)).toISOString(), 
                     hide_from: hideFrom,
                     hide_seen_receipts: hideSeen,
@@ -5932,6 +5933,7 @@
                 statusMediaBase64 = null;
             });
         }
+    
         function viewOfficialStatus() {
             currentStatusList = getStatusFromStorage().filter(s => s.is_official);
             if (currentStatusList.length === 0) return showToast("Status imeisha muda.");
@@ -6575,8 +6577,52 @@
             console.error("Update check error:", e);
         }
     }
-    
-    window.onload = () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); if(localStorage.getItem('kitama_user')) enterApp(); }, 2500); };
+            function handleDirectStatusSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            statusMediaBase64 = null;
+            const previewBox = null; // Tutatumia modal kama preview
+            
+            if (file.type.startsWith('video')) {
+                if (file.size > 2.5 * 1024 * 1024) {
+                    showToast("Video kubwa sana (zaidi ya 2.5MB). Tafadhali chagua video fupi au punguza ukubwa.");
+                    input.value = '';
+                    return;
+                }
+                
+                statusMediaType = 'video';
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    statusMediaBase64 = e.target.result;
+                    openStatusCaptionModal();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                statusMediaType = 'image';
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    statusMediaBase64 = e.target.result;
+                    const img = new Image();
+                    img.onload = () => {
+                        let canvas = document.createElement('canvas');
+                        let ctx = canvas.getContext('2d');
+                        const maxW = 600;
+                        const scale = Math.min(maxW / img.width, maxW / img.height);
+                        canvas.width = img.width * scale;
+                        canvas.height = img.height * scale;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        statusMediaBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        openStatusCaptionModal();
+                    };
+                    img.src = statusMediaBase64;
+                };
+                reader.readAsDataURL(file);
+            }
+            // Reset input ili iweze kuruhusu kuchagua tena
+            input.value = '';
+        }
+    window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
 </html>
