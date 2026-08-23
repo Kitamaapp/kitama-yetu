@@ -3024,6 +3024,14 @@
     }
         async function fetchPublicProgress() { 
         const div = document.getElementById('progress-list'); 
+        
+        // OFFLINE MODE: Nenda kwenye cache moja kwa moja
+        if (!navigator.onLine) {
+            const cached = getFromCache('public_progress_html');
+            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna kero zilizohifadhiwa.</p>';
+            return;
+        }
+        
         const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
         const oldScroll = window.scrollY;
         
@@ -3031,13 +3039,22 @@
             div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; 
         }
         try { 
-            const { data, error } = await sb.from('reports').select('*').neq('visibility', 'local_only').neq('status', 'archived').order('created_at', { ascending:false }); 
+            const { data, error } = await sb.from('reports').select('*').neq('visibility', 'local_only').neq('status', 'archived').order('created_at', { ascending:false }).limit(50); 
             if(error) throw error; 
-            div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna taarifa kwa sasa.</p>'; 
+            
+            const newHtml = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna taarifa kwa sasa.</p>'; 
+            div.innerHTML = newHtml;
+            
+            // HIFADHI DATA YA KERO ZOTE
+            if(newHtml && !newHtml.includes('skeleton')) {
+                saveToCache('public_progress_html', newHtml);
+            }
             
             if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
         } catch(e) { 
-            if(!isRealtimeUpdate) div.innerHTML=`<p style="color:red; margin: 0 20px;">${e.message}</p>`; 
+            // AKISHINDWA MTANDAONI, TUMIA CACHE
+            const cached = getFromCache('public_progress_html');
+            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna kero zilizohifadhiwa.</p>';
         } 
     }
     async function updateStatus(id, newStatus) { try { await sb.from('reports').update({ status: newStatus }).eq('id', id); showToast("Status imebadilishwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }
