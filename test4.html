@@ -2239,9 +2239,7 @@
         if(id==='headmaster-sec') initHmClassInputs();
         if(id==='status-sec') loadStatusUI();
         if(id==='kitama-map-sec') initKitamaMap();
-        if(id==='report-sec') {
-            fetchCitizenReports(); // ITAITA FUNCTION YA KERO
-        }
+        if(id==='report-sec') fetchCitizenReports();
         const marketAddBtn = document.getElementById('market-add-btn');
         if(marketAddBtn) {
             if(u.status === 'pending' || u.role !== 'citizen') marketAddBtn.style.display = 'none';
@@ -3025,11 +3023,11 @@
         async function fetchPublicProgress() { 
         const div = document.getElementById('progress-list'); 
         
-        // OFFLINE MODE: Angalia kama ipo kwenye hifadhi
+        // OFFLINE MODE
         if (!navigator.onLine) {
             const cached = getFromCache('public_progress_html');
             if (cached) {
-                div.innerHTML = cached; // ONYESHA ZILE ZILIZOHIFADHIWA
+                div.innerHTML = cached; 
             } else {
                 div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna kero zilizohifadhiwa. Fungua online kwanza kuzihifadhi.</p>';
             }
@@ -3047,23 +3045,19 @@
             if(error) throw error; 
             
             const newHtml = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna taarifa kwa sasa.</p>'; 
+            div.innerHTML = newHtml;
             
-            // HIFADHI MARA MOJA DATA INAPATIKANA
+            // HIFADHI DATA
             if(newHtml && !newHtml.includes('skeleton')) {
                 saveToCache('public_progress_html', newHtml);
+                showToast("Kero zimehifadhiwa kwa offline!"); // UJUMBE WA KUHAKIKISHA
             }
-            
-            div.innerHTML = newHtml;
             
             if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
         } catch(e) { 
-            // AKISHINDWA MTANDAONI, TUMIA HIFADHI
             const cached = getFromCache('public_progress_html');
-            if (cached) {
-                div.innerHTML = cached;
-            } else {
-                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Fungua online kwanza kuzihifadhi.</p>';
-            }
+            if (cached) { div.innerHTML = cached; } 
+            else { div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Fungua online kwanza kuzihifadhi.</p>'; }
         } 
     }
     async function updateStatus(id, newStatus) { try { await sb.from('reports').update({ status: newStatus }).eq('id', id); showToast("Status imebadilishwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }
