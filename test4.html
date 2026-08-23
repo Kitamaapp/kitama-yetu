@@ -1103,8 +1103,8 @@
                 
                 <!-- TEXTAREA NA COUNTER -->
                 <div class="form-g" style="position: relative;">
-                    <textarea id="rep-desc" maxlength="120" oninput="updateCharCount('rep-desc', 'rep-count')" placeholder="Ufafanuzi (Max 120 herufi)"></textarea>
-                    <small id="rep-count" style="position: absolute; bottom: 10px; right: 16px; font-size: 11px; color: var(--text-sec); background: var(--surface); padding: 2px 6px; border-radius: 8px; border: 1px solid var(--border);">120</small>
+                    <textarea id="rep-desc" oninput="updateCharCount('rep-desc', 'rep-count')" placeholder="Ufafanuzi..."></textarea>
+                    <small id="rep-count" style="position: absolute; bottom: 10px; right: 16px; font-size: 11px; color: var(--text-sec); background: var(--surface); padding: 2px 6px; border-radius: 8px; border: 1px solid var(--border);"></small>
                 </div>
 
                 <div class="form-g"><input type="file" id="rep-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
@@ -1439,22 +1439,48 @@
     }
 
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
-        function updateCharCount(textareaId, countId) {
-        const textarea = document.getElementById(textareaId);
-        const countEl = document.getElementById(countId);
-        if (textarea && countEl) {
-            const remaining = 120 - textarea.value.length;
-            countEl.innerText = remaining;
-            // Badilisha rangi ikiwa inakaribia kikomo
-            if (remaining <= 20) {
-                countEl.style.color = '#EF4444'; // Rangi nyekundu
-                countEl.style.borderColor = '#FCA5A5';
-            } else {
-                countEl.style.color = 'var(--text-sec)';
-                countEl.style.borderColor = 'var(--border)';
+            function updateCharCount(textareaId, countId) {
+            const textarea = document.getElementById(textareaId);
+            const countEl = document.getElementById(countId);
+            if (textarea && countEl) {
+                // Angalia kama kuna kilimiti
+                const maxLen = parseInt(textarea.getAttribute('maxlength') || '0');
+                
+                if (maxLen > 0) {
+                    // Kama ana limit (mfano 120)
+                    const remaining = maxLen - textarea.value.length;
+                    countEl.innerText = remaining;
+                    if (remaining <= 20) {
+                        countEl.style.color = '#EF4444';
+                        countEl.style.borderColor = '#FCA5A5';
+                    } else {
+                        countEl.style.color = 'var(--text-sec)';
+                        countEl.style.borderColor = 'var(--border)';
+                    }
+                } else {
+                    // Kama ni Activist (Hakuna Limit)
+                    countEl.innerText = '∞';
+                    countEl.style.color = 'var(--accent)';
+                    countEl.style.borderColor = 'var(--accent)';
+                }
             }
         }
-    }
+            function setupReportFormLimits() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            const textarea = document.getElementById('rep-desc');
+            if(!textarea) return;
+            
+            if (u.is_activist) {
+                // WAactivist: Futa limit kabisa
+                textarea.removeAttribute('maxlength');
+                textarea.placeholder = "Eleza kero kwa ufafanuzi kamili (Kama Activist hakuna kikomo)";
+            } else {
+                // Wengine: Weka limit ya 120
+                textarea.setAttribute('maxlength', '120');
+                textarea.placeholder = "Ufafanuzi (Max 120 herufi)";
+            }
+            updateCharCount('rep-desc', 'rep-count');
+        }
     function openModal(title, text, isPrompt, callback) {
         document.getElementById('modal-title').innerHTML = title;
         document.getElementById('modal-text').innerHTML = text;
