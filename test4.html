@@ -1493,14 +1493,28 @@
         else {document.getElementById('login-form').style.display='none';document.getElementById('signup-form').style.display='block';document.getElementsByClassName('auth-tab')[0].classList.remove('active');document.getElementsByClassName('auth-tab')[1].classList.add('active');} 
     }
     
-    function toggleLeaderFields() {
+        function toggleLeaderFields() {
         const role = document.getElementById('su-role').value;
         const villageBox = document.getElementById('village-form-g');
         const pinBox = document.getElementById('pin-box');
         const subVillageBox = document.getElementById('sub-village-box');
+        
+        // Ficha kitongozi kwa wote isipokuwa Mwenyekiti Kitongoji
         subVillageBox.style.display = role === 'mwenyekiti_kitongoji' ? 'block' : 'none';
-        if(role === 'diwani' || role === 'mtendaji_kata' || role === 'system_admin') { villageBox.style.display = 'none'; document.getElementById('su-village').value = 'Kata Yote'; } 
-        else { villageBox.style.display = 'block'; if(document.getElementById('su-village').value === 'Kata Yote') document.getElementById('su-village').value = ''; }
+        
+        // LOGIC YA KATA YOTE: Admin, Diwani, Mtendaji Kata tu
+        if(role === 'diwani' || role === 'mtendaji_kata' || role === 'system_admin') { 
+            villageBox.style.display = 'none'; // WAFICHE KIJIJI
+            document.getElementById('su-village').value = 'Kata Yote'; // WALIPE 'KATA YOTE'
+        } else { 
+            villageBox.style.display = 'block'; // WENGINE WAONE VILLAGE BOX
+            // WAFUTE 'Kata Yote' wakishibadilisha role
+            if(document.getElementById('su-village').value === 'Kata Yote') {
+                document.getElementById('su-village').value = ''; 
+            }
+        }
+        
+        // PIN ya watumiaji wote isipokuwa Mwananchi
         pinBox.style.display = role !== 'citizen' ? 'block' : 'none';
     }
 
