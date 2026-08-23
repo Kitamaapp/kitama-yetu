@@ -4185,7 +4185,42 @@
             } catch(e) { openModal("Kosa", e.message); }
         });
     }
-
+    async function fetchCitizenReports() { 
+        const div = document.getElementById('citizen-reports-list');
+        if(!div) return;
+        
+        // OFFLINE MODE: Onyesha kero zilizohifadhiwa
+        if (!isOnline()) {
+            const cached = getFromCache('reports_html');
+            if (cached) {
+                div.innerHTML = cached;
+            } else {
+                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna kero zilizohifadhiwa za kukuangalia.</p>';
+            }
+            return;
+        }
+        
+        const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
+        const oldScroll = window.scrollY;
+        
+        if(!isRealtimeUpdate) {
+            div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; 
+        }
+        try { 
+            const { data, error } = await sb.from('reports').select('*').neq('status', 'archived').order('created_at', { ascending: false }); 
+            if(error) throw error; 
+            div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna malalamishi yaliyoandikwa kwa sasa.</p>'; 
+            
+            // HIFADHI DATA YA KERO
+            if(div.innerHTML && !div.innerHTML.includes('skeleton')) {
+                saveToCache('reports_html', div.innerHTML);
+            }
+            
+            if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
+        } catch(e) { 
+            if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; 
+        } 
+    }
     async function trackCitizen(phone) {
         if(!phone) return openModal("Taarifa", "Tatizo: Namba ya simu ya mtumiaji haijarekodiwa kwenye ripoti hii (huenda ni ripoti ya zamani).", false);
         openModal("Inatafuta...", "Subiri kidogo tunapakia eneo la mwananchi.", false);
