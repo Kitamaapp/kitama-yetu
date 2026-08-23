@@ -3449,25 +3449,43 @@
 
     async function checkUserShop() { const u = JSON.parse(localStorage.getItem('kitama_user')); try { const { data: shop } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle(); if(shop) { document.getElementById('shop-select-box').style.display = 'block'; const select = document.getElementById('item-shop'); select.innerHTML = `<option value="">- Ni bidhaa ya kibinafsi -</option><option value="${shop.id}|${shop.shop_name}">${shop.shop_name}</option>`; } } catch(e) { console.error(e); } }
     
-    async function viewMyShop() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        try {
-            const { data: shop, error } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle();
-            if(error) throw error;
-            if(shop) {
-                currentShopId = shop.id;
-                document.getElementById('my-shop-name').innerText = shop.shop_name;
-                document.getElementById('my-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
-                if(shop.cover_url) { document.getElementById('my-shop-cover').src = shop.cover_url; document.getElementById('my-shop-cover').style.display = 'block'; document.getElementById('my-shop-cover-placeholder').style.display = 'none'; } 
-                else { document.getElementById('my-shop-cover').style.display = 'none'; document.getElementById('my-shop-cover-placeholder').style.display = 'block'; }
-                if(shop.logo_url) { document.getElementById('my-shop-logo').src = shop.logo_url; document.getElementById('my-shop-logo').style.display = 'block'; document.getElementById('my-shop-initial').style.display = 'none'; } 
-                else { document.getElementById('my-shop-logo').style.display = 'none'; document.getElementById('my-shop-initial').style.display = 'flex'; document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0); }
-                fetchShopProducts(shop, 'my-shop-products');
-                fetchShopReviews(shop.id, 'my-shop-reviews-list');
+            async function viewMyShop() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            
+            // OFFLINE MODE: Pakia duka kutoka kwenye hifadhi
+            if (!navigator.onLine) {
+                const cachedShop = JSON.parse(localStorage.getItem('kitama_my_shop') || 'null');
+                if (cachedShop) {
+                    document.getElementById('my-shop-name').innerText = cachedShop.shop_name;
+                    document.getElementById('my-shop-desc').innerText = cachedShop.description || 'Hakuna maelezo.';
+                    
+                    const cachedProducts = getFromCache('shop_products_' + cachedShop.id);
+                    document.getElementById('my-shop-products').innerHTML = cachedProducts || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Bidhaa za dukani hazijahifadhiwa.</p>';
+                } else {
+                    document.getElementById('my-shop-products').innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona duka lako.</p>';
+                }
                 showSec('my-shop-sec');
+                return;
             }
-        } catch(e) { openModal("Kosa", e.message); }
-    }
+            
+            try {
+                const { data: shop, error } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle();
+                if(error) throw error;
+                if(shop) {
+                    localStorage.setItem('kitama_my_shop', JSON.stringify(shop)); // HIFADHI DUKA KWA OFFLINE
+                    currentShopId = shop.id;
+                    document.getElementById('my-shop-name').innerText = shop.shop_name;
+                    document.getElementById('my-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
+                    if(shop.cover_url) { document.getElementById('my-shop-cover').src = shop.cover_url; document.getElementById('my-shop-cover').style.display = 'block'; document.getElementById('my-shop-cover-placeholder').style.display = 'none'; } 
+                    else { document.getElementById('my-shop-cover').style.display = 'none'; document.getElementById('my-shop-cover-placeholder').style.display = 'block'; }
+                    if(shop.logo_url) { document.getElementById('my-shop-logo').src = shop.logo_url; document.getElementById('my-shop-logo').style.display = 'block'; document.getElementById('my-shop-initial').style.display = 'none'; } 
+                    else { document.getElementById('my-shop-logo').style.display = 'none'; document.getElementById('my-shop-initial').style.display = 'flex'; document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0); }
+                    fetchShopProducts(shop, 'my-shop-products');
+                    fetchShopReviews(shop.id, 'my-shop-reviews-list');
+                    showSec('my-shop-sec');
+                }
+            } catch(e) { openModal("Kosa", e.message); }
+        }
 
     async function viewShopById(id) {
         try {
