@@ -6601,12 +6601,12 @@
                 async function showStatusViewer(status) {
             clearTimeout(statusTimer);
             pausedStatus = false;
-            document.getElementById('viewers-panel').style.transform = 'translateY(100%)';
             
             document.getElementById('status-viewer-overlay').style.display = 'flex';
             const imgEl = document.getElementById('status-viewer-img');
             const captionEl = document.getElementById('sv-caption');
             const footerEl = document.getElementById('sv-footer');
+            const viewersEl = document.getElementById('sv-viewers');
             
             imgEl.style.background = ''; 
             imgEl.innerHTML = ''; 
@@ -6617,6 +6617,7 @@
                 progressFill.style.width = '0%';
             }
             
+            let duration = 30000; 
             if (status.media_type === 'video') {
                 const video = document.createElement('video');
                 video.src = status.media_base64;
@@ -6643,56 +6644,62 @@
                     }
                 });
                 video.addEventListener('ended', () => nextStatus());
+            } else if (status.media_type === 'text') {
+                // HAPA NDIO UFAMBUZI WA TEXT STATUS
+                const colors = ['#1E293B', '#7F1D1D', '#14532D', '#581C87', '#155E75', '#92400E'];
+                const bgColor = colors[status.id.length % colors.length]; 
+                imgEl.style.background = bgColor;
+                imgEl.innerHTML = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><p style="color:white; font-size:20px; font-weight:600; padding:20px; text-align:center;">${status.media_base64}</p></div>`;
             } else {
+                // PICTURES (Images)
                 imgEl.style.background = `url('${status.media_base64}') center/contain no-repeat`;
             }
             
-            // HAPA NDIO PANPOPA KULAZIMISHA JINA
-            if (isViewingOfficial) {
-                document.getElementById('sv-name').innerText = "Kitama Yetu";
-                document.getElementById('sv-avatar').innerText = "K";
-                footerEl.style.display = 'none';
-            } else {
-                document.getElementById('sv-name').innerText = status.sender_name;
-                document.getElementById('sv-avatar').innerText = status.sender_name.charAt(0);
-                
-                const u = JSON.parse(localStorage.getItem('kitama_user'));
-                
-                if (status.sender_phone === u.phone_number) {
-                    footerEl.style.display = 'flex';
-                    const viewersCount = status.seen_by ? status.seen_by.length : 0;
-                    document.getElementById('sv-viewers-count').innerText = viewersCount + " Waliotazama";
-                } else {
-                    footerEl.style.display = 'none';
-                    if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
-                        statusNetworkChannel.send({ type: 'broadcast', event: 'status_seen', payload: { 
-                            to: status.sender_phone, 
-                            status_id: status.id, 
-                            seen_by: u.phone_number,
-                            hide_seen_receipts: status.hide_seen_receipts 
-                        }});
-                        let myStorage = getStatusFromStorage();
-                        const s = myStorage.find(x => x.id === status.id);
-                        if (s) {
-                            if (!s.seen_by) s.seen_by = [];
-                            s.seen_by.push(u.phone_number);
-                            saveStatusToStorage(myStorage);
-                        }
-                    }
-                }
-            }
+            document.getElementById('sv-name').innerText = status.sender_name;
+            document.getElementById('sv-avatar').innerText = status.sender_name.charAt(0);
+            document.getElementById('sv-time').innerText = new Date(status.timestamp).toLocaleString();
             
             captionEl.innerText = status.caption || '';
             captionEl.style.display = status.caption ? 'block' : 'none';
             
-            document.getElementById('sv-time').innerText = new Date(status.timestamp).toLocaleString();
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            
+            if (status.sender_phone === u.phone_number) {
+                footerEl.style.display = 'flex';
+                viewersEl.innerHTML = '<small>Inatafuta waliotazama...</small>';
+                try {
+                    const { data: viewersData } = await sb.from('users').select('full_name').in('phone_number', status.seen_by || []);
+                    if (viewersData && viewersData.length > 0) {
+                        viewersEl.innerHTML = '<small>Waliotazama:</small><br>' + viewersData.map(v => `<span style="background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:10px;">${v.full_name}</span>`).join('');
+                    } else {
+                        viewersEl.innerHTML = '<small>Hakuna aliyetazama bado</small>';
+                    }
+                } catch(e) { viewersEl.innerHTML = '<small>Hakuna aliyetazama</small>'; }
+            } else {
+                footerEl.style.display = 'none';
+                if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
+                    statusNetworkChannel.send({ type: 'broadcast', event: 'status_seen', payload: { 
+                        to: status.sender_phone, 
+                        status_id: status.id, 
+                        seen_by: u.phone_number,
+                        hide_seen_receipts: status.hide_seen_receipts 
+                    }});
+                    let myStorage = getStatusFromStorage();
+                    const s = myStorage.find(x => x.id === status.id);
+                    if (s) {
+                        if (!s.seen_by) s.seen_by = [];
+                        s.seen_by.push(u.phone_number);
+                        saveStatusToStorage(myStorage);
+                    }
+                }
+            }
             
             if (status.media_type !== 'video' && progressFill) {
                 setTimeout(() => {
-                    progressFill.style.transition = `width 30000ms linear`;
+                    progressFill.style.transition = `width ${duration}ms linear`;
                     progressFill.style.width = '100%';
                 }, 100);
-                statusTimer = setTimeout(() => { nextStatus(); }, 30000);
+                statusTimer = setTimeout(() => { nextStatus(); }, duration);
             }
         }
 
