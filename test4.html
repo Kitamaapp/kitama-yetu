@@ -3453,21 +3453,30 @@
         } catch(e) { openModal("Kosa", e.message); }
     }
 
-    async function fetchShopProducts(shop, divId) {
+        async function fetchShopProducts(shop, divId) {
         const div = document.getElementById(divId);
-        
-        // OFFLINE MODE: Mwambie awashe intaneti
-        if (!isOnline()) {
-            div.innerHTML = '<div style="text-align:center; padding:60px 20px; color:var(--text-sec);"><p style="font-weight:600; font-size:14px;">Huna mtandao kwa sasa.<br>Washa intaneti kuona bidhaa za dukani.</p></div>';
-            return;
-        }
-        
         div.innerHTML = '<div class="skeleton" style="height:300px; border-radius:16px; margin: 0 20px;"></div>';
         try {
+            // Jaribu kupakia mtandaoni
             const { data, error } = await sb.from('marketplace').select('*').eq('shop_id', shop.id).order('created_at', { ascending: false });
             if(error) throw error;
-            div.innerHTML = data.length > 0 ? data.map(m => renderShopPost(m, shop)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Hakuna bidhaa zilizotangazwa kwenye duka hili.</p>';
-        } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
+            
+            const newHtml = data.length > 0 ? data.map(m => renderShopPost(m, shop)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Hakuna bidhaa zilizotangazwa kwenye duka hili.</p>';
+            div.innerHTML = newHtml;
+            
+            // HIFADHI BIDHAA ZA DUKA
+            if(newHtml && !newHtml.includes('skeleton')) {
+                saveToCache('shop_products_' + shop.id, newHtml);
+            }
+        } catch(e) {
+            // AKISHINDWA KUPAKIA MTANDAONI, TUMIA CACHE
+            const cached = getFromCache('shop_products_' + shop.id);
+            if (cached) {
+                div.innerHTML = cached;
+            } else {
+                div.innerHTML = '<div style="text-align:center; padding:60px 20px; color:var(--text-sec);"><p style="font-weight:600; font-size:14px;">Huna mtandao kwa sasa.<br>Washa intaneti kuona bidhaa za dukani.</p></div>';
+            }
+        }
     }
 
     function renderShopPost(m, shop) {
@@ -4185,20 +4194,9 @@
             } catch(e) { openModal("Kosa", e.message); }
         });
     }
-    async function fetchCitizenReports() { 
+        async function fetchCitizenReports() { 
         const div = document.getElementById('citizen-reports-list');
         if(!div) return;
-        
-        // OFFLINE MODE: Onyesha kero zilizohifadhiwa
-        if (!isOnline()) {
-            const cached = getFromCache('reports_html');
-            if (cached) {
-                div.innerHTML = cached;
-            } else {
-                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna kero zilizohifadhiwa za kukuangalia.</p>';
-            }
-            return;
-        }
         
         const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
         const oldScroll = window.scrollY;
@@ -4207,18 +4205,27 @@
             div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; 
         }
         try { 
+            // Jaribu kupakia mtandaoni
             const { data, error } = await sb.from('reports').select('*').neq('status', 'archived').order('created_at', { ascending: false }); 
             if(error) throw error; 
-            div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna malalamishi yaliyoandikwa kwa sasa.</p>'; 
+            
+            const newHtml = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna malalamishi yaliyoandikwa kwa sasa.</p>'; 
+            div.innerHTML = newHtml;
             
             // HIFADHI DATA YA KERO
-            if(div.innerHTML && !div.innerHTML.includes('skeleton')) {
-                saveToCache('reports_html', div.innerHTML);
+            if(newHtml && !newHtml.includes('skeleton')) {
+                saveToCache('reports_html', newHtml);
             }
             
             if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
         } catch(e) { 
-            if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; 
+            // AKISHINDWA KUPAKIA MTANDAONI, TUMIA CACHE
+            const cached = getFromCache('reports_html');
+            if (cached) {
+                div.innerHTML = cached;
+            } else {
+                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao na hakuna kero zilizohifadhiwa.</p>';
+            }
         } 
     }
     async function trackCitizen(phone) {
