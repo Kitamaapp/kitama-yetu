@@ -2680,8 +2680,8 @@
             replyToData = `${citizenReplyName}|${citizenReplyText}`;
         }
 
-      try {
-            const { error } = await sb.from('citizen_chat').insert([{ 
+            try {
+            const msgData = { 
                 sender_name: u.full_name, 
                 sender_phone: u.phone_number,
                 sender_role: u.role,
@@ -2690,15 +2690,32 @@
                 reply_to: replyToData,
                 read_by: [u.phone_number],
                 is_activist: u.is_activist || false
-            }]);
+            };
             
+            if (!navigator.onLine) {
+                addToMsgQueue('citizen_chat', msgData);
+                document.getElementById('citizen-chat-input').value = '';
+                cancelCitizenReply();
+                showToast("Huna mtandao. Ujumbe umewekwa kwenye foleni na utatumwa ukisha washwa intaneti.");
+                
+                // Onyesha ujumbe kama umetumwa (kama WhatsApp clock icon)
+                const div = document.getElementById('citizen-chat-list');
+                const el = document.createElement('div');
+                el.className = 'chat-msg self';
+                el.style.opacity = '0.6';
+                el.innerHTML = `<b>Wewe</b><p>${content}</p><div class="msg-time"><span class="ticks sent">🕒</span></div>`;
+                div.appendChild(el);
+                div.scrollTop = div.scrollHeight;
+                return;
+            }
+            
+            const { error } = await sb.from('citizen_chat').insert([msgData]);
             if (error) throw error;
 
             document.getElementById('citizen-chat-input').value = '';
             cancelCitizenReply();
             playBeep();
-            isAtBottom = true; 
-            scrollToBottomOnNextFetch = true; // Mwambia browser ashuke chini kabisa
+            isAtBottom = true;
             fetchCitizenChat(false);
         } catch(e) { 
             openModal("Kosa la Kutuma", e.message); 
@@ -3192,21 +3209,48 @@
             }
         }
 
-    async function postChat() { 
+            async function postChat() { 
             const u = JSON.parse(localStorage.getItem('kitama_user')); 
             if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
             const content = document.getElementById('chat-input').value.trim(); 
             if(!content) return; 
             if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+            
             try { 
-                await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: content, reply_to: leaderReplyTo }]); 
+                const msgData = { 
+                    sender_name: u.full_name, 
+                    sender_role: u.role, 
+                    sender_village: u.village, 
+                    content: content, 
+                    reply_to: leaderReplyTo 
+                };
+                
+                // OFFLINE MODE: Weka kwenye foleni na onyesha kama WhatsApp
+                if (!navigator.onLine) {
+                    addToMsgQueue('leader_chat', msgData);
+                    document.getElementById('chat-input').value = '';
+                    cancelLeaderReply();
+                    showToast("Huna mtandao. Ujumbe umewekwa kwenye foleni na utatumwa ukisha washwa intaneti.");
+                    
+                    const div = document.getElementById('chat-list');
+                    const el = document.createElement('div');
+                    el.className = 'chat-msg self';
+                    el.style.opacity = '0.6';
+                    el.innerHTML = `<b>Wewe (Viongozi)</b><p>${content}</p><div class="msg-time"><span class="ticks sent">🕒</span></div>`;
+                    div.appendChild(el);
+                    div.scrollTop = div.scrollHeight;
+                    return;
+                }
+                
+                await sb.from('leader_chat').insert([msgData]); 
                 document.getElementById('chat-input').value = ''; 
                 cancelLeaderReply(); 
                 playBeep(); 
-                scrollToBottomOnNextFetchLeader = true; // ONGEZA HII: LIFORCE KUSHUKA CHINI
                 leaderIsAtBottom = true; 
                 fetchLeaderChat(false); 
-            } catch(e) { openModal("Kosa", e.message); } 
+            } catch(e) { 
+                openModal("Kosa", e.message); 
+            } 
         }
     async function editLeaderChat(id, oldText) {
         openModal("Hariri Ujumbe", "Badilisha ujumbe wako hapa chini.", true, async (newText) => {
@@ -3455,27 +3499,25 @@
 
         async function fetchShopProducts(shop, divId) {
         const div = document.getElementById(divId);
+        
+        // KAMA MTANDAO UMEKATIKA, ONYESHA CACHE MOJA KWA MOJA
+        if (!navigator.onLine) {
+            const cached = getFromCache('shop_products_' + shop.id);
+            div.innerHTML = cached || '<div style="text-align:center; padding:60px 20px; color:var(--text-sec);"><p style="font-weight:600; font-size:14px;">Huna mtandao.<br>Washa intaneti kuona bidhaa za dukani.</p></div>';
+            return;
+        }
+        
         div.innerHTML = '<div class="skeleton" style="height:300px; border-radius:16px; margin: 0 20px;"></div>';
         try {
-            // Jaribu kupakia mtandaoni
             const { data, error } = await sb.from('marketplace').select('*').eq('shop_id', shop.id).order('created_at', { ascending: false });
             if(error) throw error;
             
             const newHtml = data.length > 0 ? data.map(m => renderShopPost(m, shop)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Hakuna bidhaa zilizotangazwa kwenye duka hili.</p>';
             div.innerHTML = newHtml;
-            
-            // HIFADHI BIDHAA ZA DUKA
-            if(newHtml && !newHtml.includes('skeleton')) {
-                saveToCache('shop_products_' + shop.id, newHtml);
-            }
+            if(newHtml && !newHtml.includes('skeleton')) saveToCache('shop_products_' + shop.id, newHtml);
         } catch(e) {
-            // AKISHINDWA KUPAKIA MTANDAONI, TUMIA CACHE
             const cached = getFromCache('shop_products_' + shop.id);
-            if (cached) {
-                div.innerHTML = cached;
-            } else {
-                div.innerHTML = '<div style="text-align:center; padding:60px 20px; color:var(--text-sec);"><p style="font-weight:600; font-size:14px;">Huna mtandao kwa sasa.<br>Washa intaneti kuona bidhaa za dukani.</p></div>';
-            }
+            div.innerHTML = cached || '<div style="text-align:center; padding:60px 20px; color:var(--text-sec);"><p style="font-weight:600; font-size:14px;">Huna mtandao.<br>Washa intaneti kuona bidhaa za dukani.</p></div>';
         }
     }
 
@@ -4198,34 +4240,29 @@
         const div = document.getElementById('citizen-reports-list');
         if(!div) return;
         
+        // KAMA MTANDAO UMEKATIKA, ONYESHA CACHE MOJA KWA MOJA
+        if (!navigator.onLine) {
+            const cached = getFromCache('reports_html');
+            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao na hakuna kero zilizohifadhiwa.</p>';
+            return;
+        }
+        
         const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
         const oldScroll = window.scrollY;
+        if(!isRealtimeUpdate) div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; 
         
-        if(!isRealtimeUpdate) {
-            div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; 
-        }
         try { 
-            // Jaribu kupakia mtandaoni
             const { data, error } = await sb.from('reports').select('*').neq('status', 'archived').order('created_at', { ascending: false }); 
             if(error) throw error; 
             
             const newHtml = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna malalamishi yaliyoandikwa kwa sasa.</p>'; 
             div.innerHTML = newHtml;
-            
-            // HIFADHI DATA YA KERO
-            if(newHtml && !newHtml.includes('skeleton')) {
-                saveToCache('reports_html', newHtml);
-            }
+            if(newHtml && !newHtml.includes('skeleton')) saveToCache('reports_html', newHtml);
             
             if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
         } catch(e) { 
-            // AKISHINDWA KUPAKIA MTANDAONI, TUMIA CACHE
             const cached = getFromCache('reports_html');
-            if (cached) {
-                div.innerHTML = cached;
-            } else {
-                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao na hakuna kero zilizohifadhiwa.</p>';
-            }
+            div.innerHTML = cached || `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
         } 
     }
     async function trackCitizen(phone) {
@@ -5162,39 +5199,57 @@
     }
         
 
-        async function postDmChat() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma ujumbe kwa sasa.");
-        const content = document.getElementById('dm-chat-input').value.trim();
-        if(!content) return;
-        if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
-        
-        const sendBtn = document.querySelector('#dm-chat-sec .chat-input-box button');
-        const originalBtn = sendBtn ? sendBtn.innerHTML : '';
-        if(sendBtn) { sendBtn.innerHTML = '<div class="spinner"></div>'; sendBtn.disabled = true; }
-        
-        try {
-            const msgData = { 
-                sender_phone: u.phone_number, 
-                sender_name: u.full_name, 
-                content: content,
-                recipient_phone: dmOtherPhone
-            };
-            if(dmShopId) msgData.shop_id = dmShopId; // Weka shop_id ikiwa ni ya duka, ikiwa la binafsi itabaki null
+            async function postDmChat() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma ujumbe kwa sasa.");
+            const content = document.getElementById('dm-chat-input').value.trim();
+            if(!content) return;
+            if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
             
-            const { error } = await sb.from('shop_messages').insert([msgData]);
-            if(error) throw error;
+            const sendBtn = document.querySelector('#dm-chat-sec .chat-input-box button');
+            const originalBtn = sendBtn ? sendBtn.innerHTML : '';
+            if(sendBtn) { sendBtn.innerHTML = '<div class="spinner"></div>'; sendBtn.disabled = true; }
             
-            document.getElementById('dm-chat-input').value = '';
-            cancelDmReply();
-            playBeep();
-            dmIsAtBottom = true; // Shuka chini unapotuma wewe mwenyewe
-            await fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId);
-        } catch(e) { 
-            openModal("Kosa la Kutuma", e.message); 
-        } finally {
-            if(sendBtn) { sendBtn.innerHTML = originalBtn; sendBtn.disabled = false; }
-        }
+            try {
+                const msgData = { 
+                    sender_phone: u.phone_number, 
+                    sender_name: u.full_name, 
+                    content: content,
+                    recipient_phone: dmOtherPhone
+                };
+                if(dmShopId) msgData.shop_id = dmShopId;
+                
+                // OFFLINE MODE: Weka kwenye foleni na onyesha kama WhatsApp
+                if (!navigator.onLine) {
+                    addToMsgQueue('shop_messages', msgData);
+                    document.getElementById('dm-chat-input').value = '';
+                    cancelDmReply();
+                    showToast("Huna mtandao. Ujumbe umewekwa kwenye foleni na utatumwa ukisha washwa intaneti.");
+                    
+                    const div = document.getElementById('dm-chat-list');
+                    const el = document.createElement('div');
+                    el.className = 'chat-msg self';
+                    el.style.opacity = '0.6';
+                    el.innerHTML = `<b>Wewe</b><p>${content}</p><div class="msg-time"><span class="ticks sent">🕒</span></div>`;
+                    div.appendChild(el);
+                    div.scrollTop = div.scrollHeight;
+                    if(sendBtn) { sendBtn.innerHTML = originalBtn; sendBtn.disabled = false; }
+                    return;
+                }
+                
+                const { error } = await sb.from('shop_messages').insert([msgData]);
+                if(error) throw error;
+                
+                document.getElementById('dm-chat-input').value = '';
+                cancelDmReply();
+                playBeep();
+                dmIsAtBottom = true;
+                await fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId);
+            } catch(e) { 
+                openModal("Kosa la Kutuma", e.message); 
+            } finally {
+                if(sendBtn) { sendBtn.innerHTML = originalBtn; sendBtn.disabled = false; }
+            }
         }
 
         async function deleteDmMessage(id) {
@@ -6966,6 +7021,46 @@
                 hInitial.innerText = u.full_name.charAt(0).toUpperCase();
             }
         }
+            // --- OFFLINE MESSAGE QUEUE (WhatsApp Style) ---
+        function addToMsgQueue(table, data) {
+            let queue = JSON.parse(localStorage.getItem('kitama_msg_queue') || '[]');
+            queue.push({ table: table, data: data, time: Date.now() });
+            localStorage.setItem('kitama_msg_queue', JSON.stringify(queue));
+        }
+
+        async function processMsgQueue() {
+            if (!navigator.onLine) return;
+            let queue = JSON.parse(localStorage.getItem('kitama_msg_queue') || '[]');
+            if (queue.length === 0) return;
+            
+            let remainingQueue = [];
+            let sentAny = false;
+            
+            for (const item of queue) {
+                try {
+                    await sb.from(item.table).insert([item.data]);
+                    sentAny = true;
+                } catch(e) {
+                    // Ikiwa bado imeshindwa, irudishe kwenye foleni
+                    remainingQueue.push(item);
+                }
+            }
+            
+            localStorage.setItem('kitama_msg_queue', JSON.stringify(remainingQueue));
+            
+            if (sentAny) {
+                showToast("Ujumbe uliokawia umetumwa!");
+                // Rejibishe screen
+                if (document.getElementById('citizen-chat-sec').classList.contains('active')) fetchCitizenChat(false);
+                if (document.getElementById('dm-chat-sec').classList.contains('active')) fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, false);
+                if (document.getElementById('leader-chat-sec').classList.contains('active')) fetchLeaderChat(false);
+            }
+        }
+
+        // Sikiliza mtandao ukirudi
+        window.addEventListener('online', processMsgQueue);
+        // Pigi mwanzo wa kazi
+        setTimeout(processMsgQueue, 3000);
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
