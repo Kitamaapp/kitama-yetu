@@ -2327,6 +2327,8 @@
         if(id==='status-sec') loadStatusUI();
         if(id==='kitama-map-sec') initKitamaMap();
         if(id==='report-sec') fetchCitizenReports();
+        if(id==='kitama-map-sec') { initKitamaMap(); requestLocationOnEnter(); }
+        if(id==='boda-sec') { checkDriverStatus(); setTimeout(() => initBodaMap(), 100); requestLocationOnEnter(); }
         const marketAddBtn = document.getElementById('market-add-btn');
         if(marketAddBtn) {
             if(u.status === 'pending' || u.role !== 'citizen') marketAddBtn.style.display = 'none';
@@ -7334,6 +7336,26 @@
         window.addEventListener('online', processMsgQueue);
         // Pigi mwanzo wa kazi
         setTimeout(processMsgQueue, 3000);
+           
+         // --- RUHUSA YA LOCATION KURLINGANA NA UKURASA ---
+        function requestLocationOnEnter() {
+            if (!navigator.geolocation) return;
+            
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    // Ameeruhusu, au tayari amesharuhusu. Tumia data hiyo.
+                    // Hii itafanyikika kimyakimya bila kumsumbua.
+                },
+                (err) => {
+                    // Kama hakuruhusu, mwambie kwa uwazi
+                    if (err.code === err.PERMISSION_DENIED) {
+                        openModal("Ruhusa Ya Eneo Inahitajika", "Ili kutumia Ramani na kupata maombi ya Boda Boda, unahitaji kuruhusu App kujua eneo lako.<br><br><b>Jinsi ya kuiruhusu:</b><br>Nenda kwenye <b>Settings</b> ya simu yako -> <b>Apps</b> -> <b>Kitama Yetu</b> -> <b>Permissions</b> -> Kisha <b>Ruhusu Location</b>.", false);
+                    }
+                },
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            );
+        }
+    
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
