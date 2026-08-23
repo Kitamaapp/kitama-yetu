@@ -5659,44 +5659,91 @@
     }
                 function openVerificationModal() {
             const html = `
-                <!-- HATUA YA 1: FAIDA NA MAELEKEZO -->
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" style="margin: 0 auto 10px;"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
-                    <h3 style="font-weight: 800; font-size: 16px; color: var(--text);">Faiza za Uthibitisho</h3>
+                <!-- HEADER YA KITAASISI -->
+                <div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
+                    <div style="width: 60px; height: 60px; background: rgba(59, 130, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                    </div>
+                    <h3 style="font-weight: 800; font-size: 18px; color: var(--text);">Uthibitisho Rasmi</h3>
+                    <p style="font-size: 12px; color: var(--text-sec); margin-top: 5px;">Jiunge na Watu wa Kuaminika</p>
                 </div>
                 
-                <ul style="list-style: none; padding: 0; margin-bottom: 20px; font-size: 13px; color: var(--text-sec); line-height: 1.8;">
-                    <li style="margin-bottom: 8px;">✅ Utapata <b>Alama ya Kijani (Verified Badge)</b> kwenye jina lako kote kwenye App.</li>
-                    <li style="margin-bottom: 8px;">✅ Watu watakukubali na kuamini zaidi kwenye Soko, Forum, na Inbox.</li>
-                    <li style="margin-bottom: 8px;">✅ Utaweza kuandika <b>Makala za Activist</b> na kupigania haki za jamii.</li>
-                    <li style="margin-bottom: 8px;">✅ Uwezo wa kutuma <b>Video za muda mrefu (hadi dakika 3)</b> kwenye Status.</li>
-                </ul>
-                
-                <!-- HATUA YA 2: SEHEMU YA MALIPO (IMEFICHWA KWA MWANZO) -->
-                <div id="payment-details-section" style="display: none;">
-                    <div style="background: var(--bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border);">
-                        <p style="font-size: 14px; margin-bottom: 5px;"><b>Kiasi:</b> 2,000 Tsh</p>
-                        <p style="font-size: 14px; margin-bottom: 5px;"><b>Namba (M-Pesa/Tigo):</b> 0613367354</p>
-                        <p style="font-size: 14px;"><b>Jina:</b> SHADAFI SAIDI NGUYAHAMBI</p>
+                <!-- ORODHA YA FAIDA (Professional Cards) -->
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div style="width: 36px; height: 36px; background: var(--bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+                        </div>
+                        <div>
+                            <h4 style="font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px;">Alama ya Uaminifu</h4>
+                            <p style="font-size: 12px; color: var(--text-sec);">Pata alama rasmi ya kijani (Verified) kwenye akaunti yako.</p>
+                        </div>
                     </div>
-                    <p style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px;">Baada ya kulipa, andika Namba ya Muamala (Receipt No.) au Jina la mtumie hapa chini:</p>
-                    <textarea id="verification-receipt-input" class="modal-input" style="width: 100%; min-height: 80px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; font-size: 14px;" placeholder="Mfano: OM4K9LPQ2Z au Jina lako"></textarea>
+                    
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div style="width: 36px; height: 36px; background: var(--bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+                        </div>
+                        <div>
+                            <h4 style="font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px;">Uwezo wa Kipekee</h4>
+                            <p style="font-size: 12px; color: var(--text-sec);">Uwezo wa kuandika Makala za Activist na kutuma Video ndefu.</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div style="width: 36px; height: 36px; background: var(--bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+                        </div>
+                        <div>
+                            <h4 style="font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px;">Kuaminika Kwenye Biashara</h4>
+                            <p style="font-size: 12px; color: var(--text-sec);">Wateja watakukubali haraka kwenye Soko na Inbox.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SEHEMU YA MALIPO (Official Invoice Style) -->
+                <div id="payment-details-section" style="display: none; border-top: 1px dashed var(--border); padding-top: 20px; margin-top: 10px;">
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 15px;">Taarifa za Malipo</h4>
+                    
+                    <div style="background: var(--bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
+                            <span style="color: var(--text-sec); font-size: 12px;">Kiasi:</span>
+                            <b style="color: var(--text); font-size: 15px;">Tsh 2,000</b>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: var(--text-sec); font-size: 12px;">Namba:</span>
+                            <b style="color: var(--text); font-size: 13px;">0613367354</b>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: var(--text-sec); font-size: 12px;">Jina:</span>
+                            <b style="color: var(--text); font-size: 13px;">SHADAFI SAIDI NGUYAHAMBI</b>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-sec); font-size: 12px;">Mtandao:</span>
+                            <b style="color: var(--text); font-size: 13px;">M-Pesa / Tigo Pesa</b>
+                        </div>
+                    </div>
+                    
+                    <p style="font-size: 12px; color: var(--text-sec); margin-bottom: 8px;">Ingiza Namba ya Muamala (Receipt No.) ili kuthibitisha malipo yako:</p>
+                    <input type="text" id="verification-receipt-input" class="modal-input" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; font-size: 14px;" placeholder="Mfano: OM4K9LPQ2Z">
                 </div>
             `;
             
-            openModal("Pata Uthibitisho", html, false, async () => {
+            openModal("Pata Uthibitisho", html, false);
+            
+            // Andika kitufe na ubadilishe tabia yake
+            const okBtn = document.getElementById('modal-ok');
+            okBtn.innerText = "Endelea";
+            okBtn.onclick = async () => {
                 const paySection = document.getElementById('payment-details-section');
-                const okBtn = document.getElementById('modal-ok');
                 
-                // Kama bado hajabonyeza "Endelea", fungua sehemu ya malipo na badilisha jina la kitufe
                 if (paySection.style.display === 'none') {
                     paySection.style.display = 'block';
-                    okBtn.innerText = "Tuma Ombi la Uthibitisho";
+                    okBtn.innerText = "Hifadhi Ombi";
                     document.getElementById('verification-receipt-input').focus();
                 } else {
-                    // Kama ameshaona malipo na abonyea "Tuma Ombi", mchukue muamala
                     const receipt = document.getElementById('verification-receipt-input').value.trim();
-                    if(!receipt) return showToast("Tafadhali andika namba ya muamala au jina.");
+                    if(!receipt) return showToast("Tafadhali ingiza namba ya muamala.");
                     
                     okBtn.innerHTML = '<div class="spinner"></div>'; okBtn.disabled = true;
                     
@@ -5710,16 +5757,13 @@
                         }]);
                         
                         closeModal();
-                        openModal("Ombi Limewasilishwa", "Asante! Ombi lako la uthibitisho limewasilishwa. Utathibitishwa (Verified) ndani ya masaa 24.", false);
+                        openModal("Ombi Limewasilishwa", "<div style='text-align:center; padding: 10px 0;'><svg width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='#10B981' stroke-width='2' style='margin: 0 auto 15px;'><path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/><polyline points='22 4 12 14.01 9 11.01'/></svg><b style='font-size:16px; color:var(--text);'>Imekamilika!</b><p style='font-size:13px; color:var(--text-sec); margin-top:10px; line-height:1.6;'>Asante! Ombi lako limewasilishwa kwa Admin. Utapata alama ya Verified ndani ya masaa 24.</p></div>", false);
                     } catch(e) {
                         openModal("Kosa", e.message);
-                        okBtn.innerText = "Tuma Ombi la Uthibitisho"; okBtn.disabled = false;
+                        okBtn.innerText = "Hifadhi Ombi"; okBtn.disabled = false;
                     }
                 }
-            });
-            
-            // Andika jina la kwanza la kitufe
-            document.getElementById('modal-ok').innerText = "Amelewa, Nataka Kuthibitishwa";
+            };
                 }
     
         // --- ADMIN VERIFICATIONS FULL SCREEN FUNCTIONS ---
