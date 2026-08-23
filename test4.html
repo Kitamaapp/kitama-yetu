@@ -2322,42 +2322,40 @@
         });
     }
 
-    async function fetchActivistsControl() {
+        async function fetchActivistsControl() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.role !== 'system_admin') return;
         const div = document.getElementById('activists-control-list');
+        
+        // OFFLINE MODE
+        if (!navigator.onLine) {
+            const cached = getFromCache('activists_html');
+            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao.</p>';
+            return;
+        }
+        
         div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>';
         try {
             const { data: activists, error: aErr } = await sb.from('users').select('*').eq('is_activist', true).order('full_name');
             if(aErr) throw aErr;
-            
             const { data: citizens, error: cErr } = await sb.from('users').select('*').eq('role', 'citizen').eq('status', 'active').eq('is_activist', false).order('full_name');
             if(cErr) throw cErr;
 
             let html = `<h4 style="padding:0 20px; margin:15px 0 10px 0; color:var(--text);">Waactivists Waliopo (${activists.length})</h4>`;
             if(activists.length > 0) {
-                html += activists.map(act => `
-                    <div class="list-i" style="display:flex; justify-content:space-between; align-items:center;">
-                        <div><b>${act.full_name}</b> ${getActivistBadge(true)}<br><small style="color:var(--text-sec);">${act.phone_number} - ${act.village}</small></div>
-                        <button onclick="toggleActivistStatus('${act.id}', false)" class="m-btn m-btn-danger" style="flex:none; padding:8px 12px; font-size:12px;">Ondoa Hadhi</button>
-                    </div>
-                `).join('');
-            } else {
-                html += '<p style="color:var(--text-sec); padding:0 20px;">Hakuna waactivists kwa sasa.</p>';
-            }
+                html += activists.map(act => `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center;"><div><b>${act.full_name}</b> ${getActivistBadge(true)}<br><small style="color:var(--text-sec);">${act.phone_number} - ${act.village}</small></div><button onclick="toggleActivistStatus('${act.id}', false)" class="m-btn m-btn-danger" style="flex:none; padding:8px 12px; font-size:12px;">Ondoa Hadhi</button></div>`).join('');
+            } else { html += '<p style="color:var(--text-sec); padding:0 20px;">Hakuna waactivists.</p>'; }
 
             html += `<h4 style="padding:0 20px; margin:25px 0 10px 0; color:var(--text);">Wananchi Wa Kawaida</h4>`;
             if(citizens.length > 0) {
-                html += citizens.map(cit => `
-                    <div class="list-i" style="display:flex; justify-content:space-between; align-items:center;">
-                        <div><b>${cit.full_name}</b><br><small style="color:var(--text-sec);">${cit.phone_number} - ${cit.village}</small></div>
-                        <button onclick="toggleActivistStatus('${cit.id}', true)" class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:12px;">Ongeza Hadhi</button>
-                    </div>
-                `).join('');
+                html += citizens.map(cit => `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center;"><div><b>${cit.full_name}</b><br><small style="color:var(--text-sec);">${cit.phone_number} - ${cit.village}</small></div><button onclick="toggleActivistStatus('${cit.id}', true)" class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:12px;">Ongeza Hadhi</button></div>`).join('');
             }
-
             div.innerHTML = html;
-        } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
+            saveToCache('activists_html', html);
+        } catch(e) { 
+            const cached = getFromCache('activists_html');
+            div.innerHTML = cached || `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+        }
     }
 
     async function toggleActivistStatus(userId, makeActivist) {
@@ -2997,9 +2995,17 @@
         } catch(e) { openModal("Kosa", e.message); } 
     }
     
-        async function fetchLeaderReports() { 
+            async function fetchLeaderReports() { 
         const u = JSON.parse(localStorage.getItem('kitama_user')); 
         const div = document.getElementById('leader-rep-list'); 
+        
+        // OFFLINE MODE
+        if (!navigator.onLine) {
+            const cached = getFromCache('leader_reports_html');
+            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna malalamishi yaliyohifadhiwa.</p>';
+            return;
+        }
+        
         const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
         const oldScroll = window.scrollY;
         
@@ -3008,16 +3014,22 @@
         }
         document.getElementById('leader-rep-title').innerText = (u.role === 'diwani' || u.role === 'mtendaji_kata' || u.role === 'system_admin') ? "Malalamishi ya Mfumo Nzima" : "Malalamishi ya " + u.village; 
         try { 
-            let query = sb.from('reports').select('*').order('created_at', { ascending:false }); 
+            let query = sb.from('reports').select('*').order('created_at', { ascending:false }).limit(50); 
             if(u.role !== 'diwani' && u.role !== 'mtendaji_kata' && u.role !== 'system_admin') query = query.eq('village', u.village);
             if(u.role === 'diwani' || u.role === 'mtendaji_kata' || u.role === 'system_admin') query = query.neq('visibility', 'local_only');
             const { data, error } = await query; 
             if(error) throw error; 
-            div.innerHTML = data.length > 0 ? data.map(r => renderReportCard(r, true)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna malalamishi kwa sasa.</p>'; 
+            
+            const newHtml = data.length > 0 ? data.map(r => renderReportCard(r, true)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna malalamishi kwa sasa.</p>'; 
+            div.innerHTML = newHtml;
+            
+            // HIFADHI
+            if(newHtml && !newHtml.includes('skeleton')) saveToCache('leader_reports_html', newHtml);
             
             if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
         } catch(e) { 
-            if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; 
+            const cached = getFromCache('leader_reports_html');
+            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna malalamishi yaliyohifadhiwa.</p>';
         } 
     }
         async function fetchPublicProgress() { 
@@ -3343,12 +3355,32 @@
     async function rejectUser(id) { openModal("Kataza Mtumiaji", "Una uhakika unataka kumkataza mtumiaji huyu? Akaunti yake itafungwa na hataweza kuingia tena.", false, async () => { try { await sb.from('users').update({ status: 'rejected' }).eq('id', id); showToast("Mtumiaji amekataliwa na kufungwa!"); playBeep(); fetchPendingUsers(); } catch(e) { openModal("Kosa", e.message); } }); }
 
     async function addSubVillage() { const village = document.getElementById('sub-v-village').value, name = document.getElementById('sub-v-name').value.trim(); if(!name) return openModal("Taarifa", "Weka jina la kitongoji."); if(containsBadWords(name)) return openModal("Onyo", "Jina lina maneno yasiyoruhusiwa."); try { await sb.from('sub_villages').insert([{ village: village, sub_village_name: name }]); showToast("Kitongoji kimeongezwa!"); playBeep(); document.getElementById('sub-v-name').value = ''; fetchSubVillages(); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchSubVillages() { const div = document.getElementById('sub-villages-list'); div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('sub_villages').select('*').order('created_at', { ascending:false }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(v => `<div class="list-i" style="padding:12px;"><strong>${v.sub_village_name}</strong><br><small style="color:var(--text-sec);">Kijiji: ${v.village}</small></div>`).join('') : '<p style="color:var(--text-sec); margin: 0 20px;">Hakuna vitongoji vilivyoongezwa bado.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
+    async function fetchSubVillages() { 
+        const div = document.getElementById('sub-villages-list');
+        if (!navigator.onLine) { const cached = getFromCache('sub_villages_html'); div.innerHTML = cached || '...'; return; }
+        div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; 
+        try { 
+            const { data, error } = await sb.from('sub_villages').select('*').order('created_at', { ascending:false }); 
+            if(error) throw error; 
+            const newHtml = data.length > 0 ? data.map(v => `<div class="list-i" style="padding:12px;"><strong>${v.sub_village_name}</strong><br><small style="color:var(--text-sec);">Kijiji: ${v.village}</small></div>`).join('') : '<p style="color:var(--text-sec); margin: 0 20px;">Hakuna vitongoji.</p>'; 
+            div.innerHTML = newHtml; saveToCache('sub_villages_html', newHtml);
+        } catch(e) { const cached = getFromCache('sub_villages_html'); div.innerHTML = cached || `<p style="color:red;">${e.message}</p>`; } 
+    }
 
+    async function fetchPins() { 
+        const div = document.getElementById('pins-list');
+        if (!navigator.onLine) { const cached = getFromCache('pins_html'); div.innerHTML = cached || '...'; return; }
+        div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; 
+        try { 
+            const { data, error } = await sb.from('leader_pins').select('*').order('role', { ascending:true }); 
+            if(error) throw error; 
+            const newHtml = data.length > 0 ? data.map(p => `<div class="list-i" style="padding:12px;"><strong>${p.role.replace(/_/g,' ')}</strong>${p.village ? ' - '+p.village : ''}<br><small style="color:var(--text-sec);">PIN: <b>${p.pin}</b></small></div>`).join('') : '<p style="color:var(--text-sec); margin: 0 20px;">Hakuna PIN.</p>'; 
+            div.innerHTML = newHtml; saveToCache('pins_html', newHtml);
+        } catch(e) { const cached = getFromCache('pins_html'); div.innerHTML = cached || `<p style="color:red;">${e.message}</p>`; } 
+    }
     function togglePinVillage() { document.getElementById('pin-village-box').style.display = document.getElementById('pin-role').value === 'mtendaji_kijiji' ? 'block' : 'none'; }
     async function updatePin() { const role = document.getElementById('pin-role').value, village = document.getElementById('pin-village').value, pin = document.getElementById('pin-value').value.trim(); if(!pin) return openModal("Taarifa", "Weka PIN mpya."); try { let query = sb.from('leader_pins').select('*').eq('role', role); if(role === 'mtendaji_kijiji') query = query.eq('village', village); else query = query.is('village', null); const { data: existing } = await query.maybeSingle(); if(existing) { await sb.from('leader_pins').update({ pin: pin }).eq('id', existing.id); } else { await sb.from('leader_pins').insert([{ role: role, village: role === 'mtendaji_kijiji' ? village : null, pin: pin }]); } showToast("PIN imehifadhiwa!"); playBeep(); document.getElementById('pin-value').value = ''; fetchPins(); } catch(e) { openModal("Kosa", e.message); } }
-    async function fetchPins() { const div = document.getElementById('pins-list'); div.innerHTML = '<div class="skeleton" style="height:50px; margin-bottom:10px;"></div>'; try { const { data, error } = await sb.from('leader_pins').select('*').order('role', { ascending:true }); if(error) throw error; div.innerHTML = data.length > 0 ? data.map(p => `<div class="list-i" style="padding:12px;"><strong>${p.role.replace(/_/g,' ')}</strong>${p.village ? ' - '+p.village : ''}<br><small style="color:var(--text-sec);">PIN: <b>${p.pin}</b></small></div>`).join('') : '<p style="color:var(--text-sec); margin: 0 20px;">Hakuna PIN zilizowekwa.</p>'; } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; } }
-
+    
     async function postProject() { const title = document.getElementById('proj-title').value.trim(), desc = document.getElementById('proj-desc').value.trim(), status = document.getElementById('proj-status').value; if(!title||!desc) return openModal("Taarifa", "Jaza jina na maelezo ya mradi."); if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa."); try { await sb.from('projects').insert([{ title, description: desc, status }]); showToast("Mradi umewekwa!"); playBeep(); document.getElementById('proj-title').value=''; document.getElementById('proj-desc').value=''; fetchProjects(); } catch(e) { openModal("Kosa", e.message); } }
     async function fetchProjects() { 
         const div = document.getElementById('projects-list'); 
@@ -5371,19 +5403,27 @@
             } catch(e) { openModal("Kosa", e.message); }
         });
         }
-        async function fetchAdminUsers() {
+            async function fetchAdminUsers() {
         const div = document.getElementById('admin-users-list');
+        
+        // OFFLINE MODE
+        if (!navigator.onLine) {
+            const cached = getFromCache('admin_users_html');
+            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao.</p>';
+            return;
+        }
+        
         div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>';
         try {
             const { data, error } = await sb.from('users').select('*').neq('role', 'system_admin').order('created_at', { ascending: false });
             if(error) throw error;
             
-            div.innerHTML = data.length > 0 ? data.map(u => {
+            const newHtml = data.length > 0 ? data.map(u => {
                 let statusBadge = u.status === 'active' ? '<span class="badge b-succ">Active</span>' : u.status === 'restricted' ? '<span class="badge b-warn">View Only</span>' : '<span class="badge b-err">Banned</span>';
                 let actions = '';
                 if(u.status === 'active') {
-                    actions = `<button onclick="updateUserStatus('${u.id}', 'restricted')" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; margin-right:5px;">Zuia (View-Only)</button>
-                               <button onclick="updateUserStatus('${u.id}', 'rejected')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Funga (Ban)</button>`;
+                    actions = `<button onclick="updateUserStatus('${u.id}', 'restricted')" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; margin-right:5px;">Zuia</button>
+                               <button onclick="updateUserStatus('${u.id}', 'rejected')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Funga</button>`;
                 } else {
                     actions = `<button onclick="updateUserStatus('${u.id}', 'active')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:11px;">Ruhusu</button>`;
                 }
@@ -5392,7 +5432,13 @@
                     <div style="display:flex; gap:5px;">${actions}</div>
                 </div>`;
             }).join('') : '<p style="color:var(--text-sec); padding:0 20px;">Hakuna watumiaji.</p>';
-        } catch(e) { div.innerHTML = `<p style="color:red; margin:0 20px;">${e.message}</p>`; }
+            
+            div.innerHTML = newHtml;
+            saveToCache('admin_users_html', newHtml);
+        } catch(e) {
+            const cached = getFromCache('admin_users_html');
+            div.innerHTML = cached || `<p style="color:red; margin:0 20px;">${e.message}</p>`;
+        }
     }
         // --- ADMIN FEEDBACK FULL SCREEN FUNCTIONS ---
         async function fetchAdminFeedbacks() {
@@ -5644,29 +5690,34 @@
         finally { btn.innerHTML = 'Hifadhi Shule'; btn.disabled = false; }
     }
 
-    async function fetchAdminSchools() {
+        async function fetchAdminSchools() {
         const div = document.getElementById('admin-schools-list');
         if(!div) return;
+        
+        // OFFLINE MODE
+        if (!navigator.onLine) {
+            const cached = getFromCache('admin_schools_html');
+            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao.</p>';
+            return;
+        }
+        
         div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>';
         try {
             const { data, error } = await sb.from('schools').select('*').order('created_at', { ascending: false });
             if(error) throw error;
-            div.innerHTML = data.length > 0 ? data.map(s => {
+            
+            const newHtml = data.length > 0 ? data.map(s => {
                 let hmInfo = s.headmaster_phone ? `<small style="color:var(--accent);">Mwalimu: ${s.headmaster_name || s.headmaster_phone}</small><br>` : `<small style="color:var(--text-sec);">Bado hana Mwalimu Mkuu</small><br>`;
-                let assignBtn = s.headmaster_phone 
-                    ? `<button onclick="revokeHeadmaster('${s.id}')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Ondoa Mwalimu</button>` 
-                    : `<button onclick="assignHeadmaster('${s.id}')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:11px;">Teua Mwalimu</button>`;
-                
-                return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <div>
-                        <b>${s.school_name}</b> <span class="badge b-info" style="font-size:9px; margin-left:5px;">${s.school_level || 'Msingi'}</span><br>
-                        <small style="color:var(--text-sec);">${s.village}</small><br>
-                        ${hmInfo}
-                    </div>
-                    <div>${assignBtn}</div>
-                </div>`;
+                let assignBtn = s.headmaster_phone ? `<button onclick="revokeHeadmaster('${s.id}')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Ondoa Mwalimu</button>` : `<button onclick="assignHeadmaster('${s.id}')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:11px;">Teua Mwalimu</button>`;
+                return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;"><div><b>${s.school_name}</b> <span class="badge b-info" style="font-size:9px;">${s.school_level || 'Msingi'}</span><br><small style="color:var(--text-sec);">${s.village}</small><br>${hmInfo}</div><div>${assignBtn}</div></div>`;
             }).join('') : '<p style="color:var(--text-sec);">Hakuna shule ilizoongezwa bado.</p>';
-        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+            
+            div.innerHTML = newHtml;
+            saveToCache('admin_schools_html', newHtml);
+        } catch(e) { 
+            const cached = getFromCache('admin_schools_html');
+            div.innerHTML = cached || `<p style="color:red;">${e.message}</p>`;
+        }
     }
 
     async function assignHeadmaster(schoolId) {
