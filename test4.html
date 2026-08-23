@@ -4167,32 +4167,49 @@
         }
     }
 
-        async function fetchShopsDirectory() {
-        if (shopsIsLoading) return;
-        shopsIsLoading = true;
-        const div = document.getElementById('shops-directory-list');
-        const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
-        const oldScroll = window.scrollY;
-        
-        if(!isRealtimeUpdate) {
-            div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div><div class="skeleton" style="height:200px; border-radius:16px;"></div>';
-        }
-        try {
-            const { data, error } = await sb.from('shops').select('*').order('created_at', { ascending: false }).limit(100);
-            if(error) throw error;
-            shopsItemsCache = data.sort(() => Math.random() - 0.5);
-            shopsDisplayIndex = 0;
-            shopsHasMore = true;
-            div.innerHTML = '';
-            renderShopsBatch();
+            async function fetchShopsDirectory() {
+            const div = document.getElementById('shops-directory-list');
+            if(!div) return;
             
-            if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
-        } catch(e) {
-            if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; grid-column:span 2;">${e.message}</p>`; 
-        } finally {
-            shopsIsLoading = false;
+            // OFFLINE MODE: Nenda kwenye cache moja kwa moja
+            if (!navigator.onLine) {
+                const cached = getFromCache('shops_dir_html');
+                div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna maduka yaliyohifadhiwa.</p>';
+                return;
+            }
+            
+            if (shopsIsLoading) return;
+            shopsIsLoading = true;
+            const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
+            const oldScroll = window.scrollY;
+            
+            if(!isRealtimeUpdate) {
+                div.innerHTML = '<div class="skeleton" style="height:200px; border-radius:16px;"></div><div class="skeleton" style="height:200px; border-radius:16px;"></div>';
+            }
+            try {
+                const { data, error } = await sb.from('shops').select('*').order('created_at', { ascending: false }).limit(50);
+                if(error) throw error;
+                shopsItemsCache = data.sort(() => Math.random() - 0.5);
+                shopsDisplayIndex = 0;
+                shopsHasMore = true;
+                div.innerHTML = '';
+                renderShopsBatch();
+                
+                // HIFADHI MADUKA
+                const newHtml = div.innerHTML;
+                if(newHtml && !newHtml.includes('skeleton')) {
+                    saveToCache('shops_dir_html', newHtml);
+                }
+                
+                if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
+            } catch(e) {
+                // AKISHINDWA MTANDAONI, TUMIA CACHE
+                const cached = getFromCache('shops_dir_html');
+                div.innerHTML = cached || `<p style="color:red; grid-column:span 2;">${e.message}</p>`; 
+            } finally {
+                shopsIsLoading = false;
+            }
         }
-    }
 
     function renderShopsBatch() {
         const div = document.getElementById('shops-directory-list');
