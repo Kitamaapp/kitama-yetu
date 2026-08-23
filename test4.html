@@ -5657,45 +5657,71 @@
             btn.disabled = false; 
         }
     }
-           function openVerificationModal() {
-        const html = `
-            <div style="text-align: center; margin-bottom: 15px;">
-                <h3 style="font-weight: 800; font-size: 18px; color: var(--text);">Pata Uthibitisho (Verified Badge)</h3>
-                <p style="font-size: 13px; color: var(--text-sec);">Lipa Tsh 2,000 kwenye namba iliyo hapa chini kuthibitisha akaunti yako.</p>
-            </div>
-            <div style="background: var(--bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border);">
-                <p style="font-size: 14px; margin-bottom: 5px;"><b>Kiasi:</b> 2,000 Tsh</p>
-                <p style="font-size: 14px; margin-bottom: 5px;"><b>Namba (M-Pesa/Tigo):</b> 0613367354</p>
-                <p style="font-size: 14px;"><b>Jina:</b> SHADAFI SAIDI NGUYAHAMBI</p>
-            </div>
-            <p style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px;">Baada ya kulipa, andika Namba ya Muamala (Receipt No.) au Jina la mtumie hapa chini:</p>
-            <textarea id="verification-receipt-input" class="modal-input" style="width: 100%; min-height: 80px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; font-size: 14px;" placeholder="Mfano: OM4K9LPQ2Z au Jina lako"></textarea>
-        `;
-        
-        openModal("Pata Uthibitisho", html, true, async (receipt) => {
-            if(!receipt) return showToast("Tafadhali andika namba ya muamala.");
-            
-            const btn = document.getElementById('modal-ok');
-            btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
-            
-            try {
-                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                function openVerificationModal() {
+            const html = `
+                <!-- HATUA YA 1: FAIDA NA MAELEKEZO -->
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" style="margin: 0 auto 10px;"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
+                    <h3 style="font-weight: 800; font-size: 16px; color: var(--text);">Faiza za Uthibitisho</h3>
+                </div>
                 
-                await sb.from('verification_requests').insert([{
-                    user_name: u.full_name,
-                    phone: u.phone_number,
-                    receipt_info: receipt,
-                    status: 'pending'
-                }]);
+                <ul style="list-style: none; padding: 0; margin-bottom: 20px; font-size: 13px; color: var(--text-sec); line-height: 1.8;">
+                    <li style="margin-bottom: 8px;">✅ Utapata <b>Alama ya Kijani (Verified Badge)</b> kwenye jina lako kote kwenye App.</li>
+                    <li style="margin-bottom: 8px;">✅ Watu watakukubali na kuamini zaidi kwenye Soko, Forum, na Inbox.</li>
+                    <li style="margin-bottom: 8px;">✅ Utaweza kuandika <b>Makala za Activist</b> na kupigania haki za jamii.</li>
+                    <li style="margin-bottom: 8px;">✅ Uwezo wa kutuma <b>Video za muda mrefu (hadi dakika 3)</b> kwenye Status.</li>
+                </ul>
                 
-                closeModal();
-                openModal("Ombi Limewasilishwa", "Asante! Ombi lako la uthibitisho limewasilishwa. Utathibitishwa (Verified) ndani ya masaa 24.", false);
-            } catch(e) {
-                openModal("Kosa", e.message);
-                btn.innerHTML = 'Sawa'; btn.disabled = false;
-            }
-        });
-    }
+                <!-- HATUA YA 2: SEHEMU YA MALIPO (IMEFICHWA KWA MWANZO) -->
+                <div id="payment-details-section" style="display: none;">
+                    <div style="background: var(--bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border);">
+                        <p style="font-size: 14px; margin-bottom: 5px;"><b>Kiasi:</b> 2,000 Tsh</p>
+                        <p style="font-size: 14px; margin-bottom: 5px;"><b>Namba (M-Pesa/Tigo):</b> 0613367354</p>
+                        <p style="font-size: 14px;"><b>Jina:</b> SHADAFI SAIDI NGUYAHAMBI</p>
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px;">Baada ya kulipa, andika Namba ya Muamala (Receipt No.) au Jina la mtumie hapa chini:</p>
+                    <textarea id="verification-receipt-input" class="modal-input" style="width: 100%; min-height: 80px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; font-size: 14px;" placeholder="Mfano: OM4K9LPQ2Z au Jina lako"></textarea>
+                </div>
+            `;
+            
+            openModal("Pata Uthibitisho", html, false, async () => {
+                const paySection = document.getElementById('payment-details-section');
+                const okBtn = document.getElementById('modal-ok');
+                
+                // Kama bado hajabonyeza "Endelea", fungua sehemu ya malipo na badilisha jina la kitufe
+                if (paySection.style.display === 'none') {
+                    paySection.style.display = 'block';
+                    okBtn.innerText = "Tuma Ombi la Uthibitisho";
+                    document.getElementById('verification-receipt-input').focus();
+                } else {
+                    // Kama ameshaona malipo na abonyea "Tuma Ombi", mchukue muamala
+                    const receipt = document.getElementById('verification-receipt-input').value.trim();
+                    if(!receipt) return showToast("Tafadhali andika namba ya muamala au jina.");
+                    
+                    okBtn.innerHTML = '<div class="spinner"></div>'; okBtn.disabled = true;
+                    
+                    try {
+                        const u = JSON.parse(localStorage.getItem('kitama_user'));
+                        await sb.from('verification_requests').insert([{
+                            user_name: u.full_name,
+                            phone: u.phone_number,
+                            receipt_info: receipt,
+                            status: 'pending'
+                        }]);
+                        
+                        closeModal();
+                        openModal("Ombi Limewasilishwa", "Asante! Ombi lako la uthibitisho limewasilishwa. Utathibitishwa (Verified) ndani ya masaa 24.", false);
+                    } catch(e) {
+                        openModal("Kosa", e.message);
+                        okBtn.innerText = "Tuma Ombi la Uthibitisho"; okBtn.disabled = false;
+                    }
+                }
+            });
+            
+            // Andika jina la kwanza la kitufe
+            document.getElementById('modal-ok').innerText = "Amelewa, Nataka Kuthibitishwa";
+                }
+    
         // --- ADMIN VERIFICATIONS FULL SCREEN FUNCTIONS ---
     async function fetchAdminVerifications() {
         const div = document.getElementById('admin-verifications-list');
