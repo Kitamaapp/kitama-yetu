@@ -3500,24 +3500,27 @@
         async function fetchShopProducts(shop, divId) {
         const div = document.getElementById(divId);
         
-        // KAMA MTANDAO UMEKATIKA, ONYESHA CACHE MOJA KWA MOJA
+        // OFFLINE MODE
         if (!navigator.onLine) {
             const cached = getFromCache('shop_products_' + shop.id);
-            div.innerHTML = cached || '<div style="text-align:center; padding:60px 20px; color:var(--text-sec);"><p style="font-weight:600; font-size:14px;">Huna mtandao.<br>Washa intaneti kuona bidhaa za dukani.</p></div>';
+            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona bidhaa za dukani.</p>';
             return;
         }
         
         div.innerHTML = '<div class="skeleton" style="height:300px; border-radius:16px; margin: 0 20px;"></div>';
         try {
-            const { data, error } = await sb.from('marketplace').select('*').eq('shop_id', shop.id).order('created_at', { ascending: false });
+            // OMEGEZA .limit(50) KUEPZA KUCHELEWA
+            const { data, error } = await sb.from('marketplace').select('*').eq('shop_id', shop.id).order('created_at', { ascending: false }).limit(50);
             if(error) throw error;
             
             const newHtml = data.length > 0 ? data.map(m => renderShopPost(m, shop)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Hakuna bidhaa zilizotangazwa kwenye duka hili.</p>';
             div.innerHTML = newHtml;
-            if(newHtml && !newHtml.includes('skeleton')) saveToCache('shop_products_' + shop.id, newHtml);
+            
+            // HIFADHI BIDHAA ZA DUKA
+            saveToCache('shop_products_' + shop.id, newHtml);
         } catch(e) {
             const cached = getFromCache('shop_products_' + shop.id);
-            div.innerHTML = cached || '<div style="text-align:center; padding:60px 20px; color:var(--text-sec);"><p style="font-weight:600; font-size:14px;">Huna mtandao.<br>Washa intaneti kuona bidhaa za dukani.</p></div>';
+            div.innerHTML = cached || `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
         }
     }
 
@@ -3916,24 +3919,31 @@
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         const div = document.getElementById('my-inbox-list');
         
-        // OFFLINE MODE: Mwambie awashe intaneti
-        if (!isOnline()) {
-            div.innerHTML = '<div style="text-align:center; padding:60px 20px; color:var(--text-sec);"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:15px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><p style="font-weight:600; font-size:14px;">Huna mtandao kwa sasa.<br>Washa intaneti kuona ujumbe wako.</p></div>';
+        // OFFLINE MODE
+        if (!navigator.onLine) {
+            const cached = getFromCache('inbox_html');
+            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona ujumbe wako.</p>';
             return;
         }
         
         div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
         try {
+            // OMEGEZA .limit(50) KUEPZA KUCHELEWA
             const { data, error } = await sb.from('shop_messages')
                 .select('*, shops(shop_name, owner_phone)')
                 .or(`sender_phone.eq.${u.phone_number},recipient_phone.eq.${u.phone_number}`)
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .limit(50);
             if(error) throw error;
+            
+            // TATUZO LA KUCHELEWA: Update zote kwa pamoja (Batch update) badala ya loop
+            const unreadIds = data.filter(m => m.recipient_phone === u.phone_number && !m.is_read).map(m => m.id);
+            if(unreadIds.length > 0) {
+                await sb.from('shop_messages').update({ is_read: true }).in('id', unreadIds);
+            }
             
             const convos = {};
             for(const msg of data) {
-                try { await sb.from('shop_messages').update({ is_read: true }).eq('id', msg.id); } catch(e) {}
-                
                 let otherPhone = msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone;
                 let otherName = msg.sender_name; 
                 
@@ -3951,7 +3961,7 @@
             }
 
             const convoList = Object.values(convos);
-                div.innerHTML = convoList.length > 0 ? convoList.map(c => {
+            const newHtml = convoList.length > 0 ? convoList.map(c => {
                 let cleanName = c.name.replace(/<svg[^>]*>([\s\S]*?)<\/svg>/g, '').trim();
                 let clickAction = c.type === 'shop' 
                     ? `fetchDmChat('${c.phone}', '${cleanName.replace(/'/g, "\\'")}', '${c.id}')`
@@ -3965,7 +3975,14 @@
                     <div class="fb-convo-badge">${new Date(c.time).toLocaleDateString()}</div>
                 </div>`;
             }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna ujumbe wowote bado.</p>';
-        } catch(e) { div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; }
+            
+            div.innerHTML = newHtml;
+            // HIFADHI INBOX
+            saveToCache('inbox_html', newHtml);
+        } catch(e) { 
+            const cached = getFromCache('inbox_html');
+            div.innerHTML = cached || `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+        }
         updateBadges();
     }
 
@@ -4240,24 +4257,31 @@
         const div = document.getElementById('citizen-reports-list');
         if(!div) return;
         
-        // KAMA MTANDAO UMEKATIKA, ONYESHA CACHE MOJA KWA MOJA
+        // OFFLINE MODE: Ondoa error, nenda kwenye cache moja kwa moja
         if (!navigator.onLine) {
             const cached = getFromCache('reports_html');
-            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao na hakuna kero zilizohifadhiwa.</p>';
+            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna kero zilizohifadhiwa.</p>';
             return;
         }
         
         const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
         const oldScroll = window.scrollY;
-        if(!isRealtimeUpdate) div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; 
         
+        if(!isRealtimeUpdate) {
+            div.innerHTML = '<div class="skeleton" style="height:150px; margin-bottom:15px;"></div><div class="skeleton" style="height:150px; margin-bottom:15px;"></div>'; 
+        }
         try { 
-            const { data, error } = await sb.from('reports').select('*').neq('status', 'archived').order('created_at', { ascending: false }); 
+            // OMEGEZA .limit(50) KUEPZA KUPAKIA TAARIFA NNGI ZA ZAMANI SANA
+            const { data, error } = await sb.from('reports').select('*').neq('status', 'archived').order('created_at', { ascending: false }).limit(50); 
             if(error) throw error; 
             
             const newHtml = data.length > 0 ? data.map(r => renderReportCard(r, false)).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna malalamishi yaliyoandikwa kwa sasa.</p>'; 
             div.innerHTML = newHtml;
-            if(newHtml && !newHtml.includes('skeleton')) saveToCache('reports_html', newHtml);
+            
+            // HIFADHI DATA YA KERO
+            if(newHtml && !newHtml.includes('skeleton')) {
+                saveToCache('reports_html', newHtml);
+            }
             
             if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
         } catch(e) { 
