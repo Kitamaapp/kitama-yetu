@@ -1017,13 +1017,22 @@
         </div>
                 <!-- STATUS SECTION -->
         <div id="status-sec" class="sec">
-            <div class="sec-h">
+        <div class="sec-h">
                 <h2>Status</h2>
-                <label for="status-direct-input" style="font-size:12px; color:var(--accent); font-weight:700; cursor:pointer; padding: 5px 10px; background: rgba(16,185,129,0.1); border-radius: 8px; display: flex; align-items:center; gap: 4px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    Weka Status
-                </label>
-                <input type="file" id="status-direct-input" accept="image/*, video/*" style="display:none;" onchange="handleDirectStatusSelect(this)">
+                <div style="display: flex; gap: 15px;">
+                    <!-- ONGEZA HII: KITUFU CHA ANDIKA MAANDISHI -->
+                    <span onclick="openTextStatusModal()" style="cursor:pointer; color:var(--accent); font-size:13px; font-weight:700; display:flex; align-items:center; gap:4px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        Andika
+                    </span>
+                    
+                    <!-- HII IPO TAYARI: KITUFU CHA WEKA STATUS (GALLERY) -->
+                    <label for="status-direct-input" style="cursor:pointer; color:var(--accent); font-size:13px; font-weight:700; display:flex; align-items:center; gap:4px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        Weka Status
+                    </label>
+                    <input type="file" id="status-direct-input" accept="image/*, video/*" style="display:none;" onchange="handleDirectStatusSelect(this)">
+                </div>
             </div>
             
             <!-- OFFICIAL STATUS SECTION (Kitama Yetu) -->
@@ -6322,40 +6331,42 @@
         }
 
         // 4. Upload Modal
-        function openStatusCaptionModal() {
+                function openStatusCaptionModal() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const citizensList = activeCitizens.filter(c => c.role !== 'system_admin');
             const isVerified = u.is_activist;
             const videoLimitText = isVerified ? "dakika 3" : "sekunde 40";
             
             const html = `
-                <div class="form-g">
-                    <label class="form-l">Picha/Video Iliyochaguliwa</label>
-                    <div style="width: 100%; height: 200px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
-                        ${statusMediaType === 'video' ? 
-                            `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;" controls></video>` : 
-                            `<img src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;">`
-                        }
-                    </div>
+                <!-- WHATSAPP STYLE PREVIEW -->
+                <div style="width: 100%; height: 250px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 15px; background: #000;">
+                    ${statusMediaType === 'video' ? 
+                        `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:contain;" controls></video>` : 
+                        `<img src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;">`
+                    }
                 </div>
+                
+                <!-- CAPTION INPUT -->
                 <div class="form-g">
-                    <label class="form-l">Andika Caption (Optional)</label>
-                    <input type="text" id="status-caption" class="modal-input" placeholder="Ongeza maandishi..." style="padding-left: 16px;">
+                    <input type="text" id="status-caption" class="modal-input" placeholder="Add a caption..." style="padding-left: 16px; margin-bottom: 0;">
                 </div>
-                <div class="form-g">
-                    <label class="form-l">Mfichie Nani? (Acha wazi kwa wote)</label>
-                    <select id="status-hide-from" multiple class="modal-input" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg);">
-                        ${citizensList.map(c => `<option value="${c.phone_number}">${c.full_name}</option>`).join('')}
-                    </select>
+                
+                <!-- PRIVACY SETTINGS (Hidden by default, shows on click) -->
+                <div id="privacy-toggle" style="display: flex; align-items: center; gap: 8px; margin-top: 15px; cursor: pointer;" onclick="document.getElementById('status-hide-from').style.display = document.getElementById('status-hide-from').style.display === 'none' ? 'block' : 'none';">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-sec)" stroke-width="2"><path d="M17 98l4 4M9 17l-5-5m12-4l5 5-5 5M3 7l5 5"/></svg>
+                    <span style="font-size: 13px; color: var(--text-sec); font-weight: 600;">Mfichie nani? (Privacy)</span>
                 </div>
-                <div class="form-g" style="display:flex; align-items:center; gap:8px;">
+                <select id="status-hide-from" multiple class="modal-input" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); display: none; margin-top: 5px;">
+                    ${citizensList.map(c => `<option value="${c.phone_number}">${c.full_name}</option>`).join('')}
+                </select>
+                <div class="form-g" style="display:flex; align-items:center; gap:8px; margin-top: 15px;">
                     <input type="checkbox" id="status-hide-seen" style="width:auto;">
-                    <label for="status-hide-seen" style="font-size:12px; color:var(--text-sec);">Niwafichie wanaoiona (Blue Ticks)</label>
+                    <label for="status-hide-seen" style="font-size:12px; color:var(--text-sec);">Ficha wanaoiona (Blue Ticks)</label>
                 </div>
-                <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top: 10px;">* Picha itaonekana kwa sekunde 30. Video itaonekana kwa ${videoLimitText}.<br>* Video isizidi MB 2.5 ili iweze kutumwa kwa simu nyingine.</small>
+                <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top: 10px;">* Picha itaonekana kwa sekunde 30. Video itaonekana kwa ${videoLimitText}.</small>
             `;
             
-            openModal("Weka Status", html, false, async () => {
+            openModal("New Status", html, false, async () => {
                 if (!statusMediaBase64) return showToast("Kosa la kupakia. Rudi nyuma uchague tena.");
                 
                 const btn = document.getElementById('modal-ok');
@@ -6364,12 +6375,10 @@
                 const hideFrom = Array.from(document.getElementById('status-hide-from').selectedOptions).map(o => o.value);
                 const hideSeen = document.getElementById('status-hide-seen').checked;
                 const caption = document.getElementById('status-caption').value.trim();
-                const duration = parseInt(document.getElementById('status-duration') ? document.getElementById('status-duration').value : 24);
+                const duration = 24;
                 
                 let maxPlayDuration = 30; 
-                if (statusMediaType === 'video') {
-                    maxPlayDuration = isVerified ? 180 : 40; 
-                }
+                if (statusMediaType === 'video') { maxPlayDuration = isVerified ? 180 : 40; }
                 
                 const newStatus = {
                     id: 'st_' + Date.now() + u.phone_number,
@@ -6389,19 +6398,13 @@
                 let myStorage = getStatusFromStorage();
                 myStorage.push(newStatus);
                 
-                try {
-                    saveStatusToStorage(myStorage);
-                } catch(e) {
+                try { saveStatusToStorage(myStorage); } catch(e) {
                     btn.innerHTML = 'Weka Status'; btn.disabled = false;
-                    return showToast("Hifadhi ya simu imejaa. Futa status za zamani.");
+                    return showToast("Hifadhi ya simu imejaa.");
                 }
                 
-                closeModal();
-                showToast("Status imewekwa!");
-                loadStatusUI();
-                
+                closeModal(); showToast("Status imewekwa!"); loadStatusUI();
                 if (statusNetworkChannel) statusNetworkChannel.untrack().then(() => statusNetworkChannel.track({ phone: u.phone_number, name: u.full_name }));
-                
                 statusMediaBase64 = null;
             });
         }
@@ -6488,6 +6491,79 @@
                 };
                 reader.readAsDataURL(file);
             }
+        }
+            function openTextStatusModal() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            const citizensList = activeCitizens.filter(c => c.role !== 'system_admin');
+            const colors = ['#1E293B', '#7F1D1D', '#14532D', '#581C87', '#155E75', '#92400E'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            const html = `
+                <!-- WHATSAPP TEXT STATUS UI -->
+                <div style="width: 100%; height: 200px; border-radius: 12px; background: ${randomColor}; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid var(--border);">
+                    <textarea id="text-status-input" placeholder="Andika ujumbe hapa..." style="width: 90%; height: 80%; background: transparent; border: none; outline: none; color: white; font-size: 18px; font-weight: 600; text-align: center; resize: none;"></textarea>
+                </div>
+                
+                <div class="form-g">
+                    <input type="text" id="status-caption" class="modal-input" placeholder="Add a caption..." style="padding-left: 16px; margin-bottom: 0;">
+                </div>
+                
+                <div id="privacy-toggle" style="display: flex; align-items: center; gap: 8px; margin-top: 15px; cursor: pointer;" onclick="document.getElementById('status-hide-from').style.display = document.getElementById('status-hide-from').style.display === 'none' ? 'block' : 'none';">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-sec)" stroke-width="2"><path d="M17 98l4 4M9 17l-5-5m12-4l5 5-5 5M3 7l5 5"/></svg>
+                    <span style="font-size: 13px; color: var(--text-sec); font-weight: 600;">Mfichie nani? (Privacy)</span>
+                </div>
+                <select id="status-hide-from" multiple class="modal-input" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); display: none; margin-top: 5px;">
+                    ${citizensList.map(c => `<option value="${c.phone_number}">${c.full_name}</option>`).join('')}
+                </select>
+                <div class="form-g" style="display:flex; align-items:center; gap:8px; margin-top: 15px;">
+                    <input type="checkbox" id="status-hide-seen" style="width:auto;">
+                    <label for="status-hide-seen" style="font-size:12px; color:var(--text-sec);">Ficha wanaoiona (Blue Ticks)</label>
+                </div>
+            `;
+            
+            openModal("Text Status", html, false, async () => {
+                const textContent = document.getElementById('text-status-input').value.trim();
+                const caption = document.getElementById('status-caption').value.trim();
+                if(!textContent) return showToast("Andika kitu kwanza.");
+                
+                const btn = document.getElementById('modal-ok');
+                btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
+                
+                statusMediaBase64 = textContent; // Hifadhi maandishi
+                statusMediaType = 'text'; // Tia aina ya status kuwa 'text'
+                
+                const hideFrom = Array.from(document.getElementById('status-hide-from').selectedOptions).map(o => o.value);
+                const hideSeen = document.getElementById('status-hide-seen').checked;
+                const duration = 24;
+                
+                const newStatus = {
+                    id: 'st_' + Date.now() + u.phone_number,
+                    sender_phone: u.phone_number,
+                    sender_name: u.full_name,
+                    media_base64: statusMediaBase64,
+                    media_type: statusMediaType,
+                    caption: caption,
+                    max_play_duration: 30, // Text status itakaa sekunde 30
+                    timestamp: new Date().toISOString(),
+                    expiry: new Date(Date.now() + (duration * 3600000)).toISOString(), 
+                    hide_from: hideFrom,
+                    hide_seen_receipts: hideSeen,
+                    seen_by: []
+                };
+                
+                let myStorage = getStatusFromStorage();
+                myStorage.push(newStatus);
+                
+                try { saveStatusToStorage(myStorage); } catch(e) {
+                    btn.innerHTML = 'Weka Status'; btn.disabled = false;
+                    return showToast("Hifadhi ya simu imejaa.");
+                }
+                
+                closeModal(); showToast("Text Status imewekwa!"); loadStatusUI();
+                if (statusNetworkChannel) statusNetworkChannel.untrack().then(() => statusNetworkChannel.track({ phone: u.phone_number, name: u.full_name }));
+                statusMediaBase64 = null;
+                statusMediaType = null;
+            });
         }
 
         function renderStatusSegments() {
