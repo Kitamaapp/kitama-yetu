@@ -1769,6 +1769,28 @@
                   if(document.getElementById('market-sec').classList.contains('active')) fetchMarket();
                   if(document.getElementById('admin-moderation-sec').classList.contains('active')) fetchModeration();
               })
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_requests' }, payload => {
+                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+                  
+                  // KAMA DEREVA AMEKUBALI
+                  if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'accepted') {
+                      document.getElementById('boda-status-box').className = 'boda-status accepted';
+                      let waPhone = payload.new.driver_phone.replace(/^0/, '255');
+                      document.getElementById('boda-status-box').innerHTML = `✅ Dereva <b>${payload.new.driver_name}</b> amekubali! <br><br> Nauli: ${payload.new.fare.toLocaleString()} Tsh (${payload.new.payment_method.toUpperCase()}) <br><br> Piga: <a href="tel:${payload.new.driver_phone}" style="color:var(--accent); font-weight:800;">${payload.new.driver_phone}</a>`;
+                      document.getElementById('btn-boda-cancel').style.display = 'none';
+                  }
+                  
+                  // ONGEZA HII: KAMA OMBI LIMEISHA MUDA BILA DEREVA (Expired)
+                  if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'expired') {
+                      document.getElementById('boda-status-box').className = 'boda-status';
+                      document.getElementById('boda-status-box').innerHTML = '⏱️ Ombi limeisha muda. Hakuna dereva aliyekubali kwa sasa. Jaribu tena baadae.';
+                      document.getElementById('btn-boda-cancel').style.display = 'none';
+                      document.getElementById('btn-boda-search').style.display = 'block';
+                      document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+                  }
+                  
+                  if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
+              })
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
@@ -4747,68 +4769,93 @@
         });
     }
 
-    async function registerDriver() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const plate = document.getElementById('driver-plate').value.trim();
-        if(!plate) return showToast("Weka namba ya tashi");
-        try {
-            await sb.from('boda_drivers').insert([{ phone: u.phone_number, name: u.full_name, plate }]);
-            showToast("Umefanikiwa kujisajili!");
-            checkDriverStatus(); fetchBodaRequests();
-        } catch(e) { openModal("Kosa", e.message); }
-    }
-
-    async function fetchBodaRequests() {
-        const div = document.getElementById('boda-requests-list');
-        div.innerHTML = '<div class="skeleton" style="height:80px; margin-bottom:10px;"></div>';
-        try {
-            const { data: reqs, error } = await sb.from('boda_requests').select('*').eq('status', 'searching').order('created_at', { ascending: false });
-            const { data: drivers, error: dErr } = await sb.from('boda_drivers').select('lat, lng, phone');
+            async function registerDriver() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            const plate = document.getElementById('driver-plate').value.trim();
+            if(!plate) return showToast("Weka namba ya tashi sahihi");
             
-            if(error) throw error; if(dErr) throw dErr;
+            try {
+                // Angalia kama Dereva tayari amesajiliwa
+                const { data: existing } = await sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle();
+                
+                if (existing) {
+                    // Kama yupo, sasisha tu namba ya tashi
+                    await sb.from('boda_drivers').update({ plate: plate, name: u.full_name }).eq('phone', u.phone_number);
+                    showToast("Taarifa za tashi zimesasishwa kikamilifu!");
+                } else {
+                    // Kama hajawahi kuandikishwa, mweke fresh
+                    await sb.from('boda_drivers').insert([{ phone: u.phone_number, name: u.full_name, plate }]);
+                    showToast("Umefanikiwa kujisajili rasmi kama Dereva!");
+                }
+                playBeep();
+                checkDriverStatus();
+                fetchBodaRequests();
+            } catch(e) { openModal("Kosa", e.message); }
+        }
 
-            let html = '';
-            if (reqs.length > 0) {
-                html = reqs.map(r => {
-                    let priorityBadge = '';
-                    if (drivers && drivers.length > 0) {
-                        const nearbyDrivers = drivers.map(d => {
-                            if (!d.lat || !d.lng) return { ...d, dist: Infinity };
-                            const dist = getDistance(parseFloat(r.pickup_lat), parseFloat(r.pickup_lng), parseFloat(d.lat), parseFloat(d.lng));
-                            return { ...d, dist };
-                        }).sort((a, b) => a.dist - b.dist);
+            async function fetchBodaRequests() {
+            const div = document.getElementById('boda-requests-list');
+            div.innerHTML = '<div class="skeleton" style="height:80px; margin-bottom:10px;"></div>';
+            try {
+                // MUDA WA OMBI: Ombi zilizozidi dakika 10 zifutwe moja kwa moja
+                const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+                
+                // Futa kwenye DB ombi za zamani sana zisizo na tija
+                await sb.from('boda_requests').update({ status: 'expired' }).eq('status', 'searching').lt('created_at', tenMinsAgo);
+                
+                const { data: reqs, error } = await sb.from('boda_requests')
+                    .select('*')
+                    .eq('status', 'searching')
+                    .gte('created_at', tenMinsAgo) // ONYESHA OMBI ZA LEO TU (NDANI YA DAKIKA 10)
+                    .order('created_at', { ascending: false });
+                    
+                const { data: drivers, error: dErr } = await sb.from('boda_drivers').select('lat, lng, phone');
+                
+                if(error) throw error;
+                if(dErr) throw dErr;
 
-                        if (nearbyDrivers.length > 0 && nearbyDrivers[0].dist !== Infinity) {
-                            const nearest = nearbyDrivers[0];
-                            const u = JSON.parse(localStorage.getItem('kitama_user'));
-                            if (nearest.phone === u.phone_number) {
-                                priorityBadge = `<span class="driver-priority-badge">Karumi Nawe! (${nearest.dist.toFixed(1)} km)</span>`;
-                            } else {
-                                priorityBadge = `<span class="driver-priority-badge">Karibu Zaidi: ${nearest.dist.toFixed(1)} km</span>`;
+                let html = '';
+                if (reqs.length > 0) {
+                    html = reqs.map(r => {
+                        let priorityBadge = '';
+                        if (drivers && drivers.length > 0) {
+                            const nearbyDrivers = drivers.map(d => {
+                                if (!d.lat || !d.lng) return { ...d, dist: Infinity };
+                                const dist = getDistance(parseFloat(r.pickup_lat), parseFloat(r.pickup_lng), parseFloat(d.lat), parseFloat(d.lng));
+                                return { ...d, dist };
+                            }).sort((a, b) => a.dist - b.dist);
+
+                            if (nearbyDrivers.length > 0 && nearbyDrivers[0].dist !== Infinity) {
+                                const nearest = nearbyDrivers[0];
+                                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                                if (nearest.phone === u.phone_number) {
+                                    priorityBadge = `<span class="driver-priority-badge">Karumi Nawe! (${nearest.dist.toFixed(1)} km)</span>`;
+                                } else {
+                                    priorityBadge = `<span class="driver-priority-badge">Karibu Zaidi: ${nearest.dist.toFixed(1)} km</span>`;
+                                }
                             }
                         }
-                    }
 
-                    return `
-                    <div class="list-i" style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <b>${r.rider_name}</b><br>
-                            <small>Nauli: <b style="color:var(--accent);">${r.fare ? r.fare.toLocaleString() : 'Agana'} Tsh (${r.payment_method ? r.payment_method.toUpperCase() : 'CASH'})</b></small><br>
-                            ${priorityBadge}<br>
-                            <small>Simu: ${r.rider_phone}</small>
-                        </div>
-                        <div style="display:flex; flex-direction:column; gap:5px;">
-                            <button onclick="viewBodaLocation('${r.id}', '${r.pickup_lat}', '${r.pickup_lng}', '${r.dest_lat}', '${r.dest_lng}')" class="m-btn m-btn-secondary" style="flex:none; padding:8px 12px; font-size:11px;">Ramani</button>
-                            <button onclick="acceptBoda('${r.id}', '${r.rider_phone}')" class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:11px;">Kubali</button>
-                        </div>
-                    </div>`;
-                }).join('');
-            } else {
-                html = '<p style="color:var(--text-sec); text-align:center;">Hakuna maombi ya boda sasa.</p>';
-            }
-            div.innerHTML = html;
-        } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
-    }
+                        return `
+                        <div class="list-i" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <b>${r.rider_name}</b><br>
+                                <small>Nauli: <b style="color:var(--accent);">${r.fare ? r.fare.toLocaleString() : 'Agana'} Tsh (${r.payment_method ? r.payment_method.toUpperCase() : 'CASH'})</b></small><br>
+                                ${priorityBadge}<br>
+                                <small>Simu: ${r.rider_phone}</small>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:5px;">
+                                <button onclick="viewBodaLocation('${r.id}', '${r.pickup_lat}', '${r.pickup_lng}', '${r.dest_lat}', '${r.dest_lng}')" class="m-btn m-btn-secondary" style="flex:none; padding:8px 12px; font-size:11px;">Ramani</button>
+                                <button onclick="acceptBoda('${r.id}', '${r.rider_phone}')" class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:11px;">Kubali</button>
+                            </div>
+                        </div>`;
+                    }).join('');
+                } else {
+                    html = '<p style="color:var(--text-sec); text-align:center;">Hakuna maombi ya boda sasa (Ombi la zamani limekwisha muda).</p>';
+                }
+                div.innerHTML = html;
+            } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+        }
 
     function getDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; 
