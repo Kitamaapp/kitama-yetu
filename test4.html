@@ -1557,17 +1557,27 @@
         const phone = document.getElementById('login-phone').value.trim();
         if(!phone) return openModal("Taarifa", "Tafadhali andika namba ya simu.");
         
-        const formattedPhone = formatPhoneForOTP(phone);
-        const btn = document.getElementById('btn-login'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true;
+        const btn = document.getElementById('btn-login'); btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
         
         try {
-            // 1. TOMA SMS OTP
-            const { error } = await sb.auth.signInWithOtp({ phone: formattedPhone });
-            if (error) throw error;
+            // 1. ANGALIA KWENYE DATABASE KAMA NAMBA IMESAJILIWA
+            const { data: existingUser, error: checkError } = await sb.from('users').select('phone_number').eq('phone_number', phone).maybeSingle();
+            if (checkError) throw checkError;
             
-            // 2. FUNGUA DIRISHA LA KUWEKA CODE
+            // KAMA HAIPOSOMI, MWAMBIE AENDE KUJISAJILI
+            if (!existingUser) {
+                btn.innerHTML = 'Ingia'; btn.disabled = false;
+                return openModal("Akaunti Haijapatikana", "Namba hii haijasajiliwa kwenye mfumo. Tafadhali nenda kwenye 'Jisajili' kuanzisha akaunti yako.", false, () => switchTab('signup'));
+            }
+            
+            // 2. KAMA IPo, ENDELEA KUTUMA OTP
+            const formattedPhone = formatPhoneForOTP(phone);
+            const { error: otpError } = await sb.auth.signInWithOtp({ phone: formattedPhone });
+            if (otpError) throw otpError;
+            
             btn.innerHTML = 'Ingia'; btn.disabled = false;
             
+            // 3. FUNGUA DIRISHA LA KUWEKA CODE
             openModal("Thibitisha Akaunti", `<div style="text-align:center; margin-bottom:15px;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" style="margin:0 auto 10px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><p style="font-size:13px; color:var(--text-sec);">Tumekutumia code ya tarakimu 6 kwenye SMS. Weka hapa chini:</p></div><input type="text" id="otp-input" class="modal-input" placeholder="• • • • • •" style="text-align:center; letter-spacing: 5px; font-size: 18px;">`, false, async () => {
                 const otp = document.getElementById('otp-input').value.trim();
                 if(!otp) return showToast("Tafadhali weka code.");
@@ -1576,45 +1586,24 @@
                 okBtn.innerHTML = '<div class="spinner"></div>'; okBtn.disabled = true;
                 
                 try {
-                    // 3. THIBITISHA CODE
+                    // 4. THIBITISHA CODE
                     const { error: verifyError } = await sb.auth.verifyOtp({ phone: formattedPhone, token: otp, type: 'sms' });
                     if (verifyError) throw verifyError;
                     
-                    // 4. CODE NI SAHIHI! Sasa nenda kwenye table ya users
                     closeModal();
+                    
+                    // 5. CODE NI SAHIHI! Sasa muingie kwenye App
                     const { data: u, error: userError } = await sb.from('users').select('*').eq('phone_number', phone).maybeSingle();
                     if (userError) throw userError;
                     
                     if(u) {
-                        // Kukagua kama akaunti haijatumiwa kwa miezi 2
-                        if (u.role === 'citizen' && u.status === 'active') {
-                            const lastSeenDate = new Date(u.last_seen || u.created_at);
-                            const diffDays = Math.floor((Math.abs(new Date() - lastSeenDate)) / (1000 * 60 * 60 * 24));
-                            if (diffDays > 60) {
-                                await sb.from('users').update({ status: 'rejected' }).eq('id', u.id);
-                                u.status = 'rejected';
-                            }
-                        }
-
-                        if(u.status === 'rejected') {
-                            openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kwa sababu haijatumiwa kwa kipindi cha zaidi ya miezi 2, au imekiuka vigezo na masharti.", false);
-                            document.getElementById('modal-ok').innerText = "Omba Kufunguliwa";
-                            document.getElementById('modal-ok').style.display = 'block';
-                            document.getElementById('modal-ok').onclick = () => openReactivationForm(u.phone_number);
-                            document.getElementById('modal-cancel').innerText = 'Funga';
-                            localStorage.removeItem('kitama_user');
-                        } else if (u.status === 'restricted') {
-                            localStorage.setItem('kitama_user', JSON.stringify(u)); 
-                            enterApp(); 
-                            openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendi (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochote.", false);
+                        // ... [Hii ndio code ya kuingia kwenye App: enterApp(); nk] ...
+                        if (u.status === 'rejected') {
+                            openModal("Akaunti Imefungwa", "Akaunti yako imefungwa. Wasiliana na Admin.", false);
                         } else {
                             localStorage.setItem('kitama_user', JSON.stringify(u)); 
                             enterApp(); 
-                            if(u.status === 'pending' && u.role === 'citizen') { openModal("Akaunti Inasubiri", "Akaunti yako ipo sawa, lakini bado haijaidhinishwa na Kiongozi wako wa Kijiji cha " + u.village + ". Kwa sasa unaweza kuona Soko tu.", false);
-                            }
                         }
-                    } else {
-                        openModal("Akaunti Haijapatikana", "Namba hii haijasajiliwa.", false, () => switchTab('signup'));
                     }
                 } catch(e) {
                     openModal("Kosa la Code", e.message);
@@ -1624,12 +1613,12 @@
             document.getElementById('modal-ok').innerText = "Thibitisha";
             
         } catch(e) { 
-            openModal("Kosa la Mtandao", "Imeshindwa kutuma SMS. Hakikisha umewasha Phone Auth kwenye Supabase Dashboard na umeweka SMS Provider.");
+            openModal("Kosa", e.message);
             btn.innerHTML = 'Ingia'; btn.disabled = false;
         }
     }
 
-        async function handleSignup() {
+     async function handleSignup() {
         const name = document.getElementById('su-name').value.trim(), 
               phone = document.getElementById('su-phone').value.trim(), 
               gender = document.getElementById('su-gender').value, 
