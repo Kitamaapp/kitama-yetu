@@ -6194,8 +6194,8 @@
             if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
         }
     }
-        let isNameValid = false;
-    let isPhoneValid = false;
+    let isNameValid = true;
+    let isPhoneValid = true;
 
     async function checkNameAvailability() {
         const name = document.getElementById('su-name').value.trim();
