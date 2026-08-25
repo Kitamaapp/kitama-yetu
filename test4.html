@@ -4712,46 +4712,45 @@
     let bodaFareAmount = 0;
     let bodaRouteLine = null;
 
-    function initBodaMap() {
-        if (bodaMap) {
-            setTimeout(() => { bodaMap.invalidateSize(); }, 200);
-            findMyLocation();
-            return;
+            function initBodaMap() {
+            if (bodaMap) {
+                setTimeout(() => { bodaMap.invalidateSize(); }, 200);
+                findMyLocation();
+                return;
+            }
+            
+            bodaMap = L.map('boda-map', { zoomControl: true }).setView([-6.2, 35.0], 13);
+            
+            const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' }).addTo(bodaMap);
+            const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
+            const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
+            
+            L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(bodaMap);
+
+            findMyLocation(); // Itampeleka kwenye eneo lake na kuzoom karibu (zoom 15-16)
+
+            bodaMap.on('click', function(e) {
+                bodaDestLat = e.latlng.lat;
+                bodaDestLng = e.latlng.lng;
+                
+                if (destMarker) bodaMap.removeLayer(destMarker);
+                destMarker = L.marker([bodaDestLat, bodaDestLng]).addTo(bodaMap);
+                destMarker.bindPopup("<b>Unaenda hapa</b>").openPopup();
+                
+                document.getElementById('boda-dest').value = "Alama imewekwa kwenye Ramani";
+                updateRoute();
+            });
         }
-        
-        bodaMap = L.map('boda-map', { zoomControl: true }).setView([-6.2, 35.0], 13);
-        
-        // Google Maps Layers
-        const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' }).addTo(bodaMap);
-        const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
-        const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
-        
-        L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(bodaMap);
 
-        findMyLocation();
-
-        bodaMap.on('click', function(e) {
-            bodaDestLat = e.latlng.lat;
-            bodaDestLng = e.latlng.lng;
-            
-            if (destMarker) bodaMap.removeLayer(destMarker);
-            destMarker = L.marker([bodaDestLat, bodaDestLng]).addTo(bodaMap);
-            destMarker.bindPopup("<b>Unaenda hapa</b>").openPopup();
-            
-            document.getElementById('boda-dest').value = "Alama imewekwa kwenye Ramani";
-            updateRoute();
-          });
-       }
-
-     function findMyLocation() {
+             function findMyLocation() {
             if (!navigator.geolocation) return showToast("Kifaa chako hakiauni GPS.");
             
             navigator.geolocation.getCurrentPosition(pos => {
                 bodaPickupLat = pos.coords.latitude;
                 bodaPickupLng = pos.coords.longitude;
                 
-                // RUDIA RAMANI KWENYE ENEO LA MTUMIAJI KWA NGUVU
-                bodaMap.flyTo([bodaPickupLat, bodaPickupLng], 15, { duration: 1.5 });
+                // FLY TO ZOOM 16: Ili aweze kuona majina ya mitaa na vibonyeze
+                bodaMap.flyTo([bodaPickupLat, bodaPickupLng], 16, { duration: 1.5 });
                 
                 if (pickupMarker) bodaMap.removeLayer(pickupMarker);
                 const pickupIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15] });
