@@ -655,26 +655,29 @@
             width: 100%; height: 100%; 
             z-index: 1; background: var(--bg); 
         }
-        .map-place-label {
-            background: rgba(15, 23, 42, 0.85) !important;
-            color: white !important;
-            padding: 5px 12px !important;
-            border-radius: 8px !important;
-            font-size: 12px !important;
-            font-weight: 700 !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+            .map-place-label {
+            background: transparent !important;
+            color: #000000 !important;
+            padding: 0 !important;
             border: none !important;
+            box-shadow: none !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            font-family: 'Plus Jakarta Sans', Arial, sans-serif !important;
             white-space: nowrap !important;
+            pointer-events: none !important;
+            /* Mvivuli weupe unaifanya maandishi yaonekana vizuri juu ya ramani yoyote kama Google Maps */
+            text-shadow: 
+                -1px -1px 0 #ffffff, 
+                 1px -1px 0 #ffffff,
+                -1px 1px 0 #ffffff,
+                 1px 1px 0 #ffffff,
+                 0 0 5px #ffffff !important;
         }
+        
+        /* Futa kabisa hii sehemu ya arrow (::before) au usiweke kabisa */
         .map-place-label::before {
-            content: '';
-            position: absolute;
-            bottom: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 6px solid rgba(15, 23, 42, 0.85);
+            display: none !important;
         }
     </style>
 </head>
