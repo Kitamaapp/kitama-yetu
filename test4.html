@@ -1763,16 +1763,18 @@
                   }
                   updateBadges(); 
               })
-                          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_drivers' }, payload => {
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_drivers' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (payload.new.phone === currentUser.phone_number) {
                       if (payload.new.status === 'active') {
                           showToast("Hongera! Umekubaliwa kuwa Dereva wa Boda.");
                           playBeep();
-                          if(document.getElementById('boda-driver-sec').classList.contains('active')) checkDriverStatus();
+                          // Sasa screen itabadilika moja kwa moja kuonesha maombi
+                          checkDriverStatus(); 
                       } else if (payload.new.status === 'rejected') {
                           showToast("Ombi lako la kuwa Dereva limekataliwa na Admin.");
-                          if(document.getElementById('boda-driver-sec').classList.contains('active')) checkDriverStatus();
+                          // Screen itarudi kwenye fomu
+                          checkDriverStatus(); 
                       }
                   }
               })
@@ -4967,10 +4969,12 @@
             }
         }
 
-        async function checkDriverStatus() {
+                async function checkDriverStatus() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const regBox = document.getElementById('boda-reg-box');
             const reqList = document.getElementById('boda-requests-list');
+            
+            if(!regBox || !reqList) return;
             
             try {
                 const { data, error } = await sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle();
@@ -4984,7 +4988,7 @@
                     // Subiri Admin
                     regBox.style.display = 'block';
                     regBox.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-sec);">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:10px; animation: spin 2s linear infinite;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:10px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         <p style="font-weight:600;">Ombi lako la kuwa Dereva lipo kwenye uchunguzi.<br>Subiri kuidhinishwa na Admin.</p>
                     </div>`;
                     reqList.innerHTML = '';
@@ -5005,6 +5009,7 @@
                 } else if (data.status === 'active') {
                     // AMEKUBALIWA: Ficha fomu, onesha maombi!
                     regBox.style.display = 'none';
+                    reqList.style.display = 'block';
                     reqList.innerHTML = '<div class="skeleton" style="height:80px; margin-bottom:10px;"></div>';
                     
                     if (navigator.geolocation) {
