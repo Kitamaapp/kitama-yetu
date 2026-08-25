@@ -1847,6 +1847,37 @@
                   }
                   updateBadges(); 
               })
+                          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'activist_articles' }, payload => {
+                  const updatedArticle = payload.new;
+                  const u = JSON.parse(localStorage.getItem('kitama_user'));
+                  
+                  const likeCountEl = document.getElementById(`like-count-${updatedArticle.id}`);
+                  const dislikeCountEl = document.getElementById(`dislike-count-${updatedArticle.id}`);
+                  const likeBtn = document.getElementById(`like-btn-${updatedArticle.id}`);
+                  const dislikeBtn = document.getElementById(`dislike-btn-${updatedArticle.id}`);
+                  
+                  // Kama mtumiaji yupo kwenye page ya makala na anaiona hiyo makala
+                  if (likeCountEl && dislikeCountEl) {
+                      const likedArr = updatedArticle.liked_by || [];
+                      const dislikedArr = updatedArticle.disliked_by || [];
+                      
+                      // Sasisha idadi (counts) kimyakimya
+                      likeCountEl.innerText = likedArr.length;
+                      dislikeCountEl.innerText = dislikedArr.length;
+                      
+                      // Sasisha rangi za vitufe kulingana na aliyefanya mwenyewe
+                      if (likedArr.includes(u.phone_number)) {
+                          likeBtn.classList.add('liked');
+                          dislikeBtn.classList.remove('disliked');
+                      } else if (dislikedArr.includes(u.phone_number)) {
+                          dislikeBtn.classList.add('disliked');
+                          likeBtn.classList.remove('liked');
+                      } else {
+                          likeBtn.classList.remove('liked');
+                          dislikeBtn.classList.remove('disliked');
+                      }
+                  }
+              })
              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_drivers' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (payload.new.phone === currentUser.phone_number) {
@@ -2566,7 +2597,7 @@
         if(id==='add-item-sec') checkUserShop();
     }
 
-            async function fetchActivistArticles() {
+    async function fetchActivistArticles() {
             const div = document.getElementById('activist-articles-list');
             if(!div) return;
             
@@ -2603,7 +2634,7 @@
                         <div class="article-header">
                             <div class="article-avatar">${a.author_name.charAt(0)}</div>
                             <div style="flex:1;">
-                                <div class="article-author">${a.author_name} ${getActivistBadge(true)} <span class="article-badge-activist">Activist</span></div>
+                                <div class="article-author">${a.author_name} ${getActivistBadge(true)}</div>
                                 <div class="article-date">${new Date(a.created_at).toLocaleString()}</div>
                             </div>
                         </div>
@@ -2613,13 +2644,13 @@
                             ${deleteBtn}
                         </div>
                         <div class="article-footer">
-                            <button class="article-action-btn ${hasLiked ? 'liked' : ''}" onclick="likeArticle('${a.id}')">
+                            <button id="like-btn-${a.id}" class="article-action-btn ${hasLiked ? 'liked' : ''}" onclick="likeArticle('${a.id}')">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                                Pendelea (${likedArr.length})
+                                Pendelea (<span id="like-count-${a.id}">${likedArr.length}</span>)
                             </button>
-                            <button class="article-action-btn ${hasDisliked ? 'disliked' : ''}" onclick="dislikeArticle('${a.id}')">
+                            <button id="dislike-btn-${a.id}" class="article-action-btn ${hasDisliked ? 'disliked' : ''}" onclick="dislikeArticle('${a.id}')">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform: rotate(180deg);"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                                Kataa (${dislikedArr.length})
+                                Kataa (<span id="dislike-count-${a.id}">${dislikedArr.length}</span>)
                             </button>
                         </div>
                     </div>`;
@@ -2639,50 +2670,100 @@
             async function likeArticle(id) {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Huwezi kufanya vitendo kwa sasa.");
+            
+            const likeBtn = document.getElementById(`like-btn-${id}`);
+            const dislikeBtn = document.getElementById(`dislike-btn-${id}`);
+            const likeCountEl = document.getElementById(`like-count-${id}`);
+            const dislikeCountEl = document.getElementById(`dislike-count-${id}`);
+            
+            let currentLikes = parseInt(likeCountEl.innerText);
+            let currentDislikes = parseInt(dislikeCountEl.innerText);
+            let isLiked = likeBtn.classList.contains('liked');
+            let isDisliked = dislikeBtn.classList.contains('disliked');
+
+            // 1. CHEZA SAUTI KWA YULE ANAYEBONYEZA
+            playBeep();
+
+            // 2. UPDATE UI PAPÓ HÁPÓ (Optimistic Update)
+            if (isLiked) {
+                likeBtn.classList.remove('liked');
+                likeCountEl.innerText = currentLikes - 1;
+            } else {
+                likeBtn.classList.add('liked');
+                likeCountEl.innerText = currentLikes + 1;
+                if (isDisliked) {
+                    dislikeBtn.classList.remove('disliked');
+                    dislikeCountEl.innerText = currentDislikes - 1;
+                }
+            }
+
+            // 3. PELEKA KWENYE DATABASE
             try {
-                // Pata taarifa za sasa
-                const { data: art, error: fetchErr } = await sb.from('activist_articles').select('liked_by, disliked_by').eq('id', id).single();
-                if(fetchErr) throw fetchErr;
-                
+                const { data: art } = await sb.from('activist_articles').select('liked_by, disliked_by').eq('id', id).single();
                 let liked = art.liked_by || [];
                 let disliked = art.disliked_by || [];
-                
+
                 if (liked.includes(u.phone_number)) {
-                    // Kama ameshapendelea, mtoa (undo)
                     liked = liked.filter(p => p !== u.phone_number);
                 } else {
-                    // Kama hapenda, ongeza na mtoe kwenye disliked
                     liked.push(u.phone_number);
                     disliked = disliked.filter(p => p !== u.phone_number);
                 }
-                
                 await sb.from('activist_articles').update({ liked_by: liked, disliked_by: disliked }).eq('id', id);
-                fetchActivistArticles(); // Pakia upya kuona mabadiliko
-            } catch(e) { openModal("Kosa", e.message); }
+                // Realtime listener itawasilisha kwa wengine kimyakimya
+            } catch(e) { 
+                openModal("Kosa", e.message); 
+                fetchActivistArticles(); // Revert UI on error
+            }
         }
 
         async function dislikeArticle(id) {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Huwezi kufanya vitendo kwa sasa.");
+            
+            const likeBtn = document.getElementById(`like-btn-${id}`);
+            const dislikeBtn = document.getElementById(`dislike-btn-${id}`);
+            const likeCountEl = document.getElementById(`like-count-${id}`);
+            const dislikeCountEl = document.getElementById(`dislike-count-${id}`);
+            
+            let currentLikes = parseInt(likeCountEl.innerText);
+            let currentDislikes = parseInt(dislikeCountEl.innerText);
+            let isLiked = likeBtn.classList.contains('liked');
+            let isDisliked = dislikeBtn.classList.contains('disliked');
+
+            // 1. CHEZA SAUTI KWA YULE ANAYEBONYEZA
+            playBeep();
+
+            // 2. UPDATE UI PAPÓ HÁPÓ (Optimistic Update)
+            if (isDisliked) {
+                dislikeBtn.classList.remove('disliked');
+                dislikeCountEl.innerText = currentDislikes - 1;
+            } else {
+                dislikeBtn.classList.add('disliked');
+                dislikeCountEl.innerText = currentDislikes + 1;
+                if (isLiked) {
+                    likeBtn.classList.remove('liked');
+                    likeCountEl.innerText = currentLikes - 1;
+                }
+            }
+
+            // 3. PELEKA KWENYE DATABASE
             try {
-                const { data: art, error: fetchErr } = await sb.from('activist_articles').select('liked_by, disliked_by').eq('id', id).single();
-                if(fetchErr) throw fetchErr;
-                
+                const { data: art } = await sb.from('activist_articles').select('liked_by, disliked_by').eq('id', id).single();
                 let liked = art.liked_by || [];
                 let disliked = art.disliked_by || [];
-                
+
                 if (disliked.includes(u.phone_number)) {
-                    // Kama ameshakataa, mtoa (undo)
                     disliked = disliked.filter(p => p !== u.phone_number);
                 } else {
-                    // Kama anakataa, ongeza na mtoe kwenye liked
                     disliked.push(u.phone_number);
                     liked = liked.filter(p => p !== u.phone_number);
                 }
-                
                 await sb.from('activist_articles').update({ liked_by: liked, disliked_by: disliked }).eq('id', id);
-                fetchActivistArticles();
-            } catch(e) { openModal("Kosa", e.message); }
+            } catch(e) { 
+                openModal("Kosa", e.message); 
+                fetchActivistArticles(); 
+            }
         }
 
     async function postActivistArticle() {
