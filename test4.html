@@ -267,10 +267,11 @@
         .skeleton { background: linear-gradient(90deg, var(--bg) 25%, var(--border) 50%, var(--bg) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; margin: 0 20px; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
-        .market-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; position: relative; transition: transform 0.2s; cursor: pointer; }
-        .market-card:active { transform: scale(0.98); }
-        .market-img-box { width: 100%; height: 130px; background: var(--bg); position: relative; }
+                /* SOKO LA KITAMA (Facebook/Instagram Style) */
+        .market-grid { display: flex; flex-direction: column; gap: 15px; padding: 0 20px; }
+        .market-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-md); border: 1px solid var(--border); overflow: hidden; position: relative; transition: transform 0.2s; cursor: pointer; margin-bottom: 5px; }
+        .market-card:active { transform: scale(0.99); }
+        .market-img-box { width: 100%; height: 220px; background: var(--bg); position: relative; }
         .market-img { width: 100%; height: 100%; object-fit: cover; }
         .market-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-sec); }
         .sold-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.7); display: flex; align-items: center; justify-content: center; }
