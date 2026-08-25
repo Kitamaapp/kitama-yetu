@@ -4776,7 +4776,7 @@
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
-    async function searchRouteAndFare() {
+        async function searchRouteAndFare() {
         if (bodaDestLat && bodaDestLng && document.getElementById('boda-dest').value === "Alama imewekwa kwenye Ramani") {
             updateRoute();
             return;
@@ -4787,13 +4787,37 @@
         if (!destText) return showToast("Weka mahali unaelekea au bofya kwenye ramani kukiweka");
 
         try {
-            document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div>';
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destText)}`);
-            const data = await res.json();
+            document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div> Inatafuta...';
+            
+            let foundLocation = null;
+            
+            // 1. Tafuta kwa Nominatim (Tumia Viewbox kulia ndani ya ramani unayoangalia sasa)
+            const bounds = bodaMap.getBounds();
+            const viewbox = `${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()},${bounds.getSouth()}`;
+            const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destText)}&viewbox=${viewbox}&bounded=1&countrycodes=tz&limit=1`;
+            
+            let res = await fetch(nominatimUrl);
+            let data = await res.json();
             
             if (data && data.length > 0) {
-                bodaDestLat = parseFloat(data[0].lat);
-                bodaDestLng = parseFloat(data[0].lon);
+                foundLocation = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+            } else {
+                // 2. KAMA HAJAPATIKANA, TUMIA PHOTON (Komoot) - Huu ni mzuri sana kwa majina ya mitaa
+                const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(destText)}&limit=1`;
+                let res2 = await fetch(photonUrl);
+                let data2 = await res2.json();
+                
+                if (data2 && data2.features && data2.features.length > 0) {
+                    foundLocation = { 
+                        lat: data2.features[0].geometry.coordinates[1], 
+                        lng: data2.features[0].geometry.coordinates[0] 
+                    };
+                }
+            }
+            
+            if (foundLocation) {
+                bodaDestLat = foundLocation.lat;
+                bodaDestLng = foundLocation.lng;
                 
                 if (destMarker) bodaMap.removeLayer(destMarker);
                 const destIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#EF4444;"></div>', iconSize: [15, 15] });
@@ -4803,7 +4827,7 @@
                 updateRoute();
             } else {
                 document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
-                showToast("Mahali hapatikana. Bofya kwenye ramani kukiweka.");
+                showToast("Mahali hapatikana kwa jina. Bofya kwenye ramani kukiweka.");
             }
         } catch(e) {
             document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
