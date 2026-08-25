@@ -759,16 +759,11 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
             </button>
 
-            <!-- Bottom Sheet (Auto Height, Minimal) -->
+                        <!-- Bottom Sheet (Minimal) -->
             <div class="boda-sheet" id="boda-sheet">
                 <div style="width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 15px auto;"></div>
                 
                 <div class="boda-input-group">
-                    <div class="boda-input-line"></div>
-                    <div class="boda-input-wrap">
-                        <div class="boda-dot green"></div>
-                        <input type="text" id="boda-pickup" class="boda-input" placeholder="Inatafuta mahali ulipo..." readonly>
-                    </div>
                     <div class="boda-input-wrap" style="margin-bottom: 0;">
                         <div class="boda-dot red"></div>
                         <input type="text" id="boda-dest" class="boda-input" placeholder="Unaenda wapi? (Mfano: Kitama Mjini)">
@@ -4745,13 +4740,12 @@
             
             document.getElementById('boda-dest').value = "Alama imewekwa kwenye Ramani";
             updateRoute();
-        });
-    }
+          });
+       }
 
-            function findMyLocation() {
+     function findMyLocation() {
             if (!navigator.geolocation) return showToast("Kifaa chako hakiauni GPS.");
             
-            document.getElementById('boda-pickup').value = "Inatafuta eneo lako...";
             navigator.geolocation.getCurrentPosition(pos => {
                 bodaPickupLat = pos.coords.latitude;
                 bodaPickupLng = pos.coords.longitude;
@@ -4762,78 +4756,77 @@
                 if (pickupMarker) bodaMap.removeLayer(pickupMarker);
                 const pickupIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15] });
                 pickupMarker = L.marker([bodaPickupLat, bodaPickupLng], { icon: pickupIcon }).addTo(bodaMap);
-                pickupMarker.bindPopup("<b>Upo hapa</b>").openPopup();
+                pickupMarker.bindPopup("<b>Wapo hapa (Pickup)</b>").openPopup();
                 
-                document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
             }, err => {
                 if (err.code === 1) {
                     showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings za simu.");
-                    document.getElementById('boda-pickup').value = "Ruhusu GPS kwenye Settings";
                 } else {
-                    showToast("GPS imekataa. Washa location kwa High Accuracy.");
-                    document.getElementById('boda-pickup').value = "GPS haijawashwa";
+                    showToast("GPS haiwezi kupatikana. Washa kwa High Accuracy.");
                 }
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
-        async function searchRouteAndFare() {
-        if (bodaDestLat && bodaDestLng && document.getElementById('boda-dest').value === "Alama imewekwa kwenye Ramani") {
-            updateRoute();
-            return;
-        }
-
-        const destText = document.getElementById('boda-dest').value.trim();
-        if (!bodaPickupLat || !bodaPickupLng) return showToast("GPS ya mahali ulipo bado hajaanza. Subiri kidogo.");
-        if (!destText) return showToast("Weka mahali unaelekea au bofya kwenye ramani kukiweka");
-
-        try {
-            document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div> Inatafuta...';
-            
-            let foundLocation = null;
-            
-            // 1. Tafuta kwa Nominatim (Tumia Viewbox kulia ndani ya ramani unayoangalia sasa)
-            const bounds = bodaMap.getBounds();
-            const viewbox = `${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()},${bounds.getSouth()}`;
-            const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destText)}&viewbox=${viewbox}&bounded=1&countrycodes=tz&limit=1`;
-            
-            let res = await fetch(nominatimUrl);
-            let data = await res.json();
-            
-            if (data && data.length > 0) {
-                foundLocation = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-            } else {
-                // 2. KAMA HAJAPATIKANA, TUMIA PHOTON (Komoot) - Huu ni mzuri sana kwa majina ya mitaa
-                const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(destText)}&limit=1`;
-                let res2 = await fetch(photonUrl);
-                let data2 = await res2.json();
-                
-                if (data2 && data2.features && data2.features.length > 0) {
-                    foundLocation = { 
-                        lat: data2.features[0].geometry.coordinates[1], 
-                        lng: data2.features[0].geometry.coordinates[0] 
-                    };
-                }
-            }
-            
-            if (foundLocation) {
-                bodaDestLat = foundLocation.lat;
-                bodaDestLng = foundLocation.lng;
-                
-                if (destMarker) bodaMap.removeLayer(destMarker);
-                const destIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#EF4444;"></div>', iconSize: [15, 15] });
-                destMarker = L.marker([bodaDestLat, bodaDestLng], { icon: destIcon }).addTo(bodaMap);
-                destMarker.bindPopup("<b>Unaenda hapa</b>").openPopup();
-                
+            async function searchRouteAndFare() {
+            if (bodaDestLat && bodaDestLng && document.getElementById('boda-dest').value === "Alama imewekwa kwenye Ramani") {
                 updateRoute();
-            } else {
-                document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
-                showToast("Mahali hapatikana kwa jina. Bofya kwenye ramani kukiweka.");
+                return;
             }
-        } catch(e) {
-            document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
-            showToast("Kosa la mtandao. Bofya kwenye ramani kukiweka.");
+
+            const destText = document.getElementById('boda-dest').value.trim();
+            if (!bodaPickupLat || !bodaPickupLng) return showToast("GPS ya mahali ulipo bado hajaanza. Subiri kidogo au bofya kitufe cha kijani.");
+            if (!destText) return showToast("Weka mahali unaelekea au bofya kwenye ramani kukiweka");
+
+            try {
+                document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div> Inatafuta...';
+                
+                let foundLocation = null;
+                
+                // Tumia nafasi ya kuanzia (pickup) kuweka viewbox (tafuta ndani ya eneo la km 50 hivi)
+                const latOffset = 0.5; // Takriban km 50
+                const viewbox = `${bodaPickupLng - latOffset},${bodaPickupLat + latOffset},${bodaPickupLng + latOffset},${bodaPickupLat - latOffset}`;
+                
+                // 1. TUMIA PHOTON (KOMOOT) MWANZO - Ni mzuri sana kwa majina ya Tanzania
+                const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(destText)}&limit=5`;
+                let res = await fetch(photonUrl);
+                let data = await res.json();
+                
+                if (data && data.features && data.features.length > 0) {
+                    // Chagua matokeo ya kwanza yaliyo karibu na eneo langu
+                    foundLocation = { 
+                        lat: data.features[0].geometry.coordinates[1], 
+                        lng: data.features[0].geometry.coordinates[0] 
+                    };
+                } else {
+                    // 2. KAMA PHOTON HAIJAPATA, TUMIA NOMINATIM
+                    const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destText)}&viewbox=${viewbox}&bounded=1&countrycodes=tz&limit=1`;
+                    let res2 = await fetch(nominatimUrl);
+                    let data2 = await res2.json();
+                    
+                    if (data2 && data2.length > 0) {
+                        foundLocation = { lat: parseFloat(data2[0].lat), lng: parseFloat(data2[0].lon) };
+                    }
+                }
+                
+                if (foundLocation) {
+                    bodaDestLat = foundLocation.lat;
+                    bodaDestLng = foundLocation.lng;
+                    
+                    if (destMarker) bodaMap.removeLayer(destMarker);
+                    const destIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#EF4444;"></div>', iconSize: [15, 15] });
+                    destMarker = L.marker([bodaDestLat, bodaDestLng], { icon: destIcon }).addTo(bodaMap);
+                    destMarker.bindPopup("<b>Unaenda hapa</b>").openPopup();
+                    
+                    updateRoute();
+                } else {
+                    document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+                    showToast("Mahali hapatikani kwa jina hilo. Jaribu kuandika jina kamili au bofya kwenye ramani kukiweka.");
+                }
+            } catch(e) {
+                document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+                showToast("Kosa la mtandao. Bofya kwenye ramani kukiweka.");
+            }
         }
-    }
 
     function updateRoute() {
         if (!bodaPickupLat || !bodaDestLat) return;
