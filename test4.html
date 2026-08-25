@@ -4314,8 +4314,9 @@
         } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML = 'Weka Tangazo'; btn.disabled = false; } 
     }
 
-     function renderMarketCard(m) { 
-        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`; 
+    function renderMarketCard(m) { 
+        // Kama ana picha, ionyeshe. Kama hakuna, iache iwe wazi (haionyeshi placeholder).
+        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img">` : ''; 
         let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZWA</span></div>` : ''; 
         
         // TAMBUA MUUZAJI NA PICHA YAKE
@@ -4346,18 +4347,29 @@
             </div>
         `;
         
-        return `<div class="market-card" onclick="viewMarketItem('${m.id}')">
-            ${headerHtml}
+        // Sehemu ya picha itaonekana TU kama aliyeweka picha
+        let imageSectionHtml = imgHtml ? `
             <div class="market-img-box">${imgHtml}${soldHtml}</div>
-            <div class="market-body">
-                <h4>${m.item_name}</h4>
-                <div class="market-price">${m.price || 'Agana'}</div>
-                <div class="list-meta" style="margin-top:0; margin-bottom:8px;">
+        ` : '';
+        
+        // Sehemu ya Maandishi (Sasa yanaonekana kama post za Facebook)
+        let textSectionHtml = `
+            <div class="market-body" style="padding: 15px;">
+                <h4 style="margin-bottom: 5px;">${m.item_name}</h4>
+                <div class="market-price" style="margin-bottom: 10px;">${m.price || 'Agana'}</div>
+                ${m.description ? `<p style="font-size: 14px; color: var(--text-sec); line-height: 1.5; margin-bottom: 10px;">${m.description}</p>` : ''}
+                <div class="list-meta" style="margin-top:0; margin-bottom:0;">
                     <span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span>
                 </div>
             </div>
+        `;
+        
+        return `<div class="market-card" onclick="viewMarketItem('${m.id}')">
+            ${headerHtml}
+            ${imageSectionHtml}
+            ${textSectionHtml}
         </div>`; 
-    }       
+    }    
 
  async function fetchMarket() { 
         if (marketIsLoading) return;
