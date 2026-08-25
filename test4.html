@@ -4315,44 +4315,54 @@
     }
 
     function renderMarketCard(m) { 
-        // Kama ana picha, ionyeshe. Kama hakuna, iache iwe wazi (haionyeshi placeholder).
         let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img">` : ''; 
         let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZWA</span></div>` : ''; 
         
-        // TAMBUA MUUZAJI NA PICHA YAKE
-        let sellerName, sellerImgHtml;
+        // TAMBUA MUUZAJI, PICHA YAKE NA BADGE
+        let sellerName, sellerImgHtml, isSellerVerified = false;
+        
         if (m.shop_id) {
             // KAMA NI DUKA
             const shop = marketShopMap[m.shop_id] || {};
             sellerName = shop.shop_name || "Duka";
+            
+            // Angalia kama mmiliki wa duka ni Verified (Activist)
+            if (shop.owner_phone && marketUserMap[shop.owner_phone]) {
+                isSellerVerified = marketUserMap[shop.owner_phone].is_activist || false;
+            }
+            
             sellerImgHtml = shop.logo_url ? 
                 `<img src="${shop.logo_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : 
                 `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">${ICONS.store}</div>`;
         } else {
             // KAMA NI MTU BINAFSI
-            sellerName = marketUserMap[m.phone] || "Mtumiaji";
+            const personData = marketUserMap[m.phone] || {};
+            sellerName = personData.full_name || "Mtumiaji";
+            isSellerVerified = personData.is_activist || false;
+            
             // Daima tumia icon ya mtu, sio picha yake
             sellerImgHtml = `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
             </div>`;
         }
         
+        // Ongeza Badge kama ni Verified
+        let verifiedBadgeHtml = isSellerVerified ? getActivistBadge(true) : '';
+        
         let headerHtml = `
             <div class="market-post-header">
                 ${sellerImgHtml}
                 <div class="header-info">
-                    <b>${sellerName}</b>
+                    <b>${sellerName} ${verifiedBadgeHtml}</b>
                     <small>${ICONS.pin} ${m.village}</small>
                 </div>
             </div>
         `;
         
-        // Sehemu ya picha itaonekana TU kama aliyeweka picha
         let imageSectionHtml = imgHtml ? `
             <div class="market-img-box">${imgHtml}${soldHtml}</div>
         ` : '';
         
-        // Sehemu ya Maandishi (Sasa yanaonekana kama post za Facebook)
         let textSectionHtml = `
             <div class="market-body" style="padding: 15px;">
                 <h4 style="margin-bottom: 5px;">${m.item_name}</h4>
@@ -4405,18 +4415,18 @@
             if(error) throw error; 
                         marketItemsCache = data.sort(() => Math.random() - 0.5);
             
-            // PATA TAARIFA ZA MUZAJI: Watu binafsi na Maduka
+                        // PATA TAARIFA ZA MUUZAJI: Watu binafsi na Maduka
             const personPhones = [...new Set(marketItemsCache.filter(m => !m.shop_id).map(m => m.phone))];
             if(personPhones.length > 0) {
-                const { data: persons } = await sb.from('users').select('full_name, phone_number').in('phone_number', personPhones);
-                if(persons) persons.forEach(p => marketUserMap[p.phone_number] = p.full_name);
+                const { data: persons } = await sb.from('users').select('full_name, phone_number, is_activist').in('phone_number', personPhones);
+                if(persons) persons.forEach(p => marketUserMap[p.phone_number] = p);
             }
             
             const shopIds = [...new Set(marketItemsCache.filter(m => m.shop_id).map(m => m.shop_id))];
             if(shopIds.length > 0) {
-                const { data: shops } = await sb.from('shops').select('id, shop_name, logo_url').in('id', shopIds);
+                const { data: shops } = await sb.from('shops').select('id, shop_name, logo_url, owner_phone').in('id', shopIds);
                 if(shops) shops.forEach(s => marketShopMap[s.id] = s);
-            }
+             }
             marketDisplayIndex = 0;
             marketHasMore = true;
             div.innerHTML = '';
