@@ -1060,6 +1060,12 @@
             <button class="map-locate-btn" onclick="findMyLocationOnMap()">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
             </button>
+
+            <!-- ADMIN: ONGEZA ENEO HALI PALIPO (Floating Button) -->
+            <button id="add-place-btn" onclick="addCurrentPlaceToMap()" style="position: absolute; top: 20px; right: 15px; display: none; background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 10; cursor: pointer; font-weight: 700; font-size: 12px; display: none; align-items: center; gap: 5px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Ongeza Eneo Hapa
+            </button>
         </div>
                 <!-- STATUS SECTION -->
         <div id="status-sec" class="sec">
@@ -2193,6 +2199,11 @@
                         <h2 style="font-size: 20px; font-weight: 800; color: var(--text);">Developer Console</h2>
                         <p style="font-size: 12px;">Mfumo wa Udhibiti wa Kitama Yetu</p>
                     </div>
+                    <div class="admin-tool-card" onclick="handleNav('kitama-map-sec')">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            <h4>Ramani ya Kitama</h4>
+                            <p>Ongeza Maeneo</p>
+                        </div>
                     <div class="admin-console-grid">
                         <div class="admin-tool-card" onclick="handleNav('admin-users-sec')">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 98l4 4M9 17l-5-5m12-4l5 5-5 5M3 7l5 5"/></svg>
@@ -7505,6 +7516,7 @@
         let kitamaMap = null;
         let mapMarkers = [];
         let mapPlaceLabels = [];
+        let myLocationMarker = null;
 
         function initKitamaMap() {
             if(kitamaMap) {
@@ -7513,8 +7525,6 @@
                 loadMapMarkers();
                 return;
             }
-            
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
             
             kitamaMap = L.map('kitama-map', { zoomControl: true }).setView([-6.2, 35.0], 14);
             
@@ -7527,67 +7537,17 @@
             findMyLocationOnMap();
             loadMapMarkers();
             
-            // ADMIN UWEZO: KUBONYEZA KWENYE RAMANI KUONGEZA ENEO
-            if (u.role === 'system_admin') {
-                kitamaMap.on('click', function(e) {
-                    const lat = e.latlng.lat;
-                    const lng = e.latlng.lng;
-                    
-                    const html = `
-                        <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">Umebonyeza kwenye Ramani. Weka jina la eneo/mtaa hili:</p>
-                        <input type="text" id="new-place-name" class="modal-input" placeholder="Mfano: Mtaa wa Jumbe" style="margin-bottom: 15px;">
-                    `;
-                    
-                    openModal("Ongeza Eneo kwenye Ramani", html, false, async () => {
-                        const name = document.getElementById('new-place-name').value.trim();
-                        if(!name) return showToast("Tafadhali weka jina la eneo.");
-                        
-                        try {
-                            await sb.from('map_places').insert([{ name: name, lat: lat.toString(), lng: lng.toString() }]);
-                            showToast("Eneo limeongezwa kwenye ramani!");
-                            closeModal();
-                            loadMapMarkers(); // Pakia upya markers
-                        } catch(e) {
-                            openModal("Kosa", e.message);
-                        }
-                    });
-                });
-                
-                // Onyesha ujumbe mdogo kwa admin
-                showToast("Bonyeza sehemu yoyote kwenye ramani kuongeza jina la eneo.");
+            // ONYESHA KITUFU CHA KUONGEZA ENEO KWA ADMIN TU
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            const addBtn = document.getElementById('add-place-btn');
+            if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani') {
+                if(addBtn) addBtn.style.display = 'flex';
             }
-        }
-
-        function findMyLocationOnMap() {
-            if (!navigator.geolocation) return showToast("Kifaa chako hakikai GPS.");
-            
-            navigator.geolocation.getCurrentPosition(pos => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                
-                kitamaMap.flyTo([lat, lng], 16, { duration: 1.5 });
-                
-                if (myLocationMarker) kitamaMap.removeLayer(myLocationMarker);
-                
-                const myLocationIcon = L.divIcon({
-                    className: 'blink-marker',
-                    html: '<div style="width:20px; height:20px; background:#3B82F6; border-radius:50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); animation: blink 1s infinite;"></div>',
-                    iconSize: [20, 20]
-                });
-                
-                myLocationMarker = L.marker([lat, lng], { icon: myLocationIcon }).addTo(kitamaMap);
-                myLocationMarker.bindPopup("<b>Wewe uko hapa</b>").openPopup();
-                
-            }, err => {
-                if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
-                else showToast("Washa GPS kwa High Accuracy.");
-            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
         async function loadMapMarkers() {
             if(!kitamaMap) return;
             
-            // Futa markers za zamani
             mapMarkers.forEach(m => kitamaMap.removeLayer(m));
             mapPlaceLabels.forEach(m => kitamaMap.removeLayer(m));
             mapMarkers = [];
@@ -7631,6 +7591,65 @@
                     }
                 });
             } catch(e) { console.error(e); }
+        }
+
+        function findMyLocationOnMap() {
+            if (!navigator.geolocation) return showToast("Kifaa chako hakikai GPS.");
+            
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                
+                kitamaMap.flyTo([lat, lng], 16, { duration: 1.5 });
+                
+                if (myLocationMarker) kitamaMap.removeLayer(myLocationMarker);
+                
+                const myLocationIcon = L.divIcon({
+                    className: 'blink-marker',
+                    html: '<div style="width:20px; height:20px; background:#3B82F6; border-radius:50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); animation: blink 1s infinite;"></div>',
+                    iconSize: [20, 20]
+                });
+                
+                myLocationMarker = L.marker([lat, lng], { icon: myLocationIcon }).addTo(kitamaMap);
+                myLocationMarker.bindPopup("<b>Wewe uko hapa</b>").openPopup();
+                
+            }, err => {
+                if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
+                else showToast("Washa GPS kwa High Accuracy.");
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+        }
+
+        // FUNCTION MPYA: ADMIN KUONGEZA ENEO ALILOPO
+        function addCurrentPlaceToMap() {
+            if (!navigator.geolocation) return showToast("GPS haipatikani kwenye kifaa hiki.");
+            
+            showToast("Inatafuta eneo lako halisi...");
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                
+                const html = `
+                    <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">GPS imekupata uko hapahapa. Weka jina la eneo/mtaa hili ili liweke kwenye ramani ya wote:</p>
+                    <input type="text" id="new-place-name" class="modal-input" placeholder="Mfano: Mtaa wa Jumbe" style="margin-bottom: 15px;">
+                `;
+                
+                openModal("Ongeza Eneo Hapa", html, false, async () => {
+                    const name = document.getElementById('new-place-name').value.trim();
+                    if(!name) return showToast("Tafadhali weka jina la eneo.");
+                    
+                    try {
+                        await sb.from('map_places').insert([{ name: name, lat: lat.toString(), lng: lng.toString() }]);
+                        showToast("Eneo limeongezwa kwenye ramani kikamilifu!");
+                        closeModal();
+                        loadMapMarkers(); // Pakia upya ramani kuonesha eneo jipya
+                    } catch(e) {
+                        openModal("Kosa", e.message);
+                    }
+                });
+                
+            }, err => {
+                showToast("Washa GPS kwenye simu yako na uweke ruhusa ili kuongeza eneo.");
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
             // --- PROFILE AVATAR MODAL (WhatsApp Style) ---
