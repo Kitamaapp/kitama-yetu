@@ -646,7 +646,16 @@
             color: var(--text);
         }
         .map-locate-btn:active { transform: scale(0.9); }
-            .map-place-label {
+           
+        /* KITAMA MAP CSS FIX */
+        .boda-sec { position: relative; height: 100vh; overflow: hidden; background: var(--bg); }
+        #kitama-map { 
+            position: absolute; 
+            top: 0; left: 0; right: 0; bottom: 0; 
+            width: 100%; height: 100%; 
+            z-index: 1; background: var(--bg); 
+        }
+        .map-place-label {
             background: rgba(15, 23, 42, 0.85) !important;
             color: white !important;
             padding: 5px 12px !important;
@@ -7520,9 +7529,12 @@
 
         function initKitamaMap() {
             if(kitamaMap) {
-                setTimeout(() => { kitamaMap.invalidateSize(); }, 200);
-                findMyLocationOnMap();
-                loadMapMarkers();
+                // Kama tayari ramani ipo, ilazimishe kujirekebisha na ipakie upya
+                setTimeout(() => { 
+                    kitamaMap.invalidateSize(); 
+                    findMyLocationOnMap();
+                    loadMapMarkers();
+                }, 200);
                 return;
             }
             
@@ -7534,18 +7546,21 @@
             
             L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(kitamaMap);
 
+            // LITATIZO LA BLANK: Ilazimisha ramani kujirekebisa baada ya sekunde 0.2
+            setTimeout(() => { kitamaMap.invalidateSize(); }, 200);
+
             findMyLocationOnMap();
             loadMapMarkers();
             
-            // ONYESHA KITUFU CHA KUONGEZA ENEO KWA ADMIN TU
+            // ONYESHA KITUFU CHA KUONGEZA ENEO KWA ADMIN/VIONGOZI
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const addBtn = document.getElementById('add-place-btn');
-            if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani') {
-                if(addBtn) addBtn.style.display = 'flex';
+            if (addBtn && (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani')) {
+                addBtn.style.display = 'flex';
             }
         }
 
-        async function loadMapMarkers() {
+                async function loadMapMarkers() {
             if(!kitamaMap) return;
             
             mapMarkers.forEach(m => kitamaMap.removeLayer(m));
@@ -7554,7 +7569,6 @@
             mapPlaceLabels = [];
             
             try {
-                // 1. PAKIA MAENEO ALIYOONGEZA ADMIN
                 const { data: places, error: pErr } = await sb.from('map_places').select('*');
                 if(pErr) throw pErr;
                 
@@ -7569,7 +7583,6 @@
                     mapPlaceLabels.push(labelMarker);
                 });
                 
-                // 2. PAKIA WATUMIAJI WALIPO
                 const { data: users, error: uErr } = await sb.from('users').select('full_name, phone_number, lat, lng, is_activist, role').not('lat', 'is', null);
                 if(uErr) throw uErr;
                 
@@ -7619,9 +7632,8 @@
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
-        // FUNCTION MPYA: ADMIN KUONGEZA ENEO ALILOPO
         function addCurrentPlaceToMap() {
-            if (!navigator.geolocation) return showToast("GPS haipatikani kwenye kifaa hiki.");
+            if (!navigator.geolocation) return showToast("GPS haipatikani.");
             
             showToast("Inatafuta eneo lako halisi...");
             navigator.geolocation.getCurrentPosition(pos => {
@@ -7629,7 +7641,7 @@
                 const lng = pos.coords.longitude;
                 
                 const html = `
-                    <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">GPS imekupata uko hapahapa. Weka jina la eneo/mtaa hili ili liweke kwenye ramani ya wote:</p>
+                    <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">GPS imekupata uko hapahapa. Weka jina la eneo/mtaa hili:</p>
                     <input type="text" id="new-place-name" class="modal-input" placeholder="Mfano: Mtaa wa Jumbe" style="margin-bottom: 15px;">
                 `;
                 
@@ -7639,16 +7651,16 @@
                     
                     try {
                         await sb.from('map_places').insert([{ name: name, lat: lat.toString(), lng: lng.toString() }]);
-                        showToast("Eneo limeongezwa kwenye ramani kikamilifu!");
+                        showToast("Eneo limeongezwa kwenye ramani!");
                         closeModal();
-                        loadMapMarkers(); // Pakia upya ramani kuonesha eneo jipya
+                        loadMapMarkers(); 
                     } catch(e) {
                         openModal("Kosa", e.message);
                     }
                 });
                 
             }, err => {
-                showToast("Washa GPS kwenye simu yako na uweke ruhusa ili kuongeza eneo.");
+                showToast("Washa GPS na uweke ruhusa.");
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
