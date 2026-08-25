@@ -1228,7 +1228,11 @@
             <div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Zuia mtumiaji kufanya vitendo (View-only) au fungua akaunti yake kabisa (Ban).</p></div>
             <div id="admin-users-list"></div>
         </div>
-                   <div id="admin-feedback-sec" class="sec">
+        <div id="admin-boda-sec" class="sec">
+            <div class="sec-h"><h2>Maombi ya Dereva</h2><span onclick="fetchBodaDriverRequests()">Refresh</span></div>
+            <div id="admin-boda-list"></div>
+        </div>
+        <div id="admin-feedback-sec" class="sec">
             <div class="chat-header" style="position: sticky; top: 0; background: var(--surface); z-index: 50; padding: 15px 20px; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center;">
                 <div style="display:flex; align-items:center; gap:15px;">
                     <button onclick="handleNav('home-sec')" style="background:var(--bg); border:none; padding:8px; border-radius:12px; cursor:pointer; color:var(--text); display:flex;">
@@ -2166,6 +2170,11 @@
                             <h4>Moderation</h4>
                             <p>Kagua Bidhaa</p>
                         </div>
+                        <div class="admin-tool-card" onclick="handleNav('admin-boda-sec')">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"/></svg>
+                            <h4>Dereva Boda</h4>
+                            <p>Idhinisha Maombi</p>
+                        </div>
                         <div class="admin-tool-card" onclick="handleNav('manage-villages-sec')">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
                             <h4>Maeneo</h4>
@@ -2386,6 +2395,7 @@
         if(id==='status-sec') loadStatusUI();
         if(id==='kitama-map-sec') initKitamaMap();
         if(id==='report-sec') fetchCitizenReports();
+        if(id==='admin-boda-sec') fetchBodaDriverRequests();
         if(id==='kitama-map-sec') { initKitamaMap(); requestLocationOnEnter(); }
         if(id==='boda-sec') { checkDriverStatus(); setTimeout(() => initBodaMap(), 100); requestLocationOnEnter(); }
         const marketAddBtn = document.getElementById('market-add-btn');
@@ -4894,65 +4904,69 @@
         if (destMarker) { bodaMap.removeLayer(destMarker); destMarker = null; }
         showToast("Ombi limefutwa.");
     }
-
-    function checkDriverStatus() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle().then(({ data }) => {
-            if(data) {
-                document.getElementById('boda-reg-box').style.display = 'none';
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(async pos => {
-                        try { await sb.from('boda_drivers').update({ lat: pos.coords.latitude.toString(), lng: pos.coords.longitude.toString() }).eq('phone', u.phone_number); } catch(e) {}
-                    });
-                }
-            }
-        });
-    }
-
-            async function registerDriver() {
+        // --- BODA DRIVER REGISTRATION & REQUESTS ---
+        async function registerDriver() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const plate = document.getElementById('driver-plate').value.trim();
             if(!plate) return showToast("Weka namba ya tashi sahihi");
             
             try {
-                // Angalia kama Dereva tayari amesajiliwa
                 const { data: existing } = await sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle();
-                
                 if (existing) {
-                    // Kama yupo, sasisha tu namba ya tashi
-                    await sb.from('boda_drivers').update({ plate: plate, name: u.full_name }).eq('phone', u.phone_number);
-                    showToast("Taarifa za tashi zimesasishwa kikamilifu!");
+                    if (existing.status === 'pending') return showToast("Ombi lako lipo kwenye uchunguzi. Subiri kuidhinishwa na Admin.");
+                    if (existing.status === 'active') return showToast("Tayari umeshaidhinishwa!");
+                    if (existing.status === 'rejected') return showToast("Ombi lako limekataliwa na Admin.");
                 } else {
-                    // Kama hajawahi kuandikishwa, mweke fresh
-                    await sb.from('boda_drivers').insert([{ phone: u.phone_number, name: u.full_name, plate }]);
-                    showToast("Umefanikiwa kujisajili rasmi kama Dereva!");
+                    await sb.from('boda_drivers').insert([{ phone: u.phone_number, name: u.full_name, plate, status: 'pending' }]);
+                    showToast("Ombi lako limewasilishwa! Subiri Admin kukuidhinishwa.");
                 }
-                playBeep();
                 checkDriverStatus();
-                fetchBodaRequests();
             } catch(e) { openModal("Kosa", e.message); }
         }
 
-            async function fetchBodaRequests() {
+        function checkDriverStatus() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            const regBox = document.getElementById('boda-reg-box');
+            sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle().then(({ data }) => {
+                if(data) {
+                    if (data.status === 'active') {
+                        regBox.style.display = 'none';
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(async pos => {
+                                try { await sb.from('boda_drivers').update({ lat: pos.coords.latitude.toString(), lng: pos.coords.longitude.toString() }).eq('phone', u.phone_number); } catch(e) {}
+                            });
+                        }
+                    } else if (data.status === 'pending') {
+                        regBox.style.display = 'block';
+                        regBox.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-sec);"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:10px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p style="font-weight:600;">Ombi lako la kuwa Dereva lipo kwenye uchunguzi.<br>Subiri kuidhinishwa na Admin.</p></div>`;
+                    } else {
+                        regBox.style.display = 'block';
+                        regBox.innerHTML = `<div style="text-align:center; padding:20px; color:var(--danger);"><p style="font-weight:600;">Ombi lako limekataliwa na Admin.</p></div>`;
+                    }
+                }
+            });
+        }
+
+        async function fetchBodaRequests() {
             const div = document.getElementById('boda-requests-list');
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            
+            const { data: driver } = await sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle();
+            
+            if (!driver || driver.status !== 'active') {
+                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hujaidhinishwa bado kama Dereva. Subiri Admin kukuidhinishwa.</p>';
+                return;
+            }
+            
             div.innerHTML = '<div class="skeleton" style="height:80px; margin-bottom:10px;"></div>';
             try {
-                // MUDA WA OMBI: Ombi zilizozidi dakika 10 zifutwe moja kwa moja
                 const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-                
-                // Futa kwenye DB ombi za zamani sana zisizo na tija
                 await sb.from('boda_requests').update({ status: 'expired' }).eq('status', 'searching').lt('created_at', tenMinsAgo);
                 
-                const { data: reqs, error } = await sb.from('boda_requests')
-                    .select('*')
-                    .eq('status', 'searching')
-                    .gte('created_at', tenMinsAgo) // ONYESHA OMBI ZA LEO TU (NDANI YA DAKIKA 10)
-                    .order('created_at', { ascending: false });
-                    
-                const { data: drivers, error: dErr } = await sb.from('boda_drivers').select('lat, lng, phone');
+                const { data: reqs, error } = await sb.from('boda_requests').select('*').eq('status', 'searching').gte('created_at', tenMinsAgo).order('created_at', { ascending: false });
+                const { data: drivers } = await sb.from('boda_drivers').select('lat, lng, phone');
                 
                 if(error) throw error;
-                if(dErr) throw dErr;
 
                 let html = '';
                 if (reqs.length > 0) {
@@ -4967,12 +4981,8 @@
 
                             if (nearbyDrivers.length > 0 && nearbyDrivers[0].dist !== Infinity) {
                                 const nearest = nearbyDrivers[0];
-                                const u = JSON.parse(localStorage.getItem('kitama_user'));
-                                if (nearest.phone === u.phone_number) {
-                                    priorityBadge = `<span class="driver-priority-badge">Karumi Nawe! (${nearest.dist.toFixed(1)} km)</span>`;
-                                } else {
-                                    priorityBadge = `<span class="driver-priority-badge">Karibu Zaidi: ${nearest.dist.toFixed(1)} km</span>`;
-                                }
+                                if (nearest.phone === u.phone_number) priorityBadge = `<span class="driver-priority-badge">Karumi Nawe! (${nearest.dist.toFixed(1)} km)</span>`;
+                                else priorityBadge = `<span class="driver-priority-badge">Karibu Zaidi: ${nearest.dist.toFixed(1)} km</span>`;
                             }
                         }
 
@@ -4991,11 +5001,37 @@
                         </div>`;
                     }).join('');
                 } else {
-                    html = '<p style="color:var(--text-sec); text-align:center;">Hakuna maombi ya boda sasa (Ombi la zamani limekwisha muda).</p>';
+                    html = '<p style="color:var(--text-sec); text-align:center;">Hakuna maombi ya boda sasa.</p>';
                 }
                 div.innerHTML = html;
             } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
         }
+
+        function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
+            openModal("Ramani & Njia ya Kwenda", `<div id="boda-req-map-${reqId}" style="height: 300px; width: 100%; border-radius: 12px;"></div>`, false);
+            setTimeout(() => {
+                const reqMap = L.map(`boda-req-map-${reqId}`).setView([parseFloat(pLat), parseFloat(pLng)], 14);
+                L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(reqMap);
+                
+                const rc = L.Routing.control({
+                    waypoints: [ L.latLng(parseFloat(pLat), parseFloat(pLng)), L.latLng(parseFloat(dLat), parseFloat(dLng)) ],
+                    routeWhileDragging: false, addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
+                    lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
+                }).addTo(reqMap);
+
+                // FALLBACK: KAMA SEVER YA BARABARA INAKATAA, CHORA MSTARI WA MOJA KWA MOJA
+                rc.on('routingerror', () => {
+                    if (rc) { reqMap.removeControl(rc); }
+                    L.polyline([[parseFloat(pLat), parseFloat(pLng)], [parseFloat(dLat), parseFloat(dLng)]], {color: '#10B981', weight: 4, dashArray: '10, 10'}).addTo(reqMap);
+                    reqMap.fitBounds([[parseFloat(pLat), parseFloat(pLng)], [parseFloat(dLat), parseFloat(dLng)]]);
+                });
+
+                const pickupIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15]});
+                L.marker([parseFloat(pLat), parseFloat(pLng)], {icon: pickupIcon}).addTo(reqMap).bindPopup("<b>Abiria yupo hapa</b>").openPopup();
+                
+                setTimeout(() => { reqMap.invalidateSize(); }, 300);
+            }, 200);
+        }     
 
     function getDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; 
@@ -5008,25 +5044,7 @@
         return R * c;
     }
 
-    function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
-        openModal("Ramani ya Ombi", `<div id="boda-req-map-${reqId}" style="height: 300px; width: 100%; border-radius: 12px;"></div>`, false);
-        setTimeout(() => {
-            const reqMap = L.map(`boda-req-map-${reqId}`).setView([parseFloat(pLat), parseFloat(pLng)], 14);
-            L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(reqMap);
-            
-            L.Routing.control({
-                waypoints: [ L.latLng(parseFloat(pLat), parseFloat(pLng)), L.latLng(parseFloat(dLat), parseFloat(dLng)) ],
-                routeWhileDragging: false, addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
-                lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
-            }).addTo(reqMap);
-
-            const pickupIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15]});
-            L.marker([parseFloat(pLat), parseFloat(pLng)], {icon: pickupIcon}).addTo(reqMap).bindPopup("<b>Abiria yupo hapa</b>").openPopup();
-            
-            setTimeout(() => { reqMap.invalidateSize(); }, 300);
-        }, 200);
-    }
-
+    
     async function acceptBoda(reqId, riderPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         try {
@@ -7637,7 +7655,43 @@
                 { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
             );
         }
-    
+            async function fetchBodaDriverRequests() {
+            const div = document.getElementById('admin-boda-list');
+            div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>';
+            try {
+                const { data, error } = await sb.from('boda_drivers').select('*').eq('status', 'pending');
+                if(error) throw error;
+                
+                if(data.length === 0) {
+                    div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna maombi mapya ya madereva.</p>';
+                    return;
+                }
+                
+                div.innerHTML = data.map(d => `
+                    <div class="list-i" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <div>
+                            <b>${d.name}</b><br>
+                            <small>Namba ya Tashi: <b style="color:var(--accent);">${d.plate}</b></small><br>
+                            <small>Simu: ${d.phone}</small>
+                        </div>
+                        <button onclick="approveBodaDriver('${d.phone}')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:12px;">Kubali Dereva</button>
+                    </div>
+                `).join('');
+            } catch(e) {
+                div.innerHTML = `<p style="color:red;">${e.message}</p>`;
+            }
+        }
+
+        async function approveBodaDriver(phone) {
+            try {
+                await sb.from('boda_drivers').update({ status: 'active' }).eq('phone', phone);
+                showToast("Dereva amekubaliwa na ameshapata ruhusa kuona maombi!");
+                playBeep();
+                fetchBodaDriverRequests();
+            } catch(e) {
+                openModal("Kosa", e.message);
+            }
+        }
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
