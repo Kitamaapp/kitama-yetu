@@ -4379,7 +4379,20 @@
             if (cat !== 'all') query = query.eq('category', cat);
             const { data, error } = await query; 
             if(error) throw error; 
-            marketItemsCache = data.sort(() => Math.random() - 0.5);
+                        marketItemsCache = data.sort(() => Math.random() - 0.5);
+            
+            // PATA TAARIFA ZA MUZAJI: Watu binafsi na Maduka
+            const personPhones = [...new Set(marketItemsCache.filter(m => !m.shop_id).map(m => m.phone))];
+            if(personPhones.length > 0) {
+                const { data: persons } = await sb.from('users').select('full_name, phone_number').in('phone_number', personPhones);
+                if(persons) persons.forEach(p => marketUserMap[p.phone_number] = p.full_name);
+            }
+            
+            const shopIds = [...new Set(marketItemsCache.filter(m => m.shop_id).map(m => m.shop_id))];
+            if(shopIds.length > 0) {
+                const { data: shops } = await sb.from('shops').select('id, shop_name, logo_url').in('id', shopIds);
+                if(shops) shops.forEach(s => marketShopMap[s.id] = s);
+            }
             marketDisplayIndex = 0;
             marketHasMore = true;
             div.innerHTML = '';
