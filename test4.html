@@ -796,13 +796,17 @@
             </div>
         </div>
 
-        <div id="boda-driver-sec" class="sec">
-            <div class="sec-h"><h2>Mode ya Dereva</h2><span onclick="handleNav('boda-sec')">Rudi Kama Abiria</span></div>
+            <div id="boda-driver-sec" class="sec">
+            <div class="sec-h"><h2>Mode ya Dereva</h2><span onclick="handleNav('boda-sec')">Rudi kama Abiria</span></div>
             <div style="padding: 0 20px;">
                 <div id="boda-reg-box" style="background:var(--surface); padding:15px; border-radius:16px; margin-bottom:20px; border:1px solid var(--border);">
-                    <h4 style="margin-bottom:10px;">Jisajili kama Dereva</h4>
+                    <h4 style="margin-bottom:10px;">Jisajili kama Dereva wa Boda</h4>
                     <div class="form-g"><input type="text" id="driver-plate" style="padding-left:16px; background:var(--bg); border:1px solid var(--border);" placeholder="Namba ya Tashi (Mfano: T 123 ABC)"></div>
-                    <button onclick="registerDriver()" class="btn-p">Hifadhi na Anza</button>
+                    <div class="form-g">
+                        <label class="form-l">Picha ya Pikipiki ikionyesha Namba ya Tashi</label>
+                        <input type="file" id="driver-plate-photo" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);">
+                    </div>
+                    <button onclick="registerDriver()" class="btn-p" id="btn-register-driver">Tuma Ombi</button>
                 </div>
                 <div id="boda-requests-list"></div>
             </div>
