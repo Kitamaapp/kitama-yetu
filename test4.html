@@ -4773,7 +4773,7 @@
             }
 
             const destText = document.getElementById('boda-dest').value.trim();
-            if (!bodaPickupLat || !bodaPickupLng) return showToast("GPS ya mahali ulipo bado hajaanza. Subiri kidogo au bofya kitufe cha kijani.");
+            if (!bodaPickupLat || !bodaPickupLng) return showToast("GPS ya mahali ulipo bado hajaanza. Bonyeza kitufe cha kijani.");
             if (!destText) return showToast("Weka mahali unaelekea au bofya kwenye ramani kukiweka");
 
             try {
@@ -4781,30 +4781,16 @@
                 
                 let foundLocation = null;
                 
-                // Tumia nafasi ya kuanzia (pickup) kuweka viewbox (tafuta ndani ya eneo la km 50 hivi)
-                const latOffset = 0.5; // Takriban km 50
-                const viewbox = `${bodaPickupLng - latOffset},${bodaPickupLat + latOffset},${bodaPickupLng + latOffset},${bodaPickupLat - latOffset}`;
-                
-                // 1. TUMIA PHOTON (KOMOOT) MWANZO - Ni mzuri sana kwa majina ya Tanzania
-                const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(destText)}&limit=5`;
+                // TUMIA PHOTON (Komoot) NA KUMWAMBIA TAFUTE KARIBU NA ENEO LANGU (lat & lon)
+                const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(destText)}&lat=${bodaPickupLat}&lon=${bodaPickupLng}&limit=1`;
                 let res = await fetch(photonUrl);
                 let data = await res.json();
                 
                 if (data && data.features && data.features.length > 0) {
-                    // Chagua matokeo ya kwanza yaliyo karibu na eneo langu
                     foundLocation = { 
                         lat: data.features[0].geometry.coordinates[1], 
                         lng: data.features[0].geometry.coordinates[0] 
                     };
-                } else {
-                    // 2. KAMA PHOTON HAIJAPATA, TUMIA NOMINATIM
-                    const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destText)}&viewbox=${viewbox}&bounded=1&countrycodes=tz&limit=1`;
-                    let res2 = await fetch(nominatimUrl);
-                    let data2 = await res2.json();
-                    
-                    if (data2 && data2.length > 0) {
-                        foundLocation = { lat: parseFloat(data2[0].lat), lng: parseFloat(data2[0].lon) };
-                    }
                 }
                 
                 if (foundLocation) {
@@ -4819,7 +4805,7 @@
                     updateRoute();
                 } else {
                     document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
-                    showToast("Mahali hapatikani kwa jina hilo. Jaribu kuandika jina kamili au bofya kwenye ramani kukiweka.");
+                    showToast("Mahali hapatikani. Bonyeza kwenye ramani kukiweka hasa.");
                 }
             } catch(e) {
                 document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
@@ -4827,47 +4813,44 @@
             }
         }
 
-    function updateRoute() {
-        if (!bodaPickupLat || !bodaDestLat) return;
+            function updateRoute() {
+            if (!bodaPickupLat || !bodaDestLat) return;
 
-        if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); }
-        if (bodaRouteLine) { bodaMap.removeLayer(bodaRouteLine); }
+            if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); }
+            if (bodaRouteLine) { bodaMap.removeLayer(bodaRouteLine); }
 
-        document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div> Inapanga Njia...';
+            document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div> Inapanga Njia...';
 
-        bodaRoutingControl = L.Routing.control({
-            waypoints: [ L.latLng(bodaPickupLat, bodaPickupLng), L.latLng(bodaDestLat, bodaDestLng) ],
-            routeWhileDragging: false, addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
-            lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
-        }).addTo(bodaMap);
-
-        bodaRoutingControl.on('routesfound', function(e) {
-            const distance = e.routes[0].summary.totalDistance;
-            const distanceKm = distance / 1000;
-            bodaFareAmount = Math.round(1000 + (distanceKm * 500));
-            showBodaFareDetails();
-        });
-
-        // FALLBACK: Kama server ya barabara inakataa, tumia mstari wa moja kwa moja
-        bodaRoutingControl.on('routingerror', function(e) {
-            console.error('Routing failed, falling back to straight line', e);
+            // 1. HESABU UMBALI WA MOJA KWA MOJA (Straight Line) KIMYAKIMYA
+            const straightDistanceKm = getDistance(bodaPickupLat, bodaPickupLng, bodaDestLat, bodaDestLng);
             
-            if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); bodaRoutingControl = null; }
+            // 2. WEKA NAULI KWA LILE UMBALI HALISI (1000 Tsh base + 500 Tsh kwa KM)
+            bodaFareAmount = Math.round(1000 + (straightDistanceKm * 500));
             
-            // Kisia kwa mstari wa moja kwa moja
-            const distanceKm = getDistance(bodaPickupLat, bodaPickupLng, bodaDestLat, bodaDestLng);
-            bodaFareAmount = Math.round(1000 + (distanceKm * 500));
-            
-            // Chora mstari
-            bodaRouteLine = L.polyline([
-                [bodaPickupLat, bodaPickupLng], [bodaDestLat, bodaDestLng]
-            ], {color: '#10B981', opacity: 0.9, weight: 4, dashArray: '10, 10'}).addTo(bodaMap);
-            bodaMap.fitBounds(bodaRouteLine.getBounds());
-            
-            showBodaFareDetails();
-            showToast("Imeshindwa kupata barabara sahihi, nauli imekisiwa kwa mstari wa moja kwa moja.");
-        });
-    }
+            document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
+            document.getElementById('boda-fare-details').style.display = 'block';
+            document.getElementById('btn-boda-confirm').style.display = 'block';
+            document.getElementById('btn-boda-search').style.display = 'none';
+            document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+            playBeep();
+
+            // 3. CHORA NJIA KENYE RAMANI KUFUATA BARABARA (Hii haizidi bei)
+            bodaRoutingControl = L.Routing.control({
+                waypoints: [ L.latLng(bodaPickupLat, bodaPickupLng), L.latLng(bodaDestLat, bodaDestLng) ],
+                routeWhileDragging: false, addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
+                lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
+            }).addTo(bodaMap);
+
+            // KAMA BARABARA HAIPATIKANI, CHORA MSTARI WA MOJA KWA MOJA
+            bodaRoutingControl.on('routingerror', function(e) {
+                if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); bodaRoutingControl = null; }
+                bodaRouteLine = L.polyline([
+                    [bodaPickupLat, bodaPickupLng], [bodaDestLat, bodaDestLng]
+                ], {color: '#10B981', opacity: 0.9, weight: 4, dashArray: '10, 10'}).addTo(bodaMap);
+                bodaMap.fitBounds(bodaRouteLine.getBounds());
+                showToast("Nauli imewekwa kulingana na umbali wa moja kwa moja.");
+            });
+        }
 
     function showBodaFareDetails() {
         document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
@@ -5138,17 +5121,17 @@
             }, 200);
         }     
 
-    function getDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; 
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
-
+      function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius ya dunia kwa kilometa
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Rudia umbali kwa Kilometa
+        }
     
     async function acceptBoda(reqId, riderPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
