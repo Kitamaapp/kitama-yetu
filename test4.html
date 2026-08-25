@@ -4701,7 +4701,7 @@
                 if (pickupMarker) bodaMap.removeLayer(pickupMarker);
                 const pickupIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15] });
                 pickupMarker = L.marker([bodaPickupLat, bodaPickupLng], { icon: pickupIcon }).addTo(bodaMap);
-                pickupMarker.bindPopup("<b>Wapo hapa (Pickup)</b>").openPopup();
+                pickupMarker.bindPopup("<b>Upo hapa</b>").openPopup();
                 
                 document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
             }, err => {
