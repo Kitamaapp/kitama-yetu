@@ -288,6 +288,26 @@
         .filter-row input, .filter-row select { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; }
         .shop-badge { background: var(--primary); color: white; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
 
+                /* MARKET POST HEADER (Facebook Style) */
+        .market-post-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .market-post-header img {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+        }
+        .market-post-header .header-info {
+            flex: 1;
+        }
+        .market-post-header b {
+            font-size: 14px; font-weight: 700; color: var(--text); display: block;
+        }
+        .market-post-header small {
+            color: var(--text-sec); font-size: 11px; display: flex; align-items: center; gap: 3px;
+        }
         #map-container { height: 250px; border-radius: 12px; margin-bottom: 15px; display: none; z-index: 1; }
         .blink-marker { display: flex; align-items: center; justify-content: center; }
         .blink-dot { width: 15px; height: 15px; background: #EF4444; border-radius: 50%; box-shadow: 0 0 10px rgba(239, 68, 68, 0.8); animation: blink 1s infinite; }
