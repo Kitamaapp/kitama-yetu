@@ -4413,20 +4413,36 @@
             if (cat !== 'all') query = query.eq('category', cat);
             const { data, error } = await query; 
             if(error) throw error; 
-                        marketItemsCache = data.sort(() => Math.random() - 0.5);
-            
+            marketItemsCache = data.sort(() => Math.random() - 0.5);
+
                         // PATA TAARIFA ZA MUUZAJI: Watu binafsi na Maduka
-            const personPhones = [...new Set(marketItemsCache.filter(m => !m.shop_id).map(m => m.phone))];
+            const personPhones = [...new Set(data.filter(m => !m.shop_id).map(m => m.phone))];
             if(personPhones.length > 0) {
                 const { data: persons } = await sb.from('users').select('full_name, phone_number, is_activist').in('phone_number', personPhones);
                 if(persons) persons.forEach(p => marketUserMap[p.phone_number] = p);
             }
             
-            const shopIds = [...new Set(marketItemsCache.filter(m => m.shop_id).map(m => m.shop_id))];
+            const shopIds = [...new Set(data.filter(m => m.shop_id).map(m => m.shop_id))];
             if(shopIds.length > 0) {
                 const { data: shops } = await sb.from('shops').select('id, shop_name, logo_url, owner_phone').in('id', shopIds);
                 if(shops) shops.forEach(s => marketShopMap[s.id] = s);
-             }
+            }
+            
+            // PANGA BIDHAA: Walioidhinishwa wawe na kipaumbele cha mara 3 (Instagram Style)
+            marketItemsCache = data.map(item => {
+                let isVerified = false;
+                if (item.shop_id) {
+                    let shop = marketShopMap[item.shop_id];
+                    if (shop && shop.owner_phone && marketUserMap[shop.owner_phone]) isVerified = marketUserMap[shop.owner_phone].is_activist || false;
+                } else {
+                    if (marketUserMap[item.phone]) isVerified = marketUserMap[item.phone].is_activist || false;
+                }
+                
+                // Kama ni verified, mpe uzito (weight) mkubwa wa kuonekana (3). Kama hapo, mpe 1.
+                return { ...item, _sortWeight: isVerified ? 3 : 1 };
+            }).sort(() => Math.random() - 0.5) // Changanya kimatuka kwanza
+              .sort((a, b) => b._sortWeight - a._sortWeight); // Panga kulingana na uzito
+            
             marketDisplayIndex = 0;
             marketHasMore = true;
             div.innerHTML = '';
