@@ -682,6 +682,53 @@
         .map-place-label::before {
             display: none !important;
         }
+                /* ACTIVIST ARTICLES PREMIUM DESIGN */
+        .article-card {
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px -5px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+            margin: 0 20px 15px 20px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .article-card:active { transform: scale(0.98); }
+        .article-header {
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .article-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #b45309);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; flex-shrink: 0;
+        }
+        .article-author { font-size: 14px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; }
+        .article-date { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
+        .article-badge-activist {
+            background: #FEF3C7; color: #D97706; padding: 3px 8px;
+            border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase;
+        }
+        .article-body { padding: 15px; }
+        .article-title { font-size: 18px; font-weight: 800; color: #1D9BF0; margin-bottom: 10px; line-height: 1.3; }
+        .article-content { font-size: 14px; color: var(--text); line-height: 1.6; white-space: pre-wrap; }
+        .article-footer {
+            display: flex; gap: 10px; padding: 10px 15px;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+        }
+        .article-action-btn {
+            flex: 1; background: var(--surface); border: 1px solid var(--border);
+            padding: 10px; border-radius: 10px; font-weight: 700; font-size: 13px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+            color: var(--text-sec); transition: all 0.2s;
+        }
+        .article-action-btn:active { transform: scale(0.95); }
+        .article-action-btn.liked { color: #10B981; border-color: #10B981; background: rgba(16,185,129,0.1); }
+        .article-action-btn.disliked { color: #EF4444; border-color: #EF4444; background: rgba(239,68,68,0.1); }
     </style>
 </head>
 <body>
@@ -2519,37 +2566,124 @@
         if(id==='add-item-sec') checkUserShop();
     }
 
-        async function fetchActivistArticles() {
-        const div = document.getElementById('activist-articles-list');
-        const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
-        const oldScroll = window.scrollY;
-        
-        if(!isRealtimeUpdate) {
-            div.innerHTML = '<div class="skeleton" style="height:100px; margin-bottom:15px;"></div>';
-        }
-        try {
-            const { data, error } = await sb.from('activist_articles').select('*').order('created_at', { ascending: false });
-            if(error) throw error;
+            async function fetchActivistArticles() {
+            const div = document.getElementById('activist-articles-list');
+            if(!div) return;
             
+            if (!isOnline()) {
+                const cached = getFromCache('activist_articles_html');
+                div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna makala zilizohifadhiwa.</p>';
+                return;
+            }
+            
+            const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
+            const oldScroll = window.scrollY;
+            
+            if(!isRealtimeUpdate) {
+                div.innerHTML = '<div class="skeleton" style="height:150px; margin:0 20px 15px 20px;"></div>';
+            }
+            try {
+                const { data, error } = await sb.from('activist_articles').select('*').order('created_at', { ascending: false });
+                if(error) throw error;
+                
+                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                
+                const newHtml = data.length > 0 ? data.map(a => {
+                    let isAuthor = u.phone_number === a.author_phone;
+                    let deleteBtn = isAuthor || u.role === 'system_admin' ? `<button onclick="deleteArticle('${a.id}')" style="background:rgba(239,68,68,0.1); border:none; color:var(--danger); padding:8px 12px; border-radius:8px; font-weight:600; font-size:11px; margin-top:10px; cursor:pointer;">Futa Makala</button>` : '';
+                    
+                    let likedArr = a.liked_by || [];
+                    let dislikedArr = a.disliked_by || [];
+                    let hasLiked = likedArr.includes(u.phone_number);
+                    let hasDisliked = dislikedArr.includes(u.phone_number);
+                    
+                    let cleanContent = a.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    
+                    return `<div class="article-card">
+                        <div class="article-header">
+                            <div class="article-avatar">${a.author_name.charAt(0)}</div>
+                            <div style="flex:1;">
+                                <div class="article-author">${a.author_name} ${getActivistBadge(true)} <span class="article-badge-activist">Activist</span></div>
+                                <div class="article-date">${new Date(a.created_at).toLocaleString()}</div>
+                            </div>
+                        </div>
+                        <div class="article-body">
+                            <h3 class="article-title">${a.title}</h3>
+                            <p class="article-content">${cleanContent}</p>
+                            ${deleteBtn}
+                        </div>
+                        <div class="article-footer">
+                            <button class="article-action-btn ${hasLiked ? 'liked' : ''}" onclick="likeArticle('${a.id}')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                                Pendelea (${likedArr.length})
+                            </button>
+                            <button class="article-action-btn ${hasDisliked ? 'disliked' : ''}" onclick="dislikeArticle('${a.id}')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform: rotate(180deg);"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                                Kataa (${dislikedArr.length})
+                            </button>
+                        </div>
+                    </div>`;
+                }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna makala zilizowekwa kwa sasa.</p>';
+                
+                div.innerHTML = newHtml;
+                
+                if(newHtml && !newHtml.includes('skeleton')) {
+                    saveToCache('activist_articles_html', newHtml);
+                }
+                
+                if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
+            } catch(e) { 
+                if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+            }
+        }
+            async function likeArticle(id) {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
-            
-            div.innerHTML = data.length > 0 ? data.map(a => {
-                let isAuthor = u.phone_number === a.author_phone;
-                let deleteBtn = isAuthor || u.role === 'system_admin' ? `<button onclick="deleteArticle('${a.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:600; font-size:11px; margin-top:10px;">Futa Makala</button>` : '';
-                return `<div class="list-i">
-                    <div class="list-meta"><span class="badge b-warn"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Activist</span><small style="color:var(--text-sec);">${new Date(a.created_at).toLocaleDateString()}</small></div>
-                    <h4 style="margin-top:8px;">${a.title}</h4>
-                    <b style="font-size:12px; color:var(--text);"><span style="cursor:pointer;" onclick="viewUserProfile('${a.author_phone}')">${a.author_name}</span> ${getActivistBadge(true)}</b>
-                    <p style="margin-top:10px; white-space: pre-wrap;">${a.content}</p>
-                    ${deleteBtn}
-                </div>`;
-            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna makala zilizowekwa kwa sasa.</p>';
-            
-            if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
-        } catch(e) { 
-            if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Huwezi kufanya vitendo kwa sasa.");
+            try {
+                // Pata taarifa za sasa
+                const { data: art, error: fetchErr } = await sb.from('activist_articles').select('liked_by, disliked_by').eq('id', id).single();
+                if(fetchErr) throw fetchErr;
+                
+                let liked = art.liked_by || [];
+                let disliked = art.disliked_by || [];
+                
+                if (liked.includes(u.phone_number)) {
+                    // Kama ameshapendelea, mtoa (undo)
+                    liked = liked.filter(p => p !== u.phone_number);
+                } else {
+                    // Kama hapenda, ongeza na mtoe kwenye disliked
+                    liked.push(u.phone_number);
+                    disliked = disliked.filter(p => p !== u.phone_number);
+                }
+                
+                await sb.from('activist_articles').update({ liked_by: liked, disliked_by: disliked }).eq('id', id);
+                fetchActivistArticles(); // Pakia upya kuona mabadiliko
+            } catch(e) { openModal("Kosa", e.message); }
         }
-    }
+
+        async function dislikeArticle(id) {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Huwezi kufanya vitendo kwa sasa.");
+            try {
+                const { data: art, error: fetchErr } = await sb.from('activist_articles').select('liked_by, disliked_by').eq('id', id).single();
+                if(fetchErr) throw fetchErr;
+                
+                let liked = art.liked_by || [];
+                let disliked = art.disliked_by || [];
+                
+                if (disliked.includes(u.phone_number)) {
+                    // Kama ameshakataa, mtoa (undo)
+                    disliked = disliked.filter(p => p !== u.phone_number);
+                } else {
+                    // Kama anakataa, ongeza na mtoe kwenye liked
+                    disliked.push(u.phone_number);
+                    liked = liked.filter(p => p !== u.phone_number);
+                }
+                
+                await sb.from('activist_articles').update({ liked_by: liked, disliked_by: disliked }).eq('id', id);
+                fetchActivistArticles();
+            } catch(e) { openModal("Kosa", e.message); }
+        }
 
     async function postActivistArticle() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
