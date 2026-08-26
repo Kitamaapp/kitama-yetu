@@ -1519,6 +1519,7 @@
     let shopsHasMore = true;
 
     let bodaMap = null;
+    let bodaPlaceLabels = [];
     let pickupMarker = null;
     let destMarker = null;
     let lastBodaStatus = null;
@@ -5007,10 +5008,11 @@
     let bodaFareAmount = 0;
     let bodaRouteLine = null;
 
-            function initBodaMap() {
+             function initBodaMap() {
             if (bodaMap) {
                 setTimeout(() => { bodaMap.invalidateSize(); }, 200);
                 findMyLocation();
+                loadBodaMapPlaces(); // PAKIA MAENEO
                 return;
             }
             
@@ -5022,7 +5024,8 @@
             
             L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(bodaMap);
 
-            findMyLocation(); // Itampeleka kwenye eneo lake na kuzoom karibu (zoom 15-16)
+            findMyLocation();
+            loadBodaMapPlaces(); // PAKIA MAENEO PAMOJA NA RAMANI
 
             bodaMap.on('click', function(e) {
                 bodaDestLat = e.latlng.lat;
@@ -5035,6 +5038,31 @@
                 document.getElementById('boda-dest').value = "Alama imewekwa kwenye Ramani";
                 updateRoute();
             });
+        }
+
+        // FUNCTION MPYA: KUPAKIA MAJINA YA MAENEO KWENYE BODA
+        async function loadBodaMapPlaces() {
+            if(!bodaMap) return;
+            
+            // Futa labels za zamani
+            bodaPlaceLabels.forEach(m => bodaMap.removeLayer(m));
+            bodaPlaceLabels = [];
+            
+            try {
+                const { data: places, error } = await sb.from('map_places').select('*');
+                if(error) throw error;
+                
+                places.forEach(p => {
+                    const placeIcon = L.divIcon({
+                        className: 'map-place-label',
+                        html: `<div class="map-place-label">${p.name}</div>`,
+                        iconSize: [100, 20],
+                        iconAnchor: [50, 10]
+                    });
+                    const labelMarker = L.marker([parseFloat(p.lat), parseFloat(p.lng)], { icon: placeIcon }).addTo(bodaMap);
+                    bodaPlaceLabels.push(labelMarker);
+                });
+            } catch(e) { console.error(e); }
         }
 
              function findMyLocation() {
