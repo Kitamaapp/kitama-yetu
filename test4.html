@@ -5009,11 +5009,13 @@
     let bodaFareAmount = 0;
     let bodaRouteLine = null;
 
-    function initBodaMap() {
+            let bodaLocationWatchId = null;
+
+        function initBodaMap() {
             if (bodaMap) {
                 setTimeout(() => { bodaMap.invalidateSize(); }, 200);
                 findMyLocation();
-                loadBodaMapPlaces(); // PAKIA MAENEO
+                loadBodaMapPlaces();
                 return;
             }
             
@@ -5025,13 +5027,14 @@
             
             L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(bodaMap);
 
-            // ONGEZA HII: Kuweka Event ya kuskubiri Zoom
+            // ZOOM EVENT
             bodaMap.on('zoomend', function() {
-                loadBodaMapPlaces(); // Itaonesha/ficha maeneo kulingana na zoom
+                toggleBodaPlaceLabels();
             });
 
             findMyLocation();
             loadBodaMapPlaces();
+
             bodaMap.on('click', function(e) {
                 bodaDestLat = e.latlng.lat;
                 bodaDestLng = e.latlng.lng;
@@ -5045,8 +5048,41 @@
             });
         }
 
-        // FUNCTION MPYA: KUPAKIA MAJINA YA MAENEO KWENYE BODA
-            async function loadBodaMapPlaces() {
+        // SAUTI YA SAHIHI: watchPosition kufuatilia eneo kila sekunde (Inatembea)
+        function findMyLocation() {
+            if (!navigator.geolocation) return showToast("Kifaa chako hakiauni GPS.");
+            
+            // Futa ufuatiliaji wa zamani kama ulikuwepo
+            if (bodaLocationWatchId !== null) {
+                navigator.geolocation.clearWatch(bodaLocationWatchId);
+            }
+
+            bodaLocationWatchId = navigator.geolocation.watchPosition(
+                pos => {
+                    bodaPickupLat = pos.coords.latitude;
+                    bodaPickupLng = pos.coords.longitude;
+                    
+                    const pickupIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15] });
+                    
+                    if (pickupMarker) {
+                        // KAMA ALAMA IPO TAYARI, IBADILISHE MAHALALI PAMOJA NA HAMBA
+                        pickupMarker.setLatLng([bodaPickupLat, bodaPickupLng]);
+                    } else {
+                        // KAMA NI MARA YA KWANZA, IUNGEZE KENYE RAMANI NA IPELEKE ZOOM KWENYE ENEO
+                        pickupMarker = L.marker([bodaPickupLat, bodaPickupLng], { icon: pickupIcon }).addTo(bodaMap);
+                        pickupMarker.bindPopup("<b>Wapo hapa (Pickup)</b>").openPopup();
+                        bodaMap.flyTo([bodaPickupLat, bodaPickupLng], 16, { duration: 1.5 });
+                    }
+                },
+                err => {
+                    if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
+                    else showToast("Washa GPS kwa High Accuracy.");
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        async function loadBodaMapPlaces() {
             if(!bodaMap) return;
             
             try {
@@ -5054,7 +5090,7 @@
                 if(error) throw error;
                 
                 places.forEach(p => {
-                    const placeIcon = getMapPinIcon(p.category, p.name);
+                    const placeIcon = getMapPinIcon(p.category, p.name); // Inatumia ile function ya Kitama Map
                     const labelMarker = L.marker([parseFloat(p.lat), parseFloat(p.lng)], { icon: placeIcon });
                     bodaPlaceLabels.push(labelMarker);
                 });
@@ -5063,31 +5099,20 @@
             } catch(e) { console.error(e); }
         }
 
-     function findMyLocation() {
-            if (!navigator.geolocation) return showToast("Kifaa chako hakiauni GPS.");
+        function toggleBodaPlaceLabels() {
+            if(!bodaMap) return;
+            const isZoomedIn = bodaMap.getZoom() > 13;
             
-            navigator.geolocation.getCurrentPosition(pos => {
-                bodaPickupLat = pos.coords.latitude;
-                bodaPickupLng = pos.coords.longitude;
-                
-                // FLY TO ZOOM 16: Ili aweze kuona majina ya mitaa na vibonyeze
-                bodaMap.flyTo([bodaPickupLat, bodaPickupLng], 16, { duration: 1.5 });
-                
-                if (pickupMarker) bodaMap.removeLayer(pickupMarker);
-                const pickupIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15] });
-                pickupMarker = L.marker([bodaPickupLat, bodaPickupLng], { icon: pickupIcon }).addTo(bodaMap);
-                pickupMarker.bindPopup("<b>Upo hapa</b>").openPopup();
-                
-            }, err => {
-                if (err.code === 1) {
-                    showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings za simu.");
+            bodaPlaceLabels.forEach(label => {
+                if (isZoomedIn) {
+                    if (!bodaMap.hasLayer(label)) label.addTo(bodaMap);
                 } else {
-                    showToast("GPS haiwezi kupatikana. Washa kwa High Accuracy.");
+                    if (bodaMap.hasLayer(label)) bodaMap.removeLayer(label);
                 }
-            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            });
         }
 
-            async function searchRouteAndFare() {
+    async function searchRouteAndFare() {
             if (bodaDestLat && bodaDestLng && document.getElementById('boda-dest').value === "Alama imewekwa kwenye Ramani") {
                 updateRoute();
                 return;
