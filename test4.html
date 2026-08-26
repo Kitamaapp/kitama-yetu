@@ -655,32 +655,33 @@
             width: 100%; height: 100%; 
             z-index: 1; background: var(--bg); 
         }
-            .map-place-label {
+                /* GOOGLE MAPS STYLE PINS */
+        .map-pin-container {
             background: transparent !important;
-            padding: 0 !important;
             border: none !important;
-            box-shadow: none !important;
-            font-size: 12px !important;
-            font-weight: 600 !important; /* Sio bold sana, kama Google */
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+        }
+        .map-pin-icon {
+            width: 28px; height: 28px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        .map-pin-icon svg { transform: rotate(45deg); }
+        .map-pin-text {
+            position: absolute; top: 32px; left: -50px;
+            width: 100px; text-align: center;
+            color: #000000;
+            font-weight: 700;
+            font-size: 12px;
             font-family: 'Plus Jakarta Sans', Arial, sans-serif !important;
-            white-space: nowrap !important;
-            pointer-events: none !important;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            /* Mvivuli weupe (Halo effect) kama Google Maps */
-            text-shadow: 
-                -1px -1px 0 #ffffff, 
-                 1px -1px 0 #ffffff,
-                -1px 1px 0 #ffffff,
-                 1px 1px 0 #ffffff,
-                 0 0 4px #ffffff !important;
-        }
-        .map-place-label svg {
-            vertical-align: middle;
-        }
-        .map-place-label::before {
-            display: none !important;
+            text-shadow: -1px -1px 0 #ffffff, 1px -1px 0 #ffffff, -1px 1px 0 #ffffff, 1px 1px 0 #ffffff, 0 0 5px #ffffff;
+            pointer-events: none;
+            white-space: nowrap;
         }
                 /* ACTIVIST ARTICLES PREMIUM DESIGN */
         .article-card {
