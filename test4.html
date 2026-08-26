@@ -7812,48 +7812,7 @@
             // Reset input ili iweze kuruhusu kuchagua tena
             input.value = '';
         }
-               // --- KITAMA MAP FUNCTIONS ---
-        let kitamaMap = null;
-        let mapMarkers = [];
-        let mapPlaceLabels = [];
-        let myLocationMarker = null;
-        let locationWatchId = null;
-
-        function initKitamaMap() {
-            if(kitamaMap) {
-                setTimeout(() => { 
-                    kitamaMap.invalidateSize(); 
-                    startWatchingLocation();
-                    loadMapMarkers();
-                }, 200);
-                return;
-            }
-            
-            kitamaMap = L.map('kitama-map', { zoomControl: true }).setView([-6.2, 35.0], 14);
-            
-            const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' }).addTo(kitamaMap);
-            const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
-            const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
-            
-           L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(kitamaMap);
-
-            // ONGEZA HII: Kuweka Event ya kuskubiri Zoom
-            kitamaMap.on('zoomend', function() {
-                loadMapMarkers(); // Itapakia upya na kuonesha/ficha maeneo kulingana na zoom
-            });
-
-            setTimeout(() => { kitamaMap.invalidateSize(); }, 200);
-            findMyLocationOnMap();
-            
-            loadMapMarkers();
-            
-            // ONYESHA KITUFU CHA KUONGEZA ENEO KWA ADMIN/VIONGOZI
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            const addBtn = document.getElementById('add-place-btn');
-            if (addBtn && (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani')) {
-                addBtn.style.display = 'flex';
-            }
-        }
+        
 
         // HII NDIO INAYOFANYA DOT ITEMBEA KAMA GOOGLE MAPS
         function startWatchingLocation() {
@@ -7886,58 +7845,6 @@
                 else showToast("Washa GPS kwa High Accuracy.");
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
-
-                async function loadMapMarkers() {
-            if(!kitamaMap) return;
-            
-            // Futa markers za zamani
-            mapMarkers.forEach(m => kitamaMap.removeLayer(m));
-            mapPlaceLabels.forEach(m => kitamaMap.removeLayer(m));
-            mapMarkers = [];
-            mapPlaceLabels = [];
-            
-            try {
-                // 1. PAKIA WATUMIAJI WALIPO (Hawa wakaonekana daima)
-                const { data: users, error: uErr } = await sb.from('users').select('full_name, phone_number, lat, lng, is_activist, role').not('lat', 'is', null);
-                if(uErr) throw uErr;
-                
-                users.forEach(u => {
-                    if(u.lat && u.lng) {
-                        let lat = parseFloat(u.lat);
-                        let lng = parseFloat(u.lng);
-                        let iconColor = u.is_activist ? '#3B82F6' : (u.role !== 'citizen' ? '#EF4444' : '#10B981');
-                        
-                        const customIcon = L.divIcon({
-                            className: 'blink-marker',
-                            html: `<div style="width:15px; height:15px; background:${iconColor}; border-radius:50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
-                            iconSize: [15, 15]
-                        });
-                        
-                        const marker = L.marker([lat, lng], { icon: customIcon }).addTo(kitamaMap);
-                        marker.bindPopup(`<b>${u.full_name}</b><br><small>${u.role.replace(/_/g, ' ')}</small>`);
-                        mapMarkers.push(marker);
-                    }
-                });
-                
-                // 2. PAKIA MAENEO ALIYOONGEZA ADMIN (Yakaonekana tu ukiwa karibu - Zoom > 13)
-                const { data: places, error: pErr } = await sb.from('map_places').select('*');
-                if(pErr) throw pErr;
-                
-                if (kitamaMap.getZoom() > 13) { // KAMA AMEZOOM KARIBU
-                    places.forEach(p => {
-                        const placeIcon = L.divIcon({
-                            className: 'map-place-label',
-                            html: `<div class="map-place-label">${p.name}</div>`,
-                            iconSize: [100, 20],
-                            iconAnchor: [50, 10]
-                        });
-                        const labelMarker = L.marker([parseFloat(p.lat), parseFloat(p.lng)], { icon: placeIcon }).addTo(kitamaMap);
-                        mapPlaceLabels.push(labelMarker);
-                    });
-                }
-                
-            } catch(e) { console.error(e); }
-                }
 
         // ADMIN KUONGEZA ENEO (Sasa inatumia mtoa aliyekuwapo badala ya kusubiri tena)
         function addCurrentPlaceToMap() {
