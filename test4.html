@@ -7856,50 +7856,64 @@
             }
         }
 
+            // DICTIONARY YA IKONI NA RANGI KULINGANA NA CATEGORY
+        const MAP_ICONS = {
+            'hospital': { color: '#EF4444', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 8h-2V3H7v5H5a2 2 0 0 0-2 2v9h18v-9a2 2 0 0 0-2-2zm-5 7h-2v2h-2v-2H8v-2h2v-2h2v2h2v2z"/></svg>' },
+            'school': { color: '#F59E0B', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3z"/></svg>' },
+            'shop': { color: '#10B981', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg>' },
+            'mosque': { color: '#8B5CF6', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 2c-1 3-4 4-4 8v12h8V10c0-4-3-5-4-8z"/></svg>' },
+            'church': { color: '#3B82F6', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 2v2M10 4h4v4h4v12H6V8h4V4z"/></svg>' },
+            'market': { color: '#EC4899', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M3 10h18l-2 8H5l-2-8zM8 10V6a4 4 0 0 1 8 0v4"/></svg>' },
+            'office': { color: '#6366F1', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M3 21h18M5 21V5h14v16M9 9h2v2H9zM13 9h2v2h-2zM9 13h2v2H9zM13 13h2v2h-2z"/></svg>' },
+            'water': { color: '#06B6D4', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 2s7 8 7 13a7 7 0 0 1-14 0c0-5 7-13 7-13z"/></svg>' },
+            'place': { color: '#EF4444', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="6"/></svg>' }
+        };
+
+        function getMapPinIcon(category, name) {
+            const cat = category || 'place';
+            const iconData = MAP_ICONS[cat] || MAP_ICONS['place'];
+            
+            return L.divIcon({
+                className: 'map-pin-container',
+                html: `<div class="map-pin-icon" style="background:${iconData.color};">${iconData.svg}</div><div class="map-pin-text">${name}</div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 28]
+            });
+        }
+
         async function loadMapMarkers() {
             if(!kitamaMap) return;
             
+            mapMarkers.forEach(m => kitamaMap.removeLayer(m));
+            mapPlaceLabels.forEach(m => kitamaMap.removeLayer(m));
+            mapMarkers = [];
+            mapPlaceLabels = [];
+            
             try {
-                // 1. PAKIA WATUMIAJI (Hawa wakaonekana daima, hawafutwi wakati wa zoom)
                 const { data: users, error: uErr } = await sb.from('users').select('full_name, phone_number, lat, lng, is_activist, role').not('lat', 'is', null);
                 if(uErr) throw uErr;
                 
                 users.forEach(u => {
                     if(u.lat && u.lng) {
-                        let lat = parseFloat(u.lat);
-                        let lng = parseFloat(u.lng);
+                        let lat = parseFloat(u.lat), lng = parseFloat(u.lng);
                         let iconColor = u.is_activist ? '#3B82F6' : (u.role !== 'citizen' ? '#EF4444' : '#10B981');
-                        
-                        const customIcon = L.divIcon({
-                            className: 'blink-marker',
-                            html: `<div style="width:15px; height:15px; background:${iconColor}; border-radius:50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
-                            iconSize: [15, 15]
-                        });
-                        
+                        const customIcon = L.divIcon({ className: 'blink-marker', html: `<div style="width:15px; height:15px; background:${iconColor}; border-radius:50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`, iconSize: [15, 15] });
                         const marker = L.marker([lat, lng], { icon: customIcon }).addTo(kitamaMap);
                         marker.bindPopup(`<b>${u.full_name}</b><br><small>${u.role.replace(/_/g, ' ')}</small>`);
                         mapMarkers.push(marker);
                     }
                 });
                 
-                // 2. PAKIA MAENEO ALIYOONGEZA ADMIN
                 const { data: places, error: pErr } = await sb.from('map_places').select('*');
                 if(pErr) throw pErr;
                 
                 places.forEach(p => {
-                    const placeIcon = L.divIcon({
-                        className: 'map-place-label',
-                        html: `<div class="map-place-label">${p.name}</div>`,
-                        iconSize: [100, 20],
-                        iconAnchor: [50, 10]
-                    });
+                    const placeIcon = getMapPinIcon(p.category, p.name);
                     const labelMarker = L.marker([parseFloat(p.lat), parseFloat(p.lng)], { icon: placeIcon });
-                    mapPlaceLabels.push(labelMarker); // Hifadhi bila kuziweka kwenye map moja kwa moja
+                    mapPlaceLabels.push(labelMarker);
                 });
                 
-                // 3. ONESHA AU FICHA MAENEO KULINGANA NA ZOOM YA SASA
                 toggleMapPlaceLabels();
-                
             } catch(e) { console.error(e); }
         }
 
