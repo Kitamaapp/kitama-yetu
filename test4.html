@@ -5008,7 +5008,7 @@
     let bodaFareAmount = 0;
     let bodaRouteLine = null;
 
-             function initBodaMap() {
+    function initBodaMap() {
             if (bodaMap) {
                 setTimeout(() => { bodaMap.invalidateSize(); }, 200);
                 findMyLocation();
@@ -5024,9 +5024,13 @@
             
             L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(bodaMap);
 
-            findMyLocation();
-            loadBodaMapPlaces(); // PAKIA MAENEO PAMOJA NA RAMANI
+            // ONGEZA HII: Kuweka Event ya kuskubiri Zoom
+            bodaMap.on('zoomend', function() {
+                loadBodaMapPlaces(); // Itaonesha/ficha maeneo kulingana na zoom
+            });
 
+            findMyLocation();
+            loadBodaMapPlaces();
             bodaMap.on('click', function(e) {
                 bodaDestLat = e.latlng.lat;
                 bodaDestLng = e.latlng.lng;
@@ -5041,7 +5045,7 @@
         }
 
         // FUNCTION MPYA: KUPAKIA MAJINA YA MAENEO KWENYE BODA
-        async function loadBodaMapPlaces() {
+                async function loadBodaMapPlaces() {
             if(!bodaMap) return;
             
             // Futa labels za zamani
@@ -5052,20 +5056,23 @@
                 const { data: places, error } = await sb.from('map_places').select('*');
                 if(error) throw error;
                 
-                places.forEach(p => {
-                    const placeIcon = L.divIcon({
-                        className: 'map-place-label',
-                        html: `<div class="map-place-label">${p.name}</div>`,
-                        iconSize: [100, 20],
-                        iconAnchor: [50, 10]
+                // ONYESHA MAENEO KAMA AMEZOOM KARIBU (Zoom > 13)
+                if (bodaMap.getZoom() > 13) {
+                    places.forEach(p => {
+                        const placeIcon = L.divIcon({
+                            className: 'map-place-label',
+                            html: `<div class="map-place-label">${p.name}</div>`,
+                            iconSize: [100, 20],
+                            iconAnchor: [50, 10]
+                        });
+                        const labelMarker = L.marker([parseFloat(p.lat), parseFloat(p.lng)], { icon: placeIcon }).addTo(bodaMap);
+                        bodaPlaceLabels.push(labelMarker);
                     });
-                    const labelMarker = L.marker([parseFloat(p.lat), parseFloat(p.lng)], { icon: placeIcon }).addTo(bodaMap);
-                    bodaPlaceLabels.push(labelMarker);
-                });
+                }
             } catch(e) { console.error(e); }
         }
 
-             function findMyLocation() {
+     function findMyLocation() {
             if (!navigator.geolocation) return showToast("Kifaa chako hakiauni GPS.");
             
             navigator.geolocation.getCurrentPosition(pos => {
