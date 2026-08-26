@@ -7812,7 +7812,159 @@
             // Reset input ili iweze kuruhusu kuchagua tena
             input.value = '';
         }
-        
+              // --- KITAMA MAP FUNCTIONS ---
+        let kitamaMap = null;
+        let mapMarkers = [];
+        let mapPlaceLabels = [];
+        let myLocationMarker = null;
+
+        function initKitamaMap() {
+            if(kitamaMap) {
+                setTimeout(() => { kitamaMap.invalidateSize(); }, 200);
+                findMyLocationOnMap();
+                return;
+            }
+            
+            kitamaMap = L.map('kitama-map', { zoomControl: true }).setView([-6.2, 35.0], 14);
+            
+            const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' }).addTo(kitamaMap);
+            const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
+            const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
+            
+            L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(kitamaMap);
+
+            // ZOOM EVENT: Sasa haitapakia upya markers zote, itaonesha/ficha maeneo tu
+            kitamaMap.on('zoomend', function() {
+                toggleMapPlaceLabels();
+            });
+
+            findMyLocationOnMap();
+            loadMapMarkers();
+            
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            const addBtn = document.getElementById('add-place-btn');
+            if (addBtn && (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani')) {
+                addBtn.style.display = 'flex';
+            }
+        }
+
+        async function loadMapMarkers() {
+            if(!kitamaMap) return;
+            
+            try {
+                // 1. PAKIA WATUMIAJI (Hawa wakaonekana daima, hawafutwi wakati wa zoom)
+                const { data: users, error: uErr } = await sb.from('users').select('full_name, phone_number, lat, lng, is_activist, role').not('lat', 'is', null);
+                if(uErr) throw uErr;
+                
+                users.forEach(u => {
+                    if(u.lat && u.lng) {
+                        let lat = parseFloat(u.lat);
+                        let lng = parseFloat(u.lng);
+                        let iconColor = u.is_activist ? '#3B82F6' : (u.role !== 'citizen' ? '#EF4444' : '#10B981');
+                        
+                        const customIcon = L.divIcon({
+                            className: 'blink-marker',
+                            html: `<div style="width:15px; height:15px; background:${iconColor}; border-radius:50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
+                            iconSize: [15, 15]
+                        });
+                        
+                        const marker = L.marker([lat, lng], { icon: customIcon }).addTo(kitamaMap);
+                        marker.bindPopup(`<b>${u.full_name}</b><br><small>${u.role.replace(/_/g, ' ')}</small>`);
+                        mapMarkers.push(marker);
+                    }
+                });
+                
+                // 2. PAKIA MAENEO ALIYOONGEZA ADMIN
+                const { data: places, error: pErr } = await sb.from('map_places').select('*');
+                if(pErr) throw pErr;
+                
+                places.forEach(p => {
+                    const placeIcon = L.divIcon({
+                        className: 'map-place-label',
+                        html: `<div class="map-place-label">${p.name}</div>`,
+                        iconSize: [100, 20],
+                        iconAnchor: [50, 10]
+                    });
+                    const labelMarker = L.marker([parseFloat(p.lat), parseFloat(p.lng)], { icon: placeIcon });
+                    mapPlaceLabels.push(labelMarker); // Hifadhi bila kuziweka kwenye map moja kwa moja
+                });
+                
+                // 3. ONESHA AU FICHA MAENEO KULINGANA NA ZOOM YA SASA
+                toggleMapPlaceLabels();
+                
+            } catch(e) { console.error(e); }
+        }
+
+        function toggleMapPlaceLabels() {
+            if(!kitamaMap) return;
+            const isZoomedIn = kitamaMap.getZoom() > 13;
+            
+            mapPlaceLabels.forEach(label => {
+                if (isZoomedIn) {
+                    if (!kitamaMap.hasLayer(label)) label.addTo(kitamaMap);
+                } else {
+                    if (kitamaMap.hasLayer(label)) kitamaMap.removeLayer(label);
+                }
+            });
+        }
+
+        function findMyLocationOnMap() {
+            if (!navigator.geolocation) return showToast("Kifaa chako hakikai GPS.");
+            
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                
+                kitamaMap.flyTo([lat, lng], 16, { duration: 1.5 });
+                
+                if (myLocationMarker) kitamaMap.removeLayer(myLocationMarker);
+                
+                const myLocationIcon = L.divIcon({
+                    className: 'blink-marker',
+                    html: '<div style="width:20px; height:20px; background:#3B82F6; border-radius:50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); animation: blink 1s infinite;"></div>',
+                    iconSize: [20, 20]
+                });
+                
+                myLocationMarker = L.marker([lat, lng], { icon: myLocationIcon }).addTo(kitamaMap);
+                myLocationMarker.bindPopup("<b>Wewe uko hapa</b>").openPopup();
+                
+            }, err => {
+                if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
+                else showToast("Washa GPS kwa High Accuracy.");
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+        }
+
+        function addCurrentPlaceToMap() {
+            if (!navigator.geolocation) return showToast("GPS haipatikani.");
+            
+            showToast("Inatafuta eneo lako halisi...");
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                
+                const html = `
+                    <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">GPS imekupata uko hapahapa. Weka jina la eneo/mtaa hili:</p>
+                    <input type="text" id="new-place-name" class="modal-input" placeholder="Mfano: Mtaa wa Jumbe" style="margin-bottom: 15px;">
+                `;
+                
+                openModal("Ongeza Eneo Hapa", html, false, async () => {
+                    const name = document.getElementById('new-place-name').value.trim();
+                    if(!name) return showToast("Tafadhali weka jina la eneo.");
+                    
+                    try {
+                        await sb.from('map_places').insert([{ name: name, lat: lat.toString(), lng: lng.toString() }]);
+                        showToast("Eneo limeongezwa kwenye ramani!");
+                        closeModal();
+                        loadMapMarkers(); 
+                    } catch(e) {
+                        openModal("Kosa", e.message);
+                    }
+                });
+                
+            }, err => {
+                showToast("Washa GPS na uweke ruhusa.");
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+             }  
 
         // HII NDIO INAYOFANYA DOT ITEMBEA KAMA GOOGLE MAPS
         function startWatchingLocation() {
@@ -7846,31 +7998,7 @@
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
-        // ADMIN KUONGEZA ENEO (Sasa inatumia mtoa aliyekuwapo badala ya kusubiri tena)
-        function addCurrentPlaceToMap() {
-            let lat, lng;
-            
-            // Kama dot ya bluu ipo, tumia mtoa huo aliyopo sasa
-            if (myLocationMarker) {
-                const ll = myLocationMarker.getLatLng();
-                lat = ll.lat;
-                lng = ll.lng;
-                promptPlaceName(lat, lng);
-            } else {
-                // Kama bado haipatikani, jaribu kumtafuta mtoa wa sasa
-                if (!navigator.geolocation) return showToast("GPS haipatikani.");
-                showToast("Inatafuta eneo lako halisi...");
-                navigator.geolocation.getCurrentPosition(pos => {
-                    lat = pos.coords.latitude;
-                    lng = pos.coords.longitude;
-                    promptPlaceName(lat, lng);
-                }, err => {
-                    showToast("Washa GPS na uweke ruhusa.");
-                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-            }
-        }
-
-                function promptPlaceName(lat, lng) {
+        function promptPlaceName(lat, lng) {
             const html = `
                 <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">Uko katika eneo sahihi. Weka jina na aina ya eneo/mtaa hili:</p>
                 <div class="form-g">
