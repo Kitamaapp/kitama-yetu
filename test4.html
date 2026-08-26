@@ -7942,7 +7942,7 @@
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
-        function addCurrentPlaceToMap() {
+            function addCurrentPlaceToMap() {
             if (!navigator.geolocation) return showToast("GPS haipatikani.");
             
             showToast("Inatafuta eneo lako halisi...");
@@ -7951,16 +7951,34 @@
                 const lng = pos.coords.longitude;
                 
                 const html = `
-                    <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">GPS imekupata uko hapahapa. Weka jina la eneo/mtaa hili:</p>
-                    <input type="text" id="new-place-name" class="modal-input" placeholder="Mfano: Mtaa wa Jumbe" style="margin-bottom: 15px;">
+                    <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">GPS imekupata uko hapahapa. Jaza taarifa za eneo hili:</p>
+                    <div class="form-g">
+                        <label class="form-l">Jina la Eneo</label>
+                        <input type="text" id="new-place-name" class="modal-input" placeholder="Mfano: Kitama Health Centre" style="margin-bottom: 15px;">
+                    </div>
+                    <div class="form-g">
+                        <label class="form-l">Aina ya Eneo</label>
+                        <select id="new-place-category" class="modal-input" style="padding-left: 16px;">
+                            <option value="place">Eneo la Kawaida (Kijiwe)</option>
+                            <option value="hospital">Hospitali / Zahanati</option>
+                            <option value="school">Shule</option>
+                            <option value="shop">Duka</option>
+                            <option value="mosque">Msikiti</option>
+                            <option value="church">Kanisa</option>
+                            <option value="market">Soko</option>
+                            <option value="office">Ofisi ya Serikali</option>
+                            <option value="water">Chanzo cha Maji</option>
+                        </select>
+                    </div>
                 `;
                 
                 openModal("Ongeza Eneo Hapa", html, false, async () => {
                     const name = document.getElementById('new-place-name').value.trim();
+                    const category = document.getElementById('new-place-category').value;
                     if(!name) return showToast("Tafadhali weka jina la eneo.");
                     
                     try {
-                        await sb.from('map_places').insert([{ name: name, lat: lat.toString(), lng: lng.toString() }]);
+                        await sb.from('map_places').insert([{ name: name, lat: lat.toString(), lng: lng.toString(), category: category }]);
                         showToast("Eneo limeongezwa kwenye ramani!");
                         closeModal();
                         loadMapMarkers(); 
@@ -7972,7 +7990,7 @@
             }, err => {
                 showToast("Washa GPS na uweke ruhusa.");
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-             }  
+            }
 
         // HII NDIO INAYOFANYA DOT ITEMBEA KAMA GOOGLE MAPS
         function startWatchingLocation() {
