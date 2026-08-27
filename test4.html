@@ -6142,23 +6142,27 @@
                         let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
                         
                         // 1. HAPA NDIO TULIYOKUIBADILISHIA: KUTAMBUA MFUMO WA KITAMA
-                        let isSystemAccount = (c.sender_phone === '255000000000' || c.sender_name === 'Mfumo wa Kitama');
+                                                // 1. TUMBUA ADMIN KAMA MFUMO WA KITAMA
+                        let isSystemAccount = (c.sender_phone === ADMIN_PHONE || c.sender_name === 'Mfumo wa Kitama');
                         
-                                                if (isSystemAccount) {
+                        if (isSystemAccount) {
                             let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover; vertical-align: middle; margin-right: 5px;">`;
                             let systemName = 'Mfumo wa Kitama';
                             let systemBadge = getActivistBadge(true);
                             
                             // KAMA NI UJUMBE WA KURUDI FORUM, TENGNEZA KITUFU NDANI YA UJUMBE
                             let contentHtml = content;
+                            let showLinkBtn = true;
                             if (content.includes("Bonyeza kitufe hapa chini kuungana")) {
-                                contentHtml = "Karibu kurudi kwenye KITAMA FORUM! Bonyeza kitufe hapa chini kuungana tena na wananchi wako.<br><br><button onclick='event.stopPropagation(); acceptForumReturn(\"" + c.id + "\")' class='btn-p' style='margin-top:10px; padding: 10px 20px; font-size: 14px; width: auto;'>Ungana na Forum</button>";
+                                contentHtml = "Karibu kuridi kwenye KITAMA FORUM! Bonyeza kitufe hapa chini kuungana tena na wananchi wako.<br><br><button onclick='event.stopPropagation(); acceptForumReturn(\"" + c.id + "\")' class='btn-p' style='margin-top:10px; padding: 10px 20px; font-size: 14px; width: auto;'>Ungana na Forum</button>";
+                            } else {
+                                showLinkBtn = false;
                             }
                             
                             actionsHtml = `<div class="chat-actions"></div>`;
                             chatHtml += `<div id="msg-${c.id}" class="chat-msg" onclick="toggleMsgActions(this)"><b>${systemLogo}${systemName} ${systemBadge}</b><p>${contentHtml}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
                             return;
-                         }
+                        }
 
                         // 2. KWA WENGINE WOTE (UJUMBE WA KAWAIDA)
                         let displayName = isSelf ? 'Wewe' : c.sender_name;
