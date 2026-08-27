@@ -1099,8 +1099,8 @@
         </div> 
 
         <div id="citizen-chat-sec" class="sec">
-            <div class="chat-header">
-                <div style="display:flex; align-items:center; gap:15px;">
+                 <div class="chat-header">
+                <div style="display:flex; align-items:center; gap:15px; flex: 1;">
                     <button onclick="handleNav('home-sec')" style="background:var(--bg); border:none; padding:8px; border-radius:12px; cursor:pointer; color:var(--text); display:flex; align-items:center;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     </button>
@@ -1109,12 +1109,22 @@
                         <small id="citizen-presence-info" style="font-size:11px; color:var(--text-sec); margin-top:2px; display:block;">Inapakia...</small>
                     </div>
                 </div>
-                <span onclick="viewCitizensList()" class="chat-header-btn">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Wananchi
-                </span>
-                <span onclick="openForumSearch()" class="chat-header-btn">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Tafuta
-                </span>
+                
+                <!-- VIDOVI VITATU (Dropdown Menu) -->
+                <div style="position: relative;">
+                    <button onclick="toggleForumMenu()" style="background:var(--bg); border:none; padding:8px; border-radius:12px; cursor:pointer; color:var(--text); display:flex; align-items:center;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                    </button>
+                    
+                    <div id="forum-dropdown-menu" style="display: none; position: absolute; right: 0; top: 45px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 100; overflow: hidden; min-width: 150px;">
+                        <div onclick="viewCitizensList(); toggleForumMenu()" style="padding: 12px 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--text);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Wananchi
+                        </div>
+                        <div onclick="openForumSearch(); toggleForumMenu()" style="padding: 12px 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Tafuta
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="chat-body" id="citizen-chat-list" onscroll="handleChatScroll(this)"></div>
             
@@ -8431,6 +8441,19 @@
                 fetchBodaDriverRequests();
             } catch(e) { openModal("Kosa", e.message); }
         }
+            // --- FORUM DROPDOWN MENU ---
+        function toggleForumMenu() {
+            const menu = document.getElementById('forum-dropdown-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Funga menyu ukibonyeza nje ya hiyo menyu
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('forum-dropdown-menu');
+            if (menu && menu.style.display === 'block' && !e.target.closest('#forum-dropdown-menu') && !e.target.closest('button[onclick="toggleForumMenu()"]')) {
+                menu.style.display = 'none';
+            }
+        });
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
