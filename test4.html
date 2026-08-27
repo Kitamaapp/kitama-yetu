@@ -1120,8 +1120,12 @@
                         <div onclick="viewCitizensList(); toggleForumMenu()" style="padding: 12px 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--text);">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Wananchi
                         </div>
-                        <div onclick="openForumSearch(); toggleForumMenu()" style="padding: 12px 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text);">
+                        <div onclick="openForumSearch(); toggleForumMenu()" style="padding: 12px 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--text);">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Tafuta
+                        </div>
+                        <!-- ONGEZA HII: JIONDOA FORUM -->
+                        <div onclick="optOutForum(); toggleForumMenu()" style="padding: 12px 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--danger);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> Jiondoa Forum
                         </div>
                     </div>
                 </div>
@@ -3099,12 +3103,22 @@
         else return msgDate.toLocaleDateString('sw-KE', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
-        async function fetchCitizenChat(isIncoming = false) {
-        const u = JSON.parse(localStorage.getItem('kitama_user')); 
-        if (!u || !u.phone_number) return; 
-        
-        const div = document.getElementById('citizen-chat-list'); 
-        
+ async function fetchCitizenChat(isIncoming = false) {
+            const u = JSON.parse(localStorage.getItem('kitama_user')); 
+            if (!u || !u.phone_number) return; 
+            
+            const div = document.getElementById('citizen-chat-list'); 
+            
+            // KAMA AMEJIONDOA FORUM
+            if (u.forum_opted_out) {
+                div.innerHTML = `<div style="text-align: center; padding: 50px 20px; color: var(--text-sec); display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 40px;">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    <h3 style="font-size: 18px; font-weight: 700; color: var(--text);">Umejiondoa Kwenye Forum</h3>
+                    <p style="font-size: 13px;">Hupati wala kuona ujumbe wa wengine. Ili kurudi, tuma ombi la kuungana tena.</p>
+                    <button onclick="requestForumReturn()" class="btn-p" style="max-width: 250px; margin-top: 10px;">Omba Kurudi Kwenye Forum</button>
+                </div>`;
+                return;
+            }
         if (!isOnline()) {
             const cached = getFromCache('forum_html');
             if (cached) {
@@ -3181,9 +3195,10 @@
                     }
                     
                     let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
-                    let actionsHtml = `<div class="chat-actions">
+                     let actionsHtml = `<div class="chat-actions">
                         <button class="chat-action-btn" onclick="event.stopPropagation(); setCitizenReply('${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')">${ICONS.reply} Reply</button>
                         ${!isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); replyPrivately('${c.sender_phone}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" title="Reply Privately"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Private</button>` : ''}
+                        <button class="chat-action-btn" onclick="event.stopPropagation(); copyMessage('${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" title="Copy"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy</button>
                         ${isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); deleteCitizenChat('${c.id}')" style="color:var(--danger);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Futa</button>` : ''}
                     </div>`;
                     let swipeHandlers = `ontouchstart="startSwipe(event, '${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" ontouchmove="moveSwipe(event)" ontouchend="endSwipe()"`;
@@ -8478,6 +8493,68 @@
                 menu.style.display = 'none';
             }
         });
+            // --- FORUM OPT-IN / OPT-OUT LOGIC ---
+        async function optOutForum() {
+            openModal("Jiondoa Kwenye Forum", "Una uhakika unataka kujiondoa kwenye KITAMA FORUM? Hutowaona wala kupata ujumbe wa wananchi wengine. <br><br>Ili kurudi, utahitaji kuomba kurudi na kusubiri dakika 5.", false, async () => {
+                try {
+                    const u = JSON.parse(localStorage.getItem('kitama_user'));
+                    await sb.from('users').update({ forum_opted_out: true }).eq('id', u.id);
+                    u.forum_opted_out = true;
+                    localStorage.setItem('kitama_user', JSON.stringify(u));
+                    showToast("Umefanikiwa kujiondoa kwenye Forum.");
+                    closeModal();
+                    fetchCitizenChat(false); // Pakia upya Forum
+                } catch(e) {
+                    openModal("Kosa", e.message);
+                }
+            });
+        }
+
+        async function requestForumReturn() {
+            openModal("Ombi Limewasilishwa", "Ombi lako la kurudi kwenye Forum limewasilishwa. Link ya kuungana itatumwa kwenye Inbox yako baada ya dakika 5.", false);
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            
+            //subiri dakika 5 (300000 milliseconds)
+            setTimeout(async () => {
+                try {
+                    // 1. Mrejulishe kwenye database
+                    await sb.from('users').update({ forum_opted_out: false }).eq('id', u.id);
+                    u.forum_opted_out = false;
+                    localStorage.setItem('kitama_user', JSON.stringify(u));
+                    
+                    // 2. Tuma ujumbe inbox kwake mwenyewe (Admin Team)
+                    await sb.from('shop_messages').insert([{
+                        shop_id: null,
+                        sender_phone: '255000000000', // Admin System Number
+                        sender_name: 'Mfumo wa Kitama',
+                        content: "Karibu kurudi kwenye KITAMA FORUM! Bonyeza kitufe hapa chini kuungana tena na wananchi wako.",
+                        recipient_phone: u.phone_number,
+                        is_read: false
+                    }]);
+                    
+                    showToast("Link ya kurudi Forum imetumwa kwenye Inbox yako!");
+                    playBeep();
+                    updateBadges();
+                } catch(e) {
+                    console.error("Error sending return link:", e);
+                }
+            }, 300000); // 5 minutes
+        }
+
+        // --- COPY MESSAGE ---
+        function copyMessage(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast("Ujumbe umekopiwa!");
+            } catch(e) {
+                showToast("Imeshindwa kukopiwa.");
+            }
+            document.body.removeChild(textarea);
+        }
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
