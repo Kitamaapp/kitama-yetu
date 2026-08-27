@@ -1596,8 +1596,6 @@
     let unreadChatCount = 0;
     let scrollToBottomOnNextFetch = false; // Mpya
     let lastForumMsgTime = null; // Mpya
-    const ADMIN_PHONE = '0613367354'; // Namba halisi ya Admin (Mfumo wa Kitama)
-    window.adminPhone = ADMIN_PHONE; 
     let touchStartX = 0;
     let touchStartY = 0;
     let currentMsgElement = null;
@@ -1646,7 +1644,17 @@
         alert: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
         thumbs_up: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>'
     };
+  let ADMIN_PHONE = null; // Hii itashikilia namba ya Admin halali
 
+  async function fetchAdminPhone() {
+            try {
+                const { data, error } = await sb.from('users').select('phone_number').eq('role', 'system_admin').limit(1).maybeSingle();
+                if (data && data.phone_number) {
+                    ADMIN_PHONE = data.phone_number;
+                    window.adminPhone = ADMIN_PHONE;
+                }
+            } catch(e) { console.error("Admin phone fetch error:", e); }
+        }
     let soundEnabled = true;
     function toggleSound() {
         soundEnabled = !soundEnabled;
@@ -1878,10 +1886,11 @@
         }
     }
 
-    function enterApp() {
+        function enterApp() {
         document.getElementById('auth-c').style.display='none'; 
         document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
+        fetchAdminPhone(); // ONGEZA HII: Pata namba ya Admin kiotomatiki
         document.getElementById('p-name').innerText = u.full_name;
         
         // --- LOGIC YA UTHIBITISHO (VERIFIED BADGE) ---
@@ -8591,19 +8600,19 @@
             cancelBtn.style.color = "white";
             cancelBtn.onclick = () => { closeModal(); };
         }
-            async function requestForumReturn() {
-            openModal("Ombi Limewasilishwa", "Ombi lako limewasilishwa. Link ya kuungana imetumwa kwenye Inbox yako sasa hivi. Nenda kwenye 'Ujumbe Wangu'.", false);
+                    async function requestForumReturn() {
+            openModal("Ombi Limewasilishwa", "Ombi lako limewasilishwa. Link ya kujiunga imetumwa kwenye Inbox yako sasa hivi. Nenda kwenye 'Ujumbe Wangu'.", false);
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             try {
                 await sb.from('shop_messages').insert([{
                     shop_id: null,
-                    sender_phone: ADMIN_PHONE, 
+                    sender_phone: ADMIN_PHONE, // Sasa hii inatumia namba halali ya Admin
                     sender_name: 'Mfumo wa Kitama',
-                    content: "Bonyeza kitufe hapa chini kuungana tena na wananchi wako.",
+                    content: "Bonyeza kitufe hapa chini kujiunga tena kwenye KITAMA FORUM.",
                     recipient_phone: u.phone_number,
                     is_read: false
                 }]);
-                showToast("Link imetumwa kwenye Inbox yako!");
+                showToast("Link imetumwa kwenye inbox yako!");
                 playBeep();
                 updateBadges();
             } catch(e) {
