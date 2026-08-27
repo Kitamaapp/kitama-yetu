@@ -4620,76 +4620,80 @@
         });
     }
 
-        async function fetchMyInbox() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const div = document.getElementById('my-inbox-list');
-        
-        // OFFLINE MODE
-        if (!navigator.onLine) {
-            const cached = getFromCache('inbox_html');
-            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona ujumbe wako.</p>';
-            return;
-        }
-        
-        div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
-        try {
-            // OMEGEZA .limit(50) KUEPZA KUCHELEWA
-            const { data, error } = await sb.from('shop_messages')
-                .select('*, shops(shop_name, owner_phone)')
-                .or(`sender_phone.eq.${u.phone_number},recipient_phone.eq.${u.phone_number}`)
-                .order('created_at', { ascending: false })
-                .limit(50);
-            if(error) throw error;
+            async function fetchMyInbox() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            const div = document.getElementById('my-inbox-list');
             
-            // TATUZO LA KUCHELEWA: Update zote kwa pamoja (Batch update) badala ya loop
-            const unreadIds = data.filter(m => m.recipient_phone === u.phone_number && !m.is_read).map(m => m.id);
-            if(unreadIds.length > 0) {
-                await sb.from('shop_messages').update({ is_read: true }).in('id', unreadIds);
+            // OFFLINE MODE
+            if (!navigator.onLine) {
+                const cached = getFromCache('inbox_html');
+                div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona ujumbe wako.</p>';
+                return;
             }
             
-            const convos = {};
-            for(const msg of data) {
-                let otherPhone = msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone;
-                let otherName = msg.sender_name; 
+            div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
+            try {
+                const { data, error } = await sb.from('shop_messages')
+                    .select('*, shops(shop_name, owner_phone)')
+                    .or(`sender_phone.eq.${u.phone_number},recipient_phone.eq.${u.phone_number}`)
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+                if(error) throw error;
                 
-                if(msg.shops && msg.shops.shop_name) {
-                    if(!convos[msg.shop_id]) {
-                        convos[msg.shop_id] = { type: 'shop', id: msg.shop_id, name: msg.shops.shop_name, phone: msg.shops.owner_phone, lastMsg: msg.content, time: msg.created_at };
-                    }
-                } else if(otherPhone) {
-                    if(!convos['dm_'+otherPhone]) {
-                        let nameToDisplay = msg.sender_phone === u.phone_number ? 'Mtumiaji' : otherName;
-                        let nameWithBadge = nameToDisplay + ' ' + getActivistBadgeForPhone(otherPhone);
-                        convos['dm_'+otherPhone] = { type: 'dm', id: otherPhone, name: nameWithBadge, phone: otherPhone, lastMsg: msg.content, time: msg.created_at };
+                const unreadIds = data.filter(m => m.recipient_phone === u.phone_number && !m.is_read).map(m => m.id);
+                if(unreadIds.length > 0) {
+                    await sb.from('shop_messages').update({ is_read: true }).in('id', unreadIds);
+                }
+                
+                const convos = {};
+                for(const msg of data) {
+                    let otherPhone = msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone;
+                    let otherName = msg.sender_name; 
+                    
+                    if(msg.shops && msg.shops.shop_name) {
+                        if(!convos[msg.shop_id]) {
+                            convos[msg.shop_id] = { type: 'shop', id: msg.shop_id, name: msg.shops.shop_name, phone: msg.shops.owner_phone, lastMsg: msg.content, time: msg.created_at };
+                        }
+                    } else if(otherPhone) {
+                        if(!convos['dm_'+otherPhone]) {
+                            let nameToDisplay = msg.sender_phone === u.phone_number ? 'Mtumiaji' : otherName;
+                            let nameWithBadge = nameToDisplay + ' ' + getActivistBadgeForPhone(otherPhone);
+                            convos['dm_'+otherPhone] = { type: 'dm', id: otherPhone, name: nameWithBadge, phone: otherPhone, lastMsg: msg.content, time: msg.created_at };
+                        }
                     }
                 }
-            }
 
-            const convoList = Object.values(convos);
-            const newHtml = convoList.length > 0 ? convoList.map(c => {
-                let cleanName = c.name.replace(/<svg[^>]*>([\s\S]*?)<\/svg>/g, '').trim();
-                let clickAction = c.type === 'shop' 
-                    ? `fetchDmChat('${c.phone}', '${cleanName.replace(/'/g, "\\'")}', '${c.id}')`
-                    : `fetchDmChat('${c.phone}', '${cleanName.replace(/'/g, "\\'")}', null)`;
-                return `
-                <div class="fb-convo-card" onclick="${clickAction}">
-                    <div class="fb-convo-info">
-                        <b>${c.name}</b>
-                        <small>${c.lastMsg ? c.lastMsg.substring(0, 30) : '...'}...</small>
-                    </div>
-                    <div class="fb-convo-badge">${new Date(c.time).toLocaleDateString()}</div>
-                </div>`;
-            }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna ujumbe wowote bado.</p>';
-            
-            div.innerHTML = newHtml;
-            // HIFADHI INBOX
-            saveToCache('inbox_html', newHtml);
-        } catch(e) { 
-            const cached = getFromCache('inbox_html');
-            div.innerHTML = cached || `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+                const convoList = Object.values(convos);
+                const newHtml = convoList.length > 0 ? convoList.map(c => {
+                    let cleanName = c.name.replace(/<svg[^>]*>([\s\S]*?)<\/svg>/g, '').trim();
+                    let clickAction = c.type === 'shop' 
+                        ? `fetchDmChat('${c.phone}', '${cleanName.replace(/'/g, "\\'")}', '${c.id}')`
+                        : `fetchDmChat('${c.phone}', '${cleanName.replace(/'/g, "\\'")}', null)`;
+                    
+                    // KAMA NI MFUMO WA KURUDI FORUM, ONESHA KITUFU CHA KUUNGANA
+                    let isSystemReturnLink = c.lastMsg && c.lastMsg.includes("Bonyeza kitufe hapa chini kujiunga");
+                    let returnForumBtn = isSystemReturnLink ? 
+                        `<button onclick="handleNav('citizen-chat-sec'); event.stopPropagation();" class="m-btn m-btn-primary" style="flex: none; padding: 8px 15px; font-size: 12px; margin-left: auto;">Ungana Forum</button>` : '';
+
+                    return `
+                    <div class="fb-convo-card" onclick="${clickAction}">
+                        <div class="fb-convo-info">
+                            <b>${c.name}</b>
+                            <small>${c.lastMsg ? c.lastMsg.substring(0, 30) : '...'}${isSystemReturnLink ? '' : '...'}</small>
+                        </div>
+                        ${returnForumBtn}
+                        ${!isSystemReturnLink ? `<div class="fb-convo-badge">${new Date(c.time).toLocaleDateString()}</div>` : ''}
+                    </div>`;
+                }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna ujumbe wowote bado.</p>';
+                
+                div.innerHTML = newHtml;
+                saveToCache('inbox_html', newHtml);
+            } catch(e) { 
+                const cached = getFromCache('inbox_html');
+                div.innerHTML = cached || `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+            }
+            updateBadges();
         }
-        updateBadges();
-    }
 
     async function openCitizenChat(shopId, shopName, ownerPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -8494,8 +8498,18 @@
             }
         });
             // --- FORUM OPT-IN / OPT-OUT LOGIC ---
-        async function optOutForum() {
-            openModal("Jiondoa Kwenye Forum", "Una uhakika unataka kujiondoa kwenye KITAMA FORUM? Hutowaona wala kupata ujumbe wa wananchi wengine. <br><br>Ili kurudi, utahitaji kuomba kurudi na kusubiri dakika 5.", false, async () => {
+                async function optOutForum() {
+            openModal("Jiondoe Kwenye Forum", "Una uhakika unataka kujiondoa kwenye KITAMA FORUM? Hutowaona wala kupata ujumbe wa watu wengine.", false);
+            
+            const okBtn = document.getElementById('modal-ok');
+            const cancelBtn = document.getElementById('modal-cancel');
+            
+            // Weka kitufe cha kubali
+            okBtn.innerText = "Ndiyo";
+            okBtn.style.background = "var(--danger)";
+            okBtn.style.color = "white";
+            okBtn.style.display = 'block';
+            okBtn.onclick = async () => {
                 try {
                     const u = JSON.parse(localStorage.getItem('kitama_user'));
                     await sb.from('users').update({ forum_opted_out: true }).eq('id', u.id);
@@ -8507,7 +8521,14 @@
                 } catch(e) {
                     openModal("Kosa", e.message);
                 }
-            });
+            };
+            
+            // Weka kitufe cha kukataa (Ghairi)
+            cancelBtn.style.display = 'block';
+            cancelBtn.innerText = "Ghairi";
+            cancelBtn.style.background = "var(--accent)";
+            cancelBtn.style.color = "white";
+            cancelBtn.onclick = () => { closeModal(); };
         }
 
         async function requestForumReturn() {
