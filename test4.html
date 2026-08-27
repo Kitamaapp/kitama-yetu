@@ -2290,7 +2290,12 @@
         let isPending = u.status === 'pending' && u.role === 'citizen';
         let roleText = u.role === 'system_admin' ? 'Admin wa Mfumo' : u.role.replace(/_/g, ' ');
         let initial = u.full_name.charAt(0).toUpperCase();
-        let avatarHtml = u.avatar_url ? `<img src="${u.avatar_url}" class="hero-avatar">` : `<div class="hero-avatar">${initial}</div>`;
+        
+        // ONGEZA ONCLICK KWENYE PICHA/DUARA HAPA
+        let avatarHtml = u.avatar_url ? 
+            `<img src="${u.avatar_url}" class="hero-avatar" onclick="handleNav('profile-sec')" style="cursor: pointer;">` : 
+            `<div class="hero-avatar" onclick="handleNav('profile-sec')" style="cursor: pointer;">${initial}</div>`;
+            
         let html = `
             <div class="hero-banner">
                 <div class="hero-content">
