@@ -6368,27 +6368,7 @@
             icon.style.transform = 'rotate(180deg)';
         }
     }
-            async function acceptForumReturn(msgId) {
-            try {
-                const u = JSON.parse(localStorage.getItem('kitama_user'));
-                
-                // 1. Mruhusu kwenye Forum kwenye database
-                await sb.from('users').update({ forum_opted_out: false }).eq('id', u.id);
-                
-                // 2. Mfute ujumbe wa link kwenye database ili usitumike tena (Auto-remove)
-                await sb.from('shop_messages').delete().eq('id', msgId);
-                
-                // 3. Mwage kwenye Forum moja kwa moja
-                u.forum_opted_out = false;
-                localStorage.setItem('kitama_user', JSON.stringify(u));
-                showToast("Karibu tena kwenye Forum!");
-                playBeep();
-                handleNav('citizen-chat-sec');
-                
-            } catch(e) {
-                openModal("Kosa", e.message);
-            }
-    }
+            
 
     async function sendHelpFeedback() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
