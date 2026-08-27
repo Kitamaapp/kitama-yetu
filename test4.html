@@ -1094,7 +1094,7 @@
         
         <div id="my-inbox-sec" class="sec">
             <div class="sec-h"><h2>Ujumbe Wangu</h2><span onclick="fetchMyInbox()">Refresh</span></div>
-            
+            <button id="admin-new-chat-btn" onclick="openAdminNewChatList()" class="btn-p" style="background: var(--primary); margin: 0 20px 20px 20px; display: none;">+ Tuma Ujumbe kwa Mwananchi</button>
             <div id="my-inbox-list"></div>
         </div> 
 
@@ -4645,8 +4645,7 @@
                 div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona ujumbe wako.</p>';
                 return;
             }
-                    // KAMA NI ADMIN, ONYESHA KITUFU CHA KUANZA MAZUNGUMZO
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
+                 // KAMA NI ADMIN, ONYESHA KITUFU CHA KUANZA MAZUNGUMZO
         if (u.role === 'system_admin') {
             const adminBtn = document.createElement('button');
             adminBtn.className = 'btn-p';
@@ -4721,7 +4720,12 @@
                 const cached = getFromCache('inbox_html');
                 div.innerHTML = cached || `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
             }
-            updateBadges();
+                    // ONYESHA KITUFU CHA ADMIN KAMA NI ADMIN TU
+        const adminBtn = document.getElementById('admin-new-chat-btn');
+        if (adminBtn) {
+            adminBtn.style.display = (u.role === 'system_admin') ? 'flex' : 'none';
+        }
+        updateBadges();
         }
 
     async function openCitizenChat(shopId, shopName, ownerPhone) {
@@ -6110,11 +6114,39 @@
         currentMsgElement = null;
     }
 
-        async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
+            async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
             dmOtherPhone = phone; dmShopId = shopId;
-            document.getElementById('dm-chat-title').innerText = name;
-            document.getElementById('dm-reply-context').style.display = 'none'; dmReplyTo = null;
+            const dmTitleEl = document.getElementById('dm-chat-title');
             
+            let otherUserIsActivist = false;
+            let otherUserAvatar = null;
+            
+            try {
+                if (phone === ADMIN_PHONE) {
+                    // KICHWA CHA MAZUNGUMZO KWA ADMIN: LOGO NA BADGE
+                    let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
+                    dmTitleEl.innerHTML = `${systemLogo} Mfumo wa Kitama ${getActivistBadge(true)}`;
+                } else {
+                    // KICHWA CHA MAZUNGUMZO KWA WATU WENGINE: PICHA NA BADGE
+                    const { data: otherUser } = await sb.from('users').select('is_activist, avatar_url').eq('phone_number', phone).maybeSingle();
+                    if (otherUser) {
+                        otherUserIsActivist = otherUser.is_activist || false;
+                        otherUserAvatar = otherUser.avatar_url || null;
+                    }
+                    
+                    if (otherUserAvatar) {
+                        let avatar = `<img src="${otherUserAvatar}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
+                        let badge = otherUserIsActivist ? getActivistBadge(true) : '';
+                        dmTitleEl.innerHTML = `${avatar} ${name} ${badge}`;
+                    } else {
+                        dmTitleEl.innerText = name;
+                    }
+                }
+            } catch(e) {
+                dmTitleEl.innerText = name;
+            }
+
+            document.getElementById('dm-reply-context').style.display = 'none'; dmReplyTo = null;
             showSec('dm-chat-sec');
             
             const div = document.getElementById('dm-chat-list');
@@ -6127,12 +6159,6 @@
             
             try {
                 const u = JSON.parse(localStorage.getItem('kitama_user'));
-                
-                let otherUserIsActivist = false;
-                const { data: otherUser } = await sb.from('users').select('is_activist').eq('phone_number', phone).maybeSingle();
-                if (otherUser && otherUser.is_activist) {
-                    otherUserIsActivist = true;
-                }
 
                 const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${phone}),and(sender_phone.eq.${phone},recipient_phone.eq.${u.phone_number})`;
                 let query = sb.from('shop_messages').select('*').or(orFilter).order('created_at', { ascending: true }).limit(100);
@@ -6165,8 +6191,6 @@
                         let actionsHtml = '';
                         let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
                         
-                        // 1. HAPA NDIO TULIYOKUIBADILISHIA: KUTAMBUA MFUMO WA KITAMA
-                                                // 1. TUMBUA ADMIN KAMA MFUMO WA KITAMA
                         let isSystemAccount = (c.sender_phone === ADMIN_PHONE || c.sender_name === 'Mfumo wa Kitama');
                         
                         if (isSystemAccount) {
@@ -6174,13 +6198,9 @@
                             let systemName = 'Mfumo wa Kitama';
                             let systemBadge = getActivistBadge(true);
                             
-                            // KAMA NI UJUMBE WA KURUDI FORUM, TENGNEZA KITUFU NDANI YA UJUMBE
                             let contentHtml = content;
-                            let showLinkBtn = true;
                             if (content.includes("Bonyeza kitufe hapa chini kuungana")) {
-                                contentHtml = "Karibu kuridi kwenye KITAMA FORUM! Bonyeza kitufe hapa chini kuungana tena na wananchi wako.<br><br><button onclick='event.stopPropagation(); acceptForumReturn(\"" + c.id + "\")' class='btn-p' style='margin-top:10px; padding: 10px 20px; font-size: 14px; width: auto;'>Ungana na Forum</button>";
-                            } else {
-                                showLinkBtn = false;
+                                contentHtml = "Karibu kurudi kwenye KITAMA FORUM! Bonyeza kitufe hapa chini kuungana tena na wananchi wako.<br><br><button onclick='event.stopPropagation(); acceptForumReturn(\"" + c.id + "\")' class='btn-p' style='margin-top:10px; padding: 10px 20px; font-size: 14px; width: auto;'>Ungana na Forum</button>";
                             }
                             
                             actionsHtml = `<div class="chat-actions"></div>`;
@@ -6188,7 +6208,6 @@
                             return;
                         }
 
-                        // 2. KWA WENGINE WOTE (UJUMBE WA KAWAIDA)
                         let displayName = isSelf ? 'Wewe' : c.sender_name;
                         let badgeHtml = '';
                         if (isSelf) {
@@ -6224,8 +6243,7 @@
             } catch(e) { 
                 if(!hasContent) div.innerHTML = `<p style="color:red;">${e.message}</p>`;
             }
-    }
-        
+        }
 
          async function postDmChat() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -8636,39 +8654,100 @@
             document.body.removeChild(textarea);
         }
             // --- ADMIN CHAT INITIATION ---
-        function openAdminChatModal() {
-            const html = `
-                <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">Andika namba ya simu ya mwananchi unamtaka kumtumia ujumbe kama Mfumo wa Kitama:</p>
-                <input type="tel" id="admin-new-chat-phone" class="modal-input" placeholder="0712345678" style="margin-bottom: 15px;">
-                <input type="text" id="admin-new-chat-msg" class="modal-input" placeholder="Andika ujumbe..." style="margin-bottom: 15px;">
-            `;
+            function openAdminNewChatList() {
+            if(activeCitizens.length === 0) return showToast("Inapakia orodha...");
             
-            openModal("Tuma Ujumbe wa Mfumo", html, false, async () => {
-                const phone = document.getElementById('admin-new-chat-phone').value.trim();
-                const msg = document.getElementById('admin-new-chat-msg').value.trim();
-                if(!phone || !msg) return showToast("Jaza namba na ujumbe.");
+            let html = `<div style="height: 80vh; overflow-y: auto; display:flex; flex-direction:column; gap:10px;">`;
+            
+            activeCitizens.forEach(c => {
+                let avatarHtml = c.avatar_url ? 
+                    `<img src="${c.avatar_url}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">` : 
+                    `<div style="width:45px; height:45px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${c.full_name.charAt(0)}</div>`;
                 
-                const okBtn = document.getElementById('modal-ok');
-                okBtn.innerHTML = '<div class="spinner"></div>'; okBtn.disabled = true;
-                
-                try {
-                    await sb.from('shop_messages').insert([{
-                        shop_id: null,
-                        sender_phone: ADMIN_PHONE,
-                        sender_name: 'Mfumo wa Kitama',
-                        content: msg,
-                        recipient_phone: phone,
-                        is_read: false
-                    }]);
-                    
-                    showToast("Ujumbe umetumwa kwa mwananchi kama Mfumo wa Kitama!");
-                    closeModal();
-                    fetchMyInbox(); // Pakia upya inbox
-                } catch(e) {
-                    openModal("Kosa", e.message);
-                    okBtn.innerText = 'Tuma'; okBtn.disabled = false;
-                }
+                html += `<div onclick="adminStartChat('${c.phone_number}', '${c.full_name.replace(/'/g, "\\'")}')" style="display:flex; align-items:center; gap:12px; padding:12px; background:var(--surface); border-radius:12px; cursor:pointer; border:1px solid var(--border);">
+                    ${avatarHtml}
+                    <div>
+                        <b style="font-size:15px; color:var(--text);">${c.full_name}</b><br>
+                        <small style="color:var(--text-sec); font-size:12px;">${c.phone_number}</small>
+                    </div>
+                </div>`;
             });
+            html += `</div>`;
+            
+            openModal("Chagua Mwananchi", html, false);
+            
+            // FANYA DIRISHA LIWE FULL SCREEN
+            const modalBox = document.querySelector('.modal-box');
+            if(modalBox) {
+                modalBox.style.maxWidth = '100%';
+                modalBox.style.width = '100%';
+                modalBox.style.height = '100vh';
+                modalBox.style.borderRadius = '0';
+            }
+            
+            document.getElementById('modal-ok').style.display = 'none';
+            document.getElementById('modal-cancel').innerText = 'Funga';
+        }
+
+        async function adminStartChat(phone, name) {
+            closeModal();
+            // RUDISHA DIRISHA KAWAIDA BAADA YA KUCHAGUA
+            const modalBox = document.querySelector('.modal-box');
+            if(modalBox) {
+                modalBox.style.maxWidth = '380px';
+                modalBox.style.height = '90vh';
+                modalBox.style.borderRadius = '24px';
+            }
+            
+            // FUNGUA MAZUNGUMZO
+            fetchDmChat(phone, name, null);
+        }        function openAdminNewChatList() {
+            if(activeCitizens.length === 0) return showToast("Inapakia orodha...");
+            
+            let html = `<div style="height: 80vh; overflow-y: auto; display:flex; flex-direction:column; gap:10px;">`;
+            
+            activeCitizens.forEach(c => {
+                let avatarHtml = c.avatar_url ? 
+                    `<img src="${c.avatar_url}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">` : 
+                    `<div style="width:45px; height:45px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${c.full_name.charAt(0)}</div>`;
+                
+                html += `<div onclick="adminStartChat('${c.phone_number}', '${c.full_name.replace(/'/g, "\\'")}')" style="display:flex; align-items:center; gap:12px; padding:12px; background:var(--surface); border-radius:12px; cursor:pointer; border:1px solid var(--border);">
+                    ${avatarHtml}
+                    <div>
+                        <b style="font-size:15px; color:var(--text);">${c.full_name}</b><br>
+                        <small style="color:var(--text-sec); font-size:12px;">${c.phone_number}</small>
+                    </div>
+                </div>`;
+            });
+            html += `</div>`;
+            
+            openModal("Chagua Mwananchi", html, false);
+            
+            // FANYA DIRISHA LIWE FULL SCREEN
+            const modalBox = document.querySelector('.modal-box');
+            if(modalBox) {
+                modalBox.style.maxWidth = '100%';
+                modalBox.style.width = '100%';
+                modalBox.style.height = '100vh';
+                modalBox.style.borderRadius = '0';
+            }
+            
+            document.getElementById('modal-ok').style.display = 'none';
+            document.getElementById('modal-cancel').innerText = 'Funga';
+        }
+
+        async function adminStartChat(phone, name) {
+            closeModal();
+            // RUDISHA DIRISHA KAWAIDA BAADA YA KUCHAGUA
+            const modalBox = document.querySelector('.modal-box');
+            if(modalBox) {
+                modalBox.style.maxWidth = '380px';
+                modalBox.style.height = '90vh';
+                modalBox.style.borderRadius = '24px';
+            }
+            
+            // FUNGUA MAZUNGUMZO
+            fetchDmChat(phone, name, null);
         }
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
