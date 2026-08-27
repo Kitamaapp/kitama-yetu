@@ -6144,16 +6144,21 @@
                         // 1. HAPA NDIO TULIYOKUIBADILISHIA: KUTAMBUA MFUMO WA KITAMA
                         let isSystemAccount = (c.sender_phone === '255000000000' || c.sender_name === 'Mfumo wa Kitama');
                         
-                        if (isSystemAccount) {
-                            // KAMA NI MFUMO, FANYA UELEKE KAMA UJUMBE WA KAWAIDA WA KUSHOTO (SIO ALERT)
+                                                if (isSystemAccount) {
                             let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover; vertical-align: middle; margin-right: 5px;">`;
                             let systemName = 'Mfumo wa Kitama';
                             let systemBadge = getActivistBadge(true);
                             
-                            actionsHtml = `<div class="chat-actions"></div>`; // Hakuna vitufe vya reply kwa mfumo
-                            chatHtml += `<div id="msg-${c.id}" class="chat-msg" onclick="toggleMsgActions(this)"><b>${systemLogo}${systemName} ${systemBadge}</b><p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                            // KAMA NI UJUMBE WA KURUDI FORUM, TENGNEZA KITUFU NDANI YA UJUMBE
+                            let contentHtml = content;
+                            if (content.includes("Bonyeza kitufe hapa chini kuungana")) {
+                                contentHtml = "Karibu kurudi kwenye KITAMA FORUM! Bonyeza kitufe hapa chini kuungana tena na wananchi wako.<br><br><button onclick='event.stopPropagation(); acceptForumReturn(\"" + c.id + "\")' class='btn-p' style='margin-top:10px; padding: 10px 20px; font-size: 14px; width: auto;'>Ungana na Forum</button>";
+                            }
+                            
+                            actionsHtml = `<div class="chat-actions"></div>`;
+                            chatHtml += `<div id="msg-${c.id}" class="chat-msg" onclick="toggleMsgActions(this)"><b>${systemLogo}${systemName} ${systemBadge}</b><p>${contentHtml}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
                             return;
-                        }
+                         }
 
                         // 2. KWA WENGINE WOTE (UJUMBE WA KAWAIDA)
                         let displayName = isSelf ? 'Wewe' : c.sender_name;
@@ -6358,6 +6363,27 @@
             answer.style.paddingBottom = '15px';
             icon.style.transform = 'rotate(180deg)';
         }
+    }
+            async function acceptForumReturn(msgId) {
+            try {
+                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                
+                // 1. Mruhusu kwenye Forum kwenye database
+                await sb.from('users').update({ forum_opted_out: false }).eq('id', u.id);
+                
+                // 2. Mfute ujumbe wa link kwenye database ili usitumike tena (Auto-remove)
+                await sb.from('shop_messages').delete().eq('id', msgId);
+                
+                // 3. Mwage kwenye Forum moja kwa moja
+                u.forum_opted_out = false;
+                localStorage.setItem('kitama_user', JSON.stringify(u));
+                showToast("Karibu tena kwenye Forum!");
+                playBeep();
+                handleNav('citizen-chat-sec');
+                
+            } catch(e) {
+                openModal("Kosa", e.message);
+            }
     }
 
     async function sendHelpFeedback() {
