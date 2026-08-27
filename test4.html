@@ -6089,111 +6089,115 @@
         currentMsgElement = null;
     }
 
-    async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
-        dmOtherPhone = phone; dmShopId = shopId;
-        document.getElementById('dm-chat-title').innerText = name;
-        document.getElementById('dm-reply-context').style.display = 'none'; dmReplyTo = null;
-        
-        showSec('dm-chat-sec'); // Fungua screen ya chat
-        
-        const div = document.getElementById('dm-chat-list');
-        const oldScrollTop = div.scrollTop;
-        const hasContent = div.children.length > 0;
-        
-        if(!hasContent) {
-            div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div>';
-        }
-        
-        try {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
+        async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
+            dmOtherPhone = phone; dmShopId = shopId;
+            document.getElementById('dm-chat-title').innerText = name;
+            document.getElementById('dm-reply-context').style.display = 'none'; dmReplyTo = null;
             
-            // Tafuta hadhi ya activist ya mtu unaeongea naye
-            let otherUserIsActivist = false;
-            const { data: otherUser } = await sb.from('users').select('is_activist').eq('phone_number', phone).maybeSingle();
-            if (otherUser && otherUser.is_activist) {
-                otherUserIsActivist = true;
+            showSec('dm-chat-sec');
+            
+            const div = document.getElementById('dm-chat-list');
+            const oldScrollTop = div.scrollTop;
+            const hasContent = div.children.length > 0;
+            
+            if(!hasContent) {
+                div.innerHTML = '<div class="skeleton" style="height:60px; width:80%; margin-bottom:10px;"></div>';
             }
-
-            const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${phone}),and(sender_phone.eq.${phone},recipient_phone.eq.${u.phone_number})`;
-            let query = sb.from('shop_messages').select('*').or(orFilter).order('created_at', { ascending: true }).limit(100);
             
-            // HII NDIO INAITENGA INBOX YA DUKA NA YA BINAFSI
-            if(shopId) query = query.eq('shop_id', shopId); else query = query.is('shop_id', null);
-            
-            const { data, error } = await query;
-            if(error) throw error;
-            
-            let firstUnreadId = null;
-            for(let msg of data) {
-                if(msg.recipient_phone === u.phone_number && msg.is_read === false) {
-                    if(!firstUnreadId && !isIncoming) firstUnreadId = msg.id;
-                    try { await sb.from('shop_messages').update({ is_read: true }).eq('id', msg.id); } catch(e) {}
+            try {
+                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                
+                let otherUserIsActivist = false;
+                const { data: otherUser } = await sb.from('users').select('is_activist').eq('phone_number', phone).maybeSingle();
+                if (otherUser && otherUser.is_activist) {
+                    otherUserIsActivist = true;
                 }
-            }
-            updateBadges();
 
-            let chatHtml = `<div class="chat-msg system-alert" style="margin-top: 15px;">
-                <p>
-                    <svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
-                    Ujumbe umefungwa kwa usalama (End-to-end encrypted). Hakuna mtu wa nje ya mazungumzo haya anayeweza kusoma.
-                </p>
-            </div>`;
-            
-            if(data.length > 0) {
-                data.forEach(c => {
-                    const isSelf = (u.phone_number === c.sender_phone);
-                    const isSystemAlert = c.sender_role === 'system_admin' && !isSelf;
-                    let msgClass = isSelf ? 'self' : '';
-                    let actionsHtml = '';
-                    let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
-                    
-                    if (isSystemAlert) {
-                        msgClass = 'system-alert';
-                        chatHtml += `<div id="msg-${c.id}" class="chat-msg ${msgClass}"><p><svg viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M22.25,12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.26-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33,2.19c-1.39-.45-2.91-.2-3.92.81s-1.26,2.52-.8,3.91c-1.31.67-2.2,1.91-2.2,3.34s.89,2.67,2.2,3.34c-.46,1.39-.21,2.9.8,3.91s2.53,1.26,3.91.81c.67,1.31,1.91,2.19,3.34,2.19s2.68-.88,3.34-2.19c1.39.45,2.9.2,3.91-.81s1.26-2.52.81-3.91c1.31-.67,2.19-1.91,2.19-3.34z"/><polyline points="7 12 10 15 17 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline></svg> ${content}</p></div>`;
-                        return;
+                const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${phone}),and(sender_phone.eq.${phone},recipient_phone.eq.${u.phone_number})`;
+                let query = sb.from('shop_messages').select('*').or(orFilter).order('created_at', { ascending: true }).limit(100);
+                
+                if(shopId) query = query.eq('shop_id', shopId); else query = query.is('shop_id', null);
+                
+                const { data, error } = await query;
+                if(error) throw error;
+                
+                let firstUnreadId = null;
+                for(let msg of data) {
+                    if(msg.recipient_phone === u.phone_number && msg.is_read === false) {
+                        if(!firstUnreadId && !isIncoming) firstUnreadId = msg.id;
+                        try { await sb.from('shop_messages').update({ is_read: true }).eq('id', msg.id); } catch(e) {}
                     }
+                }
+                updateBadges();
 
-                    let displayName = isSelf ? 'Wewe' : c.sender_name;
-                    
-                    if(!isSelf) {
-                        actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="event.stopPropagation(); setDmReply('${c.id}', '${c.sender_name}', '${content.replace(/'/g, "\\'")}')" style="color:var(--accent);">Reply</button></div>`;
-                    } else {
-                        actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="event.stopPropagation(); deleteDmMessage('${c.id}')" style="color:var(--danger);">Delete</button></div>`;
-                    }
-                    let swipeHandlers = `ontouchstart="startDmSwipe(event, '${c.id}', '${c.sender_name}', '${content.replace(/'/g, "\\'")}')" ontouchmove="moveSwipe(event)" ontouchend="endDmSwipe()"`;
-                    
-                    let badgeHtml = '';
-                    if (isSelf) {
-                        badgeHtml = u.is_activist ? getActivistBadge(true) : '';
-                    } else {
-                        badgeHtml = otherUserIsActivist ? getActivistBadge(true) : '';
-                    }
-                    
-                    chatHtml += `<div id="msg-${c.id}" class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayName} ${badgeHtml}</b><p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
-                });
-            } else {
-                chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna ujumbe bado.</p>';
+                let chatHtml = `<div class="chat-msg system-alert" style="margin-top: 15px;">
+                    <p>
+                        <svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink: 0; vertical-align: middle; margin-right: 4px;"><path fill="#3B82F6" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+                        Ujumbe umefungwa kwa usalama (End-to-end encrypted). Hakuna mtu wa nje ya mazungumzo haya anayeweza kusoma.
+                    </p>
+                </div>`;
+                
+                if(data.length > 0) {
+                    data.forEach(c => {
+                        const isSelf = (u.phone_number === c.sender_phone);
+                        let msgClass = isSelf ? 'self' : '';
+                        let actionsHtml = '';
+                        let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
+                        
+                        // 1. HAPA NDIO TULIYOKUIBADILISHIA: KUTAMBUA MFUMO WA KITAMA
+                        let isSystemAccount = (c.sender_phone === '255000000000' || c.sender_name === 'Mfumo wa Kitama');
+                        
+                        if (isSystemAccount) {
+                            // KAMA NI MFUMO, FANYA UELEKE KAMA UJUMBE WA KAWAIDA WA KUSHOTO (SIO ALERT)
+                            let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover; vertical-align: middle; margin-right: 5px;">`;
+                            let systemName = 'Mfumo wa Kitama';
+                            let systemBadge = getActivistBadge(true);
+                            
+                            actionsHtml = `<div class="chat-actions"></div>`; // Hakuna vitufe vya reply kwa mfumo
+                            chatHtml += `<div id="msg-${c.id}" class="chat-msg" onclick="toggleMsgActions(this)"><b>${systemLogo}${systemName} ${systemBadge}</b><p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                            return;
+                        }
+
+                        // 2. KWA WENGINE WOTE (UJUMBE WA KAWAIDA)
+                        let displayName = isSelf ? 'Wewe' : c.sender_name;
+                        let badgeHtml = '';
+                        if (isSelf) {
+                            badgeHtml = u.is_activist ? getActivistBadge(true) : '';
+                        } else {
+                            badgeHtml = otherUserIsActivist ? getActivistBadge(true) : '';
+                        }
+                        
+                        if(!isSelf) {
+                            actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="event.stopPropagation(); setDmReply('${c.id}', '${c.sender_name}', '${content.replace(/'/g, "\\'")}')" style="color:var(--accent);">Reply</button></div>`;
+                        } else {
+                            actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="event.stopPropagation(); deleteDmMessage('${c.id}')" style="color:var(--danger);">Delete</button></div>`;
+                        }
+                        let swipeHandlers = `ontouchstart="startDmSwipe(event, '${c.id}', '${c.sender_name}', '${content.replace(/'/g, "\\'")}')" ontouchmove="moveSwipe(event)" ontouchend="endDmSwipe()"`;
+                        
+                        chatHtml += `<div id="msg-${c.id}" class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayName} ${badgeHtml}</b><p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                    });
+                } else {
+                    chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna ujumbe bado.</p>';
+                }
+                div.innerHTML = chatHtml;
+                
+                if (isIncoming && !dmIsAtBottom) {
+                    div.scrollTop = oldScrollTop;
+                } else if (firstUnreadId) {
+                    const el = document.getElementById(`msg-${firstUnreadId}`);
+                    if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    dmIsAtBottom = false;
+                } else {
+                    div.scrollTop = div.scrollHeight;
+                    dmIsAtBottom = true;
+                }
+            } catch(e) { 
+                if(!hasContent) div.innerHTML = `<p style="color:red;">${e.message}</p>`;
             }
-            div.innerHTML = chatHtml;
-            
-            // MAMBO YA SCROLL HAPA
-            if (isIncoming && !dmIsAtBottom) {
-                div.scrollTop = oldScrollTop; // Shikilia screen isiruke
-            } else if (firstUnreadId) {
-                const el = document.getElementById(`msg-${firstUnreadId}`);
-                if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                dmIsAtBottom = false;
-            } else {
-                div.scrollTop = div.scrollHeight;
-                dmIsAtBottom = true;
-            }
-        } catch(e) { 
-            if(!hasContent) div.innerHTML = `<p style="color:red;">${e.message}</p>`;
-        }
     }
         
 
-            async function postDmChat() {
+         async function postDmChat() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma ujumbe kwa sasa.");
             const content = document.getElementById('dm-chat-input').value.trim();
