@@ -8569,25 +8569,17 @@
             cancelBtn.style.color = "white";
             cancelBtn.onclick = () => { closeModal(); };
         }
-
-        async function requestForumReturn() {
+            async function requestForumReturn() {
             openModal("Ombi Limewasilishwa", "Ombi lako la kurudi kwenye Forum limewasilishwa. Link ya kuungana itatumwa kwenye Inbox yako baada ya dakika 5.", false);
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             
-            //subiri dakika 5 (300000 milliseconds)
             setTimeout(async () => {
                 try {
-                    // 1. Mrejulishe kwenye database
-                    await sb.from('users').update({ forum_opted_out: false }).eq('id', u.id);
-                    u.forum_opted_out = false;
-                    localStorage.setItem('kitama_user', JSON.stringify(u));
-                    
-                    // 2. Tuma ujumbe inbox kwake mwenyewe (Admin Team)
                     await sb.from('shop_messages').insert([{
                         shop_id: null,
-                        sender_phone: '255000000000', // Admin System Number
+                        sender_phone: ADMIN_PHONE, // TUMA KWENYE INBOX KUTOKA KWENYE ADMIN
                         sender_name: 'Mfumo wa Kitama',
-                        content: "Karibu kurudi kwenye KITAMA FORUM! Bonyeza kitufe hapa chini kuungana tena na wananchi wako.",
+                        content: "Bonyeza kitufe hapa chini kuungana tena na wananchi wako.",
                         recipient_phone: u.phone_number,
                         is_read: false
                     }]);
@@ -8598,8 +8590,30 @@
                 } catch(e) {
                     console.error("Error sending return link:", e);
                 }
-            }, 300000); // 5 minutes
+            }, 300000); // Dakika 5
         }
+
+        async function acceptForumReturn(msgId) {
+            try {
+                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                
+                // 1. Mruhusu kwenye Forum
+                await sb.from('users').update({ forum_opted_out: false }).eq('id', u.id);
+                u.forum_opted_out = false;
+                localStorage.setItem('kitama_user', JSON.stringify(u));
+                
+                // 2. BADILISHA MAANDISHI YA UJUMBE KUWA "UMESHAFANIKIWA" NA KUFICHA KITUFU
+                await sb.from('shop_messages').update({ content: "Umefanikiwa kuungana tena na KITAMA FORUM. Karibu tena!" }).eq('id', msgId);
+                
+                showToast("Karibu tena kwenye Forum!");
+                playBeep();
+                handleNav('citizen-chat-sec');
+                
+            } catch(e) {
+                openModal("Kosa", e.message);
+            }
+        }
+
 
         // --- COPY MESSAGE ---
         function copyMessage(text) {
