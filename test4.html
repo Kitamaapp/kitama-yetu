@@ -3111,15 +3111,29 @@
             const div = document.getElementById('citizen-chat-list'); 
             
             // KAMA AMEJIONDOA FORUM
-            if (u.forum_opted_out) {
-                div.innerHTML = `<div style="text-align: center; padding: 50px 20px; color: var(--text-sec); display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 40px;">
-                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                    <h3 style="font-size: 18px; font-weight: 700; color: var(--text);">Umejiondoa Kwenye Forum</h3>
-                    <p style="font-size: 13px;">Hupati wala kuona ujumbe wa wengine. Ili kurudi, tuma ombi la kuungana tena.</p>
-                    <button onclick="requestForumReturn()" class="btn-p" style="max-width: 250px; margin-top: 10px;">Omba Kurudi Kwenye Forum</button>
-                </div>`;
-                return;
-            }
+                    // KAMA AMEJIONDOA FORUM
+        if (u.forum_opted_out) {
+            div.innerHTML = `
+            <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; gap: 20px;">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--text-sec)" stroke-width="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                <h3 style="font-size: 18px; font-weight: 700; color: var(--text);">Umejiondoa Kwenye Forum</h3>
+                <p style="font-size: 13px; color: var(--text-sec);">Hupati wala kuona ujumbe wa wengine kwenye Forum.</p>
+                <button onclick="requestForumReturn()" class="btn-p" style="max-width: 250px;">Omba Kurudi Kwenye Forum</button>
+            </div>`;
+            
+            // FICHA SEHEMU YA KUANDIKA UJUMBE NA VIDOVI VITATU
+            const inputBox = document.querySelector('#citizen-chat-sec .chat-input-box');
+            if(inputBox) inputBox.style.display = 'none';
+            const menuBtn = document.querySelector('#citizen-chat-sec button[onclick="toggleForumMenu()"]');
+            if(menuBtn) menuBtn.style.display = 'none';
+            return;
+        }
+        
+        // RUDISHA VYOTE VIKIWA HAJAJIONDOA
+        const inputBox = document.querySelector('#citizen-chat-sec .chat-input-box');
+        if(inputBox) inputBox.style.display = 'flex';
+        const menuBtn = document.querySelector('#citizen-chat-sec button[onclick="toggleForumMenu()"]');
+        if(menuBtn) menuBtn.style.display = 'flex';
         if (!isOnline()) {
             const cached = getFromCache('forum_html');
             if (cached) {
@@ -4621,7 +4635,7 @@
         });
     }
 
-            async function fetchMyInbox() {
+    async function fetchMyInbox() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const div = document.getElementById('my-inbox-list');
             
@@ -4631,7 +4645,17 @@
                 div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona ujumbe wako.</p>';
                 return;
             }
-            
+                    // KAMA NI ADMIN, ONYESHA KITUFU CHA KUANZA MAZUNGUMZO
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if (u.role === 'system_admin') {
+            const adminBtn = document.createElement('button');
+            adminBtn.className = 'btn-p';
+            adminBtn.style.background = 'var(--primary)';
+            adminBtn.style.margin = '0 20px 20px 20px';
+            adminBtn.innerText = '+ Tuma Ujumbe kwa Mwananchi';
+            adminBtn.onclick = openAdminChatModal;
+            div.parentNode.insertBefore(adminBtn, div.nextSibling);
+        }
             div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
             try {
                 const { data, error } = await sb.from('shop_messages')
@@ -8550,30 +8574,26 @@
             cancelBtn.onclick = () => { closeModal(); };
         }
             async function requestForumReturn() {
-            openModal("Ombi Limewasilishwa", "Ombi lako la kurudi kwenye Forum limewasilishwa. Link ya kuungana itatumwa kwenye Inbox yako baada ya dakika 5.", false);
+            openModal("Ombi Limewasilishwa", "Ombi lako limewasilishwa. Link ya kuungana imetumwa kwenye Inbox yako sasa hivi. Nenda kwenye 'Ujumbe Wangu'.", false);
             const u = JSON.parse(localStorage.getItem('kitama_user'));
-            
-            setTimeout(async () => {
-                try {
-                    await sb.from('shop_messages').insert([{
-                        shop_id: null,
-                        sender_phone: ADMIN_PHONE, // TUMA KWENYE INBOX KUTOKA KWENYE ADMIN
-                        sender_name: 'Mfumo wa Kitama',
-                        content: "Bonyeza kitufe hapa chini kuungana tena na wananchi wako.",
-                        recipient_phone: u.phone_number,
-                        is_read: false
-                    }]);
-                    
-                    showToast("Link ya kurudi Forum imetumwa kwenye Inbox yako!");
-                    playBeep();
-                    updateBadges();
-                } catch(e) {
-                    console.error("Error sending return link:", e);
-                }
-            }, 300000); // Dakika 5
+            try {
+                await sb.from('shop_messages').insert([{
+                    shop_id: null,
+                    sender_phone: ADMIN_PHONE, 
+                    sender_name: 'Mfumo wa Kitama',
+                    content: "Bonyeza kitufe hapa chini kuungana tena na wananchi wako.",
+                    recipient_phone: u.phone_number,
+                    is_read: false
+                }]);
+                showToast("Link imetumwa kwenye Inbox yako!");
+                playBeep();
+                updateBadges();
+            } catch(e) {
+                console.error("Error sending return link:", e);
+            }
         }
 
-        async function acceptForumReturn(msgId) {
+                async function acceptForumReturn(msgId) {
             try {
                 const u = JSON.parse(localStorage.getItem('kitama_user'));
                 
@@ -8587,7 +8607,13 @@
                 
                 showToast("Karibu tena kwenye Forum!");
                 playBeep();
-                handleNav('citizen-chat-sec');
+                handleNav('citizen-chat-sec'); // Nenda Forum
+                
+                // RUDISHA SEHEMU YA KUANDIKA
+                const inputBox = document.querySelector('#citizen-chat-sec .chat-input-box');
+                if(inputBox) inputBox.style.display = 'flex';
+                const menuBtn = document.querySelector('#citizen-chat-sec button[onclick="toggleForumMenu()"]');
+                if(menuBtn) menuBtn.style.display = 'flex';
                 
             } catch(e) {
                 openModal("Kosa", e.message);
@@ -8608,6 +8634,41 @@
                 showToast("Imeshindwa kukopiwa.");
             }
             document.body.removeChild(textarea);
+        }
+            // --- ADMIN CHAT INITIATION ---
+        function openAdminChatModal() {
+            const html = `
+                <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">Andika namba ya simu ya mwananchi unamtaka kumtumia ujumbe kama Mfumo wa Kitama:</p>
+                <input type="tel" id="admin-new-chat-phone" class="modal-input" placeholder="0712345678" style="margin-bottom: 15px;">
+                <input type="text" id="admin-new-chat-msg" class="modal-input" placeholder="Andika ujumbe..." style="margin-bottom: 15px;">
+            `;
+            
+            openModal("Tuma Ujumbe wa Mfumo", html, false, async () => {
+                const phone = document.getElementById('admin-new-chat-phone').value.trim();
+                const msg = document.getElementById('admin-new-chat-msg').value.trim();
+                if(!phone || !msg) return showToast("Jaza namba na ujumbe.");
+                
+                const okBtn = document.getElementById('modal-ok');
+                okBtn.innerHTML = '<div class="spinner"></div>'; okBtn.disabled = true;
+                
+                try {
+                    await sb.from('shop_messages').insert([{
+                        shop_id: null,
+                        sender_phone: ADMIN_PHONE,
+                        sender_name: 'Mfumo wa Kitama',
+                        content: msg,
+                        recipient_phone: phone,
+                        is_read: false
+                    }]);
+                    
+                    showToast("Ujumbe umetumwa kwa mwananchi kama Mfumo wa Kitama!");
+                    closeModal();
+                    fetchMyInbox(); // Pakia upya inbox
+                } catch(e) {
+                    openModal("Kosa", e.message);
+                    okBtn.innerText = 'Tuma'; okBtn.disabled = false;
+                }
+            });
         }
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
