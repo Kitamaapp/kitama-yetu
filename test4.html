@@ -4670,7 +4670,6 @@
                         ? `fetchDmChat('${c.phone}', '${cleanName.replace(/'/g, "\\'")}', '${c.id}')`
                         : `fetchDmChat('${c.phone}', '${cleanName.replace(/'/g, "\\'")}', null)`;
                     
-                    // KAMA NI MFUMO WA KITAMA, ONESHA LOGO NA BADGE
                     let isSystem = (c.phone === '255000000000' || c.name.includes("Mfumo wa Kitama"));
                     let systemAvatar = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`;
                     let normalAvatar = `<div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${cleanName.charAt(0)}</div>`;
@@ -4678,8 +4677,7 @@
                     let displayName = isSystem ? `Mfumo wa Kitama ${getActivistBadge(true)}` : c.name;
                     
                     let isSystemReturnLink = c.lastMsg && c.lastMsg.includes("Bonyeza kitufe hapa chini kuungana");
-                    let returnForumBtn = isSystemReturnLink ? 
-                        `<button onclick="handleNav('citizen-chat-sec'); event.stopPropagation();" class="m-btn m-btn-primary" style="flex: none; padding: 8px 15px; font-size: 12px; margin-left: auto;">Ungana Forum</button>` : '';
+                    let snippetText = isSystemReturnLink ? "Karibu kurudi kwenye KITAMA FORUM! Bonyeza ki..." : ((c.lastMsg ? c.lastMsg.substring(0, 30) : '...') + '...');
 
                     return `
                     <div class="fb-convo-card" onclick="${clickAction}" style="align-items: center;">
@@ -4687,11 +4685,10 @@
                             ${displayAvatar}
                             <div class="fb-convo-info" style="margin-left: 10px; overflow: hidden;">
                                 <b style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayName}</b>
-                                <small style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.lastMsg ? c.lastMsg.substring(0, 30) : '...'}${isSystemReturnLink ? '' : '...'}</small>
+                                <small style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${snippetText}</small>
                             </div>
                         </div>
-                        ${returnForumBtn}
-                        ${!isSystemReturnLink ? `<div class="fb-convo-badge">${new Date(c.time).toLocaleDateString()}</div>` : ''}
+                        <div class="fb-convo-badge">${new Date(c.time).toLocaleDateString()}</div>
                     </div>`;
                 }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna ujumbe wowote bado.</p>';
                 div.innerHTML = newHtml;
