@@ -2233,9 +2233,9 @@
         }
     }
 
-    async function fetchActiveCitizens() {
+     async function fetchActiveCitizens() {
         try {
-            const { data, error } = await sb.from('users').select('full_name, phone_number, is_activist').eq('role', 'citizen').eq('status', 'active').order('full_name');
+            const { data, error } = await sb.from('users').select('full_name, phone_number, is_activist, avatar_url').eq('role', 'citizen').eq('status', 'active').order('full_name');
             if(error) throw error;
             activeCitizens = data || [];
             
@@ -2978,22 +2978,37 @@
     }
     
 
-    async function viewCitizensList() {
+        async function viewCitizensList() {
         if(activeCitizens.length === 0) return showToast("Inapakia orodha...");
         const state = citizenPresenceChannel ? citizenPresenceChannel.presenceState() : {};
         const onlinePhones = Object.values(state).flat().map(u => u.phone);
         
-        let html = '<div style="max-height: 400px; overflow-y: auto; display:flex; flex-direction:column; gap:8px;">';
+        let html = '<div style="max-height: 60vh; overflow-y: auto; display:flex; flex-direction:column; gap:10px;">';
         activeCitizens.forEach(c => {
             const isOnline = onlinePhones.includes(c.phone_number);
-            const dotClass = isOnline ? 'online-dot' : 'offline-dot';
-            html += `<div style="display:flex; align-items:center; gap:10px; padding:10px; background:var(--bg); border-radius:12px;">
-                <span class="${dotClass}"></span>
-                <div><b>${c.full_name}</b><br><small style="color:var(--text-sec);">${c.phone_number}</small></div>
+            
+            let avatarHtml = c.avatar_url ? 
+                `<img src="${c.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : 
+                `<div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${c.full_name.charAt(0)}</div>`;
+            
+            let badge = c.is_activist ? getActivistBadge(true) : '';
+            
+            html += `<div onclick="viewUserProfile('${c.phone_number}')" style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--bg); border-radius:12px; cursor:pointer; border:1px solid var(--border);">
+                <div style="position: relative;">
+                    ${avatarHtml}
+                    <span class="${isOnline ? 'online-dot' : 'offline-dot'}" style="position: absolute; bottom: 0; right: 0; border: 2px solid var(--surface);"></span>
+                </div>
+                <div>
+                    <b style="font-size:14px; color:var(--text); display:flex; align-items:center; gap:4px;">${c.full_name} ${badge}</b>
+                    <small style="color:var(--text-sec); font-size:11px;">${isOnline ? 'Online' : 'Offline'}</small>
+                </div>
             </div>`;
         });
         html += '</div>';
-        openModal("Wananchi Waliojisajili", html, false);
+        
+        openModal("Wananchi", html, false);
+        document.getElementById('modal-ok').style.display = 'none';
+        document.getElementById('modal-cancel').innerText = 'Funga';
     }
 
     function openTagModal() {
@@ -6510,47 +6525,56 @@
             } catch(e) { openModal("Kosa", e.message); }
         });
     }
-        async function viewUserProfile(phone) {
-        openModal("Taarifa za Mtumiaji", "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>", false);
-        try {
-            const { data: u, error } = await sb.from('users').select('*').eq('phone_number', phone).maybeSingle();
-            if(error) throw error;
-            if(!u) return document.getElementById('modal-text').innerHTML = "<p style='text-align:center; color:var(--text-sec);'>Taarifa za mtumiaji hazijapatikana.</p>";
-            
-            const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-            const isSelf = phone === currentUser.phone_number;
-            
-            let avatarHtml = u.avatar_url ? `<img src="${u.avatar_url}" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border: 4px solid var(--border); margin: 0 auto 15px; display:block;">` : `<div style="width:100px; height:100px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:700; margin: 0 auto 15px; border: 4px solid var(--border);">${u.full_name.charAt(0).toUpperCase()}</div>`;
-            
-            let badgeHtml = u.is_activist ? getActivistBadge(true) : '';
-            
-            let actionBtn = !isSelf ? `<button onclick="fetchDmChat('${u.phone_number}', '${u.full_name}', null); closeModal();" class="btn-p" style="margin-top:15px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Tuma Ujumbe</button>` : '';
-            
-            let html = `
-                <div style="text-align:center;">
-                    ${avatarHtml}
-                    <h3 style="font-size:20px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:5px;">${u.full_name} ${badgeHtml}</h3>
-                    <p style="color:var(--text-sec); font-size:13px; text-transform:capitalize;">${u.role.replace(/_/g, ' ')}</p>
-                </div>
-                <div style="background:var(--bg); border-radius:12px; margin-top:20px; overflow:hidden; border:1px solid var(--border);">
-                    <div style="padding:12px 15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-                        <small style="color:var(--text-sec); font-size:11px;">Namba ya Simu</small>
-                        <b style="font-size:14px;">${u.phone_number}</b>
+            async function viewUserProfile(phone) {
+            openModal("Taarifa za Mtumiaji", "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>", false);
+            try {
+                const { data: u, error } = await sb.from('users').select('*').eq('phone_number', phone).maybeSingle();
+                if(error) throw error;
+                if(!u) return document.getElementById('modal-text').innerHTML = "<p style='text-align:center; color:var(--text-sec);'>Taarifa za mtumiaji hazijapatikana.</p>";
+                
+                const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+                const isSelf = phone === currentUser.phone_number;
+                
+                let avatarHtml = u.avatar_url ? 
+                    `<img src="${u.avatar_url}" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border: 4px solid var(--border); margin: 0 auto 15px; display:block;">` : 
+                    `<div style="width:100px; height:100px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:700; margin: 0 auto 15px; border: 4px solid var(--border);">${u.full_name.charAt(0).toUpperCase()}</div>`;
+                
+                let badgeHtml = u.is_activist ? getActivistBadge(true) : '';
+                
+                let actionBtn = !isSelf ? 
+                    `<button onclick="fetchDmChat('${u.phone_number}', '${u.full_name}', null); closeModal();" class="btn-p" style="margin-top:20px; background: var(--accent); color: white;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> 
+                        Tuma Ujumbe
+                    </button>` : '';
+                
+                let html = `
+                    <div style="text-align:center;">
+                        ${avatarHtml}
+                        <h3 style="font-size:20px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:5px;">${u.full_name} ${badgeHtml}</h3>
+                        <p style="color:var(--text-sec); font-size:13px; text-transform:capitalize;">${u.role.replace(/_/g, ' ')}</p>
                     </div>
-                    <div style="padding:12px 15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-                        <small style="color:var(--text-sec); font-size:11px;">Kijiji</small>
-                        <b style="font-size:14px;">${u.village}</b>
+                    <div style="background:var(--bg); border-radius:12px; margin-top:20px; overflow:hidden; border:1px solid var(--border);">
+                        <div style="padding:12px 15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                            <small style="color:var(--text-sec); font-size:11px;">Namba ya Simu</small>
+                            <b style="font-size:14px;">${u.phone_number}</b>
+                        </div>
+                        <div style="padding:12px 15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                            <small style="color:var(--text-sec); font-size:11px;">Kijiji</small>
+                            <b style="font-size:14px;">${u.village || 'Haijajulikana'}</b>
+                        </div>
+                        ${u.sub_village ? `<div style="padding:12px 15px; display:flex; justify-content:space-between; align-items:center;"><small style="color:var(--text-sec); font-size:11px;">Kitongoji</small><b style="font-size:14px;">${u.sub_village}</b></div>` : ''}
                     </div>
-                    ${u.sub_village ? `<div style="padding:12px 15px; display:flex; justify-content:space-between; align-items:center;"><small style="color:var(--text-sec); font-size:11px;">Kitongoji</small><b style="font-size:14px;">${u.sub_village}</b></div>` : ''}
-                </div>
-                ${actionBtn}
-            `;
-            
-            document.getElementById('modal-title').innerText = "Profaili ya Mtumiaji";
-            document.getElementById('modal-text').innerHTML = html;
-            document.getElementById('modal-ok').style.display = 'none';
-        } catch(e) { document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`; }
-    }
+                    ${actionBtn}
+                `;
+                
+                document.getElementById('modal-title').innerText = "Profaili ya Mtumiaji";
+                document.getElementById('modal-text').innerHTML = html;
+                document.getElementById('modal-ok').style.display = 'none';
+                document.getElementById('modal-cancel').innerText = 'Funga';
+            } catch(e) { 
+                document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`; 
+            }
+        }
         // --- ADMIN SCHOOLS FUNCTIONS ---
     async function postSchool() {
         const name = document.getElementById('school-name').value.trim();
