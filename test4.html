@@ -891,11 +891,13 @@
 </div>
 
 <div class="app-c" id="app-c">
-    <header class="app-h">
+        <header class="app-h">
         <div onclick="handleNav('profile-sec')" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
             <img id="h-avatar" src="" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); display:none;">
             <div id="h-initial" style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">U</div>
-            <div><p style="font-size:11px; color:var(--text-sec);">Karibu</p><h3 id="w-name" style="font-size:16px; font-weight:800;">Mtumiaji</h3></div>
+            <div>
+                <h3 style="font-size:16px; font-weight:800;">Kitama Yetu</h3>
+            </div>
         </div>
          <div class="header-actions">
             <button class="theme-toggle" onclick="handleNav('my-inbox-sec')" style="position: relative;">
@@ -1867,7 +1869,6 @@
         document.getElementById('auth-c').style.display='none'; 
         document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
-        document.getElementById('w-name').innerText = u.full_name.split(' ')[0];
         document.getElementById('p-name').innerText = u.full_name;
         
         // --- LOGIC YA UTHIBITISHO (VERIFIED BADGE) ---
