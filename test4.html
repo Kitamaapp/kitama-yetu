@@ -1092,11 +1092,14 @@
             <div id="shop-inbox-list"></div>
         </div>     
         
-        <div id="my-inbox-sec" class="sec">
-            <div class="sec-h"><h2>Ujumbe Wangu</h2><span onclick="fetchMyInbox()">Refresh</span></div>
+       <div id="my-inbox-sec" class="sec">
+            <div class="sec-h">
+                <h2>Ujumbe Wangu</h2>
+                <span onclick="fetchMyInbox()">Refresh</span>
+            </div>
             <button id="admin-new-chat-btn" onclick="openAdminNewChatList()" class="btn-p" style="background: var(--primary); margin: 0 20px 20px 20px; display: none;">+ Tuma Ujumbe kwa Mwananchi</button>
             <div id="my-inbox-list"></div>
-        </div> 
+        </div>
 
         <div id="citizen-chat-sec" class="sec">
                  <div class="chat-header">
@@ -4746,11 +4749,25 @@
                 const cached = getFromCache('inbox_html');
                 div.innerHTML = cached || `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
             }
-                    // ONYESHA KITUFU CHA ADMIN KAMA NI ADMIN TU
+                // ONYESHA KITUFU CHA ADMIN NA WEKA LOGO KWENYE INBOX
         const adminBtn = document.getElementById('admin-new-chat-btn');
         if (adminBtn) {
             adminBtn.style.display = (u.role === 'system_admin') ? 'flex' : 'none';
         }
+        
+        // KAMA NI ADMIN, BADILISHA PICHA YAKE KUWA LOGO RASMI KWENYE INBOX
+        if (u.role === 'system_admin') {
+            div.querySelectorAll('.fb-convo-card').forEach(card => {
+                let avatar = card.querySelector('img') || card.querySelector('div[style*="border-radius:50%"]');
+                if (avatar) {
+                    let newAvatar = document.createElement('img');
+                    newAvatar.src = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
+                    newAvatar.style.cssText = 'width:40px; height:40px; border-radius:50%; object-fit:cover;';
+                    avatar.replaceWith(newAvatar);
+                }
+            });
+        }
+        
         updateBadges();
         }
 
@@ -6140,37 +6157,28 @@
         currentMsgElement = null;
     }
 
-            async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
+     async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
             dmOtherPhone = phone; dmShopId = shopId;
-            const dmTitleEl = document.getElementById('dm-chat-title');
-            
-            let otherUserIsActivist = false;
-            let otherUserAvatar = null;
-            
-            try {
-                if (phone === ADMIN_PHONE) {
-                    // KICHWA CHA MAZUNGUMZO KWA ADMIN: LOGO NA BADGE
-                    let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
-                    dmTitleEl.innerHTML = `${systemLogo} Mfumo wa Kitama ${getActivistBadge(true)}`;
+                    const dmTitleEl = document.getElementById('dm-chat-title');
+        const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
+        
+        try {
+            if (phone === window.adminPhone) {
+                let systemLogo = `<img src="${adminLogoUrl}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
+                dmTitleEl.innerHTML = `${systemLogo} Mfumo wa Kitama ${getWhatsAppVerifiedBadge()}`;
+            } else {
+                const { data: otherUser } = await sb.from('users').select('is_activist, avatar_url').eq('phone_number', phone).maybeSingle();
+                if (otherUser && otherUser.avatar_url) {
+                    let avatar = `<img src="${otherUser.avatar_url}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
+                    let badge = otherUser.is_activist ? getActivistBadge(true) : '';
+                    dmTitleEl.innerHTML = `${avatar} ${name} ${badge}`;
                 } else {
-                    // KICHWA CHA MAZUNGUMZO KWA WATU WENGINE: PICHA NA BADGE
-                    const { data: otherUser } = await sb.from('users').select('is_activist, avatar_url').eq('phone_number', phone).maybeSingle();
-                    if (otherUser) {
-                        otherUserIsActivist = otherUser.is_activist || false;
-                        otherUserAvatar = otherUser.avatar_url || null;
-                    }
-                    
-                    if (otherUserAvatar) {
-                        let avatar = `<img src="${otherUserAvatar}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
-                        let badge = otherUserIsActivist ? getActivistBadge(true) : '';
-                        dmTitleEl.innerHTML = `${avatar} ${name} ${badge}`;
-                    } else {
-                        dmTitleEl.innerText = name;
-                    }
+                    dmTitleEl.innerText = name;
                 }
-            } catch(e) {
-                dmTitleEl.innerText = name;
             }
+        } catch(e) {
+            dmTitleEl.innerText = name;
+        }
 
             document.getElementById('dm-reply-context').style.display = 'none'; dmReplyTo = null;
             showSec('dm-chat-sec');
@@ -8383,12 +8391,27 @@
                 openProfileAvatarModal();
             };
         }
-            function updateProfileUI(u) {
+                function updateProfileUI(u) {
             const pAvaImg = document.getElementById('p-ava-img');
             const pAva = document.getElementById('p-ava');
+            const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
             
+            // KAMA NI ADMIN, LAZIMISHA LOGO KUWA PROFILE PICHA
+            if (u.role === 'system_admin') {
+                pAvaImg.src = adminLogoUrl;
+                pAvaImg.style.display = 'block';
+                pAva.style.display = 'none';
+                
+                // Pia sasisha kichwa cha nyumbani
+                const hAvatar = document.getElementById('h-avatar');
+                const hInitial = document.getElementById('h-initial');
+                if(hAvatar) { hAvatar.src = adminLogoUrl; hAvatar.style.display = 'block'; }
+                if(hInitial) hInitial.style.display = 'none';
+                return;
+            }
+            
+            // KWA WENGINE WOTE (KAWAIDA)
             if(u.avatar_url) {
-                // Ongeza ?t=... ili kuepuka cache ya browser
                 const bustUrl = u.avatar_url + (u.avatar_url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
                 pAvaImg.src = bustUrl;
                 pAvaImg.style.display = 'block';
@@ -8397,20 +8420,6 @@
                 pAvaImg.style.display = 'none';
                 pAva.style.display = 'flex';
                 pAva.innerText = u.full_name.charAt(0).toUpperCase();
-            }
-            
-            // Sasisha pia kwenye Header kushoto
-            const hAvatar = document.getElementById('h-avatar');
-            const hInitial = document.getElementById('h-initial');
-            if(u.avatar_url) {
-                const bustUrl = u.avatar_url + (u.avatar_url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
-                hAvatar.src = bustUrl;
-                hAvatar.style.display = 'block';
-                hInitial.style.display = 'none';
-            } else {
-                hAvatar.style.display = 'none';
-                hInitial.style.display = 'flex';
-                hInitial.innerText = u.full_name.charAt(0).toUpperCase();
             }
         }
             // --- OFFLINE MESSAGE QUEUE (WhatsApp Style) ---
