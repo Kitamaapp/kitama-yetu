@@ -4664,7 +4664,7 @@
         });
     }
 
-    async function fetchMyInbox() {
+            async function fetchMyInbox() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const div = document.getElementById('my-inbox-list');
             
@@ -4674,6 +4674,13 @@
                 div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona ujumbe wako.</p>';
                 return;
             }
+            
+            // ONYESHA KITUFU CHA ADMIN KAMA NI ADMIN TU
+            const adminBtn = document.getElementById('admin-new-chat-btn');
+            if (adminBtn) {
+                adminBtn.style.display = (u.role === 'system_admin') ? 'flex' : 'none';
+            }
+            
             div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
             try {
                 const { data, error } = await sb.from('shop_messages')
@@ -4707,20 +4714,22 @@
                 }
 
                 const convoList = Object.values(convos);
-                    const newHtml = convoList.length > 0 ? convoList.map(c => {
+                const newHtml = convoList.length > 0 ? convoList.map(c => {
                     let cleanName = c.name.replace(/<svg[^>]*>([\s\S]*?)<\/svg>/g, '').trim();
                     let clickAction = c.type === 'shop' 
                         ? `fetchDmChat('${c.phone}', '${cleanName.replace(/'/g, "\\'")}', '${c.id}')`
                         : `fetchDmChat('${c.phone}', '${cleanName.replace(/'/g, "\\'")}', null)`;
                     
-                    let isSystem = (c.phone === ADMIN_PHONE && u.phone_number !== ADMIN_PHONE);
-                    let systemAvatar = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`;
+                    // KAMA NI MFUMO WA KITAMA, ONESHA LOGO NA BADGE
+                    let isSystem = (c.phone === window.adminPhone && u.phone_number !== window.adminPhone);
+                    let systemAvatar = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`;
                     let normalAvatar = `<div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${cleanName.charAt(0)}</div>`;
                     let displayAvatar = isSystem ? systemAvatar : normalAvatar;
                     let displayName = isSystem ? `Mfumo wa Kitama ${getWhatsAppVerifiedBadge()}` : c.name;
                     
                     let isSystemReturnLink = c.lastMsg && c.lastMsg.includes("Bonyeza kitufe hapa chini kuungana");
                     let snippetText = isSystemReturnLink ? "Karibu kurudi kwenye KITAMA FORUM! Bonyeza ki..." : ((c.lastMsg ? c.lastMsg.substring(0, 30) : '...') + '...');
+
                     return `
                     <div class="fb-convo-card" onclick="${clickAction}" style="align-items: center;">
                         <div style="display: flex; align-items: center; flex: 1; overflow: hidden;">
@@ -4733,32 +4742,14 @@
                         <div class="fb-convo-badge">${new Date(c.time).toLocaleDateString()}</div>
                     </div>`;
                 }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna ujumbe wowote bado.</p>';
+                
                 div.innerHTML = newHtml;
                 saveToCache('inbox_html', newHtml);
             } catch(e) { 
                 const cached = getFromCache('inbox_html');
                 div.innerHTML = cached || `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
             }
-                // ONYESHA KITUFU CHA ADMIN NA WEKA LOGO KWENYE INBOX
-        const adminBtn = document.getElementById('admin-new-chat-btn');
-        if (adminBtn) {
-            adminBtn.style.display = (u.role === 'system_admin') ? 'flex' : 'none';
-        }
-        
-        // KAMA NI ADMIN, BADILISHA PICHA YAKE KUWA LOGO RASMI KWENYE INBOX
-        if (u.role === 'system_admin') {
-            div.querySelectorAll('.fb-convo-card').forEach(card => {
-                let avatar = card.querySelector('img') || card.querySelector('div[style*="border-radius:50%"]');
-                if (avatar) {
-                    let newAvatar = document.createElement('img');
-                    newAvatar.src = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
-                    newAvatar.style.cssText = 'width:40px; height:40px; border-radius:50%; object-fit:cover;';
-                    avatar.replaceWith(newAvatar);
-                }
-            });
-        }
-        
-        updateBadges();
+            updateBadges();
         }
 
     async function openCitizenChat(shopId, shopName, ownerPhone) {
