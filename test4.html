@@ -6138,28 +6138,38 @@
         currentMsgElement = null;
     }
 
-     async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
+             async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
             dmOtherPhone = phone; dmShopId = shopId;
-                    const dmTitleEl = document.getElementById('dm-chat-title');
-        const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
-        
-        try {
-            if (phone === window.adminPhone) {
-                let systemLogo = `<img src="${adminLogoUrl}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
-                dmTitleEl.innerHTML = `${systemLogo} Mfumo wa Kitama ${getWhatsAppVerifiedBadge()}`;
-            } else {
-                const { data: otherUser } = await sb.from('users').select('is_activist, avatar_url').eq('phone_number', phone).maybeSingle();
-                if (otherUser && otherUser.avatar_url) {
-                    let avatar = `<img src="${otherUser.avatar_url}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
-                    let badge = otherUser.is_activist ? getActivistBadge(true) : '';
-                    dmTitleEl.innerHTML = `${avatar} ${name} ${badge}`;
+            const dmTitleEl = document.getElementById('dm-chat-title');
+            
+            // TANGAZA VARIABLES HAPA JUU
+            let otherUserIsActivist = false;
+            let otherUserAvatar = null;
+            
+            try {
+                if (phone === window.adminPhone) {
+                    // KICHWA CHA MAZUNGUMZO KWA ADMIN: LOGO NA BADGE
+                    let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
+                    dmTitleEl.innerHTML = `${systemLogo} Mfumo wa Kitama ${getWhatsAppVerifiedBadge()}`;
                 } else {
-                    dmTitleEl.innerText = name;
+                    // KICHWA CHA MAZUNGUMZO KWA WATU WENGINE: PICHA NA BADGE
+                    const { data: otherUser } = await sb.from('users').select('is_activist, avatar_url').eq('phone_number', phone).maybeSingle();
+                    if (otherUser) {
+                        otherUserIsActivist = otherUser.is_activist || false;
+                        otherUserAvatar = otherUser.avatar_url || null;
+                    }
+                    
+                    if (otherUserAvatar) {
+                        let avatar = `<img src="${otherUserAvatar}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
+                        let badge = otherUserIsActivist ? getActivistBadge(true) : '';
+                        dmTitleEl.innerHTML = `${avatar} ${name} ${badge}`;
+                    } else {
+                        dmTitleEl.innerText = name;
+                    }
                 }
+            } catch(e) {
+                dmTitleEl.innerText = name;
             }
-        } catch(e) {
-            dmTitleEl.innerText = name;
-        }
 
             document.getElementById('dm-reply-context').style.display = 'none'; dmReplyTo = null;
             showSec('dm-chat-sec');
@@ -6199,7 +6209,7 @@
                     </p>
                 </div>`;
                 
-                                if(data.length > 0) {
+                if(data.length > 0) {
                     data.forEach(c => {
                         const isSelf = (u.phone_number === c.sender_phone);
                         let msgClass = isSelf ? 'self' : '';
@@ -6209,13 +6219,14 @@
                         // KAMA NI MFUMO WA KITAMA
                         let isSystemAccount = (c.sender_phone === window.adminPhone);
                         if (isSystemAccount && !isSelf) {
-                            let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover; vertical-align: middle; margin-right: 5px;">`;
-                            let systemBadge = getWhatsAppVerifiedBadge(); // Alama ya Kijani ya WhatsApp
+                            let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover; vertical-align: middle; margin-right: 5px;">`;
+                            let systemBadge = getWhatsAppVerifiedBadge(); 
                             
-                            let contentHtml = content;
-                            // KAMA NI UJUMBE WA LINK, TENGNEZA KITUFU NDANI YAKE
-                            if (content === "Bonyeza kitufe hapa chini kuungana tena na wananchi wako.") {
-                                contentHtml = "Karibu kurudi kwenye KITAMA FORUM! Bonyeza kitufe hapa chini kuungana tena na wananchi wako.<br><br><button onclick='event.stopPropagation(); acceptForumReturn(\"" + c.id + "\")' class='btn-p' style='margin-top:10px; padding: 10px 20px; font-size: 14px; width: auto;'>Ungana na Forum</button>";
+                            let contentHtml = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                            
+                            // KAMA NI UJUMBE WA LINK, TENGNEZA KITUFU NDANI YAKE (Tumia c.content asili)
+                            if (c.content === "Bonyeza kitufe hapa chini kuungana tena na wananchi wako.") {
+                                contentHtml = "Karibu kuridi kwenye KITAMA FORUM! Bonyeza kitufe hapa chini kuungana tena na wananchi wako.<br><br><button onclick='event.stopPropagation(); acceptForumReturn(\"" + c.id + "\")' class='btn-p' style='margin-top:10px; padding: 10px 20px; font-size: 14px; width: auto;'>Ungana na Forum</button>";
                             }
                             
                             actionsHtml = `<div class="chat-actions"></div>`;
