@@ -2801,9 +2801,13 @@
         if(id==='polls-sec') fetchPolls();
         const pollAddBtn = document.getElementById('poll-add-btn');
         if(pollAddBtn) {
-            if(u.status === 'active') pollAddBtn.style.display = 'flex';
-            else pollAddBtn.style.display = 'none';
-       }
+            // ONYESHA KITUFU KWA ACTIVISTS (VERIFIED) NA VIONGOZI TU
+            if (u.is_activist || u.role !== 'citizen') {
+                pollAddBtn.style.display = 'flex';
+            } else {
+                pollAddBtn.style.display = 'none';
+            }
+        }
         if(id==='admin-boda-sec') fetchBodaDriverRequests();
         if(id==='kitama-map-sec') { initKitamaMap(); requestLocationOnEnter(); }
         if(id==='boda-sec') { checkDriverStatus(); setTimeout(() => initBodaMap(), 100); requestLocationOnEnter(); }
@@ -9050,9 +9054,14 @@
             fetchDmChat(phone, name, null);
         }
             // --- POLL FUNCTIONS ---
-        async function postPoll() {
+            async function postPoll() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Huwezi kutuma chochote kwa sasa.");
+            
+            // ONGEZA HII: KAGUA KAMA NI ACTIVIST AU KIONGOZI
+            if (!u.is_activist && u.role === 'citizen') {
+                return openModal("Hadhi Haiitoshi", "Samahani, huwezi kuuliza swali kwenye Kura. Haki hii inawapatia Waactivists waliothibitishwa (Verified) na Viongozi tu. Unaweza kushiriki kupiga kura tu.");
+            }
             const question = document.getElementById('poll-question').value.trim();
             const opt1 = document.getElementById('poll-option-1').value.trim();
             const opt2 = document.getElementById('poll-option-2').value.trim();
@@ -9090,11 +9099,11 @@
             }
         }
 
-        async function fetchPolls() {
+                async function fetchPolls() {
             const div = document.getElementById('polls-list');
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             
-            if (!isOnline()) {
+            if (!navigator.onLine) {
                 const cached = getFromCache('polls_html');
                 div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao.</p>';
                 return;
@@ -9112,14 +9121,23 @@
                 const { data: myVotes, error: voteErr } = await sb.from('poll_votes').select('poll_id, option_index').eq('voter_phone', u.phone_number);
                 if(voteErr) throw voteErr;
                 
-                const newHtml = polls.length > 0 ? await Promise.all(polls.map(async p => {
-                    const { count } = await sb.from('poll_votes').select('*', { count: 'exact' }).eq('poll_id', p.id);
+                if (polls.length === 0) {
+                    div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna kura zilizowekwa kwa sasa.</p>';
+                    return;
+                }
+
+                const pollsHtmlArray = [];
+                
+                // TUMIA FOR...OF LOOP KUEPUKA KOSA LA AWAIT KWENYE MAP
+                for (const p of polls) {
+                    const { count: totalVotesCount } = await sb.from('poll_votes').select('*', { count: 'exact' }).eq('poll_id', p.id);
+                    const totalVotes = totalVotesCount || 0;
+                    
+                    const { data: allVotesForPoll } = await sb.from('poll_votes').select('option_index').eq('poll_id', p.id);
                     const myVote = myVotes.find(v => v.poll_id === p.id);
-                    const totalVotes = count || 0;
                     
                     let optionsHtml = p.options.map((opt, index) => {
-                        const { count: optCount } = await sb.from('poll_votes').select('*', { count: 'exact' }).eq('poll_id', p.id).eq('option_index', index);
-                        const votesForOption = optCount || 0;
+                        const votesForOption = allVotesForPoll ? allVotesForPoll.filter(v => v.option_index === index).length : 0;
                         const percentage = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
                         const isMyChoice = myVote && myVote.option_index === index;
                         
@@ -9138,7 +9156,7 @@
                     
                     let deleteBtn = (u.phone_number === p.created_by_phone || u.role === 'system_admin') ? `<button onclick="deletePoll('${p.id}')" style="background:none; border:none; color:var(--danger); padding:5px; font-size:11px; cursor:pointer; margin-top:10px;">Futa Kura Hii</button>` : '';
                     
-                    return `<div class="list-i">
+                    pollsHtmlArray.push(`<div class="list-i">
                         <div class="list-meta">
                             <span class="badge b-info">Kura (Poll)</span>
                             <small style="color:var(--text-sec); margin-left:auto;">${new Date(p.created_at).toLocaleString()}</small>
@@ -9148,11 +9166,12 @@
                         <div>${optionsHtml}</div>
                         <small style="display:block; margin-top:5px; color:var(--text-sec); font-size:11px; text-align:right;">Jumla ya kura: ${totalVotes}</small>
                         ${deleteBtn}
-                    </div>`;
-                })).then(results => results.join('')) : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna kura zilizowekwa kwa sasa.</p>';
+                    </div>`);
+                }
                 
+                const newHtml = pollsHtmlArray.join('');
                 div.innerHTML = newHtml;
-                if(newHtml && !newHtml.includes('skeleton')) saveToCache('polls_html', newHtml);
+                saveToCache('polls_html', newHtml);
                 
                 if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
             } catch(e) {
