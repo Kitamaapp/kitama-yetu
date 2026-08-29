@@ -7208,7 +7208,36 @@
             if (phone.startsWith('255')) return '0' + phone.substring(3);
             return phone;
         }
-
+        // --- OFFICIAL STATUS (MFUMO WA KITAMA) ---
+        async function loadOfficialStatus() {
+            const div = document.getElementById('official-status-list');
+            if(!div) return;
+            
+            try {
+                // Pata status ya admin ambayo bado haijaisha muda
+                const { data, error } = await sb.from('admin_status').select('*').gt('expiry', new Date().toISOString()).order('created_at', { ascending: false }).limit(1);
+                if(error) throw error;
+                
+                if(data && data.length > 0) {
+                    const s = data[0];
+                    let bg = s.image_url ? `url('${s.image_url}')` : 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)';
+                    div.innerHTML = `
+                        <div onclick="viewOfficialStatus('${s.id}')" style="position:relative; cursor:pointer;">
+                            <div style="width:60px; height:60px; border-radius:50%; background:${bg} center/cover; border: 3px solid #3B82F6; display:flex; align-items:center; justify-content:center;">
+                                ${!s.image_url ? `<span style="color:white; font-weight:800; font-size:20px;">K</span>` : ''}
+                            </div>
+                            <small style="display:block; font-size:11px; color:var(--text-sec); text-align:center; margin-top:4px; font-weight:700;">Kitama Yetu</small>
+                        </div>
+                    `;
+                } else {
+                    div.innerHTML = `<div style="width:60px; height:60px; border-radius:50%; background:var(--bg); border: 2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-sec); font-size:10px; text-align:center; padding:5px;">Hakuna tip sasa</div>`;
+                }
+            } catch(e) {
+                console.error("Official status error:", e);
+                // WEKA ALAMA KAMA HAKUNA AU KUNA KOSA LA MTANDAO
+                div.innerHTML = `<div style="width:60px; height:60px; border-radius:50%; background:var(--bg); border: 2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-sec); font-size:10px; text-align:center; padding:5px;">Hakuna tip sasa</div>`;
+            }
+        }
         // --- MAIN UI LOADER (With Error Catching) ---
         function loadStatusUI() {
             try {
