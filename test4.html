@@ -2788,6 +2788,12 @@
         if(id==='status-sec') loadStatusUI();
         if(id==='kitama-map-sec') initKitamaMap();
         if(id==='report-sec') fetchCitizenReports();
+        if(id==='polls-sec') fetchPolls();
+        const pollAddBtn = document.getElementById('poll-add-btn');
+        if(pollAddBtn) {
+            if(u.status === 'active') pollAddBtn.style.display = 'flex';
+            else pollAddBtn.style.display = 'none';
+       }
         if(id==='admin-boda-sec') fetchBodaDriverRequests();
         if(id==='kitama-map-sec') { initKitamaMap(); requestLocationOnEnter(); }
         if(id==='boda-sec') { checkDriverStatus(); setTimeout(() => initBodaMap(), 100); requestLocationOnEnter(); }
