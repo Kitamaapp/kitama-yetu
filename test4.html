@@ -7425,7 +7425,7 @@
             });
         }
     
-                 async function viewOfficialStatus(id) {
+               async function viewOfficialStatus(id) {
             try {
                 const { data: s, error } = await sb.from('admin_status').select('*').eq('id', id).single();
                 if(error) throw error;
@@ -7448,8 +7448,9 @@
                     imgEl.innerHTML = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><p style="color:white; font-size:20px; font-weight:600; padding:20px; text-align:center;">${s.content}</p></div>`;
                 }
                 
-                document.getElementById('sv-name').innerText = "Kitama Yetu";
-                document.getElementById('sv-avatar').innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                // ONESHA JINA RASMI NA BADGE YA BLUU HAPA
+                document.getElementById('sv-name').innerHTML = `Kitama Yetu ${getWhatsAppVerifiedBadge()}`;
+                document.getElementById('sv-avatar').innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
                 document.getElementById('sv-time').innerText = new Date(s.created_at).toLocaleString();
                 
                 captionEl.innerText = s.image_url ? (s.content || '') : '';
@@ -7460,7 +7461,7 @@
                 
                 document.getElementById('status-progress-bar').innerHTML = '';
             } catch(e) { openModal("Kosa", e.message); }
-        }
+         }          
         async function deleteOfficialStatus() {
             openModal("Futa Tip ya Status", "Una uhakika unataka kufuta status rasmi ya Kitama Yetu kwa watumiaji wote?", false, async () => {
                 try {
