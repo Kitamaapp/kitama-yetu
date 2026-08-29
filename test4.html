@@ -1889,10 +1889,17 @@
         }
     }
 
-        function enterApp() {
+    function enterApp() {
         document.getElementById('auth-c').style.display='none'; 
         document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
+        
+        // ONGEZA HII: SASISHA TAARIFA ZA MTUMIAJI ANAPOINGIA APP
+        sb.from('users').select('*').eq('id', u.id).single().then(({ data: freshUser }) => {
+            if(freshUser) {
+                localStorage.setItem('kitama_user', JSON.stringify(freshUser));
+            }
+        });
         
         // PATA NAMBA YA ADMIN KIOTOMATIKI (Bila await)
         if (u.role === 'system_admin') {
@@ -2116,10 +2123,21 @@
                   
                   if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
               })
-              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (!currentUser) return;
+                  
+                  // KAMA NI YEYE MWENYE AMEPATIA RUHUSA, SASISHA NA PAKIA UPYA
+                  if (updatedUser.id === currentUser.id) {
+                      localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
+                      
+                      // KAMA CAN_EDIT_MAP IMEBADILIKWA, LITATIZO APP IJIBADILISHE MOJA KWA MOJA
+                      if (updatedUser.can_edit_map !== currentUser.can_edit_map) {
+                          showToast("Umepata uwezo mpya! App inasasisha...");
+                          setTimeout(() => location.reload(), 1500);
+                          return;
+                      }
                   if (updatedUser.id === currentUser.id) {
                       const activistChanged = updatedUser.is_activist !== currentUser.is_activist;
                       const statusChanged = updatedUser.status !== currentUser.status;
@@ -2260,9 +2278,10 @@
         }
     }
 
-     async function fetchActiveCitizens() {
+    async function fetchActiveCitizens() {
         try {
-            const { data, error } = await sb.from('users').select('full_name, phone_number, is_activist, avatar_url').eq('role', 'citizen').eq('status', 'active').order('full_name');
+            // ONGEZA can_edit_map KWENYE SELECT
+            const { data, error } = await sb.from('users').select('full_name, phone_number, is_activist, avatar_url, can_edit_map').eq('role', 'citizen').eq('status', 'active').order('full_name');
             if(error) throw error;
             activeCitizens = data || [];
             
@@ -2272,7 +2291,7 @@
             });
 
             const infoEl = document.getElementById('citizen-presence-info');
-            if(infoEl) infoEl.innerText = `0 mtu online kati ya ${activeCitizens.length} wananchi`;
+            if(infoEl) infoEl.innerText = `0 watu online kati ya ${activeCitizens.length} wananchi`;
         } catch(e) { console.error(e); }
     }
 
