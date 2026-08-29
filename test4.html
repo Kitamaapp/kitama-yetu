@@ -2123,33 +2123,28 @@
                   
                   if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
               })
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
+              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
-                  const oldUser = payload.old || {};
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (!currentUser) return;
                   
-                  // TUMIA HII KUJUA KAMA NI MABADILIKO YA MUHIMU AU LA (SIO LAST_SEEN)
-                  const importantFieldsChanged = 
-                      updatedUser.status !== oldUser.status || 
-                      updatedUser.is_activist !== oldUser.is_activist || 
-                      updatedUser.can_edit_map !== oldUser.can_edit_map ||
-                      updatedUser.role !== oldUser.role;
-
+                  // KAMA MABADILIKO YANAMHUSU MTUMIAJI MWEYYY
                   if (updatedUser.id === currentUser.id) {
                       localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
                       
-                      // KAMA AMEPATA RUHUSA MPYA YA RAMANI, TOA UJUMBE NA SASISHA RAMANI TU
+                      // 1. KAMA AMEPATA RUHUSA MPYA YA RAMANI
                       if (updatedUser.can_edit_map !== currentUser.can_edit_map) {
                           showToast(updatedUser.can_edit_map ? "Umepata uwezo wa kuongeza maeneo!" : "Umeondolewa uwezo wa kuongeza maeneo.");
+                          // KAMA YUPO KENYE RAMANI, IJAZIA UPYA
                           if (document.getElementById('kitama-map-sec').classList.contains('active')) {
-                              initKitamaMap(); // Pakia upya ramani tu, sio App yote
+                              initKitamaMap(); 
                           }
                       }
                       
                       const activistChanged = updatedUser.is_activist !== currentUser.is_activist;
                       const statusChanged = updatedUser.status !== currentUser.status;
                       
+                      // 2. KAMA STATUS IMEBADILISHWA
                       if (statusChanged) {
                           if (updatedUser.status === 'rejected') {
                               openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kabisa na Admin wa Mfumo. Utatoka kwenye app sasa.", false);
@@ -2166,6 +2161,7 @@
                           return;
                       }
                       
+                      // 3. KAMA HADHI YA ACTIVIST IMEBADILISHWA
                       if(activistChanged) {
                           if(updatedUser.is_activist) openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b>.", false);
                           else showToast("Hadhi yako ya Activist imeondolewa.");
@@ -2173,20 +2169,12 @@
                       
                       const activeSec = document.querySelector('.sec.active');
                       if (activistChanged && activeSec && activeSec.id === 'home-sec') setupDashboard(updatedUser);
-                  } else {
-                      // ADMIN AFUNGUE UKURASA TU KAMA KUNA MABADILIKO YA MUHIMU (SIYO LAST_SEEN)
-                      if (importantFieldsChanged) {
-                          if(document.getElementById('pending-users-sec')?.classList.contains('active')) fetchPendingUsers();
-                          if(document.getElementById('admin-activists-sec')?.classList.contains('active')) fetchActivistsControl();
-                          if(document.getElementById('admin-users-sec')?.classList.contains('active')) fetchAdminUsers();
-                      }
-                  }
+                  } 
+                  // SITISHI ADMIN KUREFRESH OVYO OVYO HAPA CHINI
               })
               .subscribe();
         }
-              updateBadges();   
-        // Sasisha muda wa mwisho wa kutumia app
-        sb.from('users').update({ last_seen: new Date().toISOString() }).eq('id', u.id).then();
+              updateBadges();
         
         // Washa mtandao wa Status (P2P) kwa kila mtumiaji
         initStatusNetwork(u);
@@ -8108,33 +8096,35 @@
         let mapPlaceLabels = [];
         let myLocationMarker = null;
 
-                async function initKitamaMap() {
+      async function initKitamaMap() {
+            // 1. TAFUTA TAARIFA ZA MTUMIAJI ZILIZOHIFADHIWA KWENYE SIMU
             const u = JSON.parse(localStorage.getItem('kitama_user'));
-            let canEditMap = u.can_edit_map || false;
+            let canEditMap = u.can_edit_map || false; // Angalia kama ameshapewa ruhusa awali
             
-            // KAMA NI MWANANCHI, ULIASIA DB MOJA KWA MOJA KUHAKIKHA AMEWEZESHWA
+            // 2. KAMA NI MWANANCHI, ULIZA SUPABASE MOJA KWA MOJA: "JE, AMEPATIWA RUHUSA MPYA?"
             if (u.role === 'citizen') {
                 try {
                     const { data } = await sb.from('users').select('can_edit_map').eq('id', u.id).single();
                     if (data) {
                         canEditMap = data.can_edit_map || false;
-                        // Sasisha localStorage yake
+                        // Hifadhi hiyo ruhusa mpya kwenye simu ili isiulize DB kila wakati
                         u.can_edit_map = canEditMap;
                         localStorage.setItem('kitama_user', JSON.stringify(u));
                     }
                 } catch(e) {}
             }
-            
-            // ONYESHA KITUFU KULINGANA NA RUHUSA YA HALISI
+            // 3. ONYESHA KILE KITUFU CHA "ONGEZA ENEO" KULINGANA NA RUHUSA YA HALISI
             const addBtn = document.getElementById('add-place-btn');
             if (addBtn) {
+                // Kama ni Admin, Kiongozi, au Mwananchi ameshapewa ruhusa (canEditMap) -> Onesha kitufe
                 if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || canEditMap) {
                     addBtn.style.display = 'flex';
                 } else {
+                    // Kama hana ruhusa -> Ficha kitufe
                     addBtn.style.display = 'none';
                 }
             }
-            
+            // 4. KAMA RAMANI ISHATUMIKA TAYARI (Mtumiaji anarudi kwenye ukurasa), IREKEBISHA TU
             if(kitamaMap) {
                 setTimeout(() => { kitamaMap.invalidateSize(); }, 200);
                 findMyLocationOnMap();
@@ -8142,6 +8132,7 @@
                 return;
             }
             
+            // 5. KAMA NI MARA YA KWANZA, UNDA RAMANI
             kitamaMap = L.map('kitama-map', { zoomControl: true }).setView([-6.2, 35.0], 14);
             
             const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' }).addTo(kitamaMap);
@@ -8150,6 +8141,7 @@
             
             L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(kitamaMap);
 
+            // Kaskiliza mtumiaji anapozoom in/out
             kitamaMap.on('zoomend', function() {
                 toggleMapPlaceLabels();
             });
