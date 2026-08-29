@@ -5457,7 +5457,7 @@
 
             document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div> Inapanga Njia...';
 
-            // 1. HESABU UMBALI WA MOJA KWA MOJA (Straight Line) KWA USAHIHI
+                        // 1. HESABU UMBALI WA MOJA KWA MOJA (Straight Line) KWA USAHIHI
             const pLat = parseFloat(bodaPickupLat);
             const pLng = parseFloat(bodaPickupLng);
             const dLat = parseFloat(bodaDestLat);
@@ -5465,9 +5465,14 @@
             
             const straightDistanceKm = getDistance(pLat, pLng, dLat, dLng);
             
-            // 2. WEKA NAULI KWA LILE UMBALI HALISI (500 Tsh Base + 500 Tsh kwa KM)
-            // Kama umbali ni 0, nauli itakuwa 500 Tsh tu.
-            bodaFareAmount = Math.round(500 + (straightDistanceKm * 500));
+            // 2. WEKA NAULI HALISI MWANZO (500 Tsh Base + 500 Tsh kwa KM)
+            const rawFare = 500 + (straightDistanceKm * 500);
+            
+            // 3. IIRUDI (ROUND) KWENYE 500 INAYOFUATA ILI KUEPUKA CHENCHI (Mfano: 1234 -> 1000 au 1500)
+            bodaFareAmount = Math.round(rawFare / 500) * 500;
+            
+            // Kama umbali ni 0, nauli ishuke chini kabisa na iwe 500 Tsh tu
+            if (bodaFareAmount < 500) bodaFareAmount = 500;
             
             document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
             document.getElementById('boda-fare-details').style.display = 'block';
