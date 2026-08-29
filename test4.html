@@ -1022,6 +1022,29 @@
             <div class="sec-h"><h2>Fursa & Michongo</h2><span id="opp-add-btn" onclick="showSec('create-opp-sec')" style="display:none;">Tangaza</span></div>
             <div id="opportunities-list"></div>
         </div>
+                <!-- POLLS SECTION -->
+        <div id="polls-sec" class="sec">
+            <div class="sec-h">
+                <h2>Piga Kura (Polls)</h2>
+                <span id="poll-add-btn" onclick="showSec('create-poll-sec')" style="display:none;">Uliza Swali</span>
+            </div>
+            <div id="polls-list"></div>
+        </div>
+
+        <!-- CREATE POLL SECTION -->
+        <div id="create-poll-sec" class="sec">
+            <div class="sec-h"><h2>Tengeneza Kura Mpya</h2></div>
+            <div style="padding: 0 20px;">
+                <div class="form-g"><input type="text" id="poll-question" style="padding-left:16px;" placeholder="Andika swali lako (Mfano: Nani atachaguliwa 2025?)"></div>
+                
+                <div class="form-g"><label class="form-l">Chaguo la 1</label><input type="text" id="poll-option-1" style="padding-left:16px;" placeholder="Mfano: CCM"></div>
+                <div class="form-g"><label class="form-l">Chaguo la 2</label><input type="text" id="poll-option-2" style="padding-left:16px;" placeholder="Mfano: CHADEMA"></div>
+                <div class="form-g"><label class="form-l">Chaguo la 3 (Optional)</label><input type="text" id="poll-option-3" style="padding-left:16px;" placeholder="Mfano: ACT"></div>
+                <div class="form-g"><label class="form-l">Chaguo la 4 (Optional)</label><input type="text" id="poll-option-4" style="padding-left:16px;" placeholder="Mfano: Mengineyo"></div>
+                
+                <button onclick="postPoll()" class="btn-p" id="btn-poll">Weka Kura</button>
+            </div>
+        </div>
 
         <div id="create-opp-sec" class="sec">
             <div class="sec-h"><h2>Tangaza Fursa/Mchongo</h2></div>
@@ -9010,6 +9033,149 @@
             // FUNGUA MAZUNGUMZO
             fetchDmChat(phone, name, null);
         }
+            // --- POLL FUNCTIONS ---
+        async function postPoll() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Huwezi kutuma chochote kwa sasa.");
+            const question = document.getElementById('poll-question').value.trim();
+            const opt1 = document.getElementById('poll-option-1').value.trim();
+            const opt2 = document.getElementById('poll-option-2').value.trim();
+            const opt3 = document.getElementById('poll-option-3').value.trim();
+            const opt4 = document.getElementById('poll-option-4').value.trim();
+            
+            if(!question || !opt1 || !opt2) return showToast("Jaza swali na angalau chaguo 2.");
+            
+            let options = [opt1, opt2];
+            if(opt3) options.push(opt3);
+            if(opt4) options.push(opt4);
+            
+            const btn = document.getElementById('btn-poll');
+            btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
+            
+            try {
+                const { error } = await sb.from('polls').insert([{
+                    question: question,
+                    options: options,
+                    created_by_name: u.full_name,
+                    created_by_phone: u.phone_number
+                }]);
+                if(error) throw error;
+                
+                showToast("Kura imewekwa!");
+                document.getElementById('poll-question').value = '';
+                document.getElementById('poll-option-1').value = '';
+                document.getElementById('poll-option-2').value = '';
+                document.getElementById('poll-option-3').value = '';
+                document.getElementById('poll-option-4').value = '';
+                showSec('polls-sec');
+            } catch(e) {
+                openModal("Kosa", e.message);
+                btn.innerHTML = 'Weka Kura'; btn.disabled = false;
+            }
+        }
+
+        async function fetchPolls() {
+            const div = document.getElementById('polls-list');
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            
+            if (!isOnline()) {
+                const cached = getFromCache('polls_html');
+                div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao.</p>';
+                return;
+            }
+            
+            const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
+            const oldScroll = window.scrollY;
+            
+            if(!isRealtimeUpdate) div.innerHTML = '<div class="skeleton" style="height:100px; margin:0 20px 15px 20px;"></div>';
+            
+            try {
+                const { data: polls, error } = await sb.from('polls').select('*').order('created_at', { ascending: false }).limit(20);
+                if(error) throw error;
+                
+                const { data: myVotes, error: voteErr } = await sb.from('poll_votes').select('poll_id, option_index').eq('voter_phone', u.phone_number);
+                if(voteErr) throw voteErr;
+                
+                const newHtml = polls.length > 0 ? await Promise.all(polls.map(async p => {
+                    const { count } = await sb.from('poll_votes').select('*', { count: 'exact' }).eq('poll_id', p.id);
+                    const myVote = myVotes.find(v => v.poll_id === p.id);
+                    const totalVotes = count || 0;
+                    
+                    let optionsHtml = p.options.map((opt, index) => {
+                        const { count: optCount } = await sb.from('poll_votes').select('*', { count: 'exact' }).eq('poll_id', p.id).eq('option_index', index);
+                        const votesForOption = optCount || 0;
+                        const percentage = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
+                        const isMyChoice = myVote && myVote.option_index === index;
+                        
+                        if (myVote) {
+                            return `<div style="margin-bottom: 8px; padding: 10px; border-radius: 10px; background: ${isMyChoice ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg)'}; border: 1px solid ${isMyChoice ? 'var(--accent)' : 'var(--border)'}; position: relative; overflow: hidden;">
+                                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: ${percentage}%; background: ${isMyChoice ? 'rgba(16, 185, 129, 0.2)' : 'rgba(100, 116, 139, 0.1)'};"></div>
+                                <div style="position: relative; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 14px; font-weight: 600; color: var(--text);">${opt}</span>
+                                    <span style="font-size: 12px; font-weight: 700; color: var(--text-sec);">${percentage}% (${votesForOption})</span>
+                                </div>
+                            </div>`;
+                        } else {
+                            return `<button onclick="castVote('${p.id}', ${index})" style="width: 100%; margin-bottom: 8px; padding: 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left;">${opt}</button>`;
+                        }
+                    }).join('');
+                    
+                    let deleteBtn = (u.phone_number === p.created_by_phone || u.role === 'system_admin') ? `<button onclick="deletePoll('${p.id}')" style="background:none; border:none; color:var(--danger); padding:5px; font-size:11px; cursor:pointer; margin-top:10px;">Futa Kura Hii</button>` : '';
+                    
+                    return `<div class="list-i">
+                        <div class="list-meta">
+                            <span class="badge b-info">Kura (Poll)</span>
+                            <small style="color:var(--text-sec); margin-left:auto;">${new Date(p.created_at).toLocaleString()}</small>
+                        </div>
+                        <h4 style="margin-top: 10px;">${p.question}</h4>
+                        <small style="color:var(--text-sec); display:block; margin-bottom: 10px;">Imetumwa na: ${p.created_by_name}</small>
+                        <div>${optionsHtml}</div>
+                        <small style="display:block; margin-top:5px; color:var(--text-sec); font-size:11px; text-align:right;">Jumla ya kura: ${totalVotes}</small>
+                        ${deleteBtn}
+                    </div>`;
+                })).then(results => results.join('')) : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna kura zilizowekwa kwa sasa.</p>';
+                
+                div.innerHTML = newHtml;
+                if(newHtml && !newHtml.includes('skeleton')) saveToCache('polls_html', newHtml);
+                
+                if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
+            } catch(e) {
+                if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+            }
+        }
+
+        async function castVote(pollId, optionIndex) {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Huwezi kufanya vitendo kwa sasa.");
+            try {
+                const { error } = await sb.from('poll_votes').insert([{
+                    poll_id: pollId,
+                    option_index: optionIndex,
+                    voter_phone: u.phone_number
+                }]);
+                if(error) throw error;
+                
+                showToast("Umepiga kura!");
+                playBeep();
+                fetchPolls();
+            } catch(e) {
+                if(e.code === '23505') {
+                    showToast("Umekwisha piga kura kwenye hii kura!");
+                } else {
+                    openModal("Kosa", e.message);
+                }
+            }
+        }
+
+        async function deletePoll(id) {
+            openModal("Futa Kura", "Una uhakika unataka kufuta kura hii?", false, async () => {
+                try {
+                    await sb.from('polls').delete().eq('id', id);
+                    showToast("Kura imefutwa!");
+                    fetchPolls();
+                } catch(e) { openModal("Kosa", e.message); }
+            });
+        }                             
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
