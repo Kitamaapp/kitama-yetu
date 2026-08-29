@@ -5260,7 +5260,7 @@
                     } else {
                         // KAMA NI MARA YA KWANZA, IUNGEZE KENYE RAMANI NA IPELEKE ZOOM KWENYE ENEO
                         pickupMarker = L.marker([bodaPickupLat, bodaPickupLng], { icon: pickupIcon }).addTo(bodaMap);
-                        pickupMarker.bindPopup("<b>Wapo hapa (Pickup)</b>").openPopup();
+                        pickupMarker.bindPopup("<b>Upo hapa (Pickup)</b>").openPopup();
                         bodaMap.flyTo([bodaPickupLat, bodaPickupLng], 16, { duration: 1.5 });
                     }
                 },
@@ -6351,16 +6351,25 @@
             
             const newHtml = data.length > 0 ? data.map(u => {
                 let statusBadge = u.status === 'active' ? '<span class="badge b-succ">Active</span>' : u.status === 'restricted' ? '<span class="badge b-warn">View Only</span>' : '<span class="badge b-err">Banned</span>';
-                let actions = '';
+                                let actions = '';
                 if(u.status === 'active') {
-                    actions = `<button onclick="updateUserStatus('${u.id}', 'restricted')" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; margin-right:5px;">Zuia</button>
-                               <button onclick="updateUserStatus('${u.id}', 'rejected')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Funga</button>`;
+                    actions = `<button onclick="updateUserStatus('${u.id}', 'restricted')" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; margin-right:5px;">Zuia (View-Only)</button>
+                               <button onclick="updateUserStatus('${u.id}', 'rejected')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Funga (Ban)</button>`;
                 } else {
                     actions = `<button onclick="updateUserStatus('${u.id}', 'active')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:11px;">Ruhusu</button>`;
                 }
+                
+                // ONGEZA HII: KITUFU CHA KUMTEUA KUHARIRI RAMANI
+                let mapEditorBtn = u.can_edit_map 
+                    ? `<button onclick="toggleMapEditor('${u.id}', false)" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px; margin-top:5px; width:100%;">Ondoa Uwezo wa Ramani</button>` 
+                    : `<button onclick="toggleMapEditor('${u.id}', true)" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; background:#6366f1; color:white; margin-top:5px; width:100%;">Ruhusu Kuhariri Ramani</button>`;
+                
                 return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                     <div><b>${u.full_name}</b> ${statusBadge}<br><small>${u.phone_number} - ${u.role.replace(/_/g, ' ')}</small></div>
-                    <div style="display:flex; gap:5px;">${actions}</div>
+                    <div style="display:flex; gap:5px; flex-direction:column; align-items:flex-end;">
+                        <div style="display:flex; gap:5px;">${actions}</div>
+                        ${mapEditorBtn}
+                    </div>
                 </div>`;
             }).join('') : '<p style="color:var(--text-sec); padding:0 20px;">Hakuna watumiaji.</p>';
             
@@ -8094,9 +8103,10 @@
             findMyLocationOnMap();
             loadMapMarkers();
             
+             // ONYESHA KITUFU CHA KUONGEZA ENEO KWA ADMIN/VIONGOZI/WAHARIRI
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const addBtn = document.getElementById('add-place-btn');
-            if (addBtn && (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani')) {
+            if (addBtn && (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || u.can_edit_map)) {
                 addBtn.style.display = 'flex';
             }
         }
@@ -8201,7 +8211,9 @@
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
-            function addCurrentPlaceToMap() {
+                let tempAddPlaceMarker = null;
+
+        function addCurrentPlaceToMap() {
             if (!navigator.geolocation) return showToast("GPS haipatikani.");
             
             showToast("Inatafuta eneo lako halisi...");
@@ -8209,48 +8221,87 @@
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
                 
-                const html = `
-                    <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">GPS imekupata uko hapahapa. Jaza taarifa za eneo hili:</p>
-                    <div class="form-g">
-                        <label class="form-l">Jina la Eneo</label>
-                        <input type="text" id="new-place-name" class="modal-input" placeholder="Mfano: Kitama Health Centre" style="margin-bottom: 15px;">
-                    </div>
-                    <div class="form-g">
-                        <label class="form-l">Aina ya Eneo</label>
-                        <select id="new-place-category" class="modal-input" style="padding-left: 16px;">
-                            <option value="place">Eneo la Kawaida (Kijiwe)</option>
-                            <option value="hospital">Hospitali / Zahanati</option>
-                            <option value="school">Shule</option>
-                            <option value="shop">Duka</option>
-                            <option value="mosque">Msikiti</option>
-                            <option value="church">Kanisa</option>
-                            <option value="market">Soko</option>
-                            <option value="office">Ofisi ya Serikali</option>
-                            <option value="water">Chanzo cha Maji</option>
-                        </select>
-                    </div>
-                `;
+                // PELEKA RAMANI KWENYE ENEO LA MTUMIAJI KWA KARIBU SANA
+                kitamaMap.flyTo([lat, lng], 18, { duration: 1.5 });
                 
-                openModal("Ongeza Eneo Hapa", html, false, async () => {
-                    const name = document.getElementById('new-place-name').value.trim();
-                    const category = document.getElementById('new-place-category').value;
-                    if(!name) return showToast("Tafadhali weka jina la eneo.");
-                    
-                    try {
-                        await sb.from('map_places').insert([{ name: name, lat: lat.toString(), lng: lng.toString(), category: category }]);
-                        showToast("Eneo limeongezwa kwenye ramani!");
-                        closeModal();
-                        loadMapMarkers(); 
-                    } catch(e) {
-                        openModal("Kosa", e.message);
-                    }
+                // WEKA ALAMA INAYOWEZA KUSOGEZWA (Draggable Pin)
+                if (tempAddPlaceMarker) kitamaMap.removeLayer(tempAddPlaceMarker);
+                const addPlaceIcon = L.divIcon({
+                    className: 'blink-marker',
+                    html: `<div style="width:30px; height:30px; background:#0A84FF; border-radius:50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;"><span style="transform: rotate(45deg); color: white; font-size: 16px; font-weight: bold;">+</span></div>`,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 30]
                 });
+                tempAddPlaceMarker = L.marker([lat, lng], { icon: addPlaceIcon, draggable: true }).addTo(kitamaMap);
+                tempAddPlaceMarker.bindPopup("<b>Tambaza Eneo</b><br>Sogeza alama hii kuweka hasa mahali ulipo.").openPopup();
+                
+                // FUNGUA DIRISHA LA KUANDIKA
+                showAddPlaceForm();
                 
             }, err => {
                 showToast("Washa GPS na uweke ruhusa.");
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-            }
+        }
 
+        function showAddPlaceForm() {
+            const html = `
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <h3 style="font-weight: 800; font-size: 18px; color: var(--text);">Tengeneza Eneo Kwenye Ramani</h3>
+                    <p style="font-size: 12px; color: var(--text-sec); margin-top: 5px;">Sogeza alama kwenye ramani kwa usahihi, kisha jaza taarifa hapa chini.</p>
+                </div>
+                <div class="form-g" style="margin-bottom: 15px;">
+                    <label class="form-l">Jina la Eneo</label>
+                    <input type="text" id="new-place-name" class="modal-input" placeholder="Mfano: Kitama Health Centre" style="padding-left: 16px;">
+                </div>
+                <div class="form-g" style="margin-bottom: 20px;">
+                    <label class="form-l">Aina ya Eneo</label>
+                    <select id="new-place-category" class="modal-input" style="padding-left: 16px;">
+                        <option value="place">Eneo la Kawaida (Kijiwe)</option>
+                        <option value="hospital">Hospitali / Zahanati</option>
+                        <option value="school">Shule</option>
+                        <option value="shop">Duka</option>
+                        <option value="mosque">Msikiti</option>
+                        <option value="church">Kanisa</option>
+                        <option value="market">Soko</option>
+                        <option value="office">Ofisi ya Serikali</option>
+                        <option value="water">Chanzo cha Maji</option>
+                    </select>
+                </div>
+                <button onclick="saveNewMapPlace()" class="btn-p" style="background: #0A84FF;">Hifadhi Eneo</button>
+            `;
+            
+            openModal("Ongeza Eneo", html, false);
+            document.getElementById('modal-ok').style.display = 'none';
+            document.getElementById('modal-cancel').innerText = 'Ghairi';
+        }
+
+        async function saveNewMapPlace() {
+            const name = document.getElementById('new-place-name').value.trim();
+            const category = document.getElementById('new-place-category').value;
+            if(!name) return showToast("Tafadhali weka jina la eneo.");
+            
+            // PATA MLINGANYIKO WA MwishO WA AILAMA BAADA YA KUSOGEZWA
+            const coords = tempAddPlaceMarker.getLatLng();
+            const lat = coords.lat;
+            const lng = coords.lng;
+            
+            try {
+                await sb.from('map_places').insert([{ name: name, lat: lat.toString(), lng: lng.toString(), category: category }]);
+                showToast("Eneo limehifadhiwa kikamilifu!");
+                closeModal();
+                if (tempAddPlaceMarker) { kitamaMap.removeLayer(tempAddPlaceMarker); tempAddPlaceMarker = null; }
+                loadMapMarkers(); 
+            } catch(e) {
+                openModal("Kosa", e.message);
+            }
+        }
+        async function toggleMapEditor(userId, allow) {
+            try {
+                await sb.from('users').update({ can_edit_map: allow }).eq('id', userId);
+                showToast(allow ? "Ampa uwezo wa kuhariri ramani!" : "Ameondolewa uwezo wa ramani!");
+                fetchAdminUsers();
+            } catch(e) { openModal("Kosa", e.message); }
+        }
         // HII NDIO INAYOFANYA DOT ITEMBEA KAMA GOOGLE MAPS
         function startWatchingLocation() {
             if (!navigator.geolocation) return showToast("Kifaa chako hakikai GPS.");
