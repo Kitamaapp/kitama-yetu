@@ -2231,6 +2231,16 @@
                   } 
                   // SITISHI ADMIN KUREFRESH OVYO OVYO HAPA CHINI
               })
+             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'polls' }, payload => {
+                  playBeep();
+                  if(document.getElementById('polls-sec').classList.contains('active')) fetchPolls();
+              })
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'poll_votes' }, payload => {
+                  if(document.getElementById('polls-sec').classList.contains('active')) fetchPolls();
+              })
+              .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'polls' }, payload => {
+                  if(document.getElementById('polls-sec').classList.contains('active')) fetchPolls();
+              })
               .subscribe();
         }
               updateBadges();
