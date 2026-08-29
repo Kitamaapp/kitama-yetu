@@ -8096,35 +8096,33 @@
         let mapPlaceLabels = [];
         let myLocationMarker = null;
 
-      async function initKitamaMap() {
-            // 1. TAFUTA TAARIFA ZA MTUMIAJI ZILIZOHIFADHIWA KWENYE SIMU
+              async function initKitamaMap() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
-            let canEditMap = u.can_edit_map || false; // Angalia kama ameshapewa ruhusa awali
+            let canEditMap = u.can_edit_map || false;
             
-            // 2. KAMA NI MWANANCHI, ULIZA SUPABASE MOJA KWA MOJA: "JE, AMEPATIWA RUHUSA MPYA?"
             if (u.role === 'citizen') {
                 try {
-                    const { data } = await sb.from('users').select('can_edit_map').eq('id', u.id).single();
+                    const { data } = await sb.from('users').select('can_edit_map').eq('id', u.id).maybeSingle();
                     if (data) {
                         canEditMap = data.can_edit_map || false;
-                        // Hifadhi hiyo ruhusa mpya kwenye simu ili isiulize DB kila wakati
                         u.can_edit_map = canEditMap;
                         localStorage.setItem('kitama_user', JSON.stringify(u));
+                        
+                        // ONYESHA UJUMBE WA HAKIKISHO HAPA
+                        showToast("Uwezo wa Ramani: " + (canEditMap ? "Una Ruhusa" : "Huna Ruhusa"));
                     }
                 } catch(e) {}
             }
-            // 3. ONYESHA KILE KITUFU CHA "ONGEZA ENEO" KULINGANA NA RUHUSA YA HALISI
+            
             const addBtn = document.getElementById('add-place-btn');
             if (addBtn) {
-                // Kama ni Admin, Kiongozi, au Mwananchi ameshapewa ruhusa (canEditMap) -> Onesha kitufe
                 if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || canEditMap) {
                     addBtn.style.display = 'flex';
                 } else {
-                    // Kama hana ruhusa -> Ficha kitufe
                     addBtn.style.display = 'none';
                 }
             }
-            // 4. KAMA RAMANI ISHATUMIKA TAYARI (Mtumiaji anarudi kwenye ukurasa), IREKEBISHA TU
+            
             if(kitamaMap) {
                 setTimeout(() => { kitamaMap.invalidateSize(); }, 200);
                 findMyLocationOnMap();
@@ -8132,7 +8130,6 @@
                 return;
             }
             
-            // 5. KAMA NI MARA YA KWANZA, UNDA RAMANI
             kitamaMap = L.map('kitama-map', { zoomControl: true }).setView([-6.2, 35.0], 14);
             
             const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' }).addTo(kitamaMap);
@@ -8141,7 +8138,6 @@
             
             L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(kitamaMap);
 
-            // Kaskiliza mtumiaji anapozoom in/out
             kitamaMap.on('zoomend', function() {
                 toggleMapPlaceLabels();
             });
