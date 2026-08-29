@@ -7202,12 +7202,13 @@
         }
 
         // 3. Load UI
-               function loadStatusUI() {
+                function loadStatusUI() {
             cleanExpiredStatuses();
             loadOfficialStatus();
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const grouped = getGroupedStatuses();
             
+            // 1. STATUS YANGU (Daima ionekane)
             const myStatuses = grouped[u.phone_number] || [];
             const myList = document.getElementById('my-status-list');
             
@@ -7222,11 +7223,41 @@
 
             const otherList = document.getElementById('other-status-list');
             const permContainer = document.getElementById('contacts-permission-container');
-            
-            // PATA NAMBA ZILIZOHIFADHIWA
             const savedContacts = JSON.parse(localStorage.getItem('kitama_saved_contacts') || '[]');
             
-            // 1. KAMA HAJASYNC, ONESHA UJUMBE WA KURUHUSU
+            // 2. ANGALIA KAMA SIMU INAWEZA KUSOMA CONTACTS
+            const canReadContacts = ('contacts' in navigator && navigator.contacts.select);
+            
+            // 3. KAMA HAIWEZI KUSOMA CONTACTS, FICHA UJUMBE WA KURUHUSU NA ONYESHA STATUS ZOTE KAMA ZAMANI
+            if (!canReadContacts) {
+                if(permContainer) permContainer.innerHTML = '';
+                
+                const otherUsers = Object.keys(grouped).filter(phone => phone !== u.phone_number);
+                if (otherUsers.length > 0) {
+                    otherList.innerHTML = otherUsers.map(phone => {
+                        const statuses = grouped[phone];
+                        const isSeen = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number));
+                        let border = isSeen ? 'var(--border)' : 'var(--accent)';
+                        let mediaIcon = statuses[0].media_type === 'video' ? '▶️' : '';
+                        return `<div onclick="viewStatus('${phone}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
+                            <div style="position:relative;">
+                                <img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">
+                                <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:18px; background:rgba(0,0,0,0.2); border-radius:50%;">${mediaIcon}</div>
+                                ${statuses.length > 1 ? `<div style="position:absolute; top:-5px; right:-5px; background:var(--surface); color:var(--text); border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; border: 1px solid var(--border);">${statuses.length}</div>` : ''}
+                            </div>
+                            <div>
+                                <b style="display:block; font-size:14px;">${statuses[0].sender_name}</b>
+                                <small style="color:var(--text-sec); font-size:11px;">${new Date(statuses[0].timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                            </div>
+                        </div>`;
+                    }).join('');
+                } else {
+                    otherList.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna status mpya za wenzako. Rudi baadaye!</p>';
+                }
+                return;
+            }
+            
+            // 4. KAMA SIMU INAWEZA, LAKINI HAJASOMA, ONESHA UJUMBE WA KURUHUSU
             if (savedContacts.length === 0) {
                 if(permContainer) {
                     permContainer.innerHTML = `<div class="contacts-permission-box">
@@ -7244,13 +7275,12 @@
                 return;
             }
             
-            // 2. KAMA AMESHASOMA, FICHA UJUMBE
+            // 5. KAMA AMESHASOMA, FICHA UJUMBE NA ONESHA WALE ALIOWASAVE TU
             if(permContainer) permContainer.innerHTML = '';
 
             const otherUsers = Object.keys(grouped).filter(phone => phone !== u.phone_number);
             let visibleStatuses = [];
             
-            // CHAGUA STATUS ZA WATU ALIOWASAVE TU
             otherUsers.forEach(phone => {
                 if (savedContacts.includes(normalizePhone(phone))) {
                     visibleStatuses.push(phone);
