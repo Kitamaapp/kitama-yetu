@@ -8080,13 +8080,27 @@
         let mapPlaceLabels = [];
         let myLocationMarker = null;
 
-        function initKitamaMap() {
+                function initKitamaMap() {
+            // 1. KAGUA RUHUSA YA KUONA KITUFU (KABLA YA KURETURN)
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            const addBtn = document.getElementById('add-place-btn');
+            if (addBtn) {
+                if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || u.can_edit_map) {
+                    addBtn.style.display = 'flex';
+                } else {
+                    addBtn.style.display = 'none'; // Ficha kwa wasiokuwa na ruhusa
+                }
+            }
+            
+            // 2. KAMA RAMANI ISHAPOWASHWA, JUST RELOAD MARKERS NA RETURN
             if(kitamaMap) {
                 setTimeout(() => { kitamaMap.invalidateSize(); }, 200);
                 findMyLocationOnMap();
+                loadMapMarkers();
                 return;
             }
             
+            // 3. KAMA NI MARA YA KWANZA, UNDA RAMANI
             kitamaMap = L.map('kitama-map', { zoomControl: true }).setView([-6.2, 35.0], 14);
             
             const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' }).addTo(kitamaMap);
@@ -8095,20 +8109,13 @@
             
             L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(kitamaMap);
 
-            // ZOOM EVENT: Sasa haitapakia upya markers zote, itaonesha/ficha maeneo tu
+            // ZOOM EVENT
             kitamaMap.on('zoomend', function() {
                 toggleMapPlaceLabels();
             });
 
             findMyLocationOnMap();
             loadMapMarkers();
-            
-             // ONYESHA KITUFU CHA KUONGEZA ENEO KWA ADMIN/VIONGOZI/WAHARIRI
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            const addBtn = document.getElementById('add-place-btn');
-            if (addBtn && (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || u.can_edit_map)) {
-                addBtn.style.display = 'flex';
-            }
         }
 
             // DICTIONARY YA IKONI NA RANGI KULINGANA NA CATEGORY
