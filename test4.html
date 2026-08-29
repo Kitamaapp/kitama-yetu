@@ -7175,24 +7175,24 @@
                 }
             });
         }
-
-        // 2. Storage Helpers
-        function getStatusFromStorage() { try { return JSON.parse(localStorage.getItem(STATUS_DB_NAME)) || []; } catch(e) { return []; } }
-        function saveStatusToStorage(data) {
-            // SHIKILIA STATUS 30 ZA MWISHO TU KUEPUCHA SIMU KUJAA
-            if(data.length > 30) {
-                data = data.slice(data.length - 30);
-            }
-            localStorage.setItem(STATUS_DB_NAME, JSON.stringify(data));
+        // --- STATUS STORAGE & GROUPING HELPERS ---
+        function getStatusFromStorage() { 
+            try { return JSON.parse(localStorage.getItem(STATUS_DB_NAME)) || []; } 
+            catch(e) { return []; } 
         }
+        
+        function saveStatusToStorage(data) { 
+            localStorage.setItem(STATUS_DB_NAME, JSON.stringify(data)); 
+        }
+        
         function cleanExpiredStatuses() {
             let myStorage = getStatusFromStorage();
             const valid = myStorage.filter(s => new Date(s.expiry).getTime() > Date.now());
             if (valid.length !== myStorage.length) saveStatusToStorage(valid);
         }
+        
         function getGroupedStatuses() {
-            // Futa status za official kabisa ili zisiingie kwenye orodha ya kawaida
-            const allStatuses = getStatusFromStorage().filter(s => !s.is_official);
+            const allStatuses = getStatusFromStorage();
             const grouped = {};
             allStatuses.forEach(s => {
                 if (!grouped[s.sender_phone]) grouped[s.sender_phone] = [];
@@ -7201,24 +7201,37 @@
             return grouped;
         }
 
-        // 3. Load UI
-                function loadStatusUI() {
+        function normalizePhone(phone) {
+            if (!phone) return '';
+            phone = phone.replace(/\s+/g, '').replace(/-/g, '');
+            if (phone.startsWith('+255')) return '0' + phone.substring(4);
+            if (phone.startsWith('255')) return '0' + phone.substring(3);
+            return phone;
+        }
+
+        // --- MAIN UI LOADER ---
+        function loadStatusUI() {
             cleanExpiredStatuses();
             loadOfficialStatus();
+            
             const u = JSON.parse(localStorage.getItem('kitama_user'));
+            if (!u || !u.phone_number) return; // Kama taarifa hazipo, acha kabisa
+            
             const grouped = getGroupedStatuses();
             
             // 1. STATUS YANGU (Daima ionekane)
             const myStatuses = grouped[u.phone_number] || [];
             const myList = document.getElementById('my-status-list');
             
-            if (myStatuses.length > 0) {
-                myList.innerHTML = `<div style="position:relative; cursor:pointer;" onclick="viewStatus('${u.phone_number}')">
-                    <img src="${myStatuses[0].media_base64}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent); opacity: 0.9;">
-                    ${myStatuses.length > 1 ? `<div style="position:absolute; top:-5px; right:-5px; background:var(--accent); color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border: 2px solid var(--surface);">${myStatuses.length}</div>` : ''}
-                </div>`;
-            } else {
-                myList.innerHTML = `<div onclick="openStatusUploadModal()" style="width:60px; height:60px; border-radius:50%; border: 2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-sec); cursor:pointer; font-size:24px;">+</div>`;
+            if (myList) { // Hakikisha element ipo
+                if (myStatuses.length > 0) {
+                    myList.innerHTML = `<div style="position:relative; cursor:pointer;" onclick="viewStatus('${u.phone_number}')">
+                        <img src="${myStatuses[0].media_base64}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent); opacity: 0.9;">
+                        ${myStatuses.length > 1 ? `<div style="position:absolute; top:-5px; right:-5px; background:var(--accent); color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border: 2px solid var(--surface);">${myStatuses.length}</div>` : ''}
+                    </div>`;
+                } else {
+                    myList.innerHTML = `<div onclick="openStatusUploadModal()" style="width:60px; height:60px; border-radius:50%; border: 2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-sec); cursor:pointer; font-size:24px;">+</div>`;
+                }
             }
 
             const otherList = document.getElementById('other-status-list');
@@ -7228,7 +7241,7 @@
             // 2. ANGALIA KAMA SIMU INAWEZA KUSOMA CONTACTS
             const canReadContacts = ('contacts' in navigator && navigator.contacts.select);
             
-            // 3. KAMA HAIWEZI KUSOMA CONTACTS, FICHA UJUMBE WA KURUHUSU NA ONYESHA STATUS ZOTE KAMA ZAMANI
+            // 3. KAMA HAIWEZI KUSOMA CONTACTS, FICHA UJUMBE NA ONESHA STATUS ZOTE
             if (!canReadContacts) {
                 if(permContainer) permContainer.innerHTML = '';
                 
@@ -7309,7 +7322,7 @@
                 otherList.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna status mpya za watu uliowasave kwenye simu.</p>';
             }
         }
-
+        
         // 4. Upload Modal
                 function openStatusCaptionModal() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
