@@ -2154,6 +2154,11 @@
                   
                   if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
               })
+                          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_status' }, payload => {
+                  playBeep();
+                  showToast("Tip mpya kutoka Kitama Yetu!");
+                  if(document.getElementById('status-sec').classList.contains('active')) loadStatusUI(); // HAPA NDIO ILIKUWA KOSA
+              })
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
