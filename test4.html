@@ -754,6 +754,30 @@
         .article-action-btn:active { transform: scale(0.95); }
         .article-action-btn.liked { color: #10B981; border-color: #10B981; background: rgba(16,185,129,0.1); }
         .article-action-btn.disliked { color: #EF4444; border-color: #EF4444; background: rgba(239,68,68,0.1); }
+    
+            .contacts-permission-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 0 20px 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow-sm);
+        }
+        .contacts-permission-box .icon-box {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(16, 185, 129, 0.1); color: var(--accent);
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .contacts-permission-box .text-box { flex: 1; }
+        .contacts-permission-box .text-box h4 { font-size: 14px; font-weight: 700; margin-bottom: 2px; color: var(--text); }
+        .contacts-permission-box .text-box p { font-size: 12px; color: var(--text-sec); }
+        .contacts-permission-box button {
+            background: var(--accent); color: white; border: none;
+            padding: 8px 15px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -1263,6 +1287,9 @@
             
             <div style="padding: 0 20px;">
                 <h4 style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Status za Wenzangu</h4>
+                
+                <!-- ONGEZA HII: SEHEMU YA KUKAGA RUHUSA YA CONTACTS -->
+                <div id="contacts-permission-container"></div>
                 <div id="other-status-list" style="display:flex; flex-direction:column; gap: 10px;"></div>
             </div>
         </div>
@@ -7175,38 +7202,16 @@
         }
 
         // 3. Load UI
-            function loadStatusUI() {
+               function loadStatusUI() {
             cleanExpiredStatuses();
+            loadOfficialStatus();
             const u = JSON.parse(localStorage.getItem('kitama_user'));
-            const allStatuses = getStatusFromStorage();
+            const grouped = getGroupedStatuses();
             
-                                    // 1. OFFICIAL STATUS (Kwa Admin)
-            const officialStatuses = allStatuses.filter(s => s.is_official);
-            const officialList = document.getElementById('official-status-list');
-            const officialContainer = document.getElementById('official-status-container');
-            
-            if (officialStatuses.length > 0) {
-                officialContainer.style.display = 'block';
-                officialList.innerHTML = officialStatuses.map(s => `
-                    <div style="position:relative; cursor:pointer;" onclick="viewOfficialStatus()">
-                        <div style="width:60px; height:60px; border-radius:50%; background:#000; border: 3px solid #3B82F6; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                            <video src="${s.media_base64}" style="width:100%; height:100%; object-fit:cover;" muted></video>
-                        </div>
-                        <small style="display:block; font-size:11px; color:var(--text-sec); text-align:center; margin-top:4px; font-weight:700;">Kitama Yetu</small>
-                    </div>
-                `).join('');
-            } else {
-                officialContainer.style.display = 'none';
-            }
-
-                        // 2. MY STATUS (Kwa Mtumiaji mwenyewe)
-            const myStatuses = allStatuses.filter(s => s.sender_phone === u.phone_number && !s.is_official);
+            const myStatuses = grouped[u.phone_number] || [];
             const myList = document.getElementById('my-status-list');
             
-            // Funga Admin asiweke status binafsi
-            if(u.role === 'system_admin') {
-                myList.innerHTML = `<div style="width:100%; text-align:center; font-size:12px; color:var(--text-sec); padding:10px;">Admin hana status binafsi. Tumia Admin Console kuweka Tip.</div>`;
-            } else if (myStatuses.length > 0) {
+            if (myStatuses.length > 0) {
                 myList.innerHTML = `<div style="position:relative; cursor:pointer;" onclick="viewStatus('${u.phone_number}')">
                     <img src="${myStatuses[0].media_base64}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent); opacity: 0.9;">
                     ${myStatuses.length > 1 ? `<div style="position:absolute; top:-5px; right:-5px; background:var(--accent); color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border: 2px solid var(--surface);">${myStatuses.length}</div>` : ''}
@@ -7215,13 +7220,46 @@
                 myList.innerHTML = `<div onclick="openStatusUploadModal()" style="width:60px; height:60px; border-radius:50%; border: 2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-sec); cursor:pointer; font-size:24px;">+</div>`;
             }
 
-            // 3. OTHER STATUS (Kwa Watumiaji wengine)
             const otherList = document.getElementById('other-status-list');
-            const otherUsers = Object.keys(getGroupedStatuses()).filter(phone => phone !== u.phone_number);
+            const permContainer = document.getElementById('contacts-permission-container');
             
-            if (otherUsers.length > 0) {
-                otherList.innerHTML = otherUsers.map(phone => {
-                    const statuses = getGroupedStatuses()[phone];
+            // PATA NAMBA ZILIZOHIFADHIWA
+            const savedContacts = JSON.parse(localStorage.getItem('kitama_saved_contacts') || '[]');
+            
+            // 1. KAMA HAJASYNC, ONESHA UJUMBE WA KURUHUSU
+            if (savedContacts.length === 0) {
+                if(permContainer) {
+                    permContainer.innerHTML = `<div class="contacts-permission-box">
+                        <div class="icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <div class="text-box">
+                            <h4>Ona Status za Marafiki</h4>
+                            <p>Ruhusu Kitama Yetu kusoma contacts ili kuona status za watu uliowasave kwenye simu yako.</p>
+                        </div>
+                        <button onclick="syncContacts()">Ruhusu</button>
+                    </div>`;
+                }
+                otherList.innerHTML = '';
+                return;
+            }
+            
+            // 2. KAMA AMESHASOMA, FICHA UJUMBE
+            if(permContainer) permContainer.innerHTML = '';
+
+            const otherUsers = Object.keys(grouped).filter(phone => phone !== u.phone_number);
+            let visibleStatuses = [];
+            
+            // CHAGUA STATUS ZA WATU ALIOWASAVE TU
+            otherUsers.forEach(phone => {
+                if (savedContacts.includes(normalizePhone(phone))) {
+                    visibleStatuses.push(phone);
+                }
+            });
+
+            if (visibleStatuses.length > 0) {
+                otherList.innerHTML = visibleStatuses.map(phone => {
+                    const statuses = grouped[phone];
                     const isSeen = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number));
                     let border = isSeen ? 'var(--border)' : 'var(--accent)';
                     let mediaIcon = statuses[0].media_type === 'video' ? '▶️' : '';
@@ -7229,6 +7267,7 @@
                         <div style="position:relative;">
                             <img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">
                             <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:18px; background:rgba(0,0,0,0.2); border-radius:50%;">${mediaIcon}</div>
+                            ${statuses.length > 1 ? `<div style="position:absolute; top:-5px; right:-5px; background:var(--surface); color:var(--text); border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; border: 1px solid var(--border);">${statuses.length}</div>` : ''}
                         </div>
                         <div>
                             <b style="display:block; font-size:14px;">${statuses[0].sender_name}</b>
@@ -7237,7 +7276,7 @@
                     </div>`;
                 }).join('');
             } else {
-                otherList.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna status mpya za wenzako. Rudi baadaye!</p>';
+                otherList.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna status mpya za watu uliowasave kwenye simu.</p>';
             }
         }
 
@@ -7782,6 +7821,45 @@
             if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
             handleSwipeEnd(e.clientY);
         });
+            // --- CONTACTS SYNCING (WhatsApp Style) ---
+        function normalizePhone(phone) {
+            phone = phone.replace(/\s+/g, '').replace(/-/g, '');
+            if (phone.startsWith('+255')) return '0' + phone.substring(4);
+            if (phone.startsWith('255')) return '0' + phone.substring(3);
+            return phone;
+        }
+
+        async function syncContacts() {
+            if (!('contacts' in navigator) || !navigator.contacts.select) {
+                return showToast("Kifaa chako hakiauni kusoma contacts moja kwa moja. (Tumia Chrome au APK mpya).");
+            }
+            
+            try {
+                const contacts = await navigator.contacts.select(['tel'], { multiple: true });
+                if (contacts.length === 0) return showToast("Hujachagua contacts zozote.");
+                
+                let savedNumbers = [];
+                contacts.forEach(c => {
+                    if (c.tel && c.tel.length > 0) {
+                        c.tel.forEach(num => {
+                            savedNumbers.push(normalizePhone(num));
+                        });
+                    }
+                });
+                
+                // Hifadhi kwenye localStorage
+                localStorage.setItem('kitama_saved_contacts', JSON.stringify(savedNumbers));
+                showToast("Contacts zimehifadhiwa! Sasa utaona status zao tu.");
+                
+                // Ficha kitufe baada ya kusync
+                const syncBtn = document.getElementById('sync-contacts-btn');
+                if (syncBtn) syncBtn.style.display = 'none';
+                
+                loadStatusUI(); // Pakia upya status
+            } catch(e) {
+                openModal("Kosa", e.message);
+            }
+        }
 
         function handleSwipeEnd(endY) {
             const diffY = touchStartY - endY;
