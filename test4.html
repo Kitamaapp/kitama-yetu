@@ -7221,7 +7221,7 @@
         }
 
         // --- MAIN UI LOADER (With Error Catching) ---
-                   async function loadStatusUI() {
+                async function loadStatusUI() {
             try {
                 cleanExpiredStatuses();
                 const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -7249,15 +7249,14 @@
                 const canReadContacts = ('contacts' in navigator && navigator.contacts.select);
                 
                 let statusItems = [];
+                const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png';
 
                 // 2. VUTA STATUS YA MFUMO WA KITAMA (Kutoka DB) na iweke Juu
                 try {
                     const { data: adminStatuses } = await sb.from('admin_status').select('*').gt('expiry', new Date().toISOString()).order('created_at', { ascending: false }).limit(1);
                     if (adminStatuses && adminStatuses.length > 0) {
                         const s = adminStatuses[0];
-                        const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png';
                         let avatarHtml = s.image_url ? `<img src="${s.image_url}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">` : `<img src="${adminLogoUrl}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">`;
-                        
                         statusItems.push(`
                             <div onclick="viewOfficialStatus('${s.id}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
                                 <div style="position:relative;">${avatarHtml}</div>
@@ -7273,16 +7272,14 @@
                 // 3. VUTA STATUS ZA WENZANGU (P2P)
                 const otherUsers = Object.keys(grouped).filter(phone => phone !== u.phone_number);
                 
-                if (!canReadContacts) {
-                    // A. KAMA SIMU HAIWEZI KUSOMA CONTACTS, ONESHA WOTE
-                    if(permContainer) permContainer.innerHTML = '';
-                    otherUsers.forEach(phone => {
+                let renderP2PStatuses = (phonesToRender) => {
+                    phonesToRender.forEach(phone => {
                         let isSystem = (phone === window.adminPhone);
                         let statuses = grouped[phone];
                         let border = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number)) ? 'var(--border)' : 'var(--accent)';
                         
                         let avatarHtml = isSystem ? 
-                            `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">` : 
+                            `<img src="${adminLogoUrl}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">` : 
                             `<img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">`;
                         
                         let nameHtml = isSystem ? `Kitama Yetu ${getWhatsAppVerifiedBadge()}` : statuses[0].sender_name;
@@ -7295,9 +7292,16 @@
                             </div>
                         </div>`);
                     });
+                };
+
+                if (!canReadContacts) {
+                    // A. KAMA SIMU HAIWEZI KUSOMA CONTACTS, ONESHA WOTE
+                    if(permContainer) permContainer.innerHTML = '';
+                    renderP2PStatuses(otherUsers);
                 } else if (savedContacts.length === 0) {
                     // B. KAMA SIMU INAWEZA LAKINI HAJARUHUSU
-                    if(permContainer && otherUsers.length > 0) {
+                    let hasOtherUsers = otherUsers.some(phone => phone !== window.adminPhone); 
+                    if(permContainer && hasOtherUsers) {
                         permContainer.innerHTML = `<div class="contacts-permission-box">
                             <div class="icon-box">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -7309,30 +7313,19 @@
                             <button onclick="syncContacts()">Ruhusu</button>
                         </div>`;
                     }
+                    
+                    // NGUVU: ONESHA TU STATUS YA ADMIN (P2P) HATA HAJARUHUSU CONTACTS
+                    let adminP2P = otherUsers.filter(phone => phone === window.adminPhone);
+                    renderP2PStatuses(adminP2P);
+                    
                 } else {
-                    // C. AMESHARUHUSU (Onesha wale aliowasave tu)
+                    // C. AMESHARUHUSU (Onesha wale aliowasave tu, lakini Admin daima aonekane)
                     if(permContainer) permContainer.innerHTML = '';
-                    otherUsers.forEach(phone => {
-                        if (savedContacts.includes(normalizePhone(phone))) {
-                            let isSystem = (phone === window.adminPhone);
-                            let statuses = grouped[phone];
-                            let border = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number)) ? 'var(--border)' : 'var(--accent)';
-                            
-                            let avatarHtml = isSystem ? 
-                                `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">` : 
-                                `<img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">`;
-                            
-                            let nameHtml = isSystem ? `Kitama Yetu ${getWhatsAppVerifiedBadge()}` : statuses[0].sender_name;
-                            
-                            statusItems.push(`<div onclick="viewStatus('${phone}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
-                                <div style="position:relative;">${avatarHtml}</div>
-                                <div>
-                                    <b style="display:block; font-size:14px;">${nameHtml}</b>
-                                    <small style="color:var(--text-sec); font-size:11px;">${new Date(statuses[0].timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-                                </div>
-                            </div>`);
-                        }
+                    let visiblePhones = otherUsers.filter(phone => {
+                        if (phone === window.adminPhone) return true; // Admin aonekane daima
+                        return savedContacts.includes(normalizePhone(phone));
                     });
+                    renderP2PStatuses(visiblePhones);
                 }
 
                 // ONESHA STATUS ZILIZOJAA
@@ -7344,10 +7337,10 @@
             } catch(e) {
                 console.error("Status UI Crash Error:", e);
             }
-        }
+          }
         
         // 4. Upload Modal
-                function openStatusCaptionModal() {
+            function openStatusCaptionModal() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const citizensList = activeCitizens.filter(c => c.role !== 'system_admin');
             const isVerified = u.is_activist;
