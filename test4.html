@@ -8096,31 +8096,49 @@
         let mapPlaceLabels = [];
         let myLocationMarker = null;
 
-              async function initKitamaMap() {
+               async function initKitamaMap() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
-            let canEditMap = u.can_edit_map || false;
+            let canEditMap = false;
             
-            if (u.role === 'citizen') {
+            // 1. TUMIA NAMBA YA SIMU KUMTAFUTA MTUMIAJI KWENYE DB KWA USAHIHI
+            if (u && u.role === 'citizen') {
                 try {
-                    const { data } = await sb.from('users').select('can_edit_map').eq('id', u.id).maybeSingle();
+                    const { data, error } = await sb.from('users').select('can_edit_map, full_name').eq('phone_number', u.phone_number).maybeSingle();
+                    if (error) {
+                        console.error("DB Error:", error);
+                        showToast("Kosa la DB: " + error.message);
+                    }
                     if (data) {
                         canEditMap = data.can_edit_map || false;
                         u.can_edit_map = canEditMap;
+                        u.full_name = data.full_name; // Sasisha jina
                         localStorage.setItem('kitama_user', JSON.stringify(u));
                         
-                        // ONYESHA UJUMBE WA HAKIKISHO HAPA
-                        showToast("Uwezo wa Ramani: " + (canEditMap ? "Una Ruhusa" : "Huna Ruhusa"));
+                        // TOA UJUMBE WA KUJUA HASA DB INASEMA NINI
+                        showToast("DB Status: " + (canEditMap ? "Una Ruhusa" : "Huna Ruhusa"));
+                    } else {
+                        showToast("Mtumiaji hayupo kwenye DB");
                     }
-                } catch(e) {}
+                } catch(e) { 
+                    console.error("Error:", e);
+                    showToast("Kosa: " + e.message); 
+                }
             }
             
             const addBtn = document.getElementById('add-place-btn');
-            if (addBtn) {
-                if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || canEditMap) {
-                    addBtn.style.display = 'flex';
-                } else {
-                    addBtn.style.display = 'none';
-                }
+            
+            // 2. KAMA HTML HAINA HICHO KITUFU, TOA ONYO
+            if (!addBtn) {
+                showToast("HTML ya Kitufe haipo! Tumia faili jipya la HTML.");
+                console.error("add-place-btn haipatikani kwenye HTML!");
+                return;
+            }
+            
+            // 3. ONYESHA KITUFU
+            if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || canEditMap) {
+                addBtn.style.display = 'flex';
+            } else {
+                addBtn.style.display = 'none';
             }
             
             if(kitamaMap) {
