@@ -2123,33 +2123,31 @@
                   
                   if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
               })
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
+             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (!currentUser) return;
                   
-                  // KAMA NI YEYE MWENYE AMEPATIA RUHUSA, SASISHA NA PAKIA UPYA
                   if (updatedUser.id === currentUser.id) {
                       localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
                       
-                      // KAMA CAN_EDIT_MAP IMEBADILIKWA, LITATIZO APP IJIBADILISHE MOJA KWA MOJA
+                      // 1. KAMA AMEPATA RUHUSA MPYA YA RAMANI, RELOAD APP
                       if (updatedUser.can_edit_map !== currentUser.can_edit_map) {
                           showToast("Umepata uwezo mpya! App inasasisha...");
                           setTimeout(() => location.reload(), 1500);
                           return;
                       }
-                  if (updatedUser.id === currentUser.id) {
+                      
                       const activistChanged = updatedUser.is_activist !== currentUser.is_activist;
                       const statusChanged = updatedUser.status !== currentUser.status;
                       
-                      localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
-                      
+                      // 2. KAMA STATUS IMEBADILISHWA
                       if (statusChanged) {
                           if (updatedUser.status === 'rejected') {
                               openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kabisa na Admin wa Mfumo. Utatoka kwenye app sasa.", false);
                               setTimeout(() => handleLogout(), 3000);
                           } else if (updatedUser.status === 'restricted') {
-                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochote.", false);
+                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochete.", false);
                               location.reload();
                           } else if (updatedUser.status === 'active' && currentUser.status === 'restricted') {
                               showToast("Akaunti yako imerudishiwa! Unaweza kuandika tena.");
@@ -2160,6 +2158,7 @@
                           return;
                       }
                       
+                      // 3. KAMA HADHI YA ACTIVIST IMEBADILISHWA
                       if(activistChanged) {
                           if(updatedUser.is_activist) openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b>.", false);
                           else showToast("Hadhi yako ya Activist imeondolewa.");
