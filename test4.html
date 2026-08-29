@@ -7634,7 +7634,7 @@
             showStatusViewer(currentStatusList[currentViewingIndex]);
         }
 
-                async function showStatusViewer(status) {
+            async function showStatusViewer(status) {
             clearTimeout(statusTimer);
             pausedStatus = false;
             
@@ -7683,14 +7683,14 @@
             
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             
-            // HAPA: TAMBUA ADMIN
+            // HAPA: TAMBUA ADMIN NA WEKA BADGE
             let isSystemStatus = (status.sender_phone === window.adminPhone);
             const svAvatar = document.getElementById('sv-avatar');
             const svName = document.getElementById('sv-name');
             
             if (isSystemStatus) {
-                svAvatar.innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-                svName.innerText = "Kitama Yetu";
+                svAvatar.innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                svName.innerHTML = `Kitama Yetu ${getWhatsAppVerifiedBadge()}`; // HAPA NDIO LILIKUWA KOSA, TUMIA innerHTML
             } else {
                 svAvatar.innerText = status.sender_name.charAt(0);
                 svName.innerText = status.sender_name;
@@ -7702,7 +7702,6 @@
             captionEl.style.display = status.caption ? 'block' : 'none';
             
             if (status.sender_phone === u.phone_number) {
-                // HII NI STATUS YAKO, ONESHA WALIOTAZAMA
                 footerEl.style.display = 'flex';
                 viewersEl.innerHTML = '<small>Inatafuta waliotazama...</small>';
                 try {
@@ -7714,25 +7713,15 @@
                     }
                 } catch(e) { viewersEl.innerHTML = '<small>Hakuna aliyetazama</small>'; }
             } else {
-                // HII NI STATUS YA MTU MWINGINE
                 footerEl.style.display = 'none';
-                
-                // GHOST MODE: KAMA NI ADMIN, USITUME "SEEN" RECEIPT (Asione mtu)
                 if (u.phone_number !== window.adminPhone) {
                     if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
                         statusNetworkChannel.send({ type: 'broadcast', event: 'status_seen', payload: { 
-                            to: status.sender_phone, 
-                            status_id: status.id, 
-                            seen_by: u.phone_number,
-                            hide_seen_receipts: status.hide_seen_receipts 
+                            to: status.sender_phone, status_id: status.id, seen_by: u.phone_number, hide_seen_receipts: status.hide_seen_receipts 
                         }});
                         let myStorage = getStatusFromStorage();
                         const s = myStorage.find(x => x.id === status.id);
-                        if (s) {
-                            if (!s.seen_by) s.seen_by = [];
-                            s.seen_by.push(u.phone_number);
-                            saveStatusToStorage(myStorage);
-                        }
+                        if (s) { if (!s.seen_by) s.seen_by = []; s.seen_by.push(u.phone_number); saveStatusToStorage(myStorage); }
                     }
                 }
             }
@@ -7741,7 +7730,7 @@
                 setTimeout(() => { progressFill.style.transition = `width ${duration}ms linear`; progressFill.style.width = '100%'; }, 100);
                 statusTimer = setTimeout(() => { nextStatus(); }, duration);
             }
-        }
+         }
 
         function pauseStatus() {
             if (!pausedStatus) {
