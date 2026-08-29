@@ -1217,17 +1217,17 @@
             <div id="kitama-map"></div>
             
             <!-- Top Back Button -->
-            <button onclick="handleNav('home-sec')" style="position: absolute; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 1000; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <button onclick="handleNav('home-sec')" style="position: fixed; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 9999; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </button>
 
             <!-- Floating Locate Button -->
-            <button class="map-locate-btn" onclick="findMyLocationOnMap()" style="z-index: 1000;">
+            <button class="map-locate-btn" onclick="findMyLocationOnMap()" style="z-index: 9999;">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
             </button>
 
-            <!-- ADMIN/WAHARIRI: ONGEZA ENEO HALI PALIPO (Floating Button) -->
-            <button id="add-place-btn" onclick="addCurrentPlaceToMap()" style="position: absolute; top: 20px; right: 15px; background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 1000; cursor: pointer; font-weight: 700; font-size: 12px; display: none; align-items: center; gap: 5px;">
+            <!-- ADMIN/WAHARIRI: ONGEZA ENEO HALI PALIPO (Floating Button Fixed) -->
+            <button id="add-place-btn" onclick="addCurrentPlaceToMap()" style="position: fixed; top: 20px; right: 15px; background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 9999; cursor: pointer; font-weight: 700; font-size: 12px; display: none; align-items: center; gap: 5px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Ongeza Eneo Hapa
             </button>
@@ -8096,49 +8096,31 @@
         let mapPlaceLabels = [];
         let myLocationMarker = null;
 
-               async function initKitamaMap() {
+                async function initKitamaMap() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             let canEditMap = false;
             
-            // 1. TUMIA NAMBA YA SIMU KUMTAFUTA MTUMIAJI KWENYE DB KWA USAHIHI
             if (u && u.role === 'citizen') {
                 try {
-                    const { data, error } = await sb.from('users').select('can_edit_map, full_name').eq('phone_number', u.phone_number).maybeSingle();
-                    if (error) {
-                        console.error("DB Error:", error);
-                        showToast("Kosa la DB: " + error.message);
-                    }
+                    const { data } = await sb.from('users').select('can_edit_map').eq('phone_number', u.phone_number).maybeSingle();
                     if (data) {
                         canEditMap = data.can_edit_map || false;
                         u.can_edit_map = canEditMap;
-                        u.full_name = data.full_name; // Sasisha jina
                         localStorage.setItem('kitama_user', JSON.stringify(u));
-                        
-                        // TOA UJUMBE WA KUJUA HASA DB INASEMA NINI
-                        showToast("DB Status: " + (canEditMap ? "Una Ruhusa" : "Huna Ruhusa"));
-                    } else {
-                        showToast("Mtumiaji hayupo kwenye DB");
                     }
-                } catch(e) { 
-                    console.error("Error:", e);
-                    showToast("Kosa: " + e.message); 
-                }
+                } catch(e) {}
             }
             
             const addBtn = document.getElementById('add-place-btn');
-            
-            // 2. KAMA HTML HAINA HICHO KITUFU, TOA ONYO
-            if (!addBtn) {
-                showToast("HTML ya Kitufe haipo! Tumia faili jipya la HTML.");
-                console.error("add-place-btn haipatikani kwenye HTML!");
-                return;
-            }
-            
-            // 3. ONYESHA KITUFU
-            if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || canEditMap) {
-                addBtn.style.display = 'flex';
-            } else {
-                addBtn.style.display = 'none';
+            if (addBtn) {
+                if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || canEditMap) {
+                    // LITATUZO LA HATARI: TUMIA NGUVU KABISA (!important) KUHAKIKISHA KINAONEKANA
+                    addBtn.style.setProperty('display', 'flex', 'important');
+                    addBtn.style.opacity = '1';
+                    addBtn.style.pointerEvents = 'auto';
+                } else {
+                    addBtn.style.display = 'none';
+                }
             }
             
             if(kitamaMap) {
