@@ -7239,11 +7239,9 @@
             }
         }
         // --- MAIN UI LOADER (With Error Catching) ---
-        function loadStatusUI() {
+            async function loadStatusUI() {
             try {
                 cleanExpiredStatuses();
-                loadOfficialStatus();
-                
                 const u = JSON.parse(localStorage.getItem('kitama_user'));
                 if (!u || !u.phone_number) return;
                 
@@ -7252,7 +7250,6 @@
                 // 1. STATUS YANGU
                 const myStatuses = grouped[u.phone_number] || [];
                 const myList = document.getElementById('my-status-list');
-                
                 if (myList) {
                     if (myStatuses.length > 0) {
                         myList.innerHTML = `<div style="position:relative; cursor:pointer;" onclick="viewStatus('${u.phone_number}')">
@@ -7267,38 +7264,58 @@
                 const otherList = document.getElementById('other-status-list');
                 const permContainer = document.getElementById('contacts-permission-container');
                 const savedContacts = JSON.parse(localStorage.getItem('kitama_saved_contacts') || '[]');
-                
-                // 2. KAMA SIMU HAIWEZI KUSOMA CONTACTS, ONESHA WOTE
                 const canReadContacts = ('contacts' in navigator && navigator.contacts.select);
+                
+                let statusItems = []; // Hapa tutajaza status zote (Mfumo + Wenzangu) zinazoonekana
+
+                // 2. VUTA STATUS YA MFUMO WA KITAMA (Kabla ya wenzangu)
+                try {
+                    const { data: adminStatuses } = await sb.from('admin_status').select('*').gt('expiry', new Date().toISOString()).order('created_at', { ascending: false }).limit(1);
+                    if (adminStatuses && adminStatuses.length > 0) {
+                        const s = adminStatuses[0];
+                        const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png';
+                        let avatarHtml = s.image_url 
+                            ? `<img src="${s.image_url}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">` 
+                            : `<img src="${adminLogoUrl}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">`;
+                        
+                        statusItems.push(`
+                            <div onclick="viewOfficialStatus('${s.id}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
+                                <div style="position:relative;">${avatarHtml}</div>
+                                <div>
+                                    <b style="display:block; font-size:14px; display:flex; align-items:center; gap:4px;">Kitama Yetu ${getWhatsAppVerifiedBadge()}</b>
+                                    <small style="color:var(--text-sec); font-size:11px;">${new Date(s.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                                </div>
+                            </div>
+                        `);
+                    }
+                } catch(e) { console.error("Admin status error:", e); }
+
+                // 3. VUTA STATUS ZA WENZANGU
+                const otherUsers = Object.keys(grouped).filter(phone => phone !== u.phone_number);
+                const hasOtherUsers = otherUsers.length > 0;
+
+                // A. KAMA SIMU HAIWEZI KUSOMA CONTACTS, ONESHA WOTE
                 if (!canReadContacts) {
                     if(permContainer) permContainer.innerHTML = '';
-                    const otherUsers = Object.keys(grouped).filter(phone => phone !== u.phone_number);
-                    if (otherUsers.length > 0) {
-                        otherList.innerHTML = otherUsers.map(phone => {
-                            const statuses = grouped[phone];
-                            const isSeen = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number));
-                            let border = isSeen ? 'var(--border)' : 'var(--accent)';
-                            let mediaIcon = statuses[0].media_type === 'video' ? '▶️' : '';
-                            return `<div onclick="viewStatus('${phone}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
-                                <div style="position:relative;">
-                                    <img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">
-                                    <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:18px; background:rgba(0,0,0,0.2); border-radius:50%;">${mediaIcon}</div>
-                                    ${statuses.length > 1 ? `<div style="position:absolute; top:-5px; right:-5px; background:var(--surface); color:var(--text); border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; border: 1px solid var(--border);">${statuses.length}</div>` : ''}
-                                </div>
-                                <div>
-                                    <b style="display:block; font-size:14px;">${statuses[0].sender_name}</b>
-                                    <small style="color:var(--text-sec); font-size:11px;">${new Date(statuses[0].timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-                                </div>
-                            </div>`;
-                        }).join('');
-                    } else {
-                        otherList.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna status mpya za wenzako. Rudi baadaye!</p>';
-                    }
-                    return;
-                }
-                
-                // 3. KAMA SIMU INAWEZA LAKINI HAJARUHUSU
-                if (savedContacts.length === 0) {
+                    otherUsers.forEach(phone => {
+                        const statuses = grouped[phone];
+                        const isSeen = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number));
+                        let border = isSeen ? 'var(--border)' : 'var(--accent)';
+                        let mediaIcon = statuses[0].media_type === 'video' ? '▶️' : '';
+                        statusItems.push(`<div onclick="viewStatus('${phone}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
+                            <div style="position:relative;">
+                                <img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">
+                                <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:18px; background:rgba(0,0,0,0.2); border-radius:50%;">${mediaIcon}</div>
+                            </div>
+                            <div>
+                                <b style="display:block; font-size:14px;">${statuses[0].sender_name}</b>
+                                <small style="color:var(--text-sec); font-size:11px;">${new Date(statuses[0].timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                            </div>
+                        </div>`);
+                    });
+                } 
+                // B. KAMA SIMU INAWEZA LAKINI HAJARUHUSU
+                else if (savedContacts.length === 0 && hasOtherUsers) {
                     if(permContainer) {
                         permContainer.innerHTML = `<div class="contacts-permission-box">
                             <div class="icon-box">
@@ -7311,54 +7328,46 @@
                             <button onclick="syncContacts()">Ruhusu</button>
                         </div>`;
                     }
-                    otherList.innerHTML = '';
-                    return;
-                }
-                
-                // 4. AMESHARUHUSU (ONESHA WALIOWASAVE TU)
-                if(permContainer) permContainer.innerHTML = '';
-
-                const otherUsers = Object.keys(grouped).filter(phone => phone !== u.phone_number);
-                let visibleStatuses = [];
-                
-                otherUsers.forEach(phone => {
-                    if (savedContacts.includes(normalizePhone(phone))) {
-                        visibleStatuses.push(phone);
+                    // Nguvu: Ona tu status ya Mfumo wa Kitama hata huyu hajaruhusu contacts
+                    if (statusItems.length > 0) {
+                        otherList.innerHTML = statusItems.join('');
+                    } else {
+                        otherList.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Ruhusu contacts kuona status za wenzako.</p>';
                     }
-                });
+                    otherList.innerHTML = statusItems.join('') || '<p style="color:var(--text-sec); text-align:center; padding:20px;">Ruhusu contacts kuona status za wenzako.</p>';
+                    return;
+                } 
+                // C. AMESHARUHUSU (Onesha wale aliowasave tu)
+                else if (savedContacts.length > 0) {
+                    if(permContainer) permContainer.innerHTML = '';
+                    otherUsers.forEach(phone => {
+                        if (savedContacts.includes(normalizePhone(phone))) {
+                            const statuses = grouped[phone];
+                            const isSeen = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number));
+                            let border = isSeen ? 'var(--border)' : 'var(--accent)';
+                            let mediaIcon = statuses[0].media_type === 'video' ? '▶️' : '';
+                            statusItems.push(`<div onclick="viewStatus('${phone}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
+                                <div style="position:relative;">
+                                    <img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">
+                                    <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:18px; background:rgba(0,0,0,0.2); border-radius:50%;">${mediaIcon}</div>
+                                </div>
+                                <div>
+                                    <b style="display:block; font-size:14px;">${statuses[0].sender_name}</b>
+                                    <small style="color:var(--text-sec); font-size:11px;">${new Date(statuses[0].timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                                </div>
+                            </div>`);
+                        }
+                    });
+                }
 
-                if (visibleStatuses.length > 0) {
-                    otherList.innerHTML = visibleStatuses.map(phone => {
-                        const statuses = grouped[phone];
-                        const isSeen = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number));
-                        let border = isSeen ? 'var(--border)' : 'var(--accent)';
-                        let mediaIcon = statuses[0].media_type === 'video' ? '▶️' : '';
-                        return `<div onclick="viewStatus('${phone}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
-                            <div style="position:relative;">
-                                <img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">
-                                <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:18px; background:rgba(0,0,0,0.2); border-radius:50%;">${mediaIcon}</div>
-                                ${statuses.length > 1 ? `<div style="position:absolute; top:-5px; right:-5px; background:var(--surface); color:var(--text); border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; border: 1px solid var(--border);">${statuses.length}</div>` : ''}
-                            </div>
-                            <div>
-                                <b style="display:block; font-size:14px;">${statuses[0].sender_name}</b>
-                                <small style="color:var(--text-sec); font-size:11px;">${new Date(statuses[0].timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-                            </div>
-                        </div>`;
-                    }).join('');
+                // ONESHA STATUS ZILIZOJAA
+                if (statusItems.length > 0) {
+                    otherList.innerHTML = statusItems.join('');
                 } else {
-                    otherList.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna status mpya za watu uliowasave kwenye simu.</p>';
+                    otherList.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna status mpya za wenzako. Rudi baadaye!</p>';
                 }
             } catch(e) {
-                // LIPIA KOSA LA MSINGI HAPA
                 console.error("Status UI Crash Error:", e);
-                const myList = document.getElementById('my-status-list');
-                if (myList) {
-                    myList.innerHTML = `<div onclick="openStatusUploadModal()" style="width:60px; height:60px; border-radius:50%; border: 2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-sec); cursor:pointer; font-size:24px;">+</div>`;
-                }
-                const otherList = document.getElementById('other-status-list');
-                if (otherList) {
-                    otherList.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Kosa: ${e.message}</p>`;
-                }
             }
         }
         
@@ -7441,15 +7450,44 @@
             });
         }
     
-        function viewOfficialStatus() {
-            currentStatusList = getStatusFromStorage().filter(s => s.is_official);
-            if (currentStatusList.length === 0) return showToast("Status imeisha muda.");
-            
-            currentViewingPhone = 'OFFICIAL_KITAMA';
-            currentViewingIndex = 0;
-            isViewingOfficial = true; // ONGEZA HII
-            renderStatusSegments();
-            showStatusViewer(currentStatusList[currentViewingIndex]);
+                async function viewOfficialStatus(id) {
+            try {
+                const { data: s, error } = await sb.from('admin_status').select('*').eq('id', id).single();
+                if(error) throw error;
+                
+                document.getElementById('status-viewer-overlay').style.display = 'flex';
+                const imgEl = document.getElementById('status-viewer-img');
+                const captionEl = document.getElementById('sv-caption');
+                const footerEl = document.getElementById('sv-footer');
+                
+                imgEl.innerHTML = ''; 
+                imgEl.style.background = ''; 
+                footerEl.style.display = 'none';
+                
+                if(s.image_url) {
+                    imgEl.style.background = `url('${s.image_url}') center/contain no-repeat`;
+                } else {
+                    const colors = ['#1E293B', '#7F1D1D', '#14532D', '#581C87', '#155E75', '#92400E'];
+                    const bgColor = colors[0]; 
+                    imgEl.style.background = bgColor;
+                    imgEl.innerHTML = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><p style="color:white; font-size:20px; font-weight:600; padding:20px; text-align:center;">${s.content}</p></div>`;
+                }
+                
+                document.getElementById('sv-name').innerText = "Kitama Yetu";
+                
+                // ONESHA LOGO HALISI BADALA YA HERUFI "K"
+                document.getElementById('sv-avatar').innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                
+                document.getElementById('sv-time').innerText = new Date(s.created_at).toLocaleString();
+                
+                captionEl.innerText = s.image_url ? (s.content || '') : '';
+                captionEl.style.display = s.image_url ? (s.content ? 'block' : 'none') : 'none';
+                
+                clearTimeout(statusTimer);
+                statusTimer = setTimeout(() => { closeStatusViewer(); }, 10000);
+                
+                document.getElementById('status-progress-bar').innerHTML = '';
+            } catch(e) { openModal("Kosa", e.message); }
         }
         async function deleteOfficialStatus() {
             openModal("Futa Tip ya Status", "Una uhakika unataka kufuta status rasmi ya Kitama Yetu kwa watumiaji wote?", false, async () => {
