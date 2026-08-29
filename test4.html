@@ -1254,30 +1254,21 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
         </div>
-                <!-- STATUS SECTION -->
+               <!-- STATUS SECTION -->
         <div id="status-sec" class="sec">
-        <div class="sec-h">
+            <div class="sec-h">
                 <h2>Status</h2>
                 <div style="display: flex; gap: 15px;">
-                    <!-- ONGEZA HII: KITUFU CHA ANDIKA MAANDISHI -->
                     <span onclick="openTextStatusModal()" style="cursor:pointer; color:var(--accent); font-size:13px; font-weight:700; display:flex; align-items:center; gap:4px;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                         Andika
                     </span>
-                    
-                    <!-- HII IPO TAYARI: KITUFU CHA WEKA STATUS (GALLERY) -->
                     <label for="status-direct-input" style="cursor:pointer; color:var(--accent); font-size:13px; font-weight:700; display:flex; align-items:center; gap:4px;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                         Weka Status
                     </label>
                     <input type="file" id="status-direct-input" accept="image/*, video/*" style="display:none;" onchange="handleDirectStatusSelect(this)">
                 </div>
-            </div>
-            
-            <!-- OFFICIAL STATUS SECTION (Kitama Yetu) -->
-            <div id="official-status-container" style="padding: 0 20px; margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
-                <h4 style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;"></h4>
-                <div id="official-status-list" style="display:flex; gap: 15px; overflow-x: auto;"></div>
             </div>
             
             <div style="padding: 0 20px; margin-bottom: 25px;">
@@ -1287,8 +1278,6 @@
             
             <div style="padding: 0 20px;">
                 <h4 style="font-size: 13px; color: var(--text-sec); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Status za Wenzangu</h4>
-                
-                <!-- ONGEZA HII: SEHEMU YA KUKAGA RUHUSA YA CONTACTS -->
                 <div id="contacts-permission-container"></div>
                 <div id="other-status-list" style="display:flex; flex-direction:column; gap: 10px;"></div>
             </div>
@@ -7208,36 +7197,7 @@
             if (phone.startsWith('255')) return '0' + phone.substring(3);
             return phone;
         }
-        // --- OFFICIAL STATUS (MFUMO WA KITAMA) ---
-        async function loadOfficialStatus() {
-            const div = document.getElementById('official-status-list');
-            if(!div) return;
-            
-            try {
-                // Pata status ya admin ambayo bado haijaisha muda
-                const { data, error } = await sb.from('admin_status').select('*').gt('expiry', new Date().toISOString()).order('created_at', { ascending: false }).limit(1);
-                if(error) throw error;
-                
-                if(data && data.length > 0) {
-                    const s = data[0];
-                    let bg = s.image_url ? `url('${s.image_url}')` : 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)';
-                    div.innerHTML = `
-                        <div onclick="viewOfficialStatus('${s.id}')" style="position:relative; cursor:pointer;">
-                            <div style="width:60px; height:60px; border-radius:50%; background:${bg} center/cover; border: 3px solid #3B82F6; display:flex; align-items:center; justify-content:center;">
-                                ${!s.image_url ? `<span style="color:white; font-weight:800; font-size:20px;">K</span>` : ''}
-                            </div>
-                            <small style="display:block; font-size:11px; color:var(--text-sec); text-align:center; margin-top:4px; font-weight:700;">Kitama Yetu</small>
-                        </div>
-                    `;
-                } else {
-                    div.innerHTML = `<div style="width:60px; height:60px; border-radius:50%; background:var(--bg); border: 2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-sec); font-size:10px; text-align:center; padding:5px;">Hakuna tip sasa</div>`;
-                }
-            } catch(e) {
-                console.error("Official status error:", e);
-                // WEKA ALAMA KAMA HAKUNA AU KUNA KOSA LA MTANDAO
-                div.innerHTML = `<div style="width:60px; height:60px; border-radius:50%; background:var(--bg); border: 2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-sec); font-size:10px; text-align:center; padding:5px;">Hakuna tip sasa</div>`;
-            }
-        }
+
         // --- MAIN UI LOADER (With Error Catching) ---
             async function loadStatusUI() {
             try {
