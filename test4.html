@@ -779,13 +779,21 @@
             padding: 8px 15px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;
         }
     
-            /* LOGO BACKGROUND TRICK (Inaiona logo kote kwenye App) */
+                /* LOGO BACKGROUND TRICK (Inaiona logo kote kwenye App) */
         img[src*="kitama-logo"] {
             background: #ffffff !important;
-            padding: 3px !important;
+            padding: 8px !important; /* Punguza logo ndani ya duara */
             box-sizing: border-box !important;
             object-fit: contain !important;
             border-radius: 50% !important;
+        }
+
+        /* ONDOA BACKGROUND NYEUPU KWENYE LOGIN, SIGNUP, NA SPLASH SCREEN */
+        .auth-logo img[src*="kitama-logo"], 
+        .splash-logo img[src*="kitama-logo"] {
+            background: transparent !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
         }
     </style>
 </head>
