@@ -8607,7 +8607,7 @@
             document.getElementById('modal-cancel').innerText = 'Ghairi';
         }
 
-                async function saveNewMapPlace() {
+               async function saveNewMapPlace() {
             const name = document.getElementById('new-place-name').value.trim();
             const category = document.getElementById('new-place-category').value;
             if(!name) return showToast("Tafadhali weka jina la eneo.");
@@ -8618,18 +8618,24 @@
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             
             try {
-                // WEKA KWENYE MAOMBI BADALA YA KUWEKA MOJA KWA MOJA
+                // 1. WEKA KWENYE MAOMBI
                 await sb.from('map_place_requests').insert([{ 
-                    name: name, 
-                    lat: lat.toString(), 
-                    lng: lng.toString(), 
-                    category: category,
-                    requested_by_name: u.full_name,
-                    requested_by_phone: u.phone_number,
-                    status: 'pending'
+                    name: name, lat: lat.toString(), lng: lng.toString(), category: category,
+                    requested_by_name: u.full_name, requested_by_phone: u.phone_number, status: 'pending'
                 }]);
                 
-                showToast("Ombi lako limewasilishwa! Subiri Admin kukuidhinishwa.");
+                // 2. MTUMIE UJUMBE KWENYE INBOX YAKE (Mfumo wa Kitama)
+                await sb.from('shop_messages').insert([{
+                    shop_id: null,
+                    sender_phone: window.adminPhone, 
+                    sender_name: 'Mfumo wa Kitama',
+                    content: "Ombi lako la kuongeza eneo la '" + name + "' kwenye Ramani limewasilishwa kwa Admin. Utapokea jibu la mwisho hapa kwenye Inbox mara Admin atakapokagua. Asante kwa kushiriki kujenga Ramani ya Kitama!",
+                    recipient_phone: u.phone_number,
+                    is_read: false
+                }]);
+                
+                updateBadges(); // Sasisha badge ya inbox
+                showToast("Ombi lako limewasilishwa! Angalia Inbox yako.");
                 closeModal();
                 if (tempAddPlaceMarker) { kitamaMap.removeLayer(tempAddPlaceMarker); tempAddPlaceMarker = null; }
             } catch(e) {
@@ -9322,7 +9328,7 @@
             });
         }
             // --- ADMIN MAP REQUESTS FUNCTIONS ---
-        async function fetchMapPlaceRequests() {
+            async function fetchMapPlaceRequests() {
             const div = document.getElementById('admin-map-requests-list');
             if(!div) return;
             
@@ -9342,7 +9348,7 @@
                 }
                 
                 const categoryNames = {
-                    'place': 'Eneo la Kawaida', 'hospital': 'Hospitali', 'school': 'Shule', 
+                    'place': 'Eneo', 'hospital': 'Hospitali', 'school': 'Shule', 
                     'shop': 'Duka', 'mosque': 'Msikiti', 'church': 'Kanisa', 
                     'market': 'Soko', 'office': 'Ofisi', 'water': 'Maji'
                 };
@@ -9357,8 +9363,8 @@
                             </div>
                         </div>
                         <div style="display:flex; gap:10px;">
-                            <button onclick="approveMapPlace('${r.id}', '${r.name}', '${r.lat}', '${r.lng}', '${r.category}')" class="m-btn m-btn-primary" style="flex:1; padding: 10px;">Kubali</button>
-                            <button onclick="rejectMapPlace('${r.id}')" class="m-btn m-btn-danger" style="flex:1; padding: 10px;">Kataza</button>
+                            <button onclick="approveMapPlace('${r.id}', '${r.name.replace(/'/g, "\\'")}', '${r.lat}', '${r.lng}', '${r.category}', '${r.requested_by_phone}')" class="m-btn m-btn-primary" style="flex:1; padding: 10px;">Kubali</button>
+                            <button onclick="rejectMapPlace('${r.id}', '${r.name.replace(/'/g, "\\'")}', '${r.requested_by_phone}')" class="m-btn m-btn-danger" style="flex:1; padding: 10px;">Kataza</button>
                         </div>
                     </div>
                 `).join('');
@@ -9367,7 +9373,7 @@
             }
         }
 
-        async function approveMapPlace(id, name, lat, lng, category) {
+                async function approveMapPlace(id, name, lat, lng, category, reqPhone) {
             try {
                 // 1. Weka kwenye map_places ili ionekane kwa wote
                 await sb.from('map_places').insert([{ name: name, lat: lat, lng: lng, category: category }]);
@@ -9375,7 +9381,17 @@
                 // 2. Badilisha status kuwa 'approved' kwenye maombi
                 await sb.from('map_place_requests').update({ status: 'approved' }).eq('id', id);
                 
-                showToast("Eneo limeidhinishwa na limeongezwa kwenye ramani!");
+                // 3. MTUMIE UJUMBE KWENYE INBOX YA MWANANCHI
+                await sb.from('shop_messages').insert([{
+                    shop_id: null,
+                    sender_phone: window.adminPhone, 
+                    sender_name: 'Mfumo wa Kitama',
+                    content: "Hongera! Eneo lako la '" + name + "' limekubaliwa na limeongezwa rasmi kwenye Ramani ya Kitama. Watu wote sasa wataweza kuliona.",
+                    recipient_phone: reqPhone,
+                    is_read: false
+                }]);
+                
+                showToast("Eneo limeidhinishwa na ujumbe umetumwa kwa mtumiaji!");
                 playBeep();
                 fetchMapPlaceRequests();
             } catch(e) {
@@ -9383,11 +9399,23 @@
             }
         }
 
-        async function rejectMapPlace(id) {
+        async function rejectMapPlace(id, name, reqPhone) {
             openModal("Kataza Ombi", "Una uhakika unataka kukataza eneo hili?", false, async () => {
                 try {
+                    // 1. Badilisha status kuwa 'rejected'
                     await sb.from('map_place_requests').update({ status: 'rejected' }).eq('id', id);
-                    showToast("Ombi limekataliwa!");
+                    
+                    // 2. MTUMIE UJUMBE KWENYE INBOX YA MWANANCHI
+                    await sb.from('shop_messages').insert([{
+                        shop_id: null,
+                        sender_phone: window.adminPhone, 
+                        sender_name: 'Mfumo wa Kitama',
+                        content: "Samahani, ombi lako la kuongeza eneo la '" + name + "' limekataliwa na Admin. Kwa maelezo zaidi au kama una ushahidi, wasiliana na Admin.",
+                        recipient_phone: reqPhone,
+                        is_read: false
+                    }]);
+
+                    showToast("Ombi limekataliwa na ujumbe umetumwa kwa mtumiaji!");
                     fetchMapPlaceRequests();
                 } catch(e) { openModal("Kosa", e.message); }
             });
