@@ -1105,23 +1105,27 @@
             <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Makala za hoja nzito na mawazo ya kimaendeleo kutoka kwa Waactivists waliothibitishwa.</p>
             <div id="activist-articles-list"></div>
         </div>
-        <div id="create-article-sec" class="sec">
+                <div id="create-article-sec" class="sec">
             <div class="sec-h"><h2>Andika Makala Mpya</h2></div>
             <div style="padding: 0 20px;">
                 <div class="form-g"><input type="text" id="article-title" style="padding-left:16px;" placeholder="Kichwa cha Makala"></div>
                 
                 <div class="form-g">
-                    <textarea id="article-content" style="min-height: 150px;" placeholder="Andika makala yako hapa..." oninput="updateArticlePreview()" onblur="articleCursorPos=this.selectionStart" onkeyup="articleCursorPos=this.selectionStart" onclick="articleCursorPos=this.selectionStart"></textarea>
-                    <input type="file" id="article-inline-image" accept="image/*" style="display:none;" onchange="handleArticleImageSelect(this)">
-                    <button onclick="document.getElementById('article-inline-image').click()" class="btn-p" style="background: var(--bg); color: var(--accent); border: 1px solid var(--accent); padding: 10px; font-size: 13px; margin-top: 10px;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                        Weka Picha Hapa (Cursor)
+                    <textarea id="article-content" style="min-height: 150px;" placeholder="Andika makala yako hapa..." oninput="updateArticlePreview()"></textarea>
+                    <button onclick="insertPicPlaceholder()" class="btn-p" style="background: var(--bg); color: var(--accent); border: 1px solid var(--accent); padding: 10px; font-size: 13px; margin-top: 5px;">
+                        + Weka Alama ya Picha ([[PIC]])
                     </button>
                 </div>
                 
+                <div class="form-g">
+                    <label class="form-l">Pakia Picha (Mfululizo)</label>
+                    <input type="file" id="article-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);" onchange="handleArticleImageSelect(this)">
+                    <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top:5px;">* Kila unachagua picha, itabadilisha moja ya [[PIC]] alama zilizo kwenye makala yako.</small>
+                </div>
+                
                 <!-- LIVE PREVIEW BOX -->
-                <h4 style="font-size: 13px; color: var(--text-sec); margin: 15px 0 10px 0; text-transform: uppercase;">Muonekano wa Kwanza (Live Preview)</h4>
-                <div id="article-preview-box" style="background:var(--bg); padding:15px; border-radius:12px; border:1px solid var(--border); min-height:100px; max-height: 300px; overflow-y:auto; font-size:14px; line-height:1.6; color:var(--text); white-space: pre-wrap;"></div>
+                <h4 style="font-size: 13px; color: var(--text-sec); margin: 15px 0 10px 0; text-transform: uppercase;">Muonekano wa Kwanza</h4>
+                <div id="article-preview-box" style="background:var(--bg); padding:15px; border-radius:12px; border:1px solid var(--border); min-height:100px; font-size:14px; line-height:1.6; color:var(--text); white-space: pre-wrap;"></div>
                 
                 <button onclick="postActivistArticle()" class="btn-p" id="btn-article">Chapisha Makala</button>
             </div>
@@ -2917,11 +2921,11 @@
         if(id==='add-item-sec') checkUserShop();
     }
 
-    async function fetchActivistArticles() {
+            async function fetchActivistArticles() {
             const div = document.getElementById('activist-articles-list');
             if(!div) return;
             
-            if (!isOnline()) {
+            if (!navigator.onLine) {
                 const cached = getFromCache('activist_articles_html');
                 div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna makala zilizohifadhiwa.</p>';
                 return;
@@ -2940,23 +2944,17 @@
                 const u = JSON.parse(localStorage.getItem('kitama_user'));
                 
                 const newHtml = data.length > 0 ? data.map(a => {
-                                        let isAuthor = u.phone_number === a.author_phone;
-                    
-                    // KAGUA KAMA HAIJAZIDI SAA 1 (3600000 milliseconds)
+                    let isAuthor = u.phone_number === a.author_phone;
                     let timeDiff = Date.now() - new Date(a.created_at).getTime();
-                    let canEdit = isAuthor && timeDiff < 3600000;
+                    let canEdit = isAuthor && timeDiff < 3600000; // Saa 1 tu
+                    
                     let editBtn = canEdit ? `<button onclick="openEditArticleModal('${a.id}', '${a.title.replace(/'/g, "\\'")}', '${a.content.replace(/'/g, "\\'")}')" style="background:rgba(59, 130, 246, 0.1); border:none; color:#3B82F6; padding:8px 12px; border-radius:8px; font-weight:600; font-size:11px; margin-top:10px; cursor:pointer; margin-right:10px;">Hariri</button>` : '';
                     let deleteBtn = (isAuthor || u.role === 'system_admin') ? `<button onclick="deleteArticle('${a.id}')" style="background:rgba(239,68,68,0.1); border:none; color:var(--danger); padding:8px 12px; border-radius:8px; font-weight:600; font-size:11px; margin-top:10px; cursor:pointer;">Futa Makala</button>` : '';
-                    let likedArr = a.liked_by || [];
-                    let dislikedArr = a.disliked_by || [];
-                    let hasLiked = likedArr.includes(u.phone_number);
-                    let hasDisliked = dislikedArr.includes(u.phone_number);
                     
                     let cleanContent = a.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    
-                    // BADILISHA [IMG]LINK[/IMG] KUWA PICHA HALISI
                     cleanContent = cleanContent.replace(/\[IMG\](.*?)\[\/IMG\]/g, (match, url) => {
-                        return `<br><img src="${url}" style="width:100%; max-height: 400px; object-fit:cover; border-radius:12px; margin: 10px 0;"><br>`;
+                        // TUMIA HII SEHEMU YA KUZOOM PICHA TULIYOWEKA LEO
+                        return `<div class="img-viewer-container" onclick="toggleZoom(this)"><img src="${url}" class="img-viewer-img"></div>`;
                     });
                     
                     return `<div class="article-card">
@@ -2968,32 +2966,18 @@
                             </div>
                         </div>
                         <div class="article-body">
-                        <h3 class="article-title">${a.title}</h3>
-                        <p class="article-content">${cleanContent}</p>
-                        <div style="margin-top: 15px; display: flex; gap: 10px;">
-                            ${editBtn} 
-                            ${deleteBtn}
-                        </div>
-                        </div>
-                        <div class="article-footer">
-                            <button id="like-btn-${a.id}" class="article-action-btn ${hasLiked ? 'liked' : ''}" onclick="likeArticle('${a.id}')">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                                Penda (<span id="like-count-${a.id}">${likedArr.length}</span>)
-                            </button>
-                            <button id="dislike-btn-${a.id}" class="article-action-btn ${hasDisliked ? 'disliked' : ''}" onclick="dislikeArticle('${a.id}')">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform: rotate(180deg);"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                                Kataa (<span id="dislike-count-${a.id}">${dislikedArr.length}</span>)
-                            </button>
+                            <h3 class="article-title">${a.title}</h3>
+                            <p class="article-content">${cleanContent}</p>
+                            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                ${editBtn} 
+                                ${deleteBtn}
+                            </div>
                         </div>
                     </div>`;
                 }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna makala zilizowekwa kwa sasa.</p>';
                 
                 div.innerHTML = newHtml;
-                
-                if(newHtml && !newHtml.includes('skeleton')) {
-                    saveToCache('activist_articles_html', newHtml);
-                }
-                
+                if(newHtml && !newHtml.includes('skeleton')) saveToCache('activist_articles_html', newHtml);
                 if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
             } catch(e) { 
                 if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
@@ -3095,44 +3079,6 @@
             } catch(e) { 
                 openModal("Kosa", e.message); 
                 fetchActivistArticles(); 
-            }
-        }
-
-            async function postActivistArticle() {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
-            if(!u.is_activist) return openModal("Kosa", "Huwezi kuandika makala kwa sasa.");
-            
-            const title = document.getElementById('article-title').value.trim();
-            const content = document.getElementById('article-content').value.trim();
-            
-            if(!title || !content) return openModal("Taarifa", "Jaza kichwa na makala yote.");
-            if(containsBadWords(title) || containsBadWords(content)) return openModal("Onyo", "Makala yako ina maneno yasiyoruhusiwa.");
-            
-            const btn = document.getElementById('btn-article'); 
-            btn.innerHTML = '<div class="spinner"></div> Inatuma...'; 
-            btn.disabled = true;
-            
-            try {
-                // HIFADHI MOJA KWA MOJA (Picha zipo ndani ya content)
-                const { error } = await sb.from('activist_articles').insert([{ 
-                    author_phone: u.phone_number, 
-                    author_name: u.full_name, 
-                    title, 
-                    content 
-                }]);
-                
-                if(error) throw error;
-                showToast("Makala imechapishwa!"); playBeep();
-                document.getElementById('article-title').value = ''; 
-                document.getElementById('article-content').value = '';
-                updateArticlePreview();
-                showSec('activist-hub-sec');
-            } catch(e) { 
-                openModal("Kosa", e.message); 
-            } finally { 
-                btn.innerHTML = 'Chapisha Makala'; 
-                btn.disabled = false; 
             }
         }
 
@@ -9493,23 +9439,92 @@
             // --- LIVE PREVIEW & IMAGE PLACEHOLDER FUNCTIONS ---
         let selectedArticleImageSrc = null;
 
+                // --- ACTIVIST ARTICLE FUNCTIONS ---
+        function insertPicPlaceholder() {
+            const textarea = document.getElementById('article-content');
+            const placeholder = ' [[PIC]] ';
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
+            updateArticlePreview();
+        }
+
+        async function handleArticleImageSelect(input) {
+            if (input.files.length === 0) return;
+            showToast("Inapakia picha...");
+            try {
+                const url = await uploadToCloudinary(input.files[0]);
+                const textarea = document.getElementById('article-content');
+                
+                // KAMA KUNA [[PIC]], IBADILISHE NA LINK LA PICHA
+                if (textarea.value.includes('[[PIC]]')) {
+                    textarea.value = textarea.value.replace('[[PIC]]', `[IMG]${url}[/IMG]`);
+                } else {
+                    // KAMA HAKUNA, IONGEZE MwishONI
+                    textarea.value += `\n[IMG]${url}[/IMG]\n`;
+                }
+                updateArticlePreview();
+                input.value = ''; // Wacha aweze kuchagua picha nyingine
+            } catch(e) {
+                openModal("Kosa la Kupakia Picha", e.message);
+            }
+        }
+
         function updateArticlePreview() {
             const textarea = document.getElementById('article-content');
-            const fileInput = document.getElementById('article-image');
             const previewBox = document.getElementById('article-preview-box');
-            
             let text = textarea.value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
             
-            if (fileInput.files && fileInput.files[0]) {
-                selectedArticleImageSrc = URL.createObjectURL(fileInput.files[0]);
-            }
+            // BADILISHA [IMG]LINK[/IMG] KUWA PICHA HALISI
+            text = text.replace(/\[IMG\](.*?)\[\/IMG\]/g, (match, url) => {
+                return `<br><img src="${url}" style="width:100%; max-height: 200px; object-fit:cover; border-radius:8px; margin: 10px 0;"><br>`;
+            });
             
-            if (selectedArticleImageSrc) {
-                let imgTag = `<br><img src="${selectedArticleImageSrc}" style="width:100%; max-height: 200px; object-fit:cover; border-radius:8px; margin: 10px 0;"><br>`;
-                text = text.replace(/\[\[PIC\]\]/g, imgTag);
-            }
+            // ONESHA [[PIC]] IKIWA BADO HAJAPAKIA PICHA
+            text = text.replace(/\[\[PIC\]\]/g, '<span style="color: var(--text-sec); font-style: italic; border: 1px dashed var(--border); padding: 2px 5px; border-radius: 4px;">[Picha itaonekana hapa]</span>');
             
             previewBox.innerHTML = text || "Andika makala yako na utaiona inavyoonekana hapa...";
+        }
+
+        async function postActivistArticle() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Huwezi kutuma chochote kwa sasa.");
+            if(!u.is_activist) return openModal("Kosa", "Huwezi kuandika makala kwa sasa.");
+            
+            const title = document.getElementById('article-title').value.trim();
+            const content = document.getElementById('article-content').value.trim();
+            
+            if(!title || !content) return openModal("Taarifa", "Jaza kichwa na makala yote.");
+            if(containsBadWords(title) || containsBadWords(content)) return openModal("Onyo", "Makala yako ina maneno yasiyoruhusiwa.");
+            
+            const btn = document.getElementById('btn-article'); 
+            btn.innerHTML = '<div class="spinner"></div> Inatuma...'; 
+            btn.disabled = true;
+            
+            try {
+                // HIFADHI MOJA KWA MOJA (Picha zipo ndani ya content kwa tags)
+                const { error } = await sb.from('activist_articles').insert([{ 
+                    author_phone: u.phone_number, 
+                    author_name: u.full_name, 
+                    title, 
+                    content 
+                }]);
+                
+                if(error) throw error;
+                showToast("Makala imechapishwa!"); playBeep();
+                document.getElementById('article-title').value = ''; 
+                document.getElementById('article-content').value = '';
+                updateArticlePreview();
+                showSec('activist-hub-sec');
+            } catch(e) { 
+                openModal("Kosa", e.message); 
+            } finally { 
+                btn.innerHTML = 'Chapisha Makala'; 
+                btn.disabled = false; 
+            }
         }
 
         function insertImagePlaceholder() {
@@ -9580,31 +9595,6 @@
             previewBox.innerHTML = text || "Andika makala yako na utaiona inavyoonekana hapa...";
         }
 
-        async function handleArticleImageSelect(input) {
-            if (input.files.length === 0) return;
-            
-            showToast("Inapakia picha kwenye mtandao...");
-            try {
-                // PAKIA PICHA KWENYE CLOUDINARY
-                const url = await uploadToCloudinary(input.files[0]);
-                
-                const textarea = document.getElementById('article-content');
-                const imgTag = ` [IMG]${url}[/IMG] `;
-                const start = articleCursorPos;
-                const text = textarea.value;
-                
-                // WEKA LINK LA PICHA PALE CURSOR ILIPO
-                textarea.value = text.substring(0, start) + imgTag + text.substring(start);
-                textarea.focus();
-                textarea.setSelectionRange(start + imgTag.length, start + imgTag.length);
-                articleCursorPos = start + imgTag.length;
-                
-                updateArticlePreview();
-                input.value = ''; // Wacha aweze kuchagua picha hiyo hiyo tena
-            } catch(e) {
-                openModal("Kosa la Kupakia Picha", e.message);
-            }
-        }
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
