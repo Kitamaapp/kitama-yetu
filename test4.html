@@ -1080,7 +1080,18 @@
             <div class="sec-h"><h2>Andika Makala Mpya</h2></div>
             <div style="padding: 0 20px;">
                 <div class="form-g"><input type="text" id="article-title" style="padding-left:16px;" placeholder="Kichwa cha Makala"></div>
-                <div class="form-g"><textarea id="article-content" style="min-height: 200px;" placeholder="Andika makala yako hapa..."></textarea></div>
+                
+                <div class="form-g">
+                    <textarea id="article-content" style="min-height: 200px;" placeholder="Andika makala yako hapa..."></textarea>
+                    <!-- ONGEZA HII: KITUFU CHA KUWEKA ALAMA YA PICHA -->
+                    <button onclick="insertImagePlaceholder()" class="btn-p" style="background: var(--bg); color: var(--accent); border: 1px solid var(--accent); padding: 10px; font-size: 13px; margin-top: 10px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        Weka Picha Hapa (Cursor)
+                    </button>
+                </div>
+                
+                <!-- ONGEZA HII: KUCHAGUA PICHA -->
+                <div class="form-g"><label class="form-l">Chagua Picha ya Makala (Optional)</label><input type="file" id="article-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
                 <button onclick="postActivistArticle()" class="btn-p" id="btn-article">Chapisha Makala</button>
             </div>
         </div>
@@ -2883,6 +2894,12 @@
                     
                     let cleanContent = a.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     
+                    // BADILISHA [[PIC]] KUWA PICHA HALISI NDANI YA MAANDISHI
+                    if (a.image_url) {
+                        let imgTag = `<br><img src="${a.image_url}" style="width:100%; max-height: 400px; object-fit:cover; border-radius:12px; margin: 10px 0;"><br>`;
+                        cleanContent = cleanContent.replace(/\[\[PIC\]\]/g, imgTag);
+                    }
+                    
                     return `<div class="article-card">
                         <div class="article-header">
                             <div class="article-avatar">${a.author_name.charAt(0)}</div>
@@ -3019,24 +3036,56 @@
             }
         }
 
-    async function postActivistArticle() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
-        if(!u.is_activist) return openModal("Kosa", "Huwezi kuandika makala kwa sasa.");
-        const title = document.getElementById('article-title').value.trim();
-        const content = document.getElementById('article-content').value.trim();
-        if(!title || !content) return openModal("Taarifa", "Jaza kichwa na makala yote.");
-        if(containsBadWords(title) || containsBadWords(content)) return openModal("Onyo", "Makala yako ina maneno yasiyoruhusiwa.");
-        
-        const btn = document.getElementById('btn-article'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true;
-        try {
-            const { error } = await sb.from('activist_articles').insert([{ author_phone: u.phone_number, author_name: u.full_name, title, content }]);
-            if(error) throw error;
-            showToast("Makala imechapishwa!"); playBeep();
-            document.getElementById('article-title').value = ''; document.getElementById('article-content').value = '';
-            showSec('activist-hub-sec');
-        } catch(e) { openModal("Kosa", e.message); } finally { btn.innerHTML = 'Chapisha Makala'; btn.disabled = false; }
-    }
+            async function postActivistArticle() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
+            if(!u.is_activist) return openModal("Kosa", "Huwezi kuandika makala kwa sasa.");
+            
+            const title = document.getElementById('article-title').value.trim();
+            const content = document.getElementById('article-content').value.trim();
+            const fileInput = document.getElementById('article-image');
+            
+            if(!title || !content) return openModal("Taarifa", "Jaza kichwa na makala yote.");
+            if(containsBadWords(title) || containsBadWords(content)) return openModal("Onyo", "Makala yako ina maneno yasiyoruhusiwa.");
+            
+            const btn = document.getElementById('btn-article'); 
+            btn.innerHTML = '<div class="spinner"></div> Inatuma...'; 
+            btn.disabled = true;
+            
+            let imgUrl = null;
+            
+            try {
+                // 1. KAMA AMECHAGUA PICHA, IPAKIE KWENYE SUPABASE
+                if(fileInput.files.length > 0) {
+                    const fileName = `article_${Date.now()}_${u.phone_number}.jpg`;
+                    const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]);
+                    if(upErr) throw upErr;
+                    imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
+                }
+                
+                // 2. HIFADHI MAKALA
+                const { error } = await sb.from('activist_articles').insert([{ 
+                    author_phone: u.phone_number, 
+                    author_name: u.full_name, 
+                    title, 
+                    content,
+                    image_url: imgUrl
+                }]);
+                
+                if(error) throw error;
+                
+                showToast("Makala imechapishwa!"); playBeep();
+                document.getElementById('article-title').value = ''; 
+                document.getElementById('article-content').value = '';
+                if(fileInput) fileInput.value = '';
+                showSec('activist-hub-sec');
+            } catch(e) { 
+                openModal("Kosa", e.message); 
+            } finally { 
+                btn.innerHTML = 'Chapisha Makala'; 
+                btn.disabled = false; 
+            }
+        }
 
     async function deleteArticle(id) {
         openModal("Futa Makala", "Una uhakika unataka kufuta makala hii?", false, async () => {
@@ -9342,6 +9391,20 @@
                     fetchMapPlaceRequests();
                 } catch(e) { openModal("Kosa", e.message); }
             });
+        }
+            // --- FUNCTION YA KUWEKA ALAMA YA PICHA ---
+        function insertImagePlaceholder() {
+            const textarea = document.getElementById('article-content');
+            const placeholder = ' [[PIC]] ';
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            
+            // Weka alama pale cursor ilipo
+            textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
+            showToast("Alama imewekwa! Sasa chagua picha chini.");
         }
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
