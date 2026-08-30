@@ -8497,29 +8497,17 @@
             });
         }
 
-        async function loadMapMarkers() {
+         async function loadMapMarkers() {
             if(!kitamaMap) return;
             
+            // Futa markers za zamani
             mapMarkers.forEach(m => kitamaMap.removeLayer(m));
             mapPlaceLabels.forEach(m => kitamaMap.removeLayer(m));
             mapMarkers = [];
             mapPlaceLabels = [];
             
             try {
-                const { data: users, error: uErr } = await sb.from('users').select('full_name, phone_number, lat, lng, is_activist, role').not('lat', 'is', null);
-                if(uErr) throw uErr;
-                
-                users.forEach(u => {
-                    if(u.lat && u.lng) {
-                        let lat = parseFloat(u.lat), lng = parseFloat(u.lng);
-                        let iconColor = u.is_activist ? '#3B82F6' : (u.role !== 'citizen' ? '#EF4444' : '#10B981');
-                        const customIcon = L.divIcon({ className: 'blink-marker', html: `<div style="width:15px; height:15px; background:${iconColor}; border-radius:50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`, iconSize: [15, 15] });
-                        const marker = L.marker([lat, lng], { icon: customIcon }).addTo(kitamaMap);
-                        marker.bindPopup(`<b>${u.full_name}</b><br><small>${u.role.replace(/_/g, ' ')}</small>`);
-                        mapMarkers.push(marker);
-                    }
-                });
-                
+                // 1. PAKIA MAENEO ALIYOONGEZA ADMIN TU (Tumefuta kabisa kuleta taarifa za Watumiaji)
                 const { data: places, error: pErr } = await sb.from('map_places').select('*');
                 if(pErr) throw pErr;
                 
@@ -8529,8 +8517,12 @@
                     mapPlaceLabels.push(labelMarker);
                 });
                 
+                // 2. ONESHA AU FICHA MAENEO KULINGANA NA ZOOM YA SASA
                 toggleMapPlaceLabels();
-            } catch(e) { console.error(e); }
+                
+            } catch(e) { 
+                console.error("Map markers error:", e); 
+            }
         }
 
         function toggleMapPlaceLabels() {
