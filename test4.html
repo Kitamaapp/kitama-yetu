@@ -1795,14 +1795,19 @@
             const textarea = document.getElementById('rep-desc');
             if(!textarea) return;
             
+            const fileInput = document.getElementById('rep-image');
+            const fileBox = fileInput ? fileInput.parentElement : null; // Hili ndilo box la picha
+            
             if (u.is_activist) {
-                // WAactivist: Futa limit kabisa
+                // WA ACTIVIST: Hakuna kikomo cha herufi, na wana uwezo wa kupakia picha
                 textarea.removeAttribute('maxlength');
                 textarea.placeholder = "Eleza kero kwa ufafanuzi kamili (Kama Activist hakuna kikomo)";
+                if(fileBox) fileBox.style.display = 'block';
             } else {
-                // Wengine: Weka limit ya 120
+                // WENGINE: Wana kikomo cha 120 herufi na HAWAWEZI kupakia picha
                 textarea.setAttribute('maxlength', '120');
                 textarea.placeholder = "Ufafanuzi (Max 120 herufi)";
+                if(fileBox) fileBox.style.display = 'none';
             }
             updateCharCount('rep-desc', 'rep-count');
         }
@@ -3605,7 +3610,8 @@
         if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa. Tafadhali andika kwa heshima.");
         const btn = document.getElementById('btn-rep'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true;
         let imgUrl = null;
-        if(fileInput.files.length > 0) { 
+        // ONGEZA HII: KAGUA KAMA NI ACTIVIST KABLA YA KUPAKIA PICHA
+        if(fileInput.files.length > 0 && u.is_activist) { 
             const fileName = `report_${Date.now()}.jpg`; 
             const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); 
             if(upErr) {
