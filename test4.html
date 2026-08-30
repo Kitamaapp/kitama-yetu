@@ -1106,22 +1106,25 @@
             <div id="activist-articles-list"></div>
         </div>
 
-        <div id="create-article-sec" class="sec">
+                <div id="create-article-sec" class="sec">
             <div class="sec-h"><h2>Andika Makala Mpya</h2></div>
             <div style="padding: 0 20px;">
                 <div class="form-g"><input type="text" id="article-title" style="padding-left:16px;" placeholder="Kichwa cha Makala"></div>
                 
                 <div class="form-g">
-                    <textarea id="article-content" style="min-height: 200px;" placeholder="Andika makala yako hapa..."></textarea>
-                    <!-- ONGEZA HII: KITUFU CHA KUWEKA ALAMA YA PICHA -->
+                    <textarea id="article-content" style="min-height: 150px;" placeholder="Andika makala yako hapa..." oninput="updateArticlePreview()"></textarea>
                     <button onclick="insertImagePlaceholder()" class="btn-p" style="background: var(--bg); color: var(--accent); border: 1px solid var(--accent); padding: 10px; font-size: 13px; margin-top: 10px;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                         Weka Picha Hapa (Cursor)
                     </button>
                 </div>
                 
-                <!-- ONGEZA HII: KUCHAGUA PICHA -->
-                <div class="form-g"><label class="form-l">Chagua Picha ya Makala (Optional)</label><input type="file" id="article-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
+                <div class="form-g"><label class="form-l">Chagua Picha ya Makala (Optional)</label><input type="file" id="article-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);" onchange="updateArticlePreview()"></div>
+                
+                <!-- LIVE PREVIEW BOX (Ili aone jinsi itakavyoonekana) -->
+                <h4 style="font-size: 13px; color: var(--text-sec); margin: 15px 0 10px 0; text-transform: uppercase;">Muonekano wa Kwanza (Live Preview)</h4>
+                <div id="article-preview-box" style="background:var(--bg); padding:15px; border-radius:12px; border:1px solid var(--border); min-height:100px; max-height: 300px; overflow-y:auto; font-size:14px; line-height:1.6; color:var(--text); white-space: pre-wrap;"></div>
+                
                 <button onclick="postActivistArticle()" class="btn-p" id="btn-article">Chapisha Makala</button>
             </div>
         </div>
@@ -2939,9 +2942,13 @@
                 const u = JSON.parse(localStorage.getItem('kitama_user'));
                 
                 const newHtml = data.length > 0 ? data.map(a => {
-                    let isAuthor = u.phone_number === a.author_phone;
-                    let deleteBtn = isAuthor || u.role === 'system_admin' ? `<button onclick="deleteArticle('${a.id}')" style="background:rgba(239,68,68,0.1); border:none; color:var(--danger); padding:8px 12px; border-radius:8px; font-weight:600; font-size:11px; margin-top:10px; cursor:pointer;">Futa Makala</button>` : '';
+                                        let isAuthor = u.phone_number === a.author_phone;
                     
+                    // KAGUA KAMA HAIJAZIDI SAA 1 (3600000 milliseconds)
+                    let timeDiff = Date.now() - new Date(a.created_at).getTime();
+                    let canEdit = isAuthor && timeDiff < 3600000;
+                    let editBtn = canEdit ? `<button onclick="openEditArticleModal('${a.id}', '${a.title.replace(/'/g, "\\'")}', '${a.content.replace(/'/g, "\\'")}')" style="background:rgba(59, 130, 246, 0.1); border:none; color:#3B82F6; padding:8px 12px; border-radius:8px; font-weight:600; font-size:11px; margin-top:10px; cursor:pointer; margin-right:10px;">Hariri</button>` : '';
+                    let deleteBtn = (isAuthor || u.role === 'system_admin') ? `<button onclick="deleteArticle('${a.id}')" style="background:rgba(239,68,68,0.1); border:none; color:var(--danger); padding:8px 12px; border-radius:8px; font-weight:600; font-size:11px; margin-top:10px; cursor:pointer;">Futa Makala</button>` : '';
                     let likedArr = a.liked_by || [];
                     let dislikedArr = a.disliked_by || [];
                     let hasLiked = likedArr.includes(u.phone_number);
@@ -2964,9 +2971,12 @@
                             </div>
                         </div>
                         <div class="article-body">
-                            <h3 class="article-title">${a.title}</h3>
-                            <p class="article-content">${cleanContent}</p>
+                        <h3 class="article-title">${a.title}</h3>
+                        <p class="article-content">${cleanContent}</p>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            ${editBtn} 
                             ${deleteBtn}
+                        </div>
                         </div>
                         <div class="article-footer">
                             <button id="like-btn-${a.id}" class="article-action-btn ${hasLiked ? 'liked' : ''}" onclick="likeArticle('${a.id}')">
@@ -9497,6 +9507,80 @@
             openModal("Picha ya Profaili", `<div class="img-viewer-container" onclick="toggleZoom(this)"><img src="${url}" class="img-viewer-img"></div>`, false);
             document.getElementById('modal-ok').style.display = 'none';
             document.getElementById('modal-cancel').innerText = 'Funga';
+        }
+            // --- LIVE PREVIEW & IMAGE PLACEHOLDER FUNCTIONS ---
+        let selectedArticleImageSrc = null;
+
+        function updateArticlePreview() {
+            const textarea = document.getElementById('article-content');
+            const fileInput = document.getElementById('article-image');
+            const previewBox = document.getElementById('article-preview-box');
+            
+            let text = textarea.value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
+            if (fileInput.files && fileInput.files[0]) {
+                selectedArticleImageSrc = URL.createObjectURL(fileInput.files[0]);
+            }
+            
+            if (selectedArticleImageSrc) {
+                let imgTag = `<br><img src="${selectedArticleImageSrc}" style="width:100%; max-height: 200px; object-fit:cover; border-radius:8px; margin: 10px 0;"><br>`;
+                text = text.replace(/\[\[PIC\]\]/g, imgTag);
+            }
+            
+            previewBox.innerHTML = text || "Andika makala yako na utaiona inavyoonekana hapa...";
+        }
+
+        function insertImagePlaceholder() {
+            const textarea = document.getElementById('article-content');
+            const placeholder = ' [[PIC]] ';
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            
+            textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
+            updateArticlePreview(); // Sasisha preview mara moja
+        }
+            // --- EDIT ARTICLE FUNCTIONS ---
+        function openEditArticleModal(id, title, content) {
+            const html = `
+                <div class="form-g">
+                    <label class="form-l">Kichwa cha Makala</label>
+                    <input type="text" id="edit-article-title" class="modal-input" value="${title}">
+                </div>
+                <div class="form-g">
+                    <label class="form-l">Maudhui ya Makala</label>
+                    <textarea id="edit-article-content" class="modal-input" style="min-height: 150px;">${content}</textarea>
+                </div>
+            `;
+            
+            openModal("Hariri Makala", html, false, async () => {
+                const newTitle = document.getElementById('edit-article-title').value.trim();
+                const newContent = document.getElementById('edit-article-content').value.trim();
+                
+                if(!newTitle || !newContent) return showToast("Jaza kichwa na maudhui.");
+                
+                const okBtn = document.getElementById('modal-ok');
+                okBtn.innerHTML = '<div class="spinner"></div>'; okBtn.disabled = true;
+                
+                try {
+                    const { error } = await sb.from('activist_articles').update({
+                        title: newTitle,
+                        content: newContent
+                    }).eq('id', id);
+                    
+                    if(error) throw error;
+                    showToast("Makala imehaririwa kikamilifu!");
+                    closeModal();
+                    fetchActivistArticles();
+                } catch(e) {
+                    openModal("Kosa", e.message);
+                    okBtn.innerText = 'Hifadhi'; okBtn.disabled = false;
+                }
+            });
+            
+            document.getElementById('modal-ok').innerText = "Hifadhi Mabadiliko";
         }
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
