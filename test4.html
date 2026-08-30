@@ -1665,6 +1665,26 @@
 <script>
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
+        // HII NDIO YA KUPAKIA PICHA KWENYE CLOUDINARY
+    async function uploadToCloudinary(file) {
+        const cloudName = 'aedw95ht'; // Badilisha hili!
+        const url = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'kitama_unsigned');
+        
+        try {
+            const res = await fetch(url, { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.secure_url) {
+                return data.secure_url; // Link la picha
+            } else {
+                throw new Error("Imeshindwa kupakia picha.");
+            }
+        } catch(e) {
+            throw e;
+        }
+    }
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let appHistory = ['home-sec'];
     let mapInstance = null;
@@ -3071,12 +3091,14 @@
             let imgUrl = null;
             
             try {
-                // 1. KAMA AMECHAGUA PICHA, IPAKIE KWENYE SUPABASE
+               // 1. KAMA AMECHAGUA PICHA, IPAKIE KWENYE CLOUDINARY
                 if(fileInput.files.length > 0) {
-                    const fileName = `article_${Date.now()}_${u.phone_number}.jpg`;
-                    const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]);
-                    if(upErr) throw upErr;
-                    imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
+                    try {
+                        imgUrl = await uploadToCloudinary(fileInput.files[0]);
+                    } catch(upErr) {
+                        btn.innerHTML = 'Chapisha Makala'; btn.disabled = false;
+                        return openModal("Kosa la Kupakia Picha", upErr.message);
+                    }
                 }
                 
                 // 2. HIFADHI MAKALA
@@ -3601,40 +3623,34 @@
         currentMsgElement = null;
     }
 
-        async function submitReport() {
+            async function submitReport() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
         const cat = document.getElementById('rep-cat').value, title = document.getElementById('rep-title').value.trim(), desc = document.getElementById('rep-desc').value.trim(), fileInput = document.getElementById('rep-image');
         if(!title||!desc) return openModal("Taarifa", "Tafadhali jaza mada na ufafanuzi.");
-        if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa. Tafadhali andika kwa heshima.");
+        if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa.");
         const btn = document.getElementById('btn-rep'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true;
         let imgUrl = null;
-        // ONGEZA HII: KAGUA KAMA NI ACTIVIST KABLA YA KUPAKIA PICHA
+        
+        // CLOUDINARY UPLOAD (Kwa Activist tu)
         if(fileInput.files.length > 0 && u.is_activist) { 
-            const fileName = `report_${Date.now()}.jpg`; 
-            const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); 
-            if(upErr) {
-                console.error("Upload Error:", upErr);
-                openModal("Kosa la Kupakia Picha", "Imeshindwa kupakia picha kwenye server. Kosa: " + upErr.message);
+            try {
+                imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            } catch(upErr) {
+                openModal("Kosa la Kupakia Picha", upErr.message);
                 btn.innerHTML='Tuma Ripoti'; btn.disabled=false;
                 return;
             }
-            if(!upErr) { imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } 
         }
+        
         try {
             const { error } = await sb.from('reports').insert([{ 
-                title, 
-                description: desc, 
-                village: u.village, 
-                category: cat, 
-                image_url: imgUrl, 
-                created_by_name: u.full_name, 
-                created_by_phone: u.phone_number,
-                is_activist: u.is_activist || false 
+                title, description: desc, village: u.village, category: cat, image_url: imgUrl, 
+                created_by_name: u.full_name, created_by_phone: u.phone_number, is_activist: u.is_activist || false 
             }]);
             if(error) throw error;
-                        showToast("Ripoti imetumwa!"); playBeep(); 
+            showToast("Ripoti imetumwa!"); playBeep(); 
             document.getElementById('rep-title').value = ''; 
             document.getElementById('rep-desc').value = ''; 
             if(fileInput) fileInput.value = '';
@@ -4280,28 +4296,25 @@
             if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; 
         } 
     }
-          async function uploadAvatar() { 
-            const u = JSON.parse(localStorage.getItem('kitama_user')); 
-            const fileInput = document.getElementById('avatar-upload'); 
-            if(fileInput.files.length > 0) { 
-                const file = fileInput.files[0]; 
-                const fileName = `avatar_${u.phone_number}.jpg`; 
-                try { 
-                    await sb.storage.from('kitama-images').upload(fileName, file, { upsert: true }); 
-                    const url = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; 
-                    await sb.from('users').update({ avatar_url: url }).eq('id', u.id); 
-                    u.avatar_url = url; 
-                    localStorage.setItem('kitama_user', JSON.stringify(u)); 
-                    
-                    closeModal(); 
-                    updateProfileUI(u); // SASISHA PICHA MARA MOJA BILA KURELOAD
-                    showToast("Picha imewekwa!"); 
-                    playBeep(); 
-                } catch(e) { 
-                    openModal("Kosa", e.message); 
-                } 
+        async function uploadAvatar() { 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        const fileInput = document.getElementById('avatar-upload'); 
+        if(fileInput.files.length > 0) { 
+            const file = fileInput.files[0]; 
+            try { 
+                // CLOUDINARY UPLOAD
+                const url = await uploadToCloudinary(file); 
+                await sb.from('users').update({ avatar_url: url }).eq('id', u.id); 
+                u.avatar_url = url; 
+                localStorage.setItem('kitama_user', JSON.stringify(u)); 
+                closeModal(); 
+                updateProfileUI(u); 
+                showToast("Picha imewekwa!"); playBeep(); 
+            } catch(e) { 
+                openModal("Kosa", e.message); 
             } 
-        }
+        } 
+    }
     async function createShop() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
@@ -4313,18 +4326,20 @@
         let logoUrl = null, coverUrl = null;
         try {
             if(logoInput.files.length > 0) {
-                const logoName = `shop_logo_${u.phone_number}.jpg`;
-                const { data: upData, error: upErr } = await sb.storage.from('kitama-images').upload(logoName, logoInput.files[0], { upsert: true });
-                if(upErr) throw upErr;
-                const { data: urlData } = sb.storage.from('kitama-images').getPublicUrl(logoName);
-                logoUrl = urlData.publicUrl;
+                try {
+                    logoUrl = await uploadToCloudinary(logoInput.files[0]);
+                } catch(upErr) { 
+                    btn.innerHTML = 'Fungua Duka'; btn.disabled = false;
+                    return openModal("Kosa la Kupakia Logo", upErr.message); 
+                }
             }
             if(coverInput.files.length > 0) {
-                const coverName = `shop_cover_${u.phone_number}.jpg`;
-                const { data: upData, error: upErr } = await sb.storage.from('kitama-images').upload(coverName, coverInput.files[0], { upsert: true });
-                if(upErr) throw upErr;
-                const { data: urlData } = sb.storage.from('kitama-images').getPublicUrl(coverName);
-                coverUrl = urlData.publicUrl;
+                try {
+                    coverUrl = await uploadToCloudinary(coverInput.files[0]);
+                } catch(upErr) { 
+                    btn.innerHTML = 'Fungua Duka'; btn.disabled = false;
+                    return openModal("Kosa la Kupakia Cover", upErr.message); 
+                }
             }
             const { data, error } = await sb.from('shops').insert([{ owner_phone: u.phone_number, shop_name: name, description: desc, logo_url: logoUrl, cover_url: coverUrl, village: u.village }]).select().single();
             if(error) throw error;
@@ -5004,20 +5019,14 @@
         const btn = document.getElementById('btn-item'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true; 
         let imgUrl = null; 
         if(fileInput.files.length > 0) { 
-            const fileName = `market_${Date.now()}.jpg`;
-            const file = fileInput.files[0];
-            
-            const { data: upData, error: upErr } = await sb.storage.from('kitama-images').upload(fileName, file); 
-            if(upErr) {
-                console.error("Upload Error:", upErr);
-                openModal("Kosa la Kupakia Picha", "Imeshindwa kupakia picha kwenye server. Kosa: " + upErr.message);
+            try {
+                imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            } catch(upErr) {
+                openModal("Kosa la Kupakia Picha", upErr.message);
                 btn.innerHTML = 'Weka Tangazo'; btn.disabled = false;
                 return;
             }
-            
-            const { data: urlData } = sb.storage.from('kitama-images').getPublicUrl(fileName);
-            imgUrl = urlData.publicUrl;
-        } 
+        }  
         try { 
             const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village, category:cat, image_url:imgUrl, status:'active', shop_id: shopId, shop_name: shopName }]); 
             if(error) throw error; 
@@ -5707,11 +5716,14 @@
                     return showToast("Namba hii ya tashi tayari imesajiliwa!");
                 }
                 
-                // Pakia Picha
-                const fileName = `plate_${u.phone_number}_${Date.now()}.jpg`;
-                const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]);
-                if(upErr) throw upErr;
-                const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
+              // 1. PAKIA PICHA KWENYE CLOUDINARY
+                let photoUrl = null;
+                try {
+                    photoUrl = await uploadToCloudinary(fileInput.files[0]);
+                } catch(upErr) {
+                    if(btn) { btn.innerHTML = 'Tuma Ombi'; btn.disabled = false; }
+                    return openModal("Kosa la Kupakia Picha", upErr.message);
+                }
                 
                 // Hifadhi au sasisha
                 const { data: existing } = await sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle();
@@ -5904,11 +5916,13 @@
         
         const btn = document.getElementById('btn-opp'); btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
         let imgUrl = null;
-        
-        if(fileInput.files.length > 0) {
-            const fileName = `opp_${Date.now()}.jpg`;
-            const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]);
-            if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
+            if(fileInput.files.length > 0) {
+            try {
+                imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            } catch(upErr) {
+                btn.disabled = false; btn.innerHTML = 'Weka Tangazo';
+                return openModal("Kosa la Kupakia Picha", upErr.message);
+            }
         }
         
         try {
