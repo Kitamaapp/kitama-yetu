@@ -1105,23 +1105,21 @@
             <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Makala za hoja nzito na mawazo ya kimaendeleo kutoka kwa Waactivists waliothibitishwa.</p>
             <div id="activist-articles-list"></div>
         </div>
-
-                <div id="create-article-sec" class="sec">
+        <div id="create-article-sec" class="sec">
             <div class="sec-h"><h2>Andika Makala Mpya</h2></div>
             <div style="padding: 0 20px;">
                 <div class="form-g"><input type="text" id="article-title" style="padding-left:16px;" placeholder="Kichwa cha Makala"></div>
                 
                 <div class="form-g">
-                    <textarea id="article-content" style="min-height: 150px;" placeholder="Andika makala yako hapa..." oninput="updateArticlePreview()"></textarea>
-                    <button onclick="insertImagePlaceholder()" class="btn-p" style="background: var(--bg); color: var(--accent); border: 1px solid var(--accent); padding: 10px; font-size: 13px; margin-top: 10px;">
+                    <textarea id="article-content" style="min-height: 150px;" placeholder="Andika makala yako hapa..." oninput="updateArticlePreview()" onblur="articleCursorPos=this.selectionStart" onkeyup="articleCursorPos=this.selectionStart" onclick="articleCursorPos=this.selectionStart"></textarea>
+                    <input type="file" id="article-inline-image" accept="image/*" style="display:none;" onchange="handleArticleImageSelect(this)">
+                    <button onclick="document.getElementById('article-inline-image').click()" class="btn-p" style="background: var(--bg); color: var(--accent); border: 1px solid var(--accent); padding: 10px; font-size: 13px; margin-top: 10px;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                         Weka Picha Hapa (Cursor)
                     </button>
                 </div>
                 
-                <div class="form-g"><label class="form-l">Chagua Picha ya Makala (Optional)</label><input type="file" id="article-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);" onchange="updateArticlePreview()"></div>
-                
-                <!-- LIVE PREVIEW BOX (Ili aone jinsi itakavyoonekana) -->
+                <!-- LIVE PREVIEW BOX -->
                 <h4 style="font-size: 13px; color: var(--text-sec); margin: 15px 0 10px 0; text-transform: uppercase;">Muonekano wa Kwanza (Live Preview)</h4>
                 <div id="article-preview-box" style="background:var(--bg); padding:15px; border-radius:12px; border:1px solid var(--border); min-height:100px; max-height: 300px; overflow-y:auto; font-size:14px; line-height:1.6; color:var(--text); white-space: pre-wrap;"></div>
                 
@@ -2956,11 +2954,10 @@
                     
                     let cleanContent = a.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     
-                    // BADILISHA [[PIC]] KUWA PICHA HALISI NDANI YA MAANDISHI
-                    if (a.image_url) {
-                        let imgTag = `<br><img src="${a.image_url}" style="width:100%; max-height: 400px; object-fit:cover; border-radius:12px; margin: 10px 0;"><br>`;
-                        cleanContent = cleanContent.replace(/\[\[PIC\]\]/g, imgTag);
-                    }
+                    // BADILISHA [IMG]LINK[/IMG] KUWA PICHA HALISI
+                    cleanContent = cleanContent.replace(/\[IMG\](.*?)\[\/IMG\]/g, (match, url) => {
+                        return `<br><img src="${url}" style="width:100%; max-height: 400px; object-fit:cover; border-radius:12px; margin: 10px 0;"><br>`;
+                    });
                     
                     return `<div class="article-card">
                         <div class="article-header">
@@ -3108,7 +3105,6 @@
             
             const title = document.getElementById('article-title').value.trim();
             const content = document.getElementById('article-content').value.trim();
-            const fileInput = document.getElementById('article-image');
             
             if(!title || !content) return openModal("Taarifa", "Jaza kichwa na makala yote.");
             if(containsBadWords(title) || containsBadWords(content)) return openModal("Onyo", "Makala yako ina maneno yasiyoruhusiwa.");
@@ -3117,34 +3113,20 @@
             btn.innerHTML = '<div class="spinner"></div> Inatuma...'; 
             btn.disabled = true;
             
-            let imgUrl = null;
-            
             try {
-               // 1. KAMA AMECHAGUA PICHA, IPAKIE KWENYE CLOUDINARY
-                if(fileInput.files.length > 0) {
-                    try {
-                        imgUrl = await uploadToCloudinary(fileInput.files[0]);
-                    } catch(upErr) {
-                        btn.innerHTML = 'Chapisha Makala'; btn.disabled = false;
-                        return openModal("Kosa la Kupakia Picha", upErr.message);
-                    }
-                }
-                
-                // 2. HIFADHI MAKALA
+                // HIFADHI MOJA KWA MOJA (Picha zipo ndani ya content)
                 const { error } = await sb.from('activist_articles').insert([{ 
                     author_phone: u.phone_number, 
                     author_name: u.full_name, 
                     title, 
-                    content,
-                    image_url: imgUrl
+                    content 
                 }]);
                 
                 if(error) throw error;
-                
                 showToast("Makala imechapishwa!"); playBeep();
                 document.getElementById('article-title').value = ''; 
                 document.getElementById('article-content').value = '';
-                if(fileInput) fileInput.value = '';
+                updateArticlePreview();
                 showSec('activist-hub-sec');
             } catch(e) { 
                 openModal("Kosa", e.message); 
@@ -9581,6 +9563,47 @@
             });
             
             document.getElementById('modal-ok').innerText = "Hifadhi Mabadiliko";
+        }
+            let articleCursorPos = 0;
+
+        function updateArticlePreview() {
+            const textarea = document.getElementById('article-content');
+            const previewBox = document.getElementById('article-preview-box');
+            
+            let text = textarea.value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
+            // BADILISHA [IMG]LINK[/IMG] KUWA PICHA HALISI KWA LIVE PREVIEW
+            text = text.replace(/\[IMG\](.*?)\[\/IMG\]/g, (match, url) => {
+                return `<br><img src="${url}" style="width:100%; max-height: 200px; object-fit:cover; border-radius:8px; margin: 10px 0;"><br>`;
+            });
+            
+            previewBox.innerHTML = text || "Andika makala yako na utaiona inavyoonekana hapa...";
+        }
+
+        async function handleArticleImageSelect(input) {
+            if (input.files.length === 0) return;
+            
+            showToast("Inapakia picha kwenye mtandao...");
+            try {
+                // PAKIA PICHA KWENYE CLOUDINARY
+                const url = await uploadToCloudinary(input.files[0]);
+                
+                const textarea = document.getElementById('article-content');
+                const imgTag = ` [IMG]${url}[/IMG] `;
+                const start = articleCursorPos;
+                const text = textarea.value;
+                
+                // WEKA LINK LA PICHA PALE CURSOR ILIPO
+                textarea.value = text.substring(0, start) + imgTag + text.substring(start);
+                textarea.focus();
+                textarea.setSelectionRange(start + imgTag.length, start + imgTag.length);
+                articleCursorPos = start + imgTag.length;
+                
+                updateArticlePreview();
+                input.value = ''; // Wacha aweze kuchagua picha hiyo hiyo tena
+            } catch(e) {
+                openModal("Kosa la Kupakia Picha", e.message);
+            }
         }
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
