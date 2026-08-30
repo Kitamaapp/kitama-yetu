@@ -4901,10 +4901,11 @@
                 });
                 
                 const newHtml = convoList.length > 0 ? convoList.map(c => {
-                    let cleanName = c.name.replace(/<svg[^>]*>([\s\S]*?)<\/svg>/g, '').trim();
-                    let clickAction = c.type === 'shop' 
-                        ? `fetchDmChat('${c.phone}', '${cleanName.replace(/'/g, "\\'")}', '${c.id}')`
-                        : `fetchDmChat('${c.phone}', '${cleanName.replace(/'/g, "\\'")}', null)`;
+                let cleanName = c.name.replace(/<[^>]*>/g, '').trim();
+                // TUMIA NAMBA YA SIMU KWENYE ONCLICK KUEPUKA MAKOSA YA QUOTES
+                let clickAction = c.type === 'shop' 
+                    ? `fetchDmChat('${c.phone}', '${c.phone}', '${c.id}')`
+                    : `fetchDmChat('${c.phone}', '${c.phone}', null)`;
                     
                     let isSystem = (c.phone === window.adminPhone && u.phone_number !== window.adminPhone);
                     let systemAvatar = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`;
