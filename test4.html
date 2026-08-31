@@ -964,25 +964,35 @@
 <div class="app-c" id="app-c">
         <header class="app-h">
         <div onclick="handleNav('profile-sec')" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-            <div>
-                <h3 style="font-size: 20px; font-weight: 800; color: var(--accent); margin: 0;">Kitama Yetu</h3>
-            </div>
+            <img id="h-avatar" src="" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); display:none;">
+            <div id="h-initial" style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">U</div>
+            <div><p style="font-size:11px; color:var(--text-sec); margin:0;">Karibu</p><h3 style="font-size:16px; font-weight:800; margin:0;">Kitama Yetu</h3></div>
         </div>
-        <button class="theme-toggle" onclick="refreshApp()" style="margin-right: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        </button>
-         <div class="header-actions">
+        
+        <div class="header-actions" style="display: flex; align-items: center; gap: 8px;">
             <button class="theme-toggle" onclick="handleNav('my-inbox-sec')" style="position: relative;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            <span id="inbox-badge" style="position: absolute; top: -2px; right: -2px; background: #EF4444; color: white; font-size: 10px; min-width: 16px; height: 16px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span id="inbox-badge" style="position: absolute; top: -2px; right: -2px; background: #EF4444; color: white; font-size: 10px; min-width: 16px; height: 16px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span>
             </button>
             <button class="theme-toggle" onclick="toggleSound()" id="sound-toggle-btn">
-            <span id="sound-icon"></span>
+                <span id="sound-icon"></span>
             </button>
             <button class="theme-toggle" onclick="toggleTheme()">
-            <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             </button>
+            
+            <!-- VIDOVI VITATU (Dropdown Menu) -->
+            <div style="position: relative;">
+                <button class="theme-toggle" onclick="toggleHeaderMenu(event)">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
+                <div id="header-dropdown-menu" style="display: none; position: absolute; right: 0; top: 45px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 1000; min-width: 150px;">
+                    <div onclick="refreshApp()" style="padding: 12px 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refresh App
+                    </div>
+                </div>
             </div>
+        </div>
     </header>
     <main>
         <div id="home-sec" class="sec active"><div id="home-content"></div></div>
@@ -2294,7 +2304,7 @@
                   
                   if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
               })
-                          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_status' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_status' }, payload => {
                   playBeep();
                   showToast("Tip mpya kutoka Kitama Yetu!");
                   if(document.getElementById('status-sec').classList.contains('active')) loadStatusUI(); // HAPA NDIO ILIKUWA KOSA
@@ -2372,23 +2382,6 @@
         
         // FUTA STATUS ZILIZOKWISHA MUDA (Auto-clean)
         cleanExpiredStatuses();
-              // --- APP REALTIME RECONNECT & OFFLINE SYNC ---
-        window.addEventListener('online', () => {
-            showToast("Mtandao urudi! App inasasisha na kutuma messages zilizosubiri...");
-            // 1. TUMA UJUMBE WALIOTANGA WAANDIKA OFFLINE
-            if (typeof processMsgQueue === 'function') processMsgQueue();
-            // 2. PAKIA UPYA APP BAADA YA SEKUNDE 2
-            setTimeout(() => location.reload(), 2000);
-        });
-
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && navigator.onLine) {
-                const activeSec = document.querySelector('.sec.active');
-                if (activeSec) {
-                    setTimeout(() => showSec(activeSec.id), 500);
-                }
-            }
-        });
     }
     
         // --- BACK BUTTON HANDLER (WhatsApp Style) ---
@@ -9645,6 +9638,50 @@
         function closeFullScreenImage() {
             document.getElementById('fullscreen-img-overlay').style.display = 'none';
             document.getElementById('fullscreen-img').src = '';
+        }
+            // --- HEADER DROPDOWN MENU ---
+        function toggleHeaderMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('header-dropdown-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('header-dropdown-menu');
+            if (menu && menu.style.display === 'block' && !e.target.closest('#header-dropdown-menu') && !e.target.closest('button[onclick="toggleHeaderMenu(event)"]')) {
+                menu.style.display = 'none';
+            }
+        });
+
+        // --- APP REALTIME RECONNECT (KAMA WHATSAPP) ---
+        // 1. Mtandao ukirudi, sasisha data ya page aliyo bila kufunga App
+        window.addEventListener('online', () => {
+            showToast("Mtandao urudi! App inasasisha...");
+            const activeSec = document.querySelector('.sec.active');
+            if (activeSec) {
+                setTimeout(() => showSec(activeSec.id), 500);
+            }
+        });
+
+        // 2. App ukirudi kwenye screen (Resume) kutoka background
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && navigator.onLine) {
+                const activeSec = document.querySelector('.sec.active');
+                if (activeSec) {
+                    setTimeout(() => showSec(activeSec.id), 500);
+                }
+            }
+        });
+
+        // 3. Native Android App Resume event (Kwa APK)
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+            window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
+                if (isActive && navigator.onLine) {
+                    const activeSec = document.querySelector('.sec.active');
+                    if (activeSec) {
+                        showSec(activeSec.id);
+                    }
+                }
+            });
         }
 
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
