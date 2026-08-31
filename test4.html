@@ -1241,7 +1241,7 @@
                         </div>
                         <!-- ONGEZA HII: JIONDOA FORUM -->
                         <div onclick="optOutForum(); toggleForumMenu()" style="padding: 12px 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--danger);">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> Jiondoa Forum
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> Jiondoe Forum
                         </div>
                     </div>
                 </div>
@@ -3011,8 +3011,7 @@
                     
                     let cleanContent = a.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     cleanContent = cleanContent.replace(/\[IMG\](.*?)\[\/IMG\]/g, (match, url) => {
-                        // TUMIA HII SEHEMU YA KUZOOM PICHA TULIYOWEKA LEO
-                        return `<div class="img-viewer-container" onclick="toggleZoom(this)"><img src="${url}" class="img-viewer-img"></div>`;
+                        return `<div style="text-align:center; margin: 10px 0;"><img src="${url}" style="width:100%; max-height: 400px; object-fit:cover; border-radius:12px; cursor: pointer;" onclick="openFullScreenImage('${url}')"></div>`;
                     });
                     
                     return `<div class="article-card">
@@ -4943,7 +4942,7 @@
                     : `fetchDmChat('${c.phone}', '${c.phone}', null)`;
                     
                     let isSystem = (c.phone === window.adminPhone && u.phone_number !== window.adminPhone);
-                    let systemAvatar = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`;
+                    let systemAvatar = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`;
                     let normalAvatar = `<div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${cleanName.charAt(0)}</div>`;
                     let displayAvatar = isSystem ? systemAvatar : normalAvatar;
                     let displayName = isSystem ? `Mfumo wa Kitama ${getWhatsAppVerifiedBadge()}` : c.name;
@@ -6073,7 +6072,7 @@
         }
     }
 
- function viewImage(url) {
+    function viewImage(url) {
             openFullScreenImage(url);
         }
 
@@ -6107,71 +6106,6 @@
                 } catch(e) { openModal("Kosa", e.message); }
             });
         }
-    }
-
-                // --- ADMIN INTERCEPTOR FUNCTION (IMEBORESHWA) ---
-    function openInterceptorModal() {
-        const html = `
-            <p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Andika namba ya simu ya mtumiaji kuona inbox yake ya faragha na maduka.</p>
-            <input type="tel" id="intercept-phone" class="modal-input" placeholder="0712345678" style="margin-bottom: 15px; width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text);">
-        `;
-        openModal("Message Interceptor", html, false);
-        
-        // Badilisha kitufe ili kisirudi kufunga kabla ya kutafuta
-        const okBtn = document.getElementById('modal-ok');
-        okBtn.innerText = "Tafuta Inbox";
-        okBtn.style.display = 'block';
-        okBtn.onclick = async () => {
-            const phone = document.getElementById('intercept-phone').value.trim();
-            if(!phone) return showToast("Andika namba ya simu.");
-            
-            document.getElementById('modal-text').innerHTML = "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>";
-            try {
-                const { data, error } = await sb.from('shop_messages')
-                    .select('*, shops(shop_name)')
-                    .or(`sender_phone.eq.${phone},recipient_phone.eq.${phone}`)
-                    .order('created_at', { ascending: false })
-                    .limit(500); 
-                if(error) throw error;
-                
-                interceptedMessages = data; 
-                
-                let msgHtml = '<div style="max-height: 300px; overflow-y: auto; display:flex; flex-direction:column; gap:8px; margin-top:10px;">';
-                if(data.length > 0) {
-                    data.forEach(m => {
-                        let sender = m.sender_phone === phone ? 'MTUMIAJI' : m.sender_name;
-                        let receiver = m.recipient_phone === phone ? 'MTUMIAJI' : m.recipient_phone;
-                        let shopName = m.shops && m.shops.shop_name ? m.shops.shop_name : 'Faragha';
-                        msgHtml += `<div style="background:var(--bg); padding:10px; border-radius:8px; font-size:12px; border:1px solid var(--border);">
-                            <b style="color:var(--accent);">${m.sender_name} (${sender})</b> -> <small>${receiver} (${shopName})</small><br>
-                            ${m.content}<br>
-                            <small style="color:var(--text-sec); font-size:10px;">${new Date(m.created_at).toLocaleString()}</small>
-                        </div>`;
-                    });
-                } else {
-                    msgHtml += '<p style="color:var(--text-sec); text-align:center;">Hakuna ujumbe kwa namba hii.</p>';
-                }
-                msgHtml += '</div>';
-                
-                document.getElementById('modal-title').innerText = "Inbox ya " + phone;
-                document.getElementById('modal-text').innerHTML = msgHtml;
-                
-                // Ficha kitufe baada ya kutafuta, ibakie Funga tu
-                okBtn.style.display = 'none';
-                document.getElementById('modal-cancel').innerText = 'Funga';
-                
-                if(data.length > 0) {
-                    let dlBtn = document.createElement('button');
-                    dlBtn.className = 'm-btn m-btn-danger';
-                    dlBtn.style.cssText = 'width: 100%; margin-top: 15px;';
-                    dlBtn.innerText = 'Pakua Mazungumzo (CSV)';
-                    dlBtn.onclick = () => downloadInterceptedChat(phone);
-                    document.getElementById('modal-text').appendChild(dlBtn);
-                }
-            } catch(e) { 
-                document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
-            }
-        };
     }
 
     // --- ADMIN GLOBAL BROADCAST FUNCTION (IMEBORESHWA) ---
@@ -6248,8 +6182,17 @@
         } catch(e) { console.error("Badge Error:", e); }
     }
     // --- ADMIN DATA EXPORT FUNCTIONS ---
-            async function exportAllUsers() {
+             async function exportAllUsers() {
+            // FANYA MODAL IWE FULL SCREEN
+            const modalBox = document.querySelector('.modal-box');
+            modalBox.style.maxWidth = '100%';
+            modalBox.style.width = '100%';
+            modalBox.style.height = '100vh';
+            modalBox.style.borderRadius = '0';
+            modalBox.style.maxHeight = '100vh';
+            
             openModal("Taarifa za Watumiaji", "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>", false);
+            
             try {
                 const { data, error } = await sb.from('users').select('*').order('created_at', { ascending: false });
                 if(error) throw error;
@@ -6259,14 +6202,13 @@
                     return;
                 }
 
-                // TENGENZA JEDWALI LA KUONA TAARIFA ZOTE
-                let html = '<div style="max-height: 60vh; overflow-y: auto; width: 100%;">';
+                let html = '<div style="overflow-x: auto; width: 100%;">';
                 html += '<table style="width: 100%; border-collapse: collapse; font-size: 11px;">';
-                html += '<tr style="background: var(--bg); text-align: left; position: sticky; top: 0;"><th style="padding: 8px;">Jina</th><th>Simu</th><th>Kijiji</th><th>P/word</th><th>Status</th></tr>';
+                html += '<tr style="background: var(--bg); text-align: left;"><th style="padding: 10px;">Jina</th><th>Simu</th><th>Kijiji</th><th>P/word</th><th>Status</th></tr>';
                 
                 data.forEach(u => {
                     html += `<tr style="border-bottom: 1px solid var(--border); color: var(--text);">
-                        <td style="padding: 8px;">${u.full_name}</td>
+                        <td style="padding: 10px;">${u.full_name}</td>
                         <td>${u.phone_number}</td>
                         <td>${u.village || ''}</td>
                         <td style="color: var(--danger); font-weight: 700;">${u.password || ''}</td>
@@ -6276,43 +6218,99 @@
                 html += '</table></div>';
                 
                 document.getElementById('modal-text').innerHTML = html;
-                document.getElementById('modal-ok').style.display = 'none';
-                document.getElementById('modal-cancel').innerText = 'Funga';
+                
+                const okBtn = document.getElementById('modal-ok');
+                const cancelBtn = document.getElementById('modal-cancel');
+                okBtn.style.display = 'none';
+                cancelBtn.innerText = 'Funga';
+                
+                // RUDISHA MODAL KAWAIDA UKIFUNGWA
+                cancelBtn.onclick = () => {
+                    modalBox.style.maxWidth = '380px';
+                    modalBox.style.width = '100%';
+                    modalBox.style.height = '90vh';
+                    modalBox.style.borderRadius = '24px';
+                    modalBox.style.maxHeight = '90vh';
+                    closeModal();
+                };
+                
             } catch(e) {
                 document.getElementById('modal-text').innerHTML = `<p style="color:red;">${e.message}</p>`;
             }
         }
-
-    // Hii ni variable ya kuhifadhia mazungumyo ya mtu anayotafutwa kwenye Interceptor
-    let interceptedMessages = [];
-
-    function downloadInterceptedChat(phone) {
-        if(interceptedMessages.length === 0) return showToast("Hakuna mazungumzo ya kupakua.");
-        
-        // CSV Headers
-        let csv = 'Muda,Mtumiaji (Sender),Namba (Sender),Mpokeaji (Receiver),Namba (Receiver),Aina ya Mazungumzo,Ujumbe\n';
-        
-        interceptedMessages.forEach(m => {
-            let shopName = m.shops && m.shops.shop_name ? m.shops.shop_name : 'Faragha';
-            // Ficha virugo vya CSV kwa kuweka nukuu
-            let content = m.content ? m.content.replace(/"/g, '""') : '';
-            let time = new Date(m.created_at).toLocaleString();
+        // --- ADMIN INTERCEPTOR (New UI) ---
+        function openInterceptorModal() {
+            openModal("Message Interceptor", "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>", false);
+            document.getElementById('modal-ok').style.display = 'none';
+            document.getElementById('modal-cancel').innerText = 'Funga';
             
-            csv += `"${time}","${m.sender_name}","${m.sender_phone}","${m.recipient_name || 'N/A'}","${m.recipient_phone}","${shopName}","${content}"\n`;
-        });
-        
-        // Trigger Download
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Ushahidi_${phone}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        showToast("Mazungumzo yamepakuliwa kwa usalama!");
-    }
+            sb.from('users').select('full_name, phone_number, avatar_url').order('full_name').then(({ data, error }) => {
+                if (error) return document.getElementById('modal-text').innerHTML = `<p style='color:red;'>${error.message}</p>`;
+                
+                let html = '<p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Bonyeza mtumiaji ili kuona inbox yake ya faragha.</p>';
+                html += '<div style="max-height: 60vh; overflow-y: auto; display:flex; flex-direction:column; gap:8px;">';
+                
+                if (data.length > 0) {
+                    data.forEach(u => {
+                        let avatar = u.avatar_url ? `<img src="${u.avatar_url}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;">${u.full_name.charAt(0)}</div>`;
+                        html += `<div onclick="fetchInterceptedMessages('${u.phone_number}', '${u.full_name.replace(/'/g, "\\'")}')" style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:12px;cursor:pointer;border:1px solid var(--border);">
+                            ${avatar}
+                            <div>
+                                <b style="font-size:14px;color:var(--text);">${u.full_name}</b><br>
+                                <small style="color:var(--text-sec);font-size:12px;">${u.phone_number}</small>
+                            </div>
+                        </div>`;
+                    });
+                } else {
+                    html += '<p style="color:var(--text-sec);text-align:center;">Hakuna watumiaji.</p>';
+                }
+                html += '</div>';
+                
+                document.getElementById('modal-text').innerHTML = html;
+            });
+        }
+
+        async function fetchInterceptedMessages(phone, name) {
+            document.getElementById('modal-title').innerText = "Inbox ya " + name;
+            document.getElementById('modal-text').innerHTML = "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>";
+            
+            try {
+                const { data, error } = await sb.from('shop_messages')
+                    .select('*, shops(shop_name)')
+                    .or(`sender_phone.eq.${phone},recipient_phone.eq.${phone}`)
+                    .order('created_at', { ascending: false })
+                    .limit(100);
+                if(error) throw error;
+                
+                let msgHtml = `<div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; cursor:pointer; color:var(--accent); font-weight:700;" onclick="openInterceptorModal()">`;
+                msgHtml += `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Rudi kwenye Orodha`;
+                msgHtml += `</div>`;
+                
+                msgHtml += '<div style="max-height: 50vh; overflow-y: auto; display:flex; flex-direction:column; gap:8px;">';
+                
+                if(data.length > 0) {
+                    data.forEach(m => {
+                        let sender = m.sender_phone === phone ? 'MTUMIAJI' : m.sender_name;
+                        let receiver = m.recipient_phone === phone ? 'MTUMIAJI' : m.recipient_phone;
+                        let shopName = m.shops && m.shops.shop_name ? m.shops.shop_name : 'Faragha';
+                        msgHtml += `<div style="background:var(--bg); padding:10px; border-radius:8px; font-size:12px; border:1px solid var(--border);">
+                            <b style="color:var(--accent);">${m.sender_name} (${sender})</b> -> <small>${receiver} (${shopName})</small><br>
+                            ${m.content}<br>
+                            <small style="color:var(--text-sec); font-size:10px;">${new Date(m.created_at).toLocaleString()}</small>
+                        </div>`;
+                    });
+                } else {
+                    msgHtml += '<p style="color:var(--text-sec); text-align:center;">Hakuna ujumbe kwa namba hii.</p>';
+                }
+                msgHtml += '</div>';
+                
+                document.getElementById('modal-text').innerHTML = msgHtml;
+                
+            } catch(e) {
+                document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
+            }
+        }
+    
         // --- FULL SCREEN DM CHAT FUNCTIONS ---
     let dmOtherPhone = null;
     let dmShopId = null;
@@ -7643,7 +7641,7 @@
                 
                 // ONESHA JINA RASMI NA BADGE YA BLUU HAPA
                 document.getElementById('sv-name').innerHTML = `Kitama Yetu ${getWhatsAppVerifiedBadge()}`;
-                document.getElementById('sv-avatar').innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                document.getElementById('sv-avatar').innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
                 document.getElementById('sv-time').innerText = new Date(s.created_at).toLocaleString();
                 
                 captionEl.innerText = s.image_url ? (s.content || '') : '';
