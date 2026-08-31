@@ -652,24 +652,55 @@
             color: #94a3b8 !important; 
             border-color: #2a3650 !important; 
         }         
-                .map-locate-btn {
-            position: absolute;
-            bottom: 90px; 
+               /* PREMIUM MAP CONTROLS */
+        .map-locate-btn {
+            position: fixed; 
+            bottom: 100px; 
             right: 15px;
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             background: var(--surface);
             border: none;
             border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             cursor: pointer;
-            z-index: 500;
+            z-index: 1000; 
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text);
+            color: var(--accent);
+            transition: transform 0.2s;
         }
         .map-locate-btn:active { transform: scale(0.9); }
+        
+        /* Vifungo vya Zoom viwe vya Kisasa */
+        .leaflet-control-zoom {
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            margin-bottom: 10px !important;
+        }
+        .leaflet-control-zoom a {
+            width: 45px !important;
+            height: 45px !important;
+            line-height: 45px !important;
+            font-size: 22px !important;
+            color: var(--text) !important;
+            background: var(--surface) !important;
+            border-bottom: 1px solid var(--border) !important;
+        }
+        .leaflet-control-zoom a:hover {
+            background: var(--bg) !important;
+        }
+        .leaflet-control-scale-line {
+            background: rgba(255,255,255,0.8) !important;
+            padding: 2px 8px !important;
+            border-radius: 4px !important;
+            border: none !important;
+            font-weight: 700 !important;
+            color: #000 !important;
+        }
            
         /* KITAMA MAP CSS FIX */
         .boda-sec { position: relative; height: 100vh; overflow: hidden; background: var(--bg); }
@@ -805,6 +836,25 @@
             background: var(--accent); color: white; border-radius: 50%; 
             min-width: 20px; height: 20px; display: flex; align-items: center; 
             justify-content: center; font-size: 11px; font-weight: 700;
+        }
+   
+            /* IMAGE ZOOM & PAN VIEWER */
+        .img-viewer-container {
+            width: 100%; max-height: 350px; overflow: auto; display: flex;
+            justify-content: center; align-items: center; position: relative;
+            -webkit-overflow-scrolling: touch; border-radius: 12px; background: #000;
+            cursor: zoom-in;
+        }
+        .img-viewer-img {
+            max-width: 100%; max-height: 350px; object-fit: contain;
+            transition: max-width 0.3s ease, max-height 0.3s ease;
+            user-select: none; -webkit-user-drag: none; pointer-events: none;
+        }
+        .img-viewer-container.zoomed {
+            cursor: zoom-out;
+        }
+        .img-viewer-container.zoomed .img-viewer-img {
+            max-width: 300%; max-height: 300%; width: 300%; height: auto;
         }
     </style>
 </head>
@@ -944,43 +994,54 @@
 
 <div class="app-c" id="app-c">
         <header class="app-h">
-        <div onclick="handleNav('profile-sec')" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-            <div>
-                <h3 style="font-size: 20px; font-weight: 800; color: var(--accent); margin: 0;">Kitama Yetu</h3>
-            </div>
+        <div style="display:flex; align-items:center; gap:10px; flex-shrink: 0; margin-right: auto; white-space: nowrap;">
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--accent); margin: 0; white-space: nowrap;">Kitama Yetu</h3>
         </div>
-         <div class="header-actions">
+        
+        <div class="header-actions" style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
             <button class="theme-toggle" onclick="handleNav('my-inbox-sec')" style="position: relative;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            <span id="inbox-badge" style="position: absolute; top: -2px; right: -2px; background: #EF4444; color: white; font-size: 10px; min-width: 16px; height: 16px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span id="inbox-badge" style="position: absolute; top: -2px; right: -2px; background: #EF4444; color: white; font-size: 10px; min-width: 16px; height: 16px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span>
             </button>
             <button class="theme-toggle" onclick="toggleSound()" id="sound-toggle-btn">
-            <span id="sound-icon"></span>
+                <span id="sound-icon"></span>
             </button>
             <button class="theme-toggle" onclick="toggleTheme()">
-            <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             </button>
+            
+            <!-- VIDOVI VITATU (Dropdown Menu) -->
+            <div style="position: relative;">
+                <button class="theme-toggle" onclick="toggleHeaderMenu(event)">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
+                <div id="header-dropdown-menu" style="display: none; position: absolute; right: 0; top: 45px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 1000; min-width: 150px;">
+                    <div onclick="refreshApp()" style="padding: 12px 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refresh App
+                    </div>
+                </div>
             </div>
+        </div>
     </header>
     <main>
         <div id="home-sec" class="sec active"><div id="home-content"></div></div>
         <div id="hub-sec" class="sec"><div class="sec-h"><h2>Mchanganyiko wa Habari</h2><span onclick="fetchHub()">Refresh</span></div><div id="hub-list"></div></div>
                
-            <!-- BODA HAILING SECTION (BOLT STYLE) -->
+        <!-- BODA HAILING SECTION (BOLT STYLE) -->
         <div id="boda-sec" class="sec boda-sec">
             <div id="boda-map"></div>
             
-            <!-- Top Back Button (Floating) -->
-            <button onclick="handleNav('home-sec')" style="position: absolute; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <!-- Top Back Button -->
+            <button onclick="event.stopPropagation(); handleNav('home-sec')" style="position: absolute; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 1001; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </button>
 
-            <!-- Floating Locate Button (Google Maps Style) -->
-            <button class="map-locate-btn" onclick="findMyLocation()">
+            <!-- Floating Locate Button -->
+            <button class="map-locate-btn" onclick="event.stopPropagation(); findMyLocation()">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
             </button>
 
-                        <!-- Bottom Sheet (Minimal) -->
+            <!-- Bottom Sheet -->
             <div class="boda-sheet" id="boda-sheet">
                 <div style="width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 15px auto;"></div>
                 
@@ -1036,8 +1097,8 @@
                 <!-- POLLS SECTION -->
         <div id="polls-sec" class="sec">
             <div class="sec-h">
-                <h2>Piga Kura (Polls)</h2>
-                <span id="poll-add-btn" onclick="showSec('create-poll-sec')" style="display:none;">Uliza Swali</span>
+                <h2>Weka Kura</h2>
+                <span id="poll-add-btn" onclick="showSec('create-poll-sec')" style="display:none;">Andika Swali</span>
             </div>
             <div id="polls-list"></div>
         </div>
@@ -1086,23 +1147,28 @@
             <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Makala za hoja nzito na mawazo ya kimaendeleo kutoka kwa Waactivists waliothibitishwa.</p>
             <div id="activist-articles-list"></div>
         </div>
-
-        <div id="create-article-sec" class="sec">
+                <div id="create-article-sec" class="sec">
             <div class="sec-h"><h2>Andika Makala Mpya</h2></div>
             <div style="padding: 0 20px;">
                 <div class="form-g"><input type="text" id="article-title" style="padding-left:16px;" placeholder="Kichwa cha Makala"></div>
                 
                 <div class="form-g">
-                    <textarea id="article-content" style="min-height: 200px;" placeholder="Andika makala yako hapa..."></textarea>
-                    <!-- ONGEZA HII: KITUFU CHA KUWEKA ALAMA YA PICHA -->
-                    <button onclick="insertImagePlaceholder()" class="btn-p" style="background: var(--bg); color: var(--accent); border: 1px solid var(--accent); padding: 10px; font-size: 13px; margin-top: 10px;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                        Weka Picha Hapa (Cursor)
+                    <textarea id="article-content" style="min-height: 150px;" placeholder="Andika makala yako hapa..." oninput="updateArticlePreview()"></textarea>
+                    <button onclick="insertPicPlaceholder()" class="btn-p" style="background: var(--bg); color: var(--accent); border: 1px solid var(--accent); padding: 10px; font-size: 13px; margin-top: 5px;">
+                        + Weka Alama ya Picha ([[PIC]])
                     </button>
                 </div>
                 
-                <!-- ONGEZA HII: KUCHAGUA PICHA -->
-                <div class="form-g"><label class="form-l">Chagua Picha ya Makala (Optional)</label><input type="file" id="article-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);"></div>
+                <div class="form-g">
+                    <label class="form-l">Pakia Picha (Mfululizo)</label>
+                    <input type="file" id="article-image" accept="image/*" style="padding:10px; border-radius:12px; border:1px dashed var(--border); background:var(--surface); color:var(--text-sec);" onchange="handleArticleImageSelect(this)">
+                    <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top:5px;">* Kila unachagua picha, itabadilisha moja ya [[PIC]] alama zilizo kwenye makala yako.</small>
+                </div>
+                
+                <!-- LIVE PREVIEW BOX -->
+                <h4 style="font-size: 13px; color: var(--text-sec); margin: 15px 0 10px 0; text-transform: uppercase;">Muonekano wa Kwanza</h4>
+                <div id="article-preview-box" style="background:var(--bg); padding:15px; border-radius:12px; border:1px solid var(--border); min-height:100px; font-size:14px; line-height:1.6; color:var(--text); white-space: pre-wrap;"></div>
+                
                 <button onclick="postActivistArticle()" class="btn-p" id="btn-article">Chapisha Makala</button>
             </div>
         </div>
@@ -1214,7 +1280,7 @@
                         </div>
                         <!-- ONGEZA HII: JIONDOA FORUM -->
                         <div onclick="optOutForum(); toggleForumMenu()" style="padding: 12px 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--danger);">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> Jiondoa Forum
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> Jiondoe Forum
                         </div>
                     </div>
                 </div>
@@ -1298,22 +1364,24 @@
             <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Orodha ya shule kataani pamoja na taarifa za wanafunzi na viongozi.</p>
             <div id="public-schools-list"></div>
         </div>
-               <!-- KITAMA MAP SECTION -->
+                 <!-- KITAMA MAP SECTION -->
         <div id="kitama-map-sec" class="sec boda-sec">
             <div id="kitama-map"></div>
             
             <!-- Top Back Button -->
-            <button onclick="handleNav('home-sec')" style="position: fixed; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 9999; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <button onclick="event.stopPropagation(); handleNav('home-sec')" style="position: absolute; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 1001; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </button>
 
             <!-- Floating Locate Button -->
-            <button class="map-locate-btn" onclick="findMyLocationOnMap()" style="z-index: 9999;">
+            <button class="map-locate-btn" onclick="event.stopPropagation(); findMyLocationOnMap()">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
             </button>
-            <!-- ADMIN/WAHARIRI: ONGEZA ENEO HALI PALIPO (Floating Circle Icon) -->
-            <button id="add-place-btn" onclick="addCurrentPlaceToMap()" style="position: fixed; bottom: 150px; right: 15px; width: 45px; height: 45px; background: var(--accent); color: white; border: none; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 9999; cursor: pointer; display: none; align-items: center; justify-content: center;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+
+            <!-- ADMIN: ONGEZA ENEO HALI PALIPO -->
+            <button id="add-place-btn" onclick="event.stopPropagation(); addCurrentPlaceToMap()" style="position: absolute; top: 20px; right: 15px; background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 1001; cursor: pointer; font-weight: 700; font-size: 12px; display: none; align-items: center; gap: 5px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Ongeza Eneo
             </button>
         </div>
                <!-- STATUS SECTION -->
@@ -1661,11 +1729,54 @@
                 </div>
             </div>
         </div>
+               <!-- FULL SCREEN IMAGE VIEWER (WhatsApp Style) -->
+        <div id="fullscreen-img-overlay" onclick="closeFullScreenImage()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 99999; display: none; justify-content: center; align-items: center; flex-direction: column;">
+            <img id="fullscreen-img" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; touch-action: none;" onclick="event.stopPropagation()">
+            <div onclick="closeFullScreenImage()" style="position: absolute; top: 20px; left: 15px; background: rgba(255,255,255,0.2); color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; z-index: 100;">X</div>
+        </div>
     
 <script>
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
+        // HII NDIO YA KUPAKIA PICHA KWENYE CLOUDINARY
+    async function uploadToCloudinary(file) {
+        const cloudName = 'aedw95ht'; // Badilisha hili!
+        const url = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'kitama_unsigned');
+        
+        try {
+            const res = await fetch(url, { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.secure_url) {
+                return data.secure_url; // Link la picha
+            } else {
+                throw new Error("Imeshindwa kupakia picha.");
+            }
+        } catch(e) {
+            throw e;
+        }
+    }
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // --- HANDLE ANDROID BACK BUTTON & REFRESH ---
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+        window.Capacitor.Plugins.App.addListener('backButton', () => {
+            if (document.getElementById('modal-overlay').style.display === 'flex') {
+                closeModal();
+            } else if (document.getElementById('status-viewer-overlay') && document.getElementById('status-viewer-overlay').style.display === 'flex') {
+                closeStatusViewer();
+            } else if (document.querySelector('.sec.active') && document.querySelector('.sec.active').id !== 'home-sec') {
+                handleNav('home-sec');
+            } else {
+                window.Capacitor.Plugins.App.exitApp();
+            }
+        });
+    }
+
+    function refreshApp() {
+        location.reload();
+    }
     let appHistory = ['home-sec'];
     let mapInstance = null;
     let isRealtimeInitialized = false; 
@@ -1811,17 +1922,32 @@
             }
             updateCharCount('rep-desc', 'rep-count');
         }
-    function openModal(title, text, isPrompt, callback) {
+        function openModal(title, text, isPrompt, callback) {
         document.getElementById('modal-title').innerHTML = title;
         document.getElementById('modal-text').innerHTML = text;
         document.getElementById('modal-input-container').style.display = isPrompt ? 'block' : 'none';
         document.getElementById('modal-input').value = '';
-        document.getElementById('modal-ok').onclick = () => {
-            if(isPrompt) { const val = document.getElementById('modal-input').value.trim(); if(!val) return; closeModal(); callback(val); }
-            else { closeModal(); if(callback) callback(); }
+        
+        const okBtn = document.getElementById('modal-ok');
+        const cancelBtn = document.getElementById('modal-cancel');
+        okBtn.style.display = 'flex'; 
+        cancelBtn.style.display = 'flex';
+        
+        okBtn.onclick = () => {
+            if(isPrompt) { 
+                const val = document.getElementById('modal-input').value.trim(); 
+                if(!val) return; 
+                closeModal(); 
+                callback(val); 
+            } else { 
+                closeModal(); 
+                if(callback) callback(); 
+            }
         };
-        document.getElementById('modal-cancel').style.display = isPrompt ? 'block' : 'none';
-        document.getElementById('modal-ok').className = 'm-btn m-btn-primary';
+        okBtn.className = 'm-btn m-btn-primary';
+        okBtn.innerText = 'Sawa';
+        cancelBtn.innerText = isPrompt ? 'Ghairi' : 'Funga';
+        
         document.getElementById('modal-overlay').style.display = 'flex';
     }
     function closeModal() { 
@@ -2209,59 +2335,66 @@
                   
                   if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
               })
-                          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_status' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_status' }, payload => {
                   playBeep();
                   showToast("Tip mpya kutoka Kitama Yetu!");
                   if(document.getElementById('status-sec').classList.contains('active')) loadStatusUI(); // HAPA NDIO ILIKUWA KOSA
               })
-              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
+                          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (!currentUser) return;
                   
-                  // KAMA MABADILIKO YANAMHUSU MTUMIAJI MWEYYY
                   if (updatedUser.id === currentUser.id) {
                       localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
                       
-                      // 1. KAMA AMEPATA RUHUSA MPYA YA RAMANI
-                      if (updatedUser.can_edit_map !== currentUser.can_edit_map) {
-                          showToast(updatedUser.can_edit_map ? "Umepata uwezo wa kuongeza maeneo!" : "Umeondolewa uwezo wa kuongeza maeneo.");
-                          // KAMA YUPO KENYE RAMANI, IJAZIA UPYA
-                          if (document.getElementById('kitama-map-sec').classList.contains('active')) {
-                              initKitamaMap(); 
-                          }
-                      }
-                      
+                      const canEditMapChanged = updatedUser.can_edit_map !== currentUser.can_edit_map;
                       const activistChanged = updatedUser.is_activist !== currentUser.is_activist;
                       const statusChanged = updatedUser.status !== currentUser.status;
-                      
-                      // 2. KAMA STATUS IMEBADILISHWA
+
+                      // 1. UWEZO WA RAMANI
+                      if (canEditMapChanged) {
+                          showToast(updatedUser.can_edit_map ? "Umepata uwezo wa kuongeza maeneo!" : "Umeondolewa uwezo wa kuongeza maeneo.");
+                          if (document.getElementById('kitama-map-sec').classList.contains('active')) initKitamaMap();
+                      }
+
+                      // 2. MABADILIKO YA STATUS (View-Only, Ban, au Active)
                       if (statusChanged) {
                           if (updatedUser.status === 'rejected') {
                               openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kabisa na Admin wa Mfumo. Utatoka kwenye app sasa.", false);
                               setTimeout(() => handleLogout(), 3000);
+                              return;
                           } else if (updatedUser.status === 'restricted') {
-                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochete.", false);
-                              location.reload();
-                          } else if (updatedUser.status === 'active' && currentUser.status === 'restricted') {
+                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochote.", false);
+                          } else if (updatedUser.status === 'active') {
                               showToast("Akaunti yako imerudishiwa! Unaweza kuandika tena.");
-                              location.reload();
-                          } else {
-                              location.reload();
                           }
+                          
+                          // SASISHA UI KIMYAKIMYA (Background Refresh)
+                          const activeSecId = document.querySelector('.sec.active') ? document.querySelector('.sec.active').id : null;
+                          setupDashboard(updatedUser);
+                          if (activeSecId) showSec(activeSecId);
                           return;
                       }
-                      
-                      // 3. KAMA HADHI YA ACTIVIST IMEBADILISHWA
-                      if(activistChanged) {
-                          if(updatedUser.is_activist) openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b>.", false);
-                          else showToast("Hadhi yako ya Activist imeondolewa.");
+
+                      // 3. MABADILIKO YA UTHIBITISHO (Activist Badge)
+                      if (activistChanged) {
+                          if (updatedUser.is_activist) {
+                              openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b> (Verified).", false);
+                          } else {
+                              showToast("Hadhi yako ya Activist imeondolewa.");
+                          }
+                          
+                          const activeSecId = document.querySelector('.sec.active') ? document.querySelector('.sec.active').id : null;
+                          setupDashboard(updatedUser);
+                          if (activeSecId === 'profile-sec') updateProfileUI(updatedUser);
+                          if (activeSecId) showSec(activeSecId);
                       }
-                      
-                      const activeSec = document.querySelector('.sec.active');
-                      if (activistChanged && activeSec && activeSec.id === 'home-sec') setupDashboard(updatedUser);
-                  } 
-                  // SITISHI ADMIN KUREFRESH OVYO OVYO HAPA CHINI
+                  } else {
+                      if(document.getElementById('pending-users-sec') && document.getElementById('pending-users-sec').classList.contains('active')) fetchPendingUsers();
+                      if(document.getElementById('admin-activists-sec') && document.getElementById('admin-activists-sec').classList.contains('active')) fetchActivistsControl();
+                      if(document.getElementById('admin-users-sec') && document.getElementById('admin-users-sec').classList.contains('active')) fetchAdminUsers();
+                  }
               })
              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'polls' }, payload => {
                   playBeep();
@@ -2534,7 +2667,7 @@
                     <div class="home-grid">
                     <div class="action-item" onclick="handleNav('polls-sec')">
                     <div class="action-icon" style="background: linear-gradient(135deg, #0A84FF, #0040DD); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 12l4 4 4-8 4 4"/></svg></div>
-                    <div class="action-text"><h4>Piga Kura (Polls)</h4><p>Jua maoni ya jamii</p></div>
+                    <div class="action-text"><h4>Weka Kura</h4><p>Jua maoni ya jamii</p></div>
                     <div class="action-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
                 </div>
                         <div class="home-card" onclick="handleNav('campaign-sec')">
@@ -2543,7 +2676,7 @@
                         </div>
                         <div class="home-card" onclick="handleNav('solidarity-sec')">
                             <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4zM6 1v3M10 1v3M14 1v3"/></svg></div>
-                            <div class="home-card-text"><h4>Nondo za Kimaendeleo</h4><p>Kuunga mkono hoja</p></div>
+                            <div class="home-card-text"><h4>Dondoo za kila Siku</h4><p>Kuunga mkono hoja</p></div>
                         </div>
                         <div class="home-card" onclick="handleNav('events-sec')">
                             <div class="home-card-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
@@ -2877,11 +3010,11 @@
         if(id==='add-item-sec') checkUserShop();
     }
 
-    async function fetchActivistArticles() {
+            async function fetchActivistArticles() {
             const div = document.getElementById('activist-articles-list');
             if(!div) return;
             
-            if (!isOnline()) {
+            if (!navigator.onLine) {
                 const cached = getFromCache('activist_articles_html');
                 div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Hakuna makala zilizohifadhiwa.</p>';
                 return;
@@ -2901,20 +3034,16 @@
                 
                 const newHtml = data.length > 0 ? data.map(a => {
                     let isAuthor = u.phone_number === a.author_phone;
-                    let deleteBtn = isAuthor || u.role === 'system_admin' ? `<button onclick="deleteArticle('${a.id}')" style="background:rgba(239,68,68,0.1); border:none; color:var(--danger); padding:8px 12px; border-radius:8px; font-weight:600; font-size:11px; margin-top:10px; cursor:pointer;">Futa Makala</button>` : '';
+                    let timeDiff = Date.now() - new Date(a.created_at).getTime();
+                    let canEdit = isAuthor && timeDiff < 3600000; // Saa 1 tu
                     
-                    let likedArr = a.liked_by || [];
-                    let dislikedArr = a.disliked_by || [];
-                    let hasLiked = likedArr.includes(u.phone_number);
-                    let hasDisliked = dislikedArr.includes(u.phone_number);
+                    let editBtn = canEdit ? `<button onclick="openEditArticleModal('${a.id}', '${a.title.replace(/'/g, "\\'")}', '${a.content.replace(/'/g, "\\'")}')" style="background:rgba(59, 130, 246, 0.1); border:none; color:#3B82F6; padding:8px 12px; border-radius:8px; font-weight:600; font-size:11px; margin-top:10px; cursor:pointer; margin-right:10px;">Hariri</button>` : '';
+                    let deleteBtn = (isAuthor || u.role === 'system_admin') ? `<button onclick="deleteArticle('${a.id}')" style="background:rgba(239,68,68,0.1); border:none; color:var(--danger); padding:8px 12px; border-radius:8px; font-weight:600; font-size:11px; margin-top:10px; cursor:pointer;">Futa Makala</button>` : '';
                     
                     let cleanContent = a.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    
-                    // BADILISHA [[PIC]] KUWA PICHA HALISI NDANI YA MAANDISHI
-                    if (a.image_url) {
-                        let imgTag = `<br><img src="${a.image_url}" style="width:100%; max-height: 400px; object-fit:cover; border-radius:12px; margin: 10px 0;"><br>`;
-                        cleanContent = cleanContent.replace(/\[\[PIC\]\]/g, imgTag);
-                    }
+                    cleanContent = cleanContent.replace(/\[IMG\](.*?)\[\/IMG\]/g, (match, url) => {
+                        return `<div style="text-align:center; margin: 10px 0;"><img src="${url}" style="width:100%; max-height: 400px; object-fit:cover; border-radius:12px; cursor: pointer;" onclick="openFullScreenImage('${url}')"></div>`;
+                    });
                     
                     return `<div class="article-card">
                         <div class="article-header">
@@ -2927,27 +3056,16 @@
                         <div class="article-body">
                             <h3 class="article-title">${a.title}</h3>
                             <p class="article-content">${cleanContent}</p>
-                            ${deleteBtn}
-                        </div>
-                        <div class="article-footer">
-                            <button id="like-btn-${a.id}" class="article-action-btn ${hasLiked ? 'liked' : ''}" onclick="likeArticle('${a.id}')">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                                Penda (<span id="like-count-${a.id}">${likedArr.length}</span>)
-                            </button>
-                            <button id="dislike-btn-${a.id}" class="article-action-btn ${hasDisliked ? 'disliked' : ''}" onclick="dislikeArticle('${a.id}')">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform: rotate(180deg);"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                                Kataa (<span id="dislike-count-${a.id}">${dislikedArr.length}</span>)
-                            </button>
+                            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                ${editBtn} 
+                                ${deleteBtn}
+                            </div>
                         </div>
                     </div>`;
                 }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna makala zilizowekwa kwa sasa.</p>';
                 
                 div.innerHTML = newHtml;
-                
-                if(newHtml && !newHtml.includes('skeleton')) {
-                    saveToCache('activist_articles_html', newHtml);
-                }
-                
+                if(newHtml && !newHtml.includes('skeleton')) saveToCache('activist_articles_html', newHtml);
                 if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
             } catch(e) { 
                 if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
@@ -3049,57 +3167,6 @@
             } catch(e) { 
                 openModal("Kosa", e.message); 
                 fetchActivistArticles(); 
-            }
-        }
-
-            async function postActivistArticle() {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
-            if(!u.is_activist) return openModal("Kosa", "Huwezi kuandika makala kwa sasa.");
-            
-            const title = document.getElementById('article-title').value.trim();
-            const content = document.getElementById('article-content').value.trim();
-            const fileInput = document.getElementById('article-image');
-            
-            if(!title || !content) return openModal("Taarifa", "Jaza kichwa na makala yote.");
-            if(containsBadWords(title) || containsBadWords(content)) return openModal("Onyo", "Makala yako ina maneno yasiyoruhusiwa.");
-            
-            const btn = document.getElementById('btn-article'); 
-            btn.innerHTML = '<div class="spinner"></div> Inatuma...'; 
-            btn.disabled = true;
-            
-            let imgUrl = null;
-            
-            try {
-                // 1. KAMA AMECHAGUA PICHA, IPAKIE KWENYE SUPABASE
-                if(fileInput.files.length > 0) {
-                    const fileName = `article_${Date.now()}_${u.phone_number}.jpg`;
-                    const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]);
-                    if(upErr) throw upErr;
-                    imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
-                }
-                
-                // 2. HIFADHI MAKALA
-                const { error } = await sb.from('activist_articles').insert([{ 
-                    author_phone: u.phone_number, 
-                    author_name: u.full_name, 
-                    title, 
-                    content,
-                    image_url: imgUrl
-                }]);
-                
-                if(error) throw error;
-                
-                showToast("Makala imechapishwa!"); playBeep();
-                document.getElementById('article-title').value = ''; 
-                document.getElementById('article-content').value = '';
-                if(fileInput) fileInput.value = '';
-                showSec('activist-hub-sec');
-            } catch(e) { 
-                openModal("Kosa", e.message); 
-            } finally { 
-                btn.innerHTML = 'Chapisha Makala'; 
-                btn.disabled = false; 
             }
         }
 
@@ -3601,40 +3668,34 @@
         currentMsgElement = null;
     }
 
-        async function submitReport() {
+            async function submitReport() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
         if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
         const cat = document.getElementById('rep-cat').value, title = document.getElementById('rep-title').value.trim(), desc = document.getElementById('rep-desc').value.trim(), fileInput = document.getElementById('rep-image');
         if(!title||!desc) return openModal("Taarifa", "Tafadhali jaza mada na ufafanuzi.");
-        if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa. Tafadhali andika kwa heshima.");
+        if(containsBadWords(title) || containsBadWords(desc)) return openModal("Onyo", "Maandishi yako yana maneno yasiyoruhusiwa.");
         const btn = document.getElementById('btn-rep'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true;
         let imgUrl = null;
-        // ONGEZA HII: KAGUA KAMA NI ACTIVIST KABLA YA KUPAKIA PICHA
+        
+        // CLOUDINARY UPLOAD (Kwa Activist tu)
         if(fileInput.files.length > 0 && u.is_activist) { 
-            const fileName = `report_${Date.now()}.jpg`; 
-            const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); 
-            if(upErr) {
-                console.error("Upload Error:", upErr);
-                openModal("Kosa la Kupakia Picha", "Imeshindwa kupakia picha kwenye server. Kosa: " + upErr.message);
+            try {
+                imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            } catch(upErr) {
+                openModal("Kosa la Kupakia Picha", upErr.message);
                 btn.innerHTML='Tuma Ripoti'; btn.disabled=false;
                 return;
             }
-            if(!upErr) { imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } 
         }
+        
         try {
             const { error } = await sb.from('reports').insert([{ 
-                title, 
-                description: desc, 
-                village: u.village, 
-                category: cat, 
-                image_url: imgUrl, 
-                created_by_name: u.full_name, 
-                created_by_phone: u.phone_number,
-                is_activist: u.is_activist || false 
+                title, description: desc, village: u.village, category: cat, image_url: imgUrl, 
+                created_by_name: u.full_name, created_by_phone: u.phone_number, is_activist: u.is_activist || false 
             }]);
             if(error) throw error;
-                        showToast("Ripoti imetumwa!"); playBeep(); 
+            showToast("Ripoti imetumwa!"); playBeep(); 
             document.getElementById('rep-title').value = ''; 
             document.getElementById('rep-desc').value = ''; 
             if(fileInput) fileInput.value = '';
@@ -3648,9 +3709,8 @@
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         let sClass = r.status === 'pending' ? 'b-warn' : r.status === 'in_progress' ? 'b-info' : r.status === 'archived' ? 'b-err' : 'b-succ';
         let sText = r.status === 'pending' ? 'Inasubiri' : r.status === 'in_progress' ? 'Inashughulkiwa' : r.status === 'archived' ? 'Imefungwa' : 'Imekamilika';
-        let imgHtml = r.image_url ? `<img src="${r.image_url}" class="report-img">` : '';
-        let resImgHtml = r.resolution_image ? `<img src="${r.resolution_image}" class="report-img" style="border:2px solid var(--accent);">` : '';
-        
+        let imgHtml = r.image_url ? `<img src="${r.image_url}" class="report-img" style="cursor: pointer;" onclick="openFullScreenImage('${r.image_url}')">` : '';
+        let resImgHtml = r.resolution_image ? `<img src="${r.resolution_image}" class="report-img" style="border:2px solid var(--accent); cursor: pointer;" onclick="openFullScreenImage('${r.resolution_image}')">` : '';
         let activistBadge = getActivistBadgeForPhone(r.created_by_phone, r);
         let resNoteHtml = r.resolution_note ? `<div style="background:rgba(16,185,129,0.1); padding:12px; border-radius:8px; margin-top:12px; font-size:13px; border-left:3px solid var(--accent);"><b>Uthibitisho:</b> ${r.resolution_note} <br> <small>- ${r.resolved_by_name || 'Kiongozi'}</small></div>` : '';
         
@@ -4280,28 +4340,25 @@
             if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; 
         } 
     }
-          async function uploadAvatar() { 
-            const u = JSON.parse(localStorage.getItem('kitama_user')); 
-            const fileInput = document.getElementById('avatar-upload'); 
-            if(fileInput.files.length > 0) { 
-                const file = fileInput.files[0]; 
-                const fileName = `avatar_${u.phone_number}.jpg`; 
-                try { 
-                    await sb.storage.from('kitama-images').upload(fileName, file, { upsert: true }); 
-                    const url = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; 
-                    await sb.from('users').update({ avatar_url: url }).eq('id', u.id); 
-                    u.avatar_url = url; 
-                    localStorage.setItem('kitama_user', JSON.stringify(u)); 
-                    
-                    closeModal(); 
-                    updateProfileUI(u); // SASISHA PICHA MARA MOJA BILA KURELOAD
-                    showToast("Picha imewekwa!"); 
-                    playBeep(); 
-                } catch(e) { 
-                    openModal("Kosa", e.message); 
-                } 
+        async function uploadAvatar() { 
+        const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        const fileInput = document.getElementById('avatar-upload'); 
+        if(fileInput.files.length > 0) { 
+            const file = fileInput.files[0]; 
+            try { 
+                // CLOUDINARY UPLOAD
+                const url = await uploadToCloudinary(file); 
+                await sb.from('users').update({ avatar_url: url }).eq('id', u.id); 
+                u.avatar_url = url; 
+                localStorage.setItem('kitama_user', JSON.stringify(u)); 
+                closeModal(); 
+                updateProfileUI(u); 
+                showToast("Picha imewekwa!"); playBeep(); 
+            } catch(e) { 
+                openModal("Kosa", e.message); 
             } 
-        }
+        } 
+    }
     async function createShop() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
@@ -4313,18 +4370,20 @@
         let logoUrl = null, coverUrl = null;
         try {
             if(logoInput.files.length > 0) {
-                const logoName = `shop_logo_${u.phone_number}.jpg`;
-                const { data: upData, error: upErr } = await sb.storage.from('kitama-images').upload(logoName, logoInput.files[0], { upsert: true });
-                if(upErr) throw upErr;
-                const { data: urlData } = sb.storage.from('kitama-images').getPublicUrl(logoName);
-                logoUrl = urlData.publicUrl;
+                try {
+                    logoUrl = await uploadToCloudinary(logoInput.files[0]);
+                } catch(upErr) { 
+                    btn.innerHTML = 'Fungua Duka'; btn.disabled = false;
+                    return openModal("Kosa la Kupakia Logo", upErr.message); 
+                }
             }
             if(coverInput.files.length > 0) {
-                const coverName = `shop_cover_${u.phone_number}.jpg`;
-                const { data: upData, error: upErr } = await sb.storage.from('kitama-images').upload(coverName, coverInput.files[0], { upsert: true });
-                if(upErr) throw upErr;
-                const { data: urlData } = sb.storage.from('kitama-images').getPublicUrl(coverName);
-                coverUrl = urlData.publicUrl;
+                try {
+                    coverUrl = await uploadToCloudinary(coverInput.files[0]);
+                } catch(upErr) { 
+                    btn.innerHTML = 'Fungua Duka'; btn.disabled = false;
+                    return openModal("Kosa la Kupakia Cover", upErr.message); 
+                }
             }
             const { data, error } = await sb.from('shops').insert([{ owner_phone: u.phone_number, shop_name: name, description: desc, logo_url: logoUrl, cover_url: coverUrl, village: u.village }]).select().single();
             if(error) throw error;
@@ -4461,7 +4520,7 @@
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         const isOwner = u.phone_number === shop.owner_phone;
         let logoHtml = shop.logo_url ? `<img src="${shop.logo_url}">` : `<div class="fb-initial">${shop.shop_name.charAt(0)}</div>`;
-        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="fb-post-img" onclick="viewShopPost('${m.id}', '${shop.id}')">` : '';
+        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="fb-post-img" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : '';
         let waPhone = shop.owner_phone.replace(/^0/, '255');
         let soldTag = m.status === 'sold' ? `<span class="fb-sold-tag">IMEUZWA</span>` : '';
         let markSoldBtn = isOwner && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" class="fb-post-btn">${ICONS.check} Imeuzwa</button>` : '';
@@ -4505,7 +4564,7 @@
             const { data: shop } = await sb.from('shops').select('*').eq('id', shopId).single();
             const { data: m, error } = await sb.from('marketplace').select('*').eq('id', postId).single();
             if(error) throw error;
-            let imgHtml = m.image_url ? `<img src="${m.image_url}" style="width:100%; border-radius:8px; margin-top:10px;">` : '';
+            let imgHtml = m.image_url ? `<img src="${m.image_url}" style="width:100%; border-radius:8px; margin-top:10px; cursor: pointer;" onclick="openFullScreenImage('${m.image_url}')">` : '';
             let modalContent = `
                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
                     ${shop.logo_url ? `<img src="${shop.logo_url}" style="width:40px; height:40px; border-radius:50%;">` : `<div style="width:40px; height:40px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${shop.shop_name.charAt(0)}</div>`}
@@ -4543,7 +4602,7 @@
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const isOwner = u.phone_number === m.phone;
             
-            let imgHtml = m.image_url ? `<img src="${m.image_url}" style="width:100%; border-radius:8px; margin-top:10px; max-height: 300px; object-fit: cover;">` : '';
+            let imgHtml = m.image_url ? `<img src="${m.image_url}" style="width:100%; border-radius:8px; margin-top:10px; max-height: 300px; object-fit: cover; cursor: pointer;" onclick="openFullScreenImage('${m.image_url}')">` : '';
             let waPhone = m.phone.replace(/^0/, '255');
             
             let actionBtns = m.status === 'sold' ? '<div style="text-align:center; padding:10px; background:var(--bg); border-radius:8px; font-weight:700; color:var(--danger);">BIDHAA HII IMEUZWA</div>' : `
@@ -4914,7 +4973,7 @@
                     : `fetchDmChat('${c.phone}', '${c.phone}', null)`;
                     
                     let isSystem = (c.phone === window.adminPhone && u.phone_number !== window.adminPhone);
-                    let systemAvatar = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`;
+                    let systemAvatar = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`;
                     let normalAvatar = `<div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${cleanName.charAt(0)}</div>`;
                     let displayAvatar = isSystem ? systemAvatar : normalAvatar;
                     let displayName = isSystem ? `Mfumo wa Kitama ${getWhatsAppVerifiedBadge()}` : c.name;
@@ -5004,20 +5063,14 @@
         const btn = document.getElementById('btn-item'); btn.innerHTML = '<div class="spinner"></div> Inatuma...'; btn.disabled = true; 
         let imgUrl = null; 
         if(fileInput.files.length > 0) { 
-            const fileName = `market_${Date.now()}.jpg`;
-            const file = fileInput.files[0];
-            
-            const { data: upData, error: upErr } = await sb.storage.from('kitama-images').upload(fileName, file); 
-            if(upErr) {
-                console.error("Upload Error:", upErr);
-                openModal("Kosa la Kupakia Picha", "Imeshindwa kupakia picha kwenye server. Kosa: " + upErr.message);
+            try {
+                imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            } catch(upErr) {
+                openModal("Kosa la Kupakia Picha", upErr.message);
                 btn.innerHTML = 'Weka Tangazo'; btn.disabled = false;
                 return;
             }
-            
-            const { data: urlData } = sb.storage.from('kitama-images').getPublicUrl(fileName);
-            imgUrl = urlData.publicUrl;
-        } 
+        }  
         try { 
             const { error } = await sb.from('marketplace').insert([{ item_name:name, description:desc, price:price, phone:u.phone_number, village:u.village, category:cat, image_url:imgUrl, status:'active', shop_id: shopId, shop_name: shopName }]); 
             if(error) throw error; 
@@ -5028,7 +5081,7 @@
     }
 
     function renderMarketCard(m) { 
-        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img">` : ''; 
+        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`; 
         let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZWA</span></div>` : ''; 
         
         // TAMBUA MUUZAJI, PICHA YAKE NA BADGE
@@ -5121,7 +5174,6 @@
         
         try { 
             let query = sb.from('marketplace').select('*').order('created_at', {ascending:false}).limit(100);
-            query = query.neq('phone', u.phone_number);
             if (search) query = query.ilike('item_name', `%${search}%`);
             if (cat !== 'all') query = query.eq('category', cat);
             const { data, error } = await query; 
@@ -5394,10 +5446,9 @@
     let bodaRoutingControl = null;
     let bodaFareAmount = 0;
     let bodaRouteLine = null;
+    let bodaLocationWatchId = null;
 
-            let bodaLocationWatchId = null;
-
-        function initBodaMap() {
+             function initBodaMap() {
             if (bodaMap) {
                 setTimeout(() => { bodaMap.invalidateSize(); }, 200);
                 findMyLocation();
@@ -5405,15 +5456,21 @@
                 return;
             }
             
-            bodaMap = L.map('boda-map', { zoomControl: true }).setView([-6.2, 35.0], 13);
+            // PREMIUM MAP SETTINGS
+            bodaMap = L.map('boda-map', { 
+                zoomControl: false, 
+                inertia: true, 
+                zoomSnap: 0.5 
+            }).setView([-6.2, 35.0], 13);
             
-            const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' }).addTo(bodaMap);
-            const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
-            const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
+            const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' }).addTo(bodaMap);
+            const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' });
+            const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' });
             
             L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(bodaMap);
+            L.control.zoom({ position: 'bottomright' }).addTo(bodaMap);
+            L.control.scale({ position: 'bottomleft', metric: true, imperial: false }).addTo(bodaMap);
 
-            // ZOOM EVENT
             bodaMap.on('zoomend', function() {
                 toggleBodaPlaceLabels();
             });
@@ -5434,38 +5491,28 @@
             });
         }
 
-        // SAUTI YA SAHIHI: watchPosition kufuatilia eneo kila sekunde (Inatembea)
         function findMyLocation() {
             if (!navigator.geolocation) return showToast("Kifaa chako hakiauni GPS.");
             
-            // Futa ufuatiliaji wa zamani kama ulikuwepo
-            if (bodaLocationWatchId !== null) {
-                navigator.geolocation.clearWatch(bodaLocationWatchId);
-            }
-
-            bodaLocationWatchId = navigator.geolocation.watchPosition(
-                pos => {
-                    bodaPickupLat = pos.coords.latitude;
-                    bodaPickupLng = pos.coords.longitude;
-                    
-                    const pickupIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15] });
-                    
-                    if (pickupMarker) {
-                        // KAMA ALAMA IPO TAYARI, IBADILISHE MAHALALI PAMOJA NA HAMBA
-                        pickupMarker.setLatLng([bodaPickupLat, bodaPickupLng]);
-                    } else {
-                        // KAMA NI MARA YA KWANZA, IUNGEZE KENYE RAMANI NA IPELEKE ZOOM KWENYE ENEO
-                        pickupMarker = L.marker([bodaPickupLat, bodaPickupLng], { icon: pickupIcon }).addTo(bodaMap);
-                        pickupMarker.bindPopup("<b>Upo hapa (Pickup)</b>").openPopup();
-                        bodaMap.flyTo([bodaPickupLat, bodaPickupLng], 16, { duration: 1.5 });
-                    }
-                },
-                err => {
-                    if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
-                    else showToast("Washa GPS kwa High Accuracy.");
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
+            showToast("Inatafuta eneo lako...");
+            navigator.geolocation.getCurrentPosition(pos => {
+                bodaPickupLat = pos.coords.latitude;
+                bodaPickupLng = pos.coords.longitude;
+                
+                if(!bodaMap) return;
+                bodaMap.invalidateSize(); // FIX TATIZO LA KUKWAMA KWENYE APK
+                bodaMap.flyTo([bodaPickupLat, bodaPickupLng], 16, { duration: 1.5 });
+                
+                if (pickupMarker) bodaMap.removeLayer(pickupMarker);
+                const pickupIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15] });
+                pickupMarker = L.marker([bodaPickupLat, bodaPickupLng], { icon: pickupIcon }).addTo(bodaMap);
+                pickupMarker.bindPopup("<b>Wapo hapa (Pickup)</b>").openPopup();
+                
+                document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
+            }, err => {
+                if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
+                else showToast("Washa GPS kwa High Accuracy.");
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
         async function loadBodaMapPlaces() {
@@ -5707,11 +5754,14 @@
                     return showToast("Namba hii ya tashi tayari imesajiliwa!");
                 }
                 
-                // Pakia Picha
-                const fileName = `plate_${u.phone_number}_${Date.now()}.jpg`;
-                const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]);
-                if(upErr) throw upErr;
-                const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
+              // 1. PAKIA PICHA KWENYE CLOUDINARY
+                let photoUrl = null;
+                try {
+                    photoUrl = await uploadToCloudinary(fileInput.files[0]);
+                } catch(upErr) {
+                    if(btn) { btn.innerHTML = 'Tuma Ombi'; btn.disabled = false; }
+                    return openModal("Kosa la Kupakia Picha", upErr.message);
+                }
                 
                 // Hifadhi au sasisha
                 const { data: existing } = await sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle();
@@ -5851,9 +5901,9 @@
             } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
         }
 
-        function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
+            function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
             openModal("Ramani & Njia ya Kwenda", `<div id="boda-req-map-${reqId}" style="height: 300px; width: 100%; border-radius: 12px;"></div>`, false);
-            setTimeout(() => {
+            setTimeout(async () => {
                 const reqMap = L.map(`boda-req-map-${reqId}`).setView([parseFloat(pLat), parseFloat(pLng)], 14);
                 L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(reqMap);
                 
@@ -5863,7 +5913,6 @@
                     lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
                 }).addTo(reqMap);
 
-                // FALLBACK: KAMA SEVER YA BARABARA INAKATAA, CHORA MSTARI WA MOJA KWA MOJA
                 rc.on('routingerror', () => {
                     if (rc) { reqMap.removeControl(rc); }
                     L.polyline([[parseFloat(pLat), parseFloat(pLng)], [parseFloat(dLat), parseFloat(dLng)]], {color: '#10B981', weight: 4, dashArray: '10, 10'}).addTo(reqMap);
@@ -5873,9 +5922,20 @@
                 const pickupIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15]});
                 L.marker([parseFloat(pLat), parseFloat(pLng)], {icon: pickupIcon}).addTo(reqMap).bindPopup("<b>Abiria yupo hapa</b>").openPopup();
                 
+                // ONGEZA HII: VUTA MAENEO YA KITAMA NA KUYAONGEZA KWENYE RAMANI YA DEREVA
+                try {
+                    const { data: places } = await sb.from('map_places').select('*');
+                    if (places && places.length > 0) {
+                        places.forEach(p => {
+                            const placeIcon = getMapPinIcon(p.category, p.name);
+                            L.marker([parseFloat(p.lat), parseFloat(p.lng)], { icon: placeIcon }).addTo(reqMap);
+                        });
+                    }
+                } catch(e) { console.error("Places error on driver map:", e); }
+
                 setTimeout(() => { reqMap.invalidateSize(); }, 300);
             }, 200);
-        }     
+        }    
     
     async function acceptBoda(reqId, riderPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -5904,11 +5964,13 @@
         
         const btn = document.getElementById('btn-opp'); btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
         let imgUrl = null;
-        
-        if(fileInput.files.length > 0) {
-            const fileName = `opp_${Date.now()}.jpg`;
-            const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]);
-            if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`;
+            if(fileInput.files.length > 0) {
+            try {
+                imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            } catch(upErr) {
+                btn.disabled = false; btn.innerHTML = 'Weka Tangazo';
+                return openModal("Kosa la Kupakia Picha", upErr.message);
+            }
         }
         
         try {
@@ -6046,8 +6108,8 @@
     }
 
     function viewImage(url) {
-        openModal("Picha ya Tangazo", `<img src="${url}" style="width:100%; border-radius:12px;">`, false);
-    }
+            openFullScreenImage(url);
+        }
 
     // 3D Tilt Effect for Posters
     document.addEventListener('mousemove', (e) => {
@@ -6079,71 +6141,6 @@
                 } catch(e) { openModal("Kosa", e.message); }
             });
         }
-    }
-
-                // --- ADMIN INTERCEPTOR FUNCTION (IMEBORESHWA) ---
-    function openInterceptorModal() {
-        const html = `
-            <p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Andika namba ya simu ya mtumiaji kuona inbox yake ya faragha na maduka.</p>
-            <input type="tel" id="intercept-phone" class="modal-input" placeholder="0712345678" style="margin-bottom: 15px; width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text);">
-        `;
-        openModal("Message Interceptor", html, false);
-        
-        // Badilisha kitufe ili kisirudi kufunga kabla ya kutafuta
-        const okBtn = document.getElementById('modal-ok');
-        okBtn.innerText = "Tafuta Inbox";
-        okBtn.style.display = 'block';
-        okBtn.onclick = async () => {
-            const phone = document.getElementById('intercept-phone').value.trim();
-            if(!phone) return showToast("Andika namba ya simu.");
-            
-            document.getElementById('modal-text').innerHTML = "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>";
-            try {
-                const { data, error } = await sb.from('shop_messages')
-                    .select('*, shops(shop_name)')
-                    .or(`sender_phone.eq.${phone},recipient_phone.eq.${phone}`)
-                    .order('created_at', { ascending: false })
-                    .limit(500); 
-                if(error) throw error;
-                
-                interceptedMessages = data; 
-                
-                let msgHtml = '<div style="max-height: 300px; overflow-y: auto; display:flex; flex-direction:column; gap:8px; margin-top:10px;">';
-                if(data.length > 0) {
-                    data.forEach(m => {
-                        let sender = m.sender_phone === phone ? 'MTUMIAJI' : m.sender_name;
-                        let receiver = m.recipient_phone === phone ? 'MTUMIAJI' : m.recipient_phone;
-                        let shopName = m.shops && m.shops.shop_name ? m.shops.shop_name : 'Faragha';
-                        msgHtml += `<div style="background:var(--bg); padding:10px; border-radius:8px; font-size:12px; border:1px solid var(--border);">
-                            <b style="color:var(--accent);">${m.sender_name} (${sender})</b> -> <small>${receiver} (${shopName})</small><br>
-                            ${m.content}<br>
-                            <small style="color:var(--text-sec); font-size:10px;">${new Date(m.created_at).toLocaleString()}</small>
-                        </div>`;
-                    });
-                } else {
-                    msgHtml += '<p style="color:var(--text-sec); text-align:center;">Hakuna ujumbe kwa namba hii.</p>';
-                }
-                msgHtml += '</div>';
-                
-                document.getElementById('modal-title').innerText = "Inbox ya " + phone;
-                document.getElementById('modal-text').innerHTML = msgHtml;
-                
-                // Ficha kitufe baada ya kutafuta, ibakie Funga tu
-                okBtn.style.display = 'none';
-                document.getElementById('modal-cancel').innerText = 'Funga';
-                
-                if(data.length > 0) {
-                    let dlBtn = document.createElement('button');
-                    dlBtn.className = 'm-btn m-btn-danger';
-                    dlBtn.style.cssText = 'width: 100%; margin-top: 15px;';
-                    dlBtn.innerText = 'Pakua Mazungumzo (CSV)';
-                    dlBtn.onclick = () => downloadInterceptedChat(phone);
-                    document.getElementById('modal-text').appendChild(dlBtn);
-                }
-            } catch(e) { 
-                document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
-            }
-        };
     }
 
     // --- ADMIN GLOBAL BROADCAST FUNCTION (IMEBORESHWA) ---
@@ -6220,81 +6217,135 @@
         } catch(e) { console.error("Badge Error:", e); }
     }
     // --- ADMIN DATA EXPORT FUNCTIONS ---
-    async function exportAllUsers() {
-        openModal("Inapakia...", "Subiri kidogo tunapakua taarifa za watumiaji wote.", false);
-        try {
-            const { data, error } = await sb.from('users').select('*').order('created_at', { ascending: false });
-            if(error) throw error;
+             async function exportAllUsers() {
+            // FANYA MODAL IWE FULL SCREEN
+            const modalBox = document.querySelector('.modal-box');
+            modalBox.style.maxWidth = '100%';
+            modalBox.style.width = '100%';
+            modalBox.style.height = '100vh';
+            modalBox.style.borderRadius = '0';
+            modalBox.style.maxHeight = '100vh';
             
-            if(data.length === 0) {
-                document.getElementById('modal-text').innerHTML = '<p style="color:var(--text-sec); text-align:center;">Hakuna watumiaji kwenye mfumo.</p>';
-                return;
+            openModal("Taarifa za Watumiaji", "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>", false);
+            
+            try {
+                const { data, error } = await sb.from('users').select('*').order('created_at', { ascending: false });
+                if(error) throw error;
+                
+                if(data.length === 0) {
+                    document.getElementById('modal-text').innerHTML = '<p>Hakuna watumiaji kwenye mfumo.</p>';
+                    return;
+                }
+
+                let html = '<div style="overflow-x: auto; width: 100%;">';
+                html += '<table style="width: 100%; border-collapse: collapse; font-size: 11px;">';
+                html += '<tr style="background: var(--bg); text-align: left;"><th style="padding: 10px;">Jina</th><th>Simu</th><th>Kijiji</th><th>P/word</th><th>Status</th></tr>';
+                
+                data.forEach(u => {
+                    html += `<tr style="border-bottom: 1px solid var(--border); color: var(--text);">
+                        <td style="padding: 10px;">${u.full_name}</td>
+                        <td>${u.phone_number}</td>
+                        <td>${u.village || ''}</td>
+                        <td style="color: var(--danger); font-weight: 700;">${u.password || ''}</td>
+                        <td>${u.status}</td>
+                    </tr>`;
+                });
+                html += '</table></div>';
+                
+                document.getElementById('modal-text').innerHTML = html;
+                
+                const okBtn = document.getElementById('modal-ok');
+                const cancelBtn = document.getElementById('modal-cancel');
+                okBtn.style.display = 'none';
+                cancelBtn.innerText = 'Funga';
+                
+                // RUDISHA MODAL KAWAIDA UKIFUNGWA
+                cancelBtn.onclick = () => {
+                    modalBox.style.maxWidth = '380px';
+                    modalBox.style.width = '100%';
+                    modalBox.style.height = '90vh';
+                    modalBox.style.borderRadius = '24px';
+                    modalBox.style.maxHeight = '90vh';
+                    closeModal();
+                };
+                
+            } catch(e) {
+                document.getElementById('modal-text').innerHTML = `<p style="color:red;">${e.message}</p>`;
             }
-
-            // Convert to CSV format
-            const headers = ['Jina', 'Simu', 'Kijiji', 'Kitongoji', 'Hadhi', 'Status', 'Tarehe Ya Kujiunga'];
-            let csv = headers.join(',') + '\n';
-            
-            data.forEach(u => {
-                const row = [
-                    `"${u.full_name}"`,
-                    u.phone_number,
-                    `"${u.village || ''}"`,
-                    `"${u.sub_village || ''}"`,
-                    u.role,
-                    u.status,
-                    new Date(u.created_at).toLocaleString()
-                ];
-                csv += row.join(',') + '\n';
-            });
-
-            // Trigger Download
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'Kitama_Watumiaji_Wote.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            closeModal();
-            showToast("Taarifa za watumiaji zimepakuliwa (CSV)!");
-        } catch(e) {
-            document.getElementById('modal-text').innerHTML = `<p style="color:red;">${e.message}</p>`;
         }
-    }
-
-    // Hii ni variable ya kuhifadhia mazungumyo ya mtu anayotafutwa kwenye Interceptor
-    let interceptedMessages = [];
-
-    function downloadInterceptedChat(phone) {
-        if(interceptedMessages.length === 0) return showToast("Hakuna mazungumzo ya kupakua.");
-        
-        // CSV Headers
-        let csv = 'Muda,Mtumiaji (Sender),Namba (Sender),Mpokeaji (Receiver),Namba (Receiver),Aina ya Mazungumzo,Ujumbe\n';
-        
-        interceptedMessages.forEach(m => {
-            let shopName = m.shops && m.shops.shop_name ? m.shops.shop_name : 'Faragha';
-            // Ficha virugo vya CSV kwa kuweka nukuu
-            let content = m.content ? m.content.replace(/"/g, '""') : '';
-            let time = new Date(m.created_at).toLocaleString();
+        // --- ADMIN INTERCEPTOR (New UI) ---
+        function openInterceptorModal() {
+            openModal("Message Interceptor", "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>", false);
+            document.getElementById('modal-ok').style.display = 'none';
+            document.getElementById('modal-cancel').innerText = 'Funga';
             
-            csv += `"${time}","${m.sender_name}","${m.sender_phone}","${m.recipient_name || 'N/A'}","${m.recipient_phone}","${shopName}","${content}"\n`;
-        });
-        
-        // Trigger Download
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Ushahidi_${phone}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        showToast("Mazungumzo yamepakuliwa kwa usalama!");
-    }
+            sb.from('users').select('full_name, phone_number, avatar_url').order('full_name').then(({ data, error }) => {
+                if (error) return document.getElementById('modal-text').innerHTML = `<p style='color:red;'>${error.message}</p>`;
+                
+                let html = '<p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Bonyeza mtumiaji ili kuona inbox yake ya faragha.</p>';
+                html += '<div style="max-height: 60vh; overflow-y: auto; display:flex; flex-direction:column; gap:8px;">';
+                
+                if (data.length > 0) {
+                    data.forEach(u => {
+                        let avatar = u.avatar_url ? `<img src="${u.avatar_url}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;">${u.full_name.charAt(0)}</div>`;
+                        html += `<div onclick="fetchInterceptedMessages('${u.phone_number}', '${u.full_name.replace(/'/g, "\\'")}')" style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:12px;cursor:pointer;border:1px solid var(--border);">
+                            ${avatar}
+                            <div>
+                                <b style="font-size:14px;color:var(--text);">${u.full_name}</b><br>
+                                <small style="color:var(--text-sec);font-size:12px;">${u.phone_number}</small>
+                            </div>
+                        </div>`;
+                    });
+                } else {
+                    html += '<p style="color:var(--text-sec);text-align:center;">Hakuna watumiaji.</p>';
+                }
+                html += '</div>';
+                
+                document.getElementById('modal-text').innerHTML = html;
+            });
+        }
+
+        async function fetchInterceptedMessages(phone, name) {
+            document.getElementById('modal-title').innerText = "Inbox ya " + name;
+            document.getElementById('modal-text').innerHTML = "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>";
+            
+            try {
+                const { data, error } = await sb.from('shop_messages')
+                    .select('*, shops(shop_name)')
+                    .or(`sender_phone.eq.${phone},recipient_phone.eq.${phone}`)
+                    .order('created_at', { ascending: false })
+                    .limit(100);
+                if(error) throw error;
+                
+                let msgHtml = `<div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; cursor:pointer; color:var(--accent); font-weight:700;" onclick="openInterceptorModal()">`;
+                msgHtml += `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Rudi kwenye Orodha`;
+                msgHtml += `</div>`;
+                
+                msgHtml += '<div style="max-height: 50vh; overflow-y: auto; display:flex; flex-direction:column; gap:8px;">';
+                
+                if(data.length > 0) {
+                    data.forEach(m => {
+                        let sender = m.sender_phone === phone ? 'MTUMIAJI' : m.sender_name;
+                        let receiver = m.recipient_phone === phone ? 'MTUMIAJI' : m.recipient_phone;
+                        let shopName = m.shops && m.shops.shop_name ? m.shops.shop_name : 'Faragha';
+                        msgHtml += `<div style="background:var(--bg); padding:10px; border-radius:8px; font-size:12px; border:1px solid var(--border);">
+                            <b style="color:var(--accent);">${m.sender_name} (${sender})</b> -> <small>${receiver} (${shopName})</small><br>
+                            ${m.content}<br>
+                            <small style="color:var(--text-sec); font-size:10px;">${new Date(m.created_at).toLocaleString()}</small>
+                        </div>`;
+                    });
+                } else {
+                    msgHtml += '<p style="color:var(--text-sec); text-align:center;">Hakuna ujumbe kwa namba hii.</p>';
+                }
+                msgHtml += '</div>';
+                
+                document.getElementById('modal-text').innerHTML = msgHtml;
+                
+            } catch(e) {
+                document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
+            }
+        }
+    
         // --- FULL SCREEN DM CHAT FUNCTIONS ---
     let dmOtherPhone = null;
     let dmShopId = null;
@@ -6552,7 +6603,7 @@
             
             const newHtml = data.length > 0 ? data.map(u => {
                 let statusBadge = u.status === 'active' ? '<span class="badge b-succ">Active</span>' : u.status === 'restricted' ? '<span class="badge b-warn">View Only</span>' : '<span class="badge b-err">Banned</span>';
-                                let actions = '';
+                let actions = '';
                 if(u.status === 'active') {
                     actions = `<button onclick="updateUserStatus('${u.id}', 'restricted')" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; margin-right:5px;">Zuia (View-Only)</button>
                                <button onclick="updateUserStatus('${u.id}', 'rejected')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Funga (Ban)</button>`;
@@ -6560,13 +6611,19 @@
                     actions = `<button onclick="updateUserStatus('${u.id}', 'active')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:11px;">Ruhusu</button>`;
                 }
                 
-                // ONGEZA HII: KITUFU CHA KUMTEUA KUHARIRI RAMANI
+                // KITUFU CHA KUMTEUA KUHARIRI RAMANI
                 let mapEditorBtn = u.can_edit_map 
                     ? `<button onclick="toggleMapEditor('${u.id}', false)" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px; margin-top:5px; width:100%;">Ondoa Uwezo wa Ramani</button>` 
                     : `<button onclick="toggleMapEditor('${u.id}', true)" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; background:#6366f1; color:white; margin-top:5px; width:100%;">Ruhusu Kuhariri Ramani</button>`;
                 
-                return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <div><b>${u.full_name}</b> ${statusBadge}<br><small>${u.phone_number} - ${u.role.replace(/_/g, ' ')}</small></div>
+                // ONYESHA TAARIFA ZOTE IKIWEMO PASSWORD
+                return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 15px;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <b>${u.full_name}</b> ${statusBadge}<br>
+                        <small>Simu: <b style="color:var(--accent);">${u.phone_number}</b></small><br>
+                        <small>Password: <b style="color:var(--danger);">${u.password || 'Hakuna'}</b></small><br>
+                        <small>Hadhi: ${u.role.replace(/_/g, ' ')}</small>
+                    </div>
                     <div style="display:flex; gap:5px; flex-direction:column; align-items:flex-end;">
                         <div style="display:flex; gap:5px;">${actions}</div>
                         ${mapEditorBtn}
@@ -6769,7 +6826,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between;">
                             <span style="color: var(--text-sec); font-size: 12px;">Mtandao:</span>
-                            <b style="color: var(--text); font-size: 13px;">M-Pesa / Tigo Pesa</b>
+                            <b style="color: var(--text); font-size: 13px;">HaloPesa</b>
                         </div>
                     </div>
                     
@@ -6880,11 +6937,9 @@
                 
                 const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                 const isSelf = phone === currentUser.phone_number;
-                
-                let avatarHtml = u.avatar_url ? 
-                    `<img src="${u.avatar_url}" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border: 4px solid var(--border); margin: 0 auto 15px; display:block;">` : 
+                 let avatarHtml = u.avatar_url ? 
+                    `<img src="${u.avatar_url}" onclick="openFullScreenImage('${u.avatar_url}')" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border: 4px solid var(--border); margin: 0 auto 15px; display:block; cursor: pointer;">` : 
                     `<div style="width:100px; height:100px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:700; margin: 0 auto 15px; border: 4px solid var(--border);">${u.full_name.charAt(0).toUpperCase()}</div>`;
-                
                 let badgeHtml = u.is_activist ? getActivistBadge(true) : '';
                 
                 let actionBtn = !isSelf ? 
@@ -7621,7 +7676,7 @@
                 
                 // ONESHA JINA RASMI NA BADGE YA BLUU HAPA
                 document.getElementById('sv-name').innerHTML = `Kitama Yetu ${getWhatsAppVerifiedBadge()}`;
-                document.getElementById('sv-avatar').innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                document.getElementById('sv-avatar').innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
                 document.getElementById('sv-time').innerText = new Date(s.created_at).toLocaleString();
                 
                 captionEl.innerText = s.image_url ? (s.content || '') : '';
@@ -8079,38 +8134,65 @@
             handleSwipeEnd(e.clientY);
         });
 
-        async function syncContacts() {
-            if (!('contacts' in navigator) || !navigator.contacts.select) {
-                return showToast("Kifaa chako hakiauni kusoma contacts moja kwa moja. (Tumia Chrome au APK mpya).");
-            }
-            
-            try {
-                const contacts = await navigator.contacts.select(['tel'], { multiple: true });
-                if (contacts.length === 0) return showToast("Hujachagua contacts zozote.");
-                
-                let savedNumbers = [];
-                contacts.forEach(c => {
-                    if (c.tel && c.tel.length > 0) {
-                        c.tel.forEach(num => {
-                            savedNumbers.push(normalizePhone(num));
+                async function syncContacts() {
+            // TUMIA PLUGIN YA NATIVE ANDROID (Capacitor)
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Contacts) {
+                try {
+                    const Contacts = window.Capacitor.Plugins.Contacts;
+                    
+                    // 1. Omba Ruhusa
+                    const perm = await Contacts.requestPermissions();
+                    if (!perm.granted) {
+                        return showToast("Ruhusa ya kusoma contacts imekataliwa.");
+                    }
+                    
+                    showToast("Inasoma contacts zako... subiri kidogo.");
+                    
+                    // 2. Soma Contacts zote kimyakimya
+                    const result = await Contacts.getContacts({ projection: { name: true, phones: true } });
+                    
+                    let savedNumbers = [];
+                    if (result && result.contacts) {
+                        result.contacts.forEach(c => {
+                            if (c.phones && c.phones.length > 0) {
+                                c.phones.forEach(p => savedNumbers.push(normalizePhone(p.number)));
+                            }
                         });
                     }
-                });
-                
-                // Hifadhi kwenye localStorage
-                localStorage.setItem('kitama_saved_contacts', JSON.stringify(savedNumbers));
-                showToast("Contacts zimehifadhiwa! Sasa utaona status zao tu.");
-                
-                // Ficha kitufe baada ya kusync
-                const syncBtn = document.getElementById('sync-contacts-btn');
-                if (syncBtn) syncBtn.style.display = 'none';
-                
-                loadStatusUI(); // Pakia upya status
-            } catch(e) {
-                openModal("Kosa", e.message);
+                    
+                    // 3. Hifadhi kwenye simu
+                    localStorage.setItem('kitama_saved_contacts', JSON.stringify(savedNumbers));
+                    showToast("Contacts zimehifadhiwa! Sasa utaona status zao tu.");
+                    
+                    const syncBtn = document.getElementById('sync-contacts-btn');
+                    if (syncBtn) syncBtn.style.display = 'none';
+                    loadStatusUI();
+                } catch(e) {
+                    console.error("Contacts error:", e);
+                    openModal("Kosa la Contacts", e.message);
+                }
+            } else {
+                // KAMA PLUGIN HAIPATIKANI (Fallback kwa Web)
+                if (!('contacts' in navigator) || !navigator.contacts.select) {
+                    return showToast("Kifaa chako hakiauni kusoma contacts.");
+                }
+                try {
+                    const contacts = await navigator.contacts.select(['tel'], { multiple: true });
+                    if (contacts.length === 0) return;
+                    
+                    let savedNumbers = [];
+                    contacts.forEach(c => {
+                        if (c.tel && c.tel.length > 0) c.tel.forEach(num => savedNumbers.push(normalizePhone(num)));
+                    });
+                    localStorage.setItem('kitama_saved_contacts', JSON.stringify(savedNumbers));
+                    showToast("Contacts zimehifadhiwa!");
+                    document.getElementById('sync-contacts-btn').style.display = 'none';
+                    loadStatusUI();
+                } catch(e) {
+                    openModal("Kosa", e.message);
+                }
             }
         }
-
         function handleSwipeEnd(endY) {
             const diffY = touchStartY - endY;
             const duration = Date.now() - touchStartTime;
@@ -8416,13 +8498,13 @@
             // Reset input ili iweze kuruhusu kuchagua tena
             input.value = '';
         }
-              // --- KITAMA MAP FUNCTIONS ---
+                // --- KITAMA MAP FUNCTIONS ---
         let kitamaMap = null;
         let mapMarkers = [];
         let mapPlaceLabels = [];
         let myLocationMarker = null;
 
-                async function initKitamaMap() {
+        async function initKitamaMap() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             let canEditMap = false;
             
@@ -8440,10 +8522,7 @@
             const addBtn = document.getElementById('add-place-btn');
             if (addBtn) {
                 if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || canEditMap) {
-                    // LITATUZO LA HATARI: TUMIA NGUVU KABISA (!important) KUHAKIKISHA KINAONEKANA
-                    addBtn.style.setProperty('display', 'flex', 'important');
-                    addBtn.style.opacity = '1';
-                    addBtn.style.pointerEvents = 'auto';
+                    addBtn.style.display = 'flex';
                 } else {
                     addBtn.style.display = 'none';
                 }
@@ -8456,13 +8535,22 @@
                 return;
             }
             
-            kitamaMap = L.map('kitama-map', { zoomControl: true }).setView([-6.2, 35.0], 14);
+            // PREMIUM MAP SETTINGS (inertia, zoomSnap)
+            kitamaMap = L.map('kitama-map', { 
+                zoomControl: false, 
+                inertia: true, 
+                zoomSnap: 0.5 
+            }).setView([-6.2, 35.0], 14);
             
-            const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' }).addTo(kitamaMap);
-            const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
-            const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
+            const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' }).addTo(kitamaMap);
+            const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' });
+            const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' });
             
             L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(kitamaMap);
+            
+            // WEKA VIFUNGO VYA ZOOM NA SCALE CHINI KULIA
+            L.control.zoom({ position: 'bottomright' }).addTo(kitamaMap);
+            L.control.scale({ position: 'bottomleft', metric: true, imperial: false }).addTo(kitamaMap);
 
             kitamaMap.on('zoomend', function() {
                 toggleMapPlaceLabels();
@@ -8470,6 +8558,35 @@
 
             findMyLocationOnMap();
             loadMapMarkers();
+        }
+
+        function findMyLocationOnMap() {
+            if (!navigator.geolocation) return showToast("Kifaa chako hakikai GPS.");
+            
+            showToast("Inatafuta eneo lako...");
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                
+                if(!kitamaMap) return;
+                kitamaMap.invalidateSize(); // HAKIKISHA RAMANI HAIFUNGWI KWENYE APK
+                kitamaMap.flyTo([lat, lng], 16, { duration: 1.5 }); // RUDIA KWA LAINI
+                
+                if (myLocationMarker) kitamaMap.removeLayer(myLocationMarker);
+                
+                const myLocationIcon = L.divIcon({
+                    className: 'blink-marker',
+                    html: '<div style="width:20px; height:20px; background:#3B82F6; border-radius:50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); animation: blink 1s infinite;"></div>',
+                    iconSize: [20, 20]
+                });
+                
+                myLocationMarker = L.marker([lat, lng], { icon: myLocationIcon }).addTo(kitamaMap);
+                myLocationMarker.bindPopup("<b>Wewe uko hapa</b>").openPopup();
+                
+            }, err => {
+                if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
+                else showToast("Washa GPS kwa High Accuracy.");
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
             // DICTIONARY YA IKONI NA RANGI KULINGANA NA CATEGORY
@@ -8538,32 +8655,6 @@
             });
         }
 
-        function findMyLocationOnMap() {
-            if (!navigator.geolocation) return showToast("Kifaa chako hakikai GPS.");
-            
-            navigator.geolocation.getCurrentPosition(pos => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                
-                kitamaMap.flyTo([lat, lng], 16, { duration: 1.5 });
-                
-                if (myLocationMarker) kitamaMap.removeLayer(myLocationMarker);
-                
-                const myLocationIcon = L.divIcon({
-                    className: 'blink-marker',
-                    html: '<div style="width:20px; height:20px; background:#3B82F6; border-radius:50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); animation: blink 1s infinite;"></div>',
-                    iconSize: [20, 20]
-                });
-                
-                myLocationMarker = L.marker([lat, lng], { icon: myLocationIcon }).addTo(kitamaMap);
-                myLocationMarker.bindPopup("<b>Wewe uko hapa</b>").openPopup();
-                
-            }, err => {
-                if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
-                else showToast("Washa GPS kwa High Accuracy.");
-            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-        }
-
                 let tempAddPlaceMarker = null;
 
         function addCurrentPlaceToMap() {
@@ -8628,7 +8719,7 @@
             document.getElementById('modal-cancel').innerText = 'Ghairi';
         }
 
-               async function saveNewMapPlace() {
+            async function saveNewMapPlace() {
             const name = document.getElementById('new-place-name').value.trim();
             const category = document.getElementById('new-place-category').value;
             if(!name) return showToast("Tafadhali weka jina la eneo.");
@@ -8639,28 +8730,27 @@
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             
             try {
-                // 1. WEKA KWENYE MAOMBI
-                await sb.from('map_place_requests').insert([{ 
-                    name: name, lat: lat.toString(), lng: lng.toString(), category: category,
-                    requested_by_name: u.full_name, requested_by_phone: u.phone_number, status: 'pending'
-                }]);
-                
-                // 2. MTUMIE UJUMBE KWENYE INBOX YAKE (Mfumo wa Kitama)
-                await sb.from('shop_messages').insert([{
-                    shop_id: null,
-                    sender_phone: window.adminPhone, 
-                    sender_name: 'Mfumo wa Kitama',
-                    content: "Ombi lako la kuongeza eneo la '" + name + "' kwenye Ramani limewasilishwa kwa Admin. Utapokea jibu la mwisho hapa kwenye Inbox mara Admin atakapokagua. Asante kwa kushiriki kujenga Ramani ya Kitama!",
-                    recipient_phone: u.phone_number,
-                    is_read: false
-                }]);
-                
-                updateBadges(); // Sasisha badge ya inbox
-                showToast("Ombi lako limewasilishwa! Angalia Inbox yako.");
+                if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani') {
+                    await sb.from('map_places').insert([{ name: name, lat: lat.toString(), lng: lng.toString(), category: category }]);
+                    showToast("Eneo limeongezwa rasmi kwenye ramani kwa wote!");
+                } else {
+                    await sb.from('map_place_requests').insert([{ 
+                        name: name, lat: lat.toString(), lng: lng.toString(), category: category,
+                        requested_by_name: u.full_name, requested_by_phone: u.phone_number, status: 'pending'
+                    }]);
+                    await sb.from('shop_messages').insert([{
+                        shop_id: null, sender_phone: window.adminPhone, sender_name: 'Mfumo wa Kitama',
+                        content: "Ombi lako la kuongeza eneo la '" + name + "' limewasilishwa kwa Admin.",
+                        recipient_phone: u.phone_number, is_read: false
+                    }]);
+                    updateBadges();
+                    showToast("Ombi lako limewasilishwa! Angalia Inbox yako.");
+                }
                 closeModal();
                 if (tempAddPlaceMarker) { kitamaMap.removeLayer(tempAddPlaceMarker); tempAddPlaceMarker = null; }
-            } catch(e) {
-                openModal("Kosa", e.message);
+                loadMapMarkers(); 
+            } catch(e) { 
+                openModal("Kosa", e.message); 
             }
         }
         async function toggleMapEditor(userId, allow) {
@@ -8742,11 +8832,10 @@
         function openProfileAvatarModal() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const initial = u.full_name.charAt(0).toUpperCase();
-            
-            let avatarHtml = u.avatar_url ? 
-                `<img src="${u.avatar_url}" style="width:150px; height:150px; border-radius:50%; object-fit:cover; border:4px solid var(--border); margin: 0 auto 20px; display:block;">` :
+             let avatarHtml = u.avatar_url ? 
+                `<img src="${u.avatar_url}" onclick="openFullScreenImage('${u.avatar_url}')" style="width:150px; height:150px; border-radius:50%; object-fit:cover; border:4px solid var(--border); margin: 0 auto 20px; display:block; cursor: pointer;">` : 
                 `<div style="width:150px; height:150px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:60px; font-weight:800; margin: 0 auto 20px;">${initial}</div>`;
-                
+            
             const html = `
                 <div style="text-align: center;">
                     ${avatarHtml}
@@ -9316,26 +9405,26 @@
             }
         }
 
-        async function castVote(pollId, optionIndex) {
+                async function castVote(pollId, optionIndex) {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Huwezi kufanya vitendo kwa sasa.");
             try {
-                const { error } = await sb.from('poll_votes').insert([{
-                    poll_id: pollId,
-                    option_index: optionIndex,
-                    voter_phone: u.phone_number
-                }]);
-                if(error) throw error;
+                // 1. ANGALIA KAMA AMESHAPIGA KURA
+                const { data: existingVote } = await sb.from('poll_votes').select('id').eq('poll_id', pollId).eq('voter_phone', u.phone_number).maybeSingle();
                 
-                showToast("Umepiga kura!");
+                if (existingVote) {
+                    // 2. BADILISHA KURA
+                    await sb.from('poll_votes').update({ option_index: optionIndex }).eq('id', existingVote.id);
+                    showToast("Umefanikiwa kubadilisha kura yako!");
+                } else {
+                    // 3. PIGA KURA MPYA
+                    await sb.from('poll_votes').insert([{ poll_id: pollId, option_index: optionIndex, voter_phone: u.phone_number }]);
+                    showToast("Umepiga kura!");
+                }
                 playBeep();
                 fetchPolls();
             } catch(e) {
-                if(e.code === '23505') {
-                    showToast("Umekwisha piga kura kwenye hii kura!");
-                } else {
-                    openModal("Kosa", e.message);
-                }
+                openModal("Kosa", e.message);
             }
         }
 
@@ -9455,6 +9544,293 @@
             textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
             showToast("Alama imewekwa! Sasa chagua picha chini.");
         }
+            // --- FUNCTION YA KU-ZOOM PICHA ---
+        function toggleZoom(element) {
+            element.classList.toggle('zoomed');
+        }
+            // --- FUNCTION YA KUZOOM PICHA YA PROFAILI ---
+        function viewProfilePic(url) {
+            openFullScreenImage(url);
+        }
+            // --- LIVE PREVIEW & IMAGE PLACEHOLDER FUNCTIONS ---
+        let selectedArticleImageSrc = null;
+
+                // --- ACTIVIST ARTICLE FUNCTIONS ---
+        function insertPicPlaceholder() {
+            const textarea = document.getElementById('article-content');
+            const placeholder = ' [[PIC]] ';
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
+            updateArticlePreview();
+        }
+
+        async function handleArticleImageSelect(input) {
+            if (input.files.length === 0) return;
+            showToast("Inapakia picha...");
+            try {
+                const url = await uploadToCloudinary(input.files[0]);
+                const textarea = document.getElementById('article-content');
+                
+                // KAMA KUNA [[PIC]], IBADILISHE NA LINK LA PICHA
+                if (textarea.value.includes('[[PIC]]')) {
+                    textarea.value = textarea.value.replace('[[PIC]]', `[IMG]${url}[/IMG]`);
+                } else {
+                    // KAMA HAKUNA, IONGEZE MwishONI
+                    textarea.value += `\n[IMG]${url}[/IMG]\n`;
+                }
+                updateArticlePreview();
+                input.value = ''; // Wacha aweze kuchagua picha nyingine
+            } catch(e) {
+                openModal("Kosa la Kupakia Picha", e.message);
+            }
+        }
+
+        function updateArticlePreview() {
+            const textarea = document.getElementById('article-content');
+            const previewBox = document.getElementById('article-preview-box');
+            let text = textarea.value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
+            // BADILISHA [IMG]LINK[/IMG] KUWA PICHA HALISI
+            text = text.replace(/\[IMG\](.*?)\[\/IMG\]/g, (match, url) => {
+                return `<br><img src="${url}" style="width:100%; max-height: 200px; object-fit:cover; border-radius:8px; margin: 10px 0;"><br>`;
+            });
+            
+            // ONESHA [[PIC]] IKIWA BADO HAJAPAKIA PICHA
+            text = text.replace(/\[\[PIC\]\]/g, '<span style="color: var(--text-sec); font-style: italic; border: 1px dashed var(--border); padding: 2px 5px; border-radius: 4px;">[Picha itaonekana hapa]</span>');
+            
+            previewBox.innerHTML = text || "Andika makala yako na utaiona inavyoonekana hapa...";
+        }
+
+        async function postActivistArticle() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Huwezi kutuma chochote kwa sasa.");
+            if(!u.is_activist) return openModal("Kosa", "Huwezi kuandika makala kwa sasa.");
+            
+            const title = document.getElementById('article-title').value.trim();
+            const content = document.getElementById('article-content').value.trim();
+            
+            if(!title || !content) return openModal("Taarifa", "Jaza kichwa na makala yote.");
+            if(containsBadWords(title) || containsBadWords(content)) return openModal("Onyo", "Makala yako ina maneno yasiyoruhusiwa.");
+            
+            const btn = document.getElementById('btn-article'); 
+            btn.innerHTML = '<div class="spinner"></div> Inatuma...'; 
+            btn.disabled = true;
+            
+            try {
+                // HIFADHI MOJA KWA MOJA (Picha zipo ndani ya content kwa tags)
+                const { error } = await sb.from('activist_articles').insert([{ 
+                    author_phone: u.phone_number, 
+                    author_name: u.full_name, 
+                    title, 
+                    content 
+                }]);
+                
+                if(error) throw error;
+                showToast("Makala imechapishwa!"); playBeep();
+                document.getElementById('article-title').value = ''; 
+                document.getElementById('article-content').value = '';
+                updateArticlePreview();
+                showSec('activist-hub-sec');
+            } catch(e) { 
+                openModal("Kosa", e.message); 
+            } finally { 
+                btn.innerHTML = 'Chapisha Makala'; 
+                btn.disabled = false; 
+            }
+        }
+
+        function insertImagePlaceholder() {
+            const textarea = document.getElementById('article-content');
+            const placeholder = ' [[PIC]] ';
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            
+            textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
+            updateArticlePreview(); // Sasisha preview mara moja
+        }
+            // --- EDIT ARTICLE FUNCTIONS ---
+        function openEditArticleModal(id, title, content) {
+            const html = `
+                <div class="form-g">
+                    <label class="form-l">Kichwa cha Makala</label>
+                    <input type="text" id="edit-article-title" class="modal-input" value="${title}">
+                </div>
+                <div class="form-g">
+                    <label class="form-l">Maudhui ya Makala</label>
+                    <textarea id="edit-article-content" class="modal-input" style="min-height: 150px;">${content}</textarea>
+                </div>
+            `;
+            
+            openModal("Hariri Makala", html, false, async () => {
+                const newTitle = document.getElementById('edit-article-title').value.trim();
+                const newContent = document.getElementById('edit-article-content').value.trim();
+                
+                if(!newTitle || !newContent) return showToast("Jaza kichwa na maudhui.");
+                
+                const okBtn = document.getElementById('modal-ok');
+                okBtn.innerHTML = '<div class="spinner"></div>'; okBtn.disabled = true;
+                
+                try {
+                    const { error } = await sb.from('activist_articles').update({
+                        title: newTitle,
+                        content: newContent
+                    }).eq('id', id);
+                    
+                    if(error) throw error;
+                    showToast("Makala imehaririwa kikamilifu!");
+                    closeModal();
+                    fetchActivistArticles();
+                } catch(e) {
+                    openModal("Kosa", e.message);
+                    okBtn.innerText = 'Hifadhi'; okBtn.disabled = false;
+                }
+            });
+            
+            document.getElementById('modal-ok').innerText = "Hifadhi Mabadiliko";
+        }
+            let articleCursorPos = 0;
+
+        function updateArticlePreview() {
+            const textarea = document.getElementById('article-content');
+            const previewBox = document.getElementById('article-preview-box');
+            
+            let text = textarea.value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
+            // BADILISHA [IMG]LINK[/IMG] KUWA PICHA HALISI KWA LIVE PREVIEW
+            text = text.replace(/\[IMG\](.*?)\[\/IMG\]/g, (match, url) => {
+                return `<br><img src="${url}" style="width:100%; max-height: 200px; object-fit:cover; border-radius:8px; margin: 10px 0;"><br>`;
+            });
+            
+            previewBox.innerHTML = text || "Andika makala yako na utaiona inavyoonekana hapa...";
+        }
+
+            // --- FULL SCREEN IMAGE VIEWER WITH PINCH ZOOM ---
+        let fsImgScale = 1, fsImgX = 0, fsImgY = 0;
+        let fsStartDist = 0, fsStartScale = 1, fsStartX = 0, fsStartY = 0;
+
+        function openFullScreenImage(url) {
+            if(!url) return;
+            const img = document.getElementById('fullscreen-img');
+            img.src = url;
+            
+            // Reset zoom state
+            fsImgScale = 1; fsImgX = 0; fsImgY = 0;
+            img.style.transform = 'translate(0px, 0px) scale(1)';
+            
+            document.getElementById('fullscreen-img-overlay').style.display = 'flex';
+        }
+
+        function closeFullScreenImage() {
+            document.getElementById('fullscreen-img-overlay').style.display = 'none';
+            document.getElementById('fullscreen-img').src = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const img = document.getElementById('fullscreen-img');
+            if(!img) return;
+
+            // OMBA RUHUSA YA VIDOLE VIWILI (Pinch)
+            img.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    fsStartDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    fsStartScale = fsImgScale;
+                } else if (e.touches.length === 1 && fsImgScale > 1) {
+                    e.preventDefault();
+                    fsStartX = e.touches[0].clientX - fsImgX;
+                    fsStartY = e.touches[0].clientY - fsImgY;
+                }
+            });
+
+            // ENDESHA VIDOLE (Zoom & Pan)
+            img.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    let dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    fsImgScale = fsStartScale * (dist / fsStartDist);
+                    
+                    // Funga kuzoom isiwe ndogo kuliko asili au kubwa kuliko 5x
+                    if (fsImgScale < 1) fsImgScale = 1;
+                    if (fsImgScale > 5) fsImgScale = 5;
+                    
+                    if (fsImgScale === 1) {
+                        fsImgX = 0; fsImgY = 0;
+                    }
+                    img.style.transform = `translate(${fsImgX}px, ${fsImgY}px) scale(${fsImgScale})`;
+                } else if (e.touches.length === 1 && fsImgScale > 1) {
+                    e.preventDefault();
+                    fsImgX = e.touches[0].clientX - fsStartX;
+                    fsImgY = e.touches[0].clientY - fsStartY;
+                    img.style.transform = `translate(${fsImgX}px, ${fsImgY}px) scale(${fsImgScale})`;
+                }
+            });
+
+            // RUDIA MWANZO UKIKAZA VIDOLE
+            img.addEventListener('touchend', () => {
+                if (fsImgScale <= 1) {
+                    fsImgScale = 1; fsImgX = 0; fsImgY = 0;
+                    img.style.transform = 'translate(0px, 0px) scale(1)';
+                }
+            });
+        });
+            // --- HEADER DROPDOWN MENU ---
+        function toggleHeaderMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('header-dropdown-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('header-dropdown-menu');
+            if (menu && menu.style.display === 'block' && !e.target.closest('#header-dropdown-menu') && !e.target.closest('button[onclick="toggleHeaderMenu(event)"]')) {
+                menu.style.display = 'none';
+            }
+        });
+
+        // --- APP REALTIME RECONNECT (KAMA WHATSAPP) ---
+        // 1. Mtandao ukirudi, sasisha data ya page aliyo bila kufunga App
+        window.addEventListener('online', () => {
+            showToast("Mtandao urudi! App inasasisha...");
+            const activeSec = document.querySelector('.sec.active');
+            if (activeSec) {
+                setTimeout(() => showSec(activeSec.id), 500);
+            }
+        });
+
+        // 2. App ukirudi kwenye screen (Resume) kutoka background
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && navigator.onLine) {
+                const activeSec = document.querySelector('.sec.active');
+                if (activeSec) {
+                    setTimeout(() => showSec(activeSec.id), 500);
+                }
+            }
+        });
+
+        // 3. Native Android App Resume event (Kwa APK)
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+            window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
+                if (isActive && navigator.onLine) {
+                    const activeSec = document.querySelector('.sec.active');
+                    if (activeSec) {
+                        showSec(activeSec.id);
+                    }
+                }
+            });
+        }
+
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
