@@ -1002,12 +1002,12 @@
             <div id="boda-map"></div>
             
             <!-- Top Back Button (Floating) -->
-            <button onclick="handleNav('home-sec')" style="position: absolute; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <button onclick="event.stopPropagation(); handleNav('home-sec')" style="position: absolute; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </button>
 
-            <!-- Floating Locate Button (Google Maps Style) -->
-            <button class="map-locate-btn" onclick="findMyLocation()">
+             <!-- Floating Locate Button (Google Maps Style) -->
+            <button class="map-locate-btn" onclick="event.stopPropagation(); findMyLocation()">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
             </button>
 
@@ -1339,12 +1339,12 @@
             <div id="kitama-map"></div>
             
             <!-- Top Back Button -->
-            <button onclick="handleNav('home-sec')" style="position: fixed; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 9999; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <button onclick="event.stopPropagation(); handleNav('home-sec')" style="position: absolute; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </button>
 
             <!-- Floating Locate Button -->
-            <button class="map-locate-btn" onclick="findMyLocationOnMap()" style="z-index: 9999;">
+            <button class="map-locate-btn" onclick="event.stopPropagation(); findMyLocationOnMap()">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
             </button>
             <!-- ADMIN/WAHARIRI: ONGEZA ENEO HALI PALIPO (Floating Circle Icon) -->
