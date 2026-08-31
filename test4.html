@@ -652,11 +652,10 @@
             color: #94a3b8 !important; 
             border-color: #2a3650 !important; 
         }         
-        .map-locate-btn {
-            position: absolute;
-            top: 50%; 
+            .map-locate-btn {
+            position: fixed; 
+            bottom: 220px; 
             right: 15px;
-            transform: translateY(-50%); /* Ifanye katikati wima */
             width: 45px;
             height: 45px;
             background: var(--surface);
@@ -664,13 +663,12 @@
             border-radius: 50%;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             cursor: pointer;
-            z-index: 1000; /* Iwe juu kabisa ili isifichwe na bottom sheet */
+            z-index: 1000; 
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text);
         }
-        .map-locate-btn:active { transform: scale(0.9); }
            
         /* KITAMA MAP CSS FIX */
         .boda-sec { position: relative; height: 100vh; overflow: hidden; background: var(--bg); }
