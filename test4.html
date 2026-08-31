@@ -1696,10 +1696,10 @@
                 </div>
             </div>
         </div>
-                <!-- FULL SCREEN IMAGE VIEWER (WhatsApp Style) -->
+               <!-- FULL SCREEN IMAGE VIEWER (WhatsApp Style) -->
         <div id="fullscreen-img-overlay" onclick="closeFullScreenImage()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 99999; display: none; justify-content: center; align-items: center; flex-direction: column;">
-            <img id="fullscreen-img" src="" style="max-width: 100%; max-height: 100%; object-fit: contain;" onclick="event.stopPropagation()">
-            <div onclick="closeFullScreenImage()" style="position: absolute; top: 20px; left: 15px; background: rgba(255,255,255,0.2); color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer;">X</div>
+            <img id="fullscreen-img" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; touch-action: none;" onclick="event.stopPropagation()">
+            <div onclick="closeFullScreenImage()" style="position: absolute; top: 20px; left: 15px; background: rgba(255,255,255,0.2); color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; z-index: 100;">X</div>
         </div>
     
 <script>
@@ -9656,16 +9656,82 @@
             
             previewBox.innerHTML = text || "Andika makala yako na utaiona inavyoonekana hapa...";
         }
-               // --- FULL SCREEN IMAGE VIEWER ---
+
+            // --- FULL SCREEN IMAGE VIEWER WITH PINCH ZOOM ---
+        let fsImgScale = 1, fsImgX = 0, fsImgY = 0;
+        let fsStartDist = 0, fsStartScale = 1, fsStartX = 0, fsStartY = 0;
+
         function openFullScreenImage(url) {
             if(!url) return;
-            document.getElementById('fullscreen-img').src = url;
+            const img = document.getElementById('fullscreen-img');
+            img.src = url;
+            
+            // Reset zoom state
+            fsImgScale = 1; fsImgX = 0; fsImgY = 0;
+            img.style.transform = 'translate(0px, 0px) scale(1)';
+            
             document.getElementById('fullscreen-img-overlay').style.display = 'flex';
         }
+
         function closeFullScreenImage() {
             document.getElementById('fullscreen-img-overlay').style.display = 'none';
             document.getElementById('fullscreen-img').src = '';
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const img = document.getElementById('fullscreen-img');
+            if(!img) return;
+
+            // OMBA RUHUSA YA VIDOLE VIWILI (Pinch)
+            img.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    fsStartDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    fsStartScale = fsImgScale;
+                } else if (e.touches.length === 1 && fsImgScale > 1) {
+                    e.preventDefault();
+                    fsStartX = e.touches[0].clientX - fsImgX;
+                    fsStartY = e.touches[0].clientY - fsImgY;
+                }
+            });
+
+            // ENDESHA VIDOLE (Zoom & Pan)
+            img.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    let dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    fsImgScale = fsStartScale * (dist / fsStartDist);
+                    
+                    // Funga kuzoom isiwe ndogo kuliko asili au kubwa kuliko 5x
+                    if (fsImgScale < 1) fsImgScale = 1;
+                    if (fsImgScale > 5) fsImgScale = 5;
+                    
+                    if (fsImgScale === 1) {
+                        fsImgX = 0; fsImgY = 0;
+                    }
+                    img.style.transform = `translate(${fsImgX}px, ${fsImgY}px) scale(${fsImgScale})`;
+                } else if (e.touches.length === 1 && fsImgScale > 1) {
+                    e.preventDefault();
+                    fsImgX = e.touches[0].clientX - fsStartX;
+                    fsImgY = e.touches[0].clientY - fsStartY;
+                    img.style.transform = `translate(${fsImgX}px, ${fsImgY}px) scale(${fsImgScale})`;
+                }
+            });
+
+            // RUDIA MWANZO UKIKAZA VIDOLE
+            img.addEventListener('touchend', () => {
+                if (fsImgScale <= 1) {
+                    fsImgScale = 1; fsImgX = 0; fsImgY = 0;
+                    img.style.transform = 'translate(0px, 0px) scale(1)';
+                }
+            });
+        });
             // --- HEADER DROPDOWN MENU ---
         function toggleHeaderMenu(e) {
             e.stopPropagation();
