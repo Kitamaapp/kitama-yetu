@@ -2340,53 +2340,64 @@
                   showToast("Tip mpya kutoka Kitama Yetu!");
                   if(document.getElementById('status-sec').classList.contains('active')) loadStatusUI(); // HAPA NDIO ILIKUWA KOSA
               })
-              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (!currentUser) return;
                   
-                  // KAMA MABADILIKO YANAMHUSU MTUMIAJI MWEYYY
                   if (updatedUser.id === currentUser.id) {
                       localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
                       
-                      // 1. KAMA AMEPATA RUHUSA MPYA YA RAMANI
-                      if (updatedUser.can_edit_map !== currentUser.can_edit_map) {
-                          showToast(updatedUser.can_edit_map ? "Umepata uwezo wa kuongeza maeneo!" : "Umeondolewa uwezo wa kuongeza maeneo.");
-                          // KAMA YUPO KENYE RAMANI, IJAZIA UPYA
-                          if (document.getElementById('kitama-map-sec').classList.contains('active')) {
-                              initKitamaMap(); 
-                          }
-                      }
-                      
+                      const canEditMapChanged = updatedUser.can_edit_map !== currentUser.can_edit_map;
                       const activistChanged = updatedUser.is_activist !== currentUser.is_activist;
                       const statusChanged = updatedUser.status !== currentUser.status;
-                      
-                      // 2. KAMA STATUS IMEBADILISHWA
+
+                      // 1. UWEZO WA RAMANI
+                      if (canEditMapChanged) {
+                          showToast(updatedUser.can_edit_map ? "Umepata uwezo wa kuongeza maeneo!" : "Umeondolewa uwezo wa kuongeza maeneo.");
+                          if (document.getElementById('kitama-map-sec').classList.contains('active')) initKitamaMap();
+                      }
+
+                      // 2. MABADILIKO YA STATUS (View-Only, Ban, au Active)
                       if (statusChanged) {
                           if (updatedUser.status === 'rejected') {
                               openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kabisa na Admin wa Mfumo. Utatoka kwenye app sasa.", false);
                               setTimeout(() => handleLogout(), 3000);
+                              return;
                           } else if (updatedUser.status === 'restricted') {
-                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochete.", false);
-                              location.reload();
-                          } else if (updatedUser.status === 'active' && currentUser.status === 'restricted') {
+                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochote.", false);
+                          } else if (updatedUser.status === 'active') {
                               showToast("Akaunti yako imerudishiwa! Unaweza kuandika tena.");
-                              location.reload();
-                          } else {
-                              location.reload();
                           }
+                          
+                          // SASISHA UI KIMYAKIMYA (Background Refresh)
+                          const activeSecId = document.querySelector('.sec.active')?.id;
+                          setupDashboard(updatedUser); // Jenga upya dashibodi
+                          if (activeSecId) showSec(activeSecId); // Rudia page aliyoipo bila kufunga App
                           return;
                       }
-                      
-                      // 3. KAMA HADHI YA ACTIVIST IMEBADILISHWA
-                      if(activistChanged) {
-                          if(updatedUser.is_activist) openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b>.", false);
-                          else showToast("Hadhi yako ya Activist imeondolewa.");
+
+                      // 3. MABADILIKO YA UTHIBITISHO (Activist Badge)
+                      if (activistChanged) {
+                          if (updatedUser.is_activist) {
+                              openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b> (Verified).", false);
+                          } else {
+                              showToast("Hadhi yako ya Activist imeondolewa.");
+                          }
+                          
+                          // SASISHA UI KIMYAKIMYA
+                          const activeSecId = document.querySelector('.sec.active')?.id;
+                          setupDashboard(updatedUser);
+                          if (activeSecId === 'profile-sec') updateProfileUI(updatedUser); // Update profile page
+                          if (activeSecId) showSec(activeSecId); // Rudia page aliyoipo
                       }
-                      
-                      const activeSec = document.querySelector('.sec.active');
-                      if (activistChanged && activeSec && activeSec.id === 'home-sec') setupDashboard(updatedUser);
-                  } 
+                  } else {
+                      // ADMIN: SASISHA ORODHA KAMA YUPO KWENYE CONSOLE
+                      if(document.getElementById('pending-users-sec')?.classList.contains('active')) fetchPendingUsers();
+                      if(document.getElementById('admin-activists-sec')?.classList.contains('active')) fetchActivistsControl();
+                      if(document.getElementById('admin-users-sec')?.classList.contains('active')) fetchAdminUsers();
+                  }
+              })
                   // SITISHI ADMIN KUREFRESH OVYO OVYO HAPA CHINI
               })
              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'polls' }, payload => {
