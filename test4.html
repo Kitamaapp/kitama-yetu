@@ -997,21 +997,21 @@
         <div id="home-sec" class="sec active"><div id="home-content"></div></div>
         <div id="hub-sec" class="sec"><div class="sec-h"><h2>Mchanganyiko wa Habari</h2><span onclick="fetchHub()">Refresh</span></div><div id="hub-list"></div></div>
                
-            <!-- BODA HAILING SECTION (BOLT STYLE) -->
+        <!-- BODA HAILING SECTION (BOLT STYLE) -->
         <div id="boda-sec" class="sec boda-sec">
             <div id="boda-map"></div>
             
-            <!-- Top Back Button (Floating) -->
-            <button onclick="event.stopPropagation(); handleNav('home-sec')" style="position: absolute; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <!-- Top Back Button -->
+            <button onclick="event.stopPropagation(); handleNav('home-sec')" style="position: absolute; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 1001; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </button>
 
-             <!-- Floating Locate Button (Google Maps Style) -->
+            <!-- Floating Locate Button -->
             <button class="map-locate-btn" onclick="event.stopPropagation(); findMyLocation()">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
             </button>
 
-                        <!-- Bottom Sheet (Minimal) -->
+            <!-- Bottom Sheet -->
             <div class="boda-sheet" id="boda-sheet">
                 <div style="width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 15px auto;"></div>
                 
@@ -1334,12 +1334,12 @@
             <p style="color:var(--text-sec); font-size:13px; padding: 0 20px; margin-bottom: 15px;">Orodha ya shule kataani pamoja na taarifa za wanafunzi na viongozi.</p>
             <div id="public-schools-list"></div>
         </div>
-               <!-- KITAMA MAP SECTION -->
+                 <!-- KITAMA MAP SECTION -->
         <div id="kitama-map-sec" class="sec boda-sec">
             <div id="kitama-map"></div>
             
             <!-- Top Back Button -->
-            <button onclick="event.stopPropagation(); handleNav('home-sec')" style="position: absolute; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <button onclick="event.stopPropagation(); handleNav('home-sec')" style="position: absolute; top: 20px; left: 15px; width: 40px; height: 40px; background: var(--surface); border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 1001; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </button>
 
@@ -1347,9 +1347,11 @@
             <button class="map-locate-btn" onclick="event.stopPropagation(); findMyLocationOnMap()">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
             </button>
-            <!-- ADMIN/WAHARIRI: ONGEZA ENEO HALI PALIPO (Floating Circle Icon) -->
-            <button id="add-place-btn" onclick="addCurrentPlaceToMap()" style="position: fixed; bottom: 150px; right: 15px; width: 45px; height: 45px; background: var(--accent); color: white; border: none; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 9999; cursor: pointer; display: none; align-items: center; justify-content: center;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+
+            <!-- ADMIN: ONGEZA ENEO HALI PALIPO -->
+            <button id="add-place-btn" onclick="event.stopPropagation(); addCurrentPlaceToMap()" style="position: absolute; top: 20px; right: 15px; background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 1001; cursor: pointer; font-weight: 700; font-size: 12px; display: none; align-items: center; gap: 5px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Ongeza Eneo
             </button>
         </div>
                <!-- STATUS SECTION -->
