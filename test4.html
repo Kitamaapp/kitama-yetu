@@ -968,6 +968,9 @@
                 <h3 style="font-size: 20px; font-weight: 800; color: var(--accent); margin: 0;">Kitama Yetu</h3>
             </div>
         </div>
+        <button class="theme-toggle" onclick="refreshApp()" style="margin-right: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </button>
          <div class="header-actions">
             <button class="theme-toggle" onclick="handleNav('my-inbox-sec')" style="position: relative;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
@@ -1710,6 +1713,24 @@
         }
     }
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // --- HANDLE ANDROID BACK BUTTON & REFRESH ---
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+        window.Capacitor.Plugins.App.addListener('backButton', () => {
+            if (document.getElementById('modal-overlay').style.display === 'flex') {
+                closeModal();
+            } else if (document.getElementById('status-viewer-overlay') && document.getElementById('status-viewer-overlay').style.display === 'flex') {
+                closeStatusViewer();
+            } else if (document.querySelector('.sec.active') && document.querySelector('.sec.active').id !== 'home-sec') {
+                handleNav('home-sec');
+            } else {
+                window.Capacitor.Plugins.App.exitApp();
+            }
+        });
+    }
+
+    function refreshApp() {
+        location.reload();
+    }
     let appHistory = ['home-sec'];
     let mapInstance = null;
     let isRealtimeInitialized = false; 
@@ -1855,17 +1876,32 @@
             }
             updateCharCount('rep-desc', 'rep-count');
         }
-    function openModal(title, text, isPrompt, callback) {
+        function openModal(title, text, isPrompt, callback) {
         document.getElementById('modal-title').innerHTML = title;
         document.getElementById('modal-text').innerHTML = text;
         document.getElementById('modal-input-container').style.display = isPrompt ? 'block' : 'none';
         document.getElementById('modal-input').value = '';
-        document.getElementById('modal-ok').onclick = () => {
-            if(isPrompt) { const val = document.getElementById('modal-input').value.trim(); if(!val) return; closeModal(); callback(val); }
-            else { closeModal(); if(callback) callback(); }
+        
+        const okBtn = document.getElementById('modal-ok');
+        const cancelBtn = document.getElementById('modal-cancel');
+        okBtn.style.display = 'flex'; 
+        cancelBtn.style.display = 'flex';
+        
+        okBtn.onclick = () => {
+            if(isPrompt) { 
+                const val = document.getElementById('modal-input').value.trim(); 
+                if(!val) return; 
+                closeModal(); 
+                callback(val); 
+            } else { 
+                closeModal(); 
+                if(callback) callback(); 
+            }
         };
-        document.getElementById('modal-cancel').style.display = isPrompt ? 'block' : 'none';
-        document.getElementById('modal-ok').className = 'm-btn m-btn-primary';
+        okBtn.className = 'm-btn m-btn-primary';
+        okBtn.innerText = 'Sawa';
+        cancelBtn.innerText = isPrompt ? 'Ghairi' : 'Funga';
+        
         document.getElementById('modal-overlay').style.display = 'flex';
     }
     function closeModal() { 
@@ -8051,7 +8087,7 @@
 
         async function syncContacts() {
             if (!('contacts' in navigator) || !navigator.contacts.select) {
-                return showToast("Kifaa chako hakiauni kusoma contacts moja kwa moja. (Tumia Chrome au APK mpya).");
+                return showToast("Kifaa chako hakiauni kusoma contacts moja kwa moja.");
             }
             
             try {
@@ -8067,20 +8103,17 @@
                     }
                 });
                 
-                // Hifadhi kwenye localStorage
                 localStorage.setItem('kitama_saved_contacts', JSON.stringify(savedNumbers));
                 showToast("Contacts zimehifadhiwa! Sasa utaona status zao tu.");
                 
-                // Ficha kitufe baada ya kusync
                 const syncBtn = document.getElementById('sync-contacts-btn');
                 if (syncBtn) syncBtn.style.display = 'none';
-                
-                loadStatusUI(); // Pakia upya status
+                loadStatusUI(); 
             } catch(e) {
-                openModal("Kosa", e.message);
+                console.error("Contacts error:", e);
+                openModal("Kosa la Contacts", e.message);
             }
         }
-
         function handleSwipeEnd(endY) {
             const diffY = touchStartY - endY;
             const duration = Date.now() - touchStartTime;
@@ -8598,7 +8631,7 @@
             document.getElementById('modal-cancel').innerText = 'Ghairi';
         }
 
-               async function saveNewMapPlace() {
+            async function saveNewMapPlace() {
             const name = document.getElementById('new-place-name').value.trim();
             const category = document.getElementById('new-place-category').value;
             if(!name) return showToast("Tafadhali weka jina la eneo.");
@@ -8609,28 +8642,27 @@
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             
             try {
-                // 1. WEKA KWENYE MAOMBI
-                await sb.from('map_place_requests').insert([{ 
-                    name: name, lat: lat.toString(), lng: lng.toString(), category: category,
-                    requested_by_name: u.full_name, requested_by_phone: u.phone_number, status: 'pending'
-                }]);
-                
-                // 2. MTUMIE UJUMBE KWENYE INBOX YAKE (Mfumo wa Kitama)
-                await sb.from('shop_messages').insert([{
-                    shop_id: null,
-                    sender_phone: window.adminPhone, 
-                    sender_name: 'Mfumo wa Kitama',
-                    content: "Ombi lako la kuongeza eneo la '" + name + "' kwenye Ramani limewasilishwa kwa Admin. Utapokea jibu la mwisho hapa kwenye Inbox mara Admin atakapokagua. Asante kwa kushiriki kujenga Ramani ya Kitama!",
-                    recipient_phone: u.phone_number,
-                    is_read: false
-                }]);
-                
-                updateBadges(); // Sasisha badge ya inbox
-                showToast("Ombi lako limewasilishwa! Angalia Inbox yako.");
+                if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani') {
+                    await sb.from('map_places').insert([{ name: name, lat: lat.toString(), lng: lng.toString(), category: category }]);
+                    showToast("Eneo limeongezwa rasmi kwenye ramani kwa wote!");
+                } else {
+                    await sb.from('map_place_requests').insert([{ 
+                        name: name, lat: lat.toString(), lng: lng.toString(), category: category,
+                        requested_by_name: u.full_name, requested_by_phone: u.phone_number, status: 'pending'
+                    }]);
+                    await sb.from('shop_messages').insert([{
+                        shop_id: null, sender_phone: window.adminPhone, sender_name: 'Mfumo wa Kitama',
+                        content: "Ombi lako la kuongeza eneo la '" + name + "' limewasilishwa kwa Admin.",
+                        recipient_phone: u.phone_number, is_read: false
+                    }]);
+                    updateBadges();
+                    showToast("Ombi lako limewasilishwa! Angalia Inbox yako.");
+                }
                 closeModal();
                 if (tempAddPlaceMarker) { kitamaMap.removeLayer(tempAddPlaceMarker); tempAddPlaceMarker = null; }
-            } catch(e) {
-                openModal("Kosa", e.message);
+                loadMapMarkers(); 
+            } catch(e) { 
+                openModal("Kosa", e.message); 
             }
         }
         async function toggleMapEditor(userId, allow) {
