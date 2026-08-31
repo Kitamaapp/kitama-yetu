@@ -962,11 +962,9 @@
 </div>
 
 <div class="app-c" id="app-c">
-        <header class="app-h">
-        <div onclick="handleNav('profile-sec')" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-            <img id="h-avatar" src="" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); display:none;">
-            <div id="h-initial" style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">U</div>
-            <div><p style="font-size:11px; color:var(--text-sec); margin:0;">Karibu</p><h3 style="font-size:16px; font-weight:800; margin:0;">Kitama Yetu</h3></div>
+            <header class="app-h">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <h3 style="font-size: 20px; font-weight: 800; color: var(--accent); margin: 0;">Kitama Yetu</h3>
         </div>
         
         <div class="header-actions" style="display: flex; align-items: center; gap: 8px;">
@@ -8092,33 +8090,63 @@
             handleSwipeEnd(e.clientY);
         });
 
-        async function syncContacts() {
-            if (!('contacts' in navigator) || !navigator.contacts.select) {
-                return showToast("Kifaa chako hakiauni kusoma contacts moja kwa moja.");
-            }
-            
-            try {
-                const contacts = await navigator.contacts.select(['tel'], { multiple: true });
-                if (contacts.length === 0) return showToast("Hujachagua contacts zozote.");
-                
-                let savedNumbers = [];
-                contacts.forEach(c => {
-                    if (c.tel && c.tel.length > 0) {
-                        c.tel.forEach(num => {
-                            savedNumbers.push(normalizePhone(num));
+                async function syncContacts() {
+            // TUMIA PLUGIN YA NATIVE ANDROID (Capacitor)
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Contacts) {
+                try {
+                    const Contacts = window.Capacitor.Plugins.Contacts;
+                    
+                    // 1. Omba Ruhusa
+                    const perm = await Contacts.requestPermissions();
+                    if (!perm.granted) {
+                        return showToast("Ruhusa ya kusoma contacts imekataliwa.");
+                    }
+                    
+                    showToast("Inasoma contacts zako... subiri kidogo.");
+                    
+                    // 2. Soma Contacts zote kimyakimya
+                    const result = await Contacts.getContacts({ projection: { name: true, phones: true } });
+                    
+                    let savedNumbers = [];
+                    if (result && result.contacts) {
+                        result.contacts.forEach(c => {
+                            if (c.phones && c.phones.length > 0) {
+                                c.phones.forEach(p => savedNumbers.push(normalizePhone(p.number)));
+                            }
                         });
                     }
-                });
-                
-                localStorage.setItem('kitama_saved_contacts', JSON.stringify(savedNumbers));
-                showToast("Contacts zimehifadhiwa! Sasa utaona status zao tu.");
-                
-                const syncBtn = document.getElementById('sync-contacts-btn');
-                if (syncBtn) syncBtn.style.display = 'none';
-                loadStatusUI(); 
-            } catch(e) {
-                console.error("Contacts error:", e);
-                openModal("Kosa la Contacts", e.message);
+                    
+                    // 3. Hifadhi kwenye simu
+                    localStorage.setItem('kitama_saved_contacts', JSON.stringify(savedNumbers));
+                    showToast("Contacts zimehifadhiwa! Sasa utaona status zao tu.");
+                    
+                    const syncBtn = document.getElementById('sync-contacts-btn');
+                    if (syncBtn) syncBtn.style.display = 'none';
+                    loadStatusUI();
+                } catch(e) {
+                    console.error("Contacts error:", e);
+                    openModal("Kosa la Contacts", e.message);
+                }
+            } else {
+                // KAMA PLUGIN HAIPATIKANI (Fallback kwa Web)
+                if (!('contacts' in navigator) || !navigator.contacts.select) {
+                    return showToast("Kifaa chako hakiauni kusoma contacts.");
+                }
+                try {
+                    const contacts = await navigator.contacts.select(['tel'], { multiple: true });
+                    if (contacts.length === 0) return;
+                    
+                    let savedNumbers = [];
+                    contacts.forEach(c => {
+                        if (c.tel && c.tel.length > 0) c.tel.forEach(num => savedNumbers.push(normalizePhone(num)));
+                    });
+                    localStorage.setItem('kitama_saved_contacts', JSON.stringify(savedNumbers));
+                    showToast("Contacts zimehifadhiwa!");
+                    document.getElementById('sync-contacts-btn').style.display = 'none';
+                    loadStatusUI();
+                } catch(e) {
+                    openModal("Kosa", e.message);
+                }
             }
         }
         function handleSwipeEnd(endY) {
