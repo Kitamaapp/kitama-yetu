@@ -652,10 +652,11 @@
             color: #94a3b8 !important; 
             border-color: #2a3650 !important; 
         }         
-                .map-locate-btn {
+        .map-locate-btn {
             position: absolute;
-            bottom: 90px; 
+            top: 50%; 
             right: 15px;
+            transform: translateY(-50%); /* Ifanye katikati wima */
             width: 45px;
             height: 45px;
             background: var(--surface);
@@ -663,7 +664,7 @@
             border-radius: 50%;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             cursor: pointer;
-            z-index: 500;
+            z-index: 1000; /* Iwe juu kabisa ili isifichwe na bottom sheet */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -962,12 +963,12 @@
 </div>
 
 <div class="app-c" id="app-c">
-            <header class="app-h">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <h3 style="font-size: 20px; font-weight: 800; color: var(--accent); margin: 0;">Kitama Yetu</h3>
+        <header class="app-h">
+        <div style="display:flex; align-items:center; gap:10px; flex-shrink: 0; margin-right: auto; white-space: nowrap;">
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--accent); margin: 0; white-space: nowrap;">Kitama Yetu</h3>
         </div>
         
-        <div class="header-actions" style="display: flex; align-items: center; gap: 8px;">
+        <div class="header-actions" style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
             <button class="theme-toggle" onclick="handleNav('my-inbox-sec')" style="position: relative;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 <span id="inbox-badge" style="position: absolute; top: -2px; right: -2px; background: #EF4444; color: white; font-size: 10px; min-width: 16px; height: 16px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span>
@@ -5866,9 +5867,9 @@
             } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
         }
 
-        function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
+            function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
             openModal("Ramani & Njia ya Kwenda", `<div id="boda-req-map-${reqId}" style="height: 300px; width: 100%; border-radius: 12px;"></div>`, false);
-            setTimeout(() => {
+            setTimeout(async () => {
                 const reqMap = L.map(`boda-req-map-${reqId}`).setView([parseFloat(pLat), parseFloat(pLng)], 14);
                 L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(reqMap);
                 
@@ -5878,7 +5879,6 @@
                     lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
                 }).addTo(reqMap);
 
-                // FALLBACK: KAMA SEVER YA BARABARA INAKATAA, CHORA MSTARI WA MOJA KWA MOJA
                 rc.on('routingerror', () => {
                     if (rc) { reqMap.removeControl(rc); }
                     L.polyline([[parseFloat(pLat), parseFloat(pLng)], [parseFloat(dLat), parseFloat(dLng)]], {color: '#10B981', weight: 4, dashArray: '10, 10'}).addTo(reqMap);
@@ -5888,9 +5888,20 @@
                 const pickupIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15]});
                 L.marker([parseFloat(pLat), parseFloat(pLng)], {icon: pickupIcon}).addTo(reqMap).bindPopup("<b>Abiria yupo hapa</b>").openPopup();
                 
+                // ONGEZA HII: VUTA MAENEO YA KITAMA NA KUYAONGEZA KWENYE RAMANI YA DEREVA
+                try {
+                    const { data: places } = await sb.from('map_places').select('*');
+                    if (places && places.length > 0) {
+                        places.forEach(p => {
+                            const placeIcon = getMapPinIcon(p.category, p.name);
+                            L.marker([parseFloat(p.lat), parseFloat(p.lng)], { icon: placeIcon }).addTo(reqMap);
+                        });
+                    }
+                } catch(e) { console.error("Places error on driver map:", e); }
+
                 setTimeout(() => { reqMap.invalidateSize(); }, 300);
             }, 200);
-        }     
+        }    
     
     async function acceptBoda(reqId, riderPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
