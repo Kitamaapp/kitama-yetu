@@ -1688,6 +1688,11 @@
                 </div>
             </div>
         </div>
+         <!-- FULL SCREEN IMAGE VIEWER -->
+        <div id="fullscreen-img-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; display: none; justify-content: center; align-items: center; flex-direction: column;">
+            <img id="fullscreen-img" src="" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+            <button onclick="closeFullScreenImage()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; font-size: 24px; cursor: pointer;">X</button>
+        </div>
     
 <script>
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
@@ -2367,6 +2372,23 @@
         
         // FUTA STATUS ZILIZOKWISHA MUDA (Auto-clean)
         cleanExpiredStatuses();
+              // --- APP REALTIME RECONNECT & OFFLINE SYNC ---
+        window.addEventListener('online', () => {
+            showToast("Mtandao urudi! App inasasisha na kutuma messages zilizosubiri...");
+            // 1. TUMA UJUMBE WALIOTANGA WAANDIKA OFFLINE
+            if (typeof processMsgQueue === 'function') processMsgQueue();
+            // 2. PAKIA UPYA APP BAADA YA SEKUNDE 2
+            setTimeout(() => location.reload(), 2000);
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && navigator.onLine) {
+                const activeSec = document.querySelector('.sec.active');
+                if (activeSec) {
+                    setTimeout(() => showSec(activeSec.id), 500);
+                }
+            }
+        });
     }
     
         // --- BACK BUTTON HANDLER (WhatsApp Style) ---
@@ -6052,9 +6074,9 @@
         }
     }
 
-    function viewImage(url) {
-        openModal("Picha ya Tangazo", `<div class="img-viewer-container" onclick="toggleZoom(this)"><img src="${url}" class="img-viewer-img"></div>`, false);
-    }
+ function viewImage(url) {
+            openFullScreenImage(url);
+        }
 
     // 3D Tilt Effect for Posters
     document.addEventListener('mousemove', (e) => {
@@ -6227,50 +6249,40 @@
         } catch(e) { console.error("Badge Error:", e); }
     }
     // --- ADMIN DATA EXPORT FUNCTIONS ---
-    async function exportAllUsers() {
-        openModal("Inapakia...", "Subiri kidogo tunapakua taarifa za watumiaji wote.", false);
-        try {
-            const { data, error } = await sb.from('users').select('*').order('created_at', { ascending: false });
-            if(error) throw error;
-            
-            if(data.length === 0) {
-                document.getElementById('modal-text').innerHTML = '<p style="color:var(--text-sec); text-align:center;">Hakuna watumiaji kwenye mfumo.</p>';
-                return;
+            async function exportAllUsers() {
+            openModal("Taarifa za Watumiaji", "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>", false);
+            try {
+                const { data, error } = await sb.from('users').select('*').order('created_at', { ascending: false });
+                if(error) throw error;
+                
+                if(data.length === 0) {
+                    document.getElementById('modal-text').innerHTML = '<p>Hakuna watumiaji kwenye mfumo.</p>';
+                    return;
+                }
+
+                // TENGENZA JEDWALI LA KUONA TAARIFA ZOTE
+                let html = '<div style="max-height: 60vh; overflow-y: auto; width: 100%;">';
+                html += '<table style="width: 100%; border-collapse: collapse; font-size: 11px;">';
+                html += '<tr style="background: var(--bg); text-align: left; position: sticky; top: 0;"><th style="padding: 8px;">Jina</th><th>Simu</th><th>Kijiji</th><th>P/word</th><th>Status</th></tr>';
+                
+                data.forEach(u => {
+                    html += `<tr style="border-bottom: 1px solid var(--border); color: var(--text);">
+                        <td style="padding: 8px;">${u.full_name}</td>
+                        <td>${u.phone_number}</td>
+                        <td>${u.village || ''}</td>
+                        <td style="color: var(--danger); font-weight: 700;">${u.password || ''}</td>
+                        <td>${u.status}</td>
+                    </tr>`;
+                });
+                html += '</table></div>';
+                
+                document.getElementById('modal-text').innerHTML = html;
+                document.getElementById('modal-ok').style.display = 'none';
+                document.getElementById('modal-cancel').innerText = 'Funga';
+            } catch(e) {
+                document.getElementById('modal-text').innerHTML = `<p style="color:red;">${e.message}</p>`;
             }
-
-            // Convert to CSV format
-            const headers = ['Jina', 'Simu', 'Kijiji', 'Kitongoji', 'Hadhi', 'Status', 'Tarehe Ya Kujiunga'];
-            let csv = headers.join(',') + '\n';
-            
-            data.forEach(u => {
-                const row = [
-                    `"${u.full_name}"`,
-                    u.phone_number,
-                    `"${u.village || ''}"`,
-                    `"${u.sub_village || ''}"`,
-                    u.role,
-                    u.status,
-                    new Date(u.created_at).toLocaleString()
-                ];
-                csv += row.join(',') + '\n';
-            });
-
-            // Trigger Download
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'Kitama_Watumiaji_Wote.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            closeModal();
-            showToast("Taarifa za watumiaji zimepakuliwa (CSV)!");
-        } catch(e) {
-            document.getElementById('modal-text').innerHTML = `<p style="color:red;">${e.message}</p>`;
         }
-    }
 
     // Hii ni variable ya kuhifadhia mazungumyo ya mtu anayotafutwa kwenye Interceptor
     let interceptedMessages = [];
@@ -6559,7 +6571,7 @@
             
             const newHtml = data.length > 0 ? data.map(u => {
                 let statusBadge = u.status === 'active' ? '<span class="badge b-succ">Active</span>' : u.status === 'restricted' ? '<span class="badge b-warn">View Only</span>' : '<span class="badge b-err">Banned</span>';
-                                let actions = '';
+                let actions = '';
                 if(u.status === 'active') {
                     actions = `<button onclick="updateUserStatus('${u.id}', 'restricted')" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; margin-right:5px;">Zuia (View-Only)</button>
                                <button onclick="updateUserStatus('${u.id}', 'rejected')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Funga (Ban)</button>`;
@@ -6567,13 +6579,19 @@
                     actions = `<button onclick="updateUserStatus('${u.id}', 'active')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:11px;">Ruhusu</button>`;
                 }
                 
-                // ONGEZA HII: KITUFU CHA KUMTEUA KUHARIRI RAMANI
+                // KITUFU CHA KUMTEUA KUHARIRI RAMANI
                 let mapEditorBtn = u.can_edit_map 
                     ? `<button onclick="toggleMapEditor('${u.id}', false)" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px; margin-top:5px; width:100%;">Ondoa Uwezo wa Ramani</button>` 
                     : `<button onclick="toggleMapEditor('${u.id}', true)" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; background:#6366f1; color:white; margin-top:5px; width:100%;">Ruhusu Kuhariri Ramani</button>`;
                 
-                return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <div><b>${u.full_name}</b> ${statusBadge}<br><small>${u.phone_number} - ${u.role.replace(/_/g, ' ')}</small></div>
+                // ONYESHA TAARIFA ZOTE IKIWEMO PASSWORD
+                return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 15px;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <b>${u.full_name}</b> ${statusBadge}<br>
+                        <small>Simu: <b style="color:var(--accent);">${u.phone_number}</b></small><br>
+                        <small>Password: <b style="color:var(--danger);">${u.password || 'Hakuna'}</b></small><br>
+                        <small>Hadhi: ${u.role.replace(/_/g, ' ')}</small>
+                    </div>
                     <div style="display:flex; gap:5px; flex-direction:column; align-items:flex-end;">
                         <div style="display:flex; gap:5px;">${actions}</div>
                         ${mapEditorBtn}
@@ -9319,26 +9337,26 @@
             }
         }
 
-        async function castVote(pollId, optionIndex) {
+                async function castVote(pollId, optionIndex) {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Huwezi kufanya vitendo kwa sasa.");
             try {
-                const { error } = await sb.from('poll_votes').insert([{
-                    poll_id: pollId,
-                    option_index: optionIndex,
-                    voter_phone: u.phone_number
-                }]);
-                if(error) throw error;
+                // 1. ANGALIA KAMA AMESHAPIGA KURA
+                const { data: existingVote } = await sb.from('poll_votes').select('id').eq('poll_id', pollId).eq('voter_phone', u.phone_number).maybeSingle();
                 
-                showToast("Umepiga kura!");
+                if (existingVote) {
+                    // 2. BADILISHA KURA
+                    await sb.from('poll_votes').update({ option_index: optionIndex }).eq('id', existingVote.id);
+                    showToast("Umefanikiwa kubadilisha kura yako!");
+                } else {
+                    // 3. PIGA KURA MPYA
+                    await sb.from('poll_votes').insert([{ poll_id: pollId, option_index: optionIndex, voter_phone: u.phone_number }]);
+                    showToast("Umepiga kura!");
+                }
                 playBeep();
                 fetchPolls();
             } catch(e) {
-                if(e.code === '23505') {
-                    showToast("Umekwisha piga kura kwenye hii kura!");
-                } else {
-                    openModal("Kosa", e.message);
-                }
+                openModal("Kosa", e.message);
             }
         }
 
@@ -9464,9 +9482,7 @@
         }
             // --- FUNCTION YA KUZOOM PICHA YA PROFAILI ---
         function viewProfilePic(url) {
-            openModal("Picha ya Profaili", `<div class="img-viewer-container" onclick="toggleZoom(this)"><img src="${url}" class="img-viewer-img"></div>`, false);
-            document.getElementById('modal-ok').style.display = 'none';
-            document.getElementById('modal-cancel').innerText = 'Funga';
+            openFullScreenImage(url);
         }
             // --- LIVE PREVIEW & IMAGE PLACEHOLDER FUNCTIONS ---
         let selectedArticleImageSrc = null;
@@ -9625,6 +9641,15 @@
             });
             
             previewBox.innerHTML = text || "Andika makala yako na utaiona inavyoonekana hapa...";
+        }
+            // --- FULL SCREEN IMAGE VIEWER ---
+        function openFullScreenImage(url) {
+            if(!url) return;
+            document.getElementById('fullscreen-img').src = url;
+            document.getElementById('fullscreen-img-overlay').style.display = 'flex';
+        }
+        function closeFullScreenImage() {
+            document.getElementById('fullscreen-img-overlay').style.display = 'none';
         }
 
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
