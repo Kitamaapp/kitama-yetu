@@ -5134,7 +5134,6 @@
         
         try { 
             let query = sb.from('marketplace').select('*').order('created_at', {ascending:false}).limit(100);
-            query = query.neq('phone', u.phone_number);
             if (search) query = query.ilike('item_name', `%${search}%`);
             if (cat !== 'all') query = query.eq('category', cat);
             const { data, error } = await query; 
