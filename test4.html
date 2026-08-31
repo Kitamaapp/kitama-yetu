@@ -652,22 +652,54 @@
             color: #94a3b8 !important; 
             border-color: #2a3650 !important; 
         }         
-            .map-locate-btn {
+               /* PREMIUM MAP CONTROLS */
+        .map-locate-btn {
             position: fixed; 
-            bottom: 220px; 
+            bottom: 100px; 
             right: 15px;
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             background: var(--surface);
             border: none;
             border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             cursor: pointer;
             z-index: 1000; 
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text);
+            color: var(--accent);
+            transition: transform 0.2s;
+        }
+        .map-locate-btn:active { transform: scale(0.9); }
+        
+        /* Vifungo vya Zoom viwe vya Kisasa */
+        .leaflet-control-zoom {
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            margin-bottom: 10px !important;
+        }
+        .leaflet-control-zoom a {
+            width: 45px !important;
+            height: 45px !important;
+            line-height: 45px !important;
+            font-size: 22px !important;
+            color: var(--text) !important;
+            background: var(--surface) !important;
+            border-bottom: 1px solid var(--border) !important;
+        }
+        .leaflet-control-zoom a:hover {
+            background: var(--bg) !important;
+        }
+        .leaflet-control-scale-line {
+            background: rgba(255,255,255,0.8) !important;
+            padding: 2px 8px !important;
+            border-radius: 4px !important;
+            border: none !important;
+            font-weight: 700 !important;
+            color: #000 !important;
         }
            
         /* KITAMA MAP CSS FIX */
@@ -5407,10 +5439,9 @@
     let bodaRoutingControl = null;
     let bodaFareAmount = 0;
     let bodaRouteLine = null;
+    let bodaLocationWatchId = null;
 
-            let bodaLocationWatchId = null;
-
-        function initBodaMap() {
+             function initBodaMap() {
             if (bodaMap) {
                 setTimeout(() => { bodaMap.invalidateSize(); }, 200);
                 findMyLocation();
@@ -5418,15 +5449,21 @@
                 return;
             }
             
-            bodaMap = L.map('boda-map', { zoomControl: true }).setView([-6.2, 35.0], 13);
+            // PREMIUM MAP SETTINGS
+            bodaMap = L.map('boda-map', { 
+                zoomControl: false, 
+                inertia: true, 
+                zoomSnap: 0.5 
+            }).setView([-6.2, 35.0], 13);
             
-            const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' }).addTo(bodaMap);
-            const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
-            const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
+            const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' }).addTo(bodaMap);
+            const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' });
+            const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' });
             
             L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(bodaMap);
+            L.control.zoom({ position: 'bottomright' }).addTo(bodaMap);
+            L.control.scale({ position: 'bottomleft', metric: true, imperial: false }).addTo(bodaMap);
 
-            // ZOOM EVENT
             bodaMap.on('zoomend', function() {
                 toggleBodaPlaceLabels();
             });
@@ -5447,38 +5484,28 @@
             });
         }
 
-        // SAUTI YA SAHIHI: watchPosition kufuatilia eneo kila sekunde (Inatembea)
         function findMyLocation() {
             if (!navigator.geolocation) return showToast("Kifaa chako hakiauni GPS.");
             
-            // Futa ufuatiliaji wa zamani kama ulikuwepo
-            if (bodaLocationWatchId !== null) {
-                navigator.geolocation.clearWatch(bodaLocationWatchId);
-            }
-
-            bodaLocationWatchId = navigator.geolocation.watchPosition(
-                pos => {
-                    bodaPickupLat = pos.coords.latitude;
-                    bodaPickupLng = pos.coords.longitude;
-                    
-                    const pickupIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15] });
-                    
-                    if (pickupMarker) {
-                        // KAMA ALAMA IPO TAYARI, IBADILISHE MAHALALI PAMOJA NA HAMBA
-                        pickupMarker.setLatLng([bodaPickupLat, bodaPickupLng]);
-                    } else {
-                        // KAMA NI MARA YA KWANZA, IUNGEZE KENYE RAMANI NA IPELEKE ZOOM KWENYE ENEO
-                        pickupMarker = L.marker([bodaPickupLat, bodaPickupLng], { icon: pickupIcon }).addTo(bodaMap);
-                        pickupMarker.bindPopup("<b>Upo hapa (Pickup)</b>").openPopup();
-                        bodaMap.flyTo([bodaPickupLat, bodaPickupLng], 16, { duration: 1.5 });
-                    }
-                },
-                err => {
-                    if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
-                    else showToast("Washa GPS kwa High Accuracy.");
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
+            showToast("Inatafuta eneo lako...");
+            navigator.geolocation.getCurrentPosition(pos => {
+                bodaPickupLat = pos.coords.latitude;
+                bodaPickupLng = pos.coords.longitude;
+                
+                if(!bodaMap) return;
+                bodaMap.invalidateSize(); // FIX TATIZO LA KUKWAMA KWENYE APK
+                bodaMap.flyTo([bodaPickupLat, bodaPickupLng], 16, { duration: 1.5 });
+                
+                if (pickupMarker) bodaMap.removeLayer(pickupMarker);
+                const pickupIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15] });
+                pickupMarker = L.marker([bodaPickupLat, bodaPickupLng], { icon: pickupIcon }).addTo(bodaMap);
+                pickupMarker.bindPopup("<b>Wapo hapa (Pickup)</b>").openPopup();
+                
+                document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
+            }, err => {
+                if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
+                else showToast("Washa GPS kwa High Accuracy.");
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
         async function loadBodaMapPlaces() {
@@ -8464,13 +8491,13 @@
             // Reset input ili iweze kuruhusu kuchagua tena
             input.value = '';
         }
-              // --- KITAMA MAP FUNCTIONS ---
+                // --- KITAMA MAP FUNCTIONS ---
         let kitamaMap = null;
         let mapMarkers = [];
         let mapPlaceLabels = [];
         let myLocationMarker = null;
 
-                async function initKitamaMap() {
+        async function initKitamaMap() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             let canEditMap = false;
             
@@ -8488,10 +8515,7 @@
             const addBtn = document.getElementById('add-place-btn');
             if (addBtn) {
                 if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || canEditMap) {
-                    // LITATUZO LA HATARI: TUMIA NGUVU KABISA (!important) KUHAKIKISHA KINAONEKANA
-                    addBtn.style.setProperty('display', 'flex', 'important');
-                    addBtn.style.opacity = '1';
-                    addBtn.style.pointerEvents = 'auto';
+                    addBtn.style.display = 'flex';
                 } else {
                     addBtn.style.display = 'none';
                 }
@@ -8504,13 +8528,22 @@
                 return;
             }
             
-            kitamaMap = L.map('kitama-map', { zoomControl: true }).setView([-6.2, 35.0], 14);
+            // PREMIUM MAP SETTINGS (inertia, zoomSnap)
+            kitamaMap = L.map('kitama-map', { 
+                zoomControl: false, 
+                inertia: true, 
+                zoomSnap: 0.5 
+            }).setView([-6.2, 35.0], 14);
             
-            const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' }).addTo(kitamaMap);
-            const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
-            const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Kitama Yetu' });
+            const googleStreets = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' }).addTo(kitamaMap);
+            const googleSat = L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' });
+            const googleHybrid = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 21, attribution: 'Kitama Yetu' });
             
             L.control.layers({ "Ramani": googleStreets, "Satellite": googleSat, "Hybrid": googleHybrid }).addTo(kitamaMap);
+            
+            // WEKA VIFUNGO VYA ZOOM NA SCALE CHINI KULIA
+            L.control.zoom({ position: 'bottomright' }).addTo(kitamaMap);
+            L.control.scale({ position: 'bottomleft', metric: true, imperial: false }).addTo(kitamaMap);
 
             kitamaMap.on('zoomend', function() {
                 toggleMapPlaceLabels();
@@ -8518,6 +8551,35 @@
 
             findMyLocationOnMap();
             loadMapMarkers();
+        }
+
+        function findMyLocationOnMap() {
+            if (!navigator.geolocation) return showToast("Kifaa chako hakikai GPS.");
+            
+            showToast("Inatafuta eneo lako...");
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                
+                if(!kitamaMap) return;
+                kitamaMap.invalidateSize(); // HAKIKISHA RAMANI HAIFUNGWI KWENYE APK
+                kitamaMap.flyTo([lat, lng], 16, { duration: 1.5 }); // RUDIA KWA LAINI
+                
+                if (myLocationMarker) kitamaMap.removeLayer(myLocationMarker);
+                
+                const myLocationIcon = L.divIcon({
+                    className: 'blink-marker',
+                    html: '<div style="width:20px; height:20px; background:#3B82F6; border-radius:50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); animation: blink 1s infinite;"></div>',
+                    iconSize: [20, 20]
+                });
+                
+                myLocationMarker = L.marker([lat, lng], { icon: myLocationIcon }).addTo(kitamaMap);
+                myLocationMarker.bindPopup("<b>Wewe uko hapa</b>").openPopup();
+                
+            }, err => {
+                if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
+                else showToast("Washa GPS kwa High Accuracy.");
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
             // DICTIONARY YA IKONI NA RANGI KULINGANA NA CATEGORY
@@ -8584,32 +8646,6 @@
                     if (kitamaMap.hasLayer(label)) kitamaMap.removeLayer(label);
                 }
             });
-        }
-
-        function findMyLocationOnMap() {
-            if (!navigator.geolocation) return showToast("Kifaa chako hakikai GPS.");
-            
-            navigator.geolocation.getCurrentPosition(pos => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                
-                kitamaMap.flyTo([lat, lng], 16, { duration: 1.5 });
-                
-                if (myLocationMarker) kitamaMap.removeLayer(myLocationMarker);
-                
-                const myLocationIcon = L.divIcon({
-                    className: 'blink-marker',
-                    html: '<div style="width:20px; height:20px; background:#3B82F6; border-radius:50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); animation: blink 1s infinite;"></div>',
-                    iconSize: [20, 20]
-                });
-                
-                myLocationMarker = L.marker([lat, lng], { icon: myLocationIcon }).addTo(kitamaMap);
-                myLocationMarker.bindPopup("<b>Wewe uko hapa</b>").openPopup();
-                
-            }, err => {
-                if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
-                else showToast("Washa GPS kwa High Accuracy.");
-            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
                 let tempAddPlaceMarker = null;
