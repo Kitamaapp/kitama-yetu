@@ -2340,7 +2340,7 @@
                   showToast("Tip mpya kutoka Kitama Yetu!");
                   if(document.getElementById('status-sec').classList.contains('active')) loadStatusUI(); // HAPA NDIO ILIKUWA KOSA
               })
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
+                          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (!currentUser) return;
@@ -2371,9 +2371,9 @@
                           }
                           
                           // SASISHA UI KIMYAKIMYA (Background Refresh)
-                          const activeSecId = document.querySelector('.sec.active')?.id;
-                          setupDashboard(updatedUser); // Jenga upya dashibodi
-                          if (activeSecId) showSec(activeSecId); // Rudia page aliyoipo bila kufunga App
+                          const activeSecId = document.querySelector('.sec.active') ? document.querySelector('.sec.active').id : null;
+                          setupDashboard(updatedUser);
+                          if (activeSecId) showSec(activeSecId);
                           return;
                       }
 
@@ -2385,20 +2385,16 @@
                               showToast("Hadhi yako ya Activist imeondolewa.");
                           }
                           
-                          // SASISHA UI KIMYAKIMYA
-                          const activeSecId = document.querySelector('.sec.active')?.id;
+                          const activeSecId = document.querySelector('.sec.active') ? document.querySelector('.sec.active').id : null;
                           setupDashboard(updatedUser);
-                          if (activeSecId === 'profile-sec') updateProfileUI(updatedUser); // Update profile page
-                          if (activeSecId) showSec(activeSecId); // Rudia page aliyoipo
+                          if (activeSecId === 'profile-sec') updateProfileUI(updatedUser);
+                          if (activeSecId) showSec(activeSecId);
                       }
                   } else {
-                      // ADMIN: SASISHA ORODHA KAMA YUPO KWENYE CONSOLE
-                      if(document.getElementById('pending-users-sec')?.classList.contains('active')) fetchPendingUsers();
-                      if(document.getElementById('admin-activists-sec')?.classList.contains('active')) fetchActivistsControl();
-                      if(document.getElementById('admin-users-sec')?.classList.contains('active')) fetchAdminUsers();
+                      if(document.getElementById('pending-users-sec') && document.getElementById('pending-users-sec').classList.contains('active')) fetchPendingUsers();
+                      if(document.getElementById('admin-activists-sec') && document.getElementById('admin-activists-sec').classList.contains('active')) fetchActivistsControl();
+                      if(document.getElementById('admin-users-sec') && document.getElementById('admin-users-sec').classList.contains('active')) fetchAdminUsers();
                   }
-              })
-                  // SITISHI ADMIN KUREFRESH OVYO OVYO HAPA CHINI
               })
              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'polls' }, payload => {
                   playBeep();
