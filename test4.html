@@ -2428,15 +2428,14 @@
                               setTimeout(() => handleLogout(), 3000);
                               return;
                           } else if (updatedUser.status === 'restricted') {
-                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu, huwezi kutuma chochote.", false);
+                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu.", false);
                           } else if (updatedUser.status === 'active') {
                               showToast("Akaunti yako imerudishiwa! Unaweza kuandika tena.");
                           }
                           
-                          // SASISHA UI KIMYAKIMYA (Background Refresh)
-                          const activeSecId = document.querySelector('.sec.active') ? document.querySelector('.sec.active').id : null;
+                          // SASISHA UI KIMYAKIMYA (Badala ya reload)
                           setupDashboard(updatedUser);
-                          if (activeSecId) showSec(activeSecId);
+                          resyncActiveScreen(); 
                           return;
                       }
 
@@ -2448,12 +2447,12 @@
                               showToast("Hadhi yako ya Activist imeondolewa.");
                           }
                           
-                          const activeSecId = document.querySelector('.sec.active') ? document.querySelector('.sec.active').id : null;
+                          // SASISHA UI KIMYAKIMYA
                           setupDashboard(updatedUser);
-                          if (activeSecId === 'profile-sec') updateProfileUI(updatedUser);
-                          if (activeSecId) showSec(activeSecId);
+                          resyncActiveScreen();
                       }
                   } else {
+                      // ADMIN: SASISHA ORODHA KAMA YUPO KWENYE CONSOLE
                       if(document.getElementById('pending-users-sec') && document.getElementById('pending-users-sec').classList.contains('active')) fetchPendingUsers();
                       if(document.getElementById('admin-activists-sec') && document.getElementById('admin-activists-sec').classList.contains('active')) fetchActivistsControl();
                       if(document.getElementById('admin-users-sec') && document.getElementById('admin-users-sec').classList.contains('active')) fetchAdminUsers();
@@ -2483,6 +2482,109 @@
         
         // FUTA STATUS ZILIZOKWISHA MUDA (Auto-clean)
         cleanExpiredStatuses();
+
+            // --- FIREBASE PUSH NOTIFICATIONS (Background & Foreground) ---
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.PushNotifications) {
+            const PushNotifications = window.Capacitor.Plugins.PushNotifications;
+            
+            // 1. Omba ruhusa kutoa notifications
+            PushNotifications.requestPermissions().then(result => {
+                if (result.receive === 'granted') {
+                    PushNotifications.register();
+                }
+            });
+
+            // 2. Hifadhi kitambulisho (Token) cha simu ya mtumiaji kwenye database
+            PushNotifications.addListener('registration', async ({ value }) => {
+                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                if (u) {
+                    try {
+                        await sb.from('users').update({ fcm_token: value }).eq('id', u.id);
+                    } catch(e) {}
+                }
+            });
+
+            // 3. Pokea Ujumbe na cheza sauti (Beep) hata App ikiwa wazi
+            PushNotifications.addListener('pushNotificationReceived', notification => {
+                playBeep();
+                showToast(notification.title || "Ujumbe Mpya");
+            });
+        }
+        // --- APP LIFECYCLE & REALTIME RESYNC (Kama WhatsApp) ---
+        function resyncActiveScreen() {
+            if (!navigator.onLine) return;
+            const activeSec = document.querySelector('.sec.active');
+            if (activeSec) {
+                showSec(activeSec.id); 
+                
+                // Kama yupo kwenye Boda, kagua kama dereva ameshakubali wakati alipokuwa ametoka
+                if (activeSec.id === 'boda-sec') {
+                    checkMyBodaRequestStatus();
+                }
+            }
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                setTimeout(resyncActiveScreen, 300); 
+            }
+        });
+
+        window.addEventListener('online', () => {
+            showToast("Mtandao urudi! App inasasisha...");
+            setTimeout(resyncActiveScreen, 500);
+        });
+
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+            window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
+                if (isActive) {
+                    resyncActiveScreen();
+                }
+            });
+            
+            window.Capacitor.Plugins.App.addListener('backButton', () => {
+                if (document.getElementById('modal-overlay').style.display === 'flex') {
+                    closeModal();
+                } else if (document.getElementById('status-viewer-overlay') && document.getElementById('status-viewer-overlay').style.display === 'flex') {
+                    closeStatusViewer();
+                } else if (document.querySelector('.sec.active') && document.querySelector('.sec.active').id !== 'home-sec') {
+                    handleNav('home-sec');
+                } else {
+                    window.Capacitor.Plugins.App.exitApp();
+                }
+            });
+        }
+
+        async function checkMyBodaRequestStatus() {
+            const u = JSON.parse(localStorage.getItem('kitama_user'));
+            if(!u) return;
+            try {
+                const { data } = await sb.from('boda_requests')
+                    .select('*')
+                    .eq('rider_phone', u.phone_number)
+                    .in('status', ['searching', 'accepted'])
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                    
+                if (data) {
+                    if (data.status === 'accepted') {
+                        const statusBox = document.getElementById('boda-status-box');
+                        const btnSearch = document.getElementById('btn-boda-search');
+                        const btnConfirm = document.getElementById('btn-boda-confirm');
+                        const btnCancel = document.getElementById('btn-boda-cancel');
+                        
+                        if(statusBox) {
+                            statusBox.className = 'boda-status accepted';
+                            statusBox.innerHTML = `✅ Dereva <b>${data.driver_name}</b> amekubali! <br><br> Nauli: ${data.fare.toLocaleString()} Tsh (${data.payment_method.toUpperCase()}) <br><br> Piga: <a href="tel:${data.driver_phone}" style="color:var(--accent); font-weight:800;">${data.driver_phone}</a>`;
+                        }
+                        if(btnCancel) btnCancel.style.display = 'none';
+                        if(btnSearch) btnSearch.style.display = 'none';
+                        if(btnConfirm) btnConfirm.style.display = 'none';
+                    }
+                }
+            } catch(e) { console.error("Boda status check error:", e); }
+        }
     }
     
         // --- BACK BUTTON HANDLER (WhatsApp Style) ---
@@ -2513,33 +2615,6 @@
                     window.history.back();
                 }
             }
-            // --- FIREBASE PUSH NOTIFICATIONS (Background & Foreground) ---
-        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.PushNotifications) {
-            const PushNotifications = window.Capacitor.Plugins.PushNotifications;
-            
-            // 1. Omba ruhusa kutoa notifications
-            PushNotifications.requestPermissions().then(result => {
-                if (result.receive === 'granted') {
-                    PushNotifications.register();
-                }
-            });
-
-            // 2. Hifadhi kitambulisho (Token) cha simu ya mtumiaji kwenye database
-            PushNotifications.addListener('registration', async ({ value }) => {
-                const u = JSON.parse(localStorage.getItem('kitama_user'));
-                if (u) {
-                    try {
-                        await sb.from('users').update({ fcm_token: value }).eq('id', u.id);
-                    } catch(e) {}
-                }
-            });
-
-            // 3. Pokea Ujumbe na cheza sauti (Beep) hata App ikiwa wazi
-            PushNotifications.addListener('pushNotificationReceived', notification => {
-                playBeep();
-                showToast(notification.title || "Ujumbe Mpya");
-            });
-        }
         });
     function getActivistBadge(isActivist) {
     if (!isActivist) return '';
@@ -9939,6 +10014,7 @@
                 openModal("Kosa", e.message);
             }
         }
+
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
