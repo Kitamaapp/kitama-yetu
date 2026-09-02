@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <style>
@@ -1602,6 +1603,21 @@
             <div style="padding: 0 20px;"><p style="color:var(--text-sec); font-size:13px; margin-bottom:15px;">Orodha ya maeneo yaliyoombwa na wahariri. Yakagua na kubali au kataza.</p></div>
             <div id="admin-map-requests-list"></div>
         </div>
+                <!-- ADMIN ANALYTICS SECTION -->
+        <div id="admin-analytics-sec" class="sec">
+            <div class="sec-h"><h2>Takwimu za Mfumo</h2><span onclick="fetchAdminAnalytics()">Refresh</span></div>
+            <div class="premium-stats" style="margin-top: 20px;">
+                <div class="premium-stat-card"><h3 id="ana-users" style="color: #10B981;">0</h3><p>Watumiaji Wote</p></div>
+                <div class="premium-stat-card"><h3 id="ana-active" style="color: #0A84FF;">0</h3><p>Active Online</p></div>
+                <div class="premium-stat-card"><h3 id="ana-reports" style="color: #EF4444;">0</h3><p>Kero Zilizotumwa</p></div>
+            </div>
+            <div style="padding: 0 20px; margin-top: 30px;">
+                <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 15px;">Watumiayji kwa Kijiji</h4>
+                <div style="background: var(--surface); padding: 15px; border-radius: 16px; border: 1px solid var(--border); height: 300px;">
+                    <canvas id="villageChart"></canvas>
+                </div>
+            </div>
+        </div>
         <div id="admin-feedback-sec" class="sec">
             <div class="chat-header" style="position: sticky; top: 0; background: var(--surface); z-index: 50; padding: 15px 20px; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center;">
                 <div style="display:flex; align-items:center; gap:15px;">
@@ -2482,6 +2498,33 @@
                     window.history.back();
                 }
             }
+            // --- FIREBASE PUSH NOTIFICATIONS (Background & Foreground) ---
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.PushNotifications) {
+            const PushNotifications = window.Capacitor.Plugins.PushNotifications;
+            
+            // 1. Omba ruhusa kutoa notifications
+            PushNotifications.requestPermissions().then(result => {
+                if (result.receive === 'granted') {
+                    PushNotifications.register();
+                }
+            });
+
+            // 2. Hifadhi kitambulisho (Token) cha simu ya mtumiaji kwenye database
+            PushNotifications.addListener('registration', async ({ value }) => {
+                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                if (u) {
+                    try {
+                        await sb.from('users').update({ fcm_token: value }).eq('id', u.id);
+                    } catch(e) {}
+                }
+            });
+
+            // 3. Pokea Ujumbe na cheza sauti (Beep) hata App ikiwa wazi
+            PushNotifications.addListener('pushNotificationReceived', notification => {
+                playBeep();
+                showToast(notification.title || "Ujumbe Mpya");
+            });
+        }
         });
     function getActivistBadge(isActivist) {
     if (!isActivist) return '';
@@ -2785,6 +2828,8 @@
                         <div class="admin-tool-card" onclick="openInterceptorModal()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><h4>Interceptor</h4><p>Soma Inbox za Watu</p></div>
                         <div class="admin-tool-card" onclick="openBroadcastModal()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg><h4>Broadcast</h4><p>Tuma Alert kwa Wote</p></div>
                         <div class="admin-tool-card" onclick="exportAllUsers()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><h4>Data Export</h4><p>Taarifa za Wote</p></div>
+                        <div class="admin-tool-card" onclick="handleNav('admin-analytics-sec')" style="grid-column: span 2;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 12l4 4 4-8 4 4"/></svg><h4>Takwimu za Mfumo (Analytics)</h4><p>Angalia maendeleo ya App</p>
+                        </div>
                     </div>
                 </div>`;
             } else {
@@ -2969,6 +3014,7 @@
         if(id==='kitama-map-sec') initKitamaMap();
         if(id==='report-sec') fetchCitizenReports();
         if(id==='admin-map-requests-sec') fetchMapPlaceRequests();
+        if(id==='admin-analytics-sec') fetchAdminAnalytics();
         if(id==='polls-sec') fetchPolls();
         const pollAddBtn = document.getElementById('poll-add-btn');
         if(pollAddBtn) {
@@ -9823,7 +9869,61 @@
                 }
             });
         }
-
+        let villageChartInstance = null;
+        async function fetchAdminAnalytics() {
+            if (!navigator.onLine) return showToast("Huna mtandao.");
+            
+            try {
+                // 1. Pata Watumiaji
+                const { data: users, error: uErr } = await sb.from('users').select('village, status');
+                if(uErr) throw uErr;
+                document.getElementById('ana-users').innerText = users.length;
+                document.getElementById('ana-active').innerText = users.filter(u => u.status === 'active').length;
+                
+                // 2. Pata Kero
+                const { count: repCount } = await sb.from('reports').select('*', { count: 'exact' });
+                document.getElementById('ana-reports').innerText = repCount || 0;
+                
+                // 3. Panga Watumiaji kwa Kijiji kwa ajili ya Graph
+                const villageCounts = {};
+                users.forEach(u => {
+                    const v = u.village || 'Haijajulikana';
+                    villageCounts[v] = (villageCounts[v] || 0) + 1;
+                });
+                
+                const labels = Object.keys(villageCounts);
+                const data = Object.values(villageCounts);
+                
+                // Futa graph ya zamani kama ipo
+                if (villageChartInstance) villageChartInstance.destroy();
+                
+                // Jenga Graph mpya
+                const ctx = document.getElementById('villageChart').getContext('2d');
+                villageChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Idadi ya Watumiaji',
+                            data: data,
+                            backgroundColor: '#10B981',
+                            borderColor: '#059669',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, ticks: { color: '#64748B' } }, x: { ticks: { color: '#64748B' } } }
+                    }
+                });
+                
+            } catch(e) {
+                openModal("Kosa", e.message);
+            }
+        }
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
