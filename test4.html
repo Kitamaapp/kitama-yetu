@@ -2364,23 +2364,37 @@
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_requests' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   
-                  // KAMA DEREVA AMEKUBALI
+                  // KAMA DEREVA AMEKUBALIA (KWA ABIRIA)
                   if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'accepted') {
-                      document.getElementById('boda-status-box').className = 'boda-status accepted';
-                      let waPhone = payload.new.driver_phone.replace(/^0/, '255');
-                      document.getElementById('boda-status-box').innerHTML = `✅ Dereva <b>${payload.new.driver_name}</b> amekubali! <br><br> Nauli: ${payload.new.fare.toLocaleString()} Tsh (${payload.new.payment_method.toUpperCase()}) <br><br> Piga: <a href="tel:${payload.new.driver_phone}" style="color:var(--accent); font-weight:800;">${payload.new.driver_phone}</a>`;
-                      document.getElementById('btn-boda-cancel').style.display = 'none';
+                      const statusBox = document.getElementById('boda-status-box');
+                      if(statusBox) {
+                          statusBox.className = 'boda-status accepted';
+                          let waPhone = payload.new.driver_phone.replace(/^0/, '255');
+                          // ONYESHA TAARIFA ZA DEREVA PAMOJA NA KITUFE CHA KUMPIGA
+                          statusBox.innerHTML = `✅ Dereva <b>${payload.new.driver_name}</b> amekubali! <br><br> Nauli: ${payload.new.fare.toLocaleString()} Tsh (${payload.new.payment_method.toUpperCase()}) <br><br> Piga: <a href="tel:${payload.new.driver_phone}" style="color:var(--accent); font-weight:800;">${payload.new.driver_phone}</a> au <a href="https://wa.me/${waPhone}" target="_blank" style="color:var(--accent); font-weight:800;">WhatsApp</a>`;
+                          
+                          // FICHA VIFUNGO VYA KUTAFUTA NA KUFUTA
+                          const btnCancel = document.getElementById('btn-boda-cancel');
+                          if(btnCancel) btnCancel.style.display = 'none';
+                      }
                   }
                   
-                  // ONGEZA HII: KAMA OMBI LIMEISHA MUDA BILA DEREVA (Expired)
+                  // KAMA OMBI LIMEISHA MUDA (Expired)
                   if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'expired') {
-                      document.getElementById('boda-status-box').className = 'boda-status';
-                      document.getElementById('boda-status-box').innerHTML = '⏱️ Ombi limeisha muda. Hakuna dereva aliyekubali kwa sasa. Jaribu tena baadae.';
-                      document.getElementById('btn-boda-cancel').style.display = 'none';
-                      document.getElementById('btn-boda-search').style.display = 'block';
-                      document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+                      const statusBox = document.getElementById('boda-status-box');
+                      if(statusBox) {
+                          statusBox.className = 'boda-status';
+                          statusBox.innerHTML = '⏱️ Ombi limeisha muda. Hakuna dereva aliyekubali kwa sasa. Jaribu tena.';
+                          
+                          // RUDISHA KITUFE CHA KUTAFUTA NAULI
+                          const btnSearch = document.getElementById('btn-boda-search');
+                          if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
+                          const btnCancel = document.getElementById('btn-boda-cancel');
+                          if(btnCancel) btnCancel.style.display = 'none';
+                      }
                   }
                   
+                  // KAMA DEREVA YUPO KWENYE UKURASA WA MAOMBI, SASISHA ORODHA
                   if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
               })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_status' }, payload => {
