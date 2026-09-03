@@ -3430,14 +3430,13 @@
         else return msgDate.toLocaleDateString('sw-KE', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
- async function fetchCitizenChat(isIncoming = false) {
-            const u = JSON.parse(localStorage.getItem('kitama_user')); 
-            if (!u || !u.phone_number) return; 
-            
-            const div = document.getElementById('citizen-chat-list'); 
-            
-            // KAMA AMEJIONDOA FORUM
-                    // KAMA AMEJIONDOA FORUM
+         async function fetchCitizenChat(isIncoming = false) {
+        const u = JSON.parse(localStorage.getItem('kitama_user')); 
+        if (!u || !u.phone_number) return; 
+        
+        const div = document.getElementById('citizen-chat-list'); 
+        
+        // KAMA AMEJIONDOA FORUM
         if (u.forum_opted_out) {
             div.innerHTML = `
             <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; gap: 20px;">
@@ -3447,7 +3446,6 @@
                 <button onclick="requestForumReturn()" class="btn-p" style="max-width: 250px;">Omba Kurudi Kwenye Forum</button>
             </div>`;
             
-            // FICHA SEHEMU YA KUANDIKA UJUMBE NA VIDOVI VITATU
             const inputBox = document.querySelector('#citizen-chat-sec .chat-input-box');
             if(inputBox) inputBox.style.display = 'none';
             const menuBtn = document.querySelector('#citizen-chat-sec button[onclick="toggleForumMenu()"]');
@@ -3460,6 +3458,7 @@
         if(inputBox) inputBox.style.display = 'flex';
         const menuBtn = document.querySelector('#citizen-chat-sec button[onclick="toggleForumMenu()"]');
         if(menuBtn) menuBtn.style.display = 'flex';
+
         if (!isOnline()) {
             const cached = getFromCache('forum_html');
             if (cached) {
@@ -3482,15 +3481,12 @@
             const { data, error } = await sb.from('citizen_chat').select('*').order('created_at', { ascending:true }).limit(100);
             if(error) throw error;
             
+            // SASISHA READ_BILA KUSUBIRI (Ili isifanye App ihema)
             const unreadMsgs = data.filter(m => m.sender_phone !== u.phone_number && (!m.read_by || !m.read_by.includes(u.phone_number)));
             if(unreadMsgs.length > 0) {
                 for(let msg of unreadMsgs) {
                     const newReadBy = [...(msg.read_by || []), u.phone_number];
-                    try { 
-                        await sb.from('citizen_chat').update({ read_by: newReadBy }).eq('id', msg.id); 
-                    } catch(e) { 
-                        console.error("Read_by update error (Ignored):", e); 
-                    }
+                    sb.from('citizen_chat').update({ read_by: newReadBy }).eq('id', msg.id).then(() => {}).catch(e => console.error("Read_by error:", e));
                 }
             }
 
@@ -3540,7 +3536,7 @@
                     }
                     
                     let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
-                     let actionsHtml = `<div class="chat-actions">
+                    let actionsHtml = `<div class="chat-actions">
                         <button class="chat-action-btn" onclick="event.stopPropagation(); setCitizenReply('${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')">${ICONS.reply} Reply</button>
                         ${!isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); replyPrivately('${c.sender_phone}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" title="Reply Privately"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Private</button>` : ''}
                         <button class="chat-action-btn" onclick="event.stopPropagation(); copyMessage('${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" title="Copy"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy</button>
@@ -3568,12 +3564,12 @@
                 saveToCache('forum_html', chatHtml);
             }
             
-            // WHATSAPP EXACT SCROLL LOGIC (Double rAF inasubiri browser amalizwe kuandika ujumbe kwa 100%)
+            // WHATSAPP EXACT SCROLL LOGIC (Double rAF)
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     if (isIncoming) {
                         if (isAtBottom || scrollToBottomOnNextFetch) {
-                            div.scrollTop = div.scrollHeight; // Shuka chini kabisa kama ujumbe unakuja au umetuma
+                            div.scrollTop = div.scrollHeight;
                             isAtBottom = true;
                             scrollToBottomOnNextFetch = false;
                             
@@ -3583,7 +3579,7 @@
                                 sb.from('users').update({ last_forum_read: lastForumMsgTime }).eq('id', u.id).then();
                             }
                         } else {
-                            div.scrollTop = oldScrollTop; // Bakia pale ulipokuwa ukisoma juu
+                            div.scrollTop = oldScrollTop;
                             unreadChatCount++;
                             document.getElementById('new-msg-count').innerText = unreadChatCount;
                             document.getElementById('new-msg-banner').style.display = 'block';
@@ -3596,14 +3592,13 @@
                         } else if (firstUnreadId) {
                             const unreadEl = document.getElementById(`msg-${firstUnreadId}`);
                             if(unreadEl) {
-                                // Nenda kwenye ujumbe wa kwanza hujasoma (tumia offsetTop kuepuka kusumbua screen nzima)
                                 div.scrollTop = unreadEl.offsetTop - (div.clientHeight / 3);
                             } else {
                                 div.scrollTop = div.scrollHeight;
                             }
                             isAtBottom = false;
                         } else {
-                            div.scrollTop = div.scrollHeight; // Kama umeshasoma yote, nenda chini tu
+                            div.scrollTop = div.scrollHeight;
                             isAtBottom = true;
                         }
                     }
@@ -4093,6 +4088,11 @@
             }
             
             try {
+                if(!isIncoming || leaderIsAtBottom) {
+                    sb.from('users').update({ last_leader_read: new Date().toISOString() }).eq('id', u.id).then(() => {}).catch(()=>{});
+                    updateBadges();
+                }
+                
                 const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending: true }).limit(100);
                 if (error) throw error;
 
@@ -4132,7 +4132,6 @@
                         
                         let cleanContent = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                         let safeContent = cleanContent.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                        
                         let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
 
                         let displayName = `<span style="cursor:pointer;" onclick="event.stopPropagation(); viewUserProfile('${c.sender_phone}')">${c.sender_name}</span> (${c.sender_role.replace(/_/g,' ')})`;
@@ -6441,21 +6440,18 @@
         currentMsgElement = null;
     }
 
-             async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
+            async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
             dmOtherPhone = phone; dmShopId = shopId;
             const dmTitleEl = document.getElementById('dm-chat-title');
             
-            // TANGAZA VARIABLES HAPA JUU
             let otherUserIsActivist = false;
             let otherUserAvatar = null;
             
             try {
                 if (phone === window.adminPhone) {
-                    // KICHWA CHA MAZUNGUMZO KWA ADMIN: LOGO NA BADGE
-                    let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
+                    let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:30px; height:30px; border-radius:50%; object-fit:cover; margin-right: 10px; vertical-align: middle;">`;
                     dmTitleEl.innerHTML = `${systemLogo} Mfumo wa Kitama ${getWhatsAppVerifiedBadge()}`;
                 } else {
-                    // KICHWA CHA MAZUNGUMZO KWA WATU WENGINE: PICHA NA BADGE
                     const { data: otherUser } = await sb.from('users').select('is_activist, avatar_url').eq('phone_number', phone).maybeSingle();
                     if (otherUser) {
                         otherUserIsActivist = otherUser.is_activist || false;
@@ -6500,7 +6496,8 @@
                 for(let msg of data) {
                     if(msg.recipient_phone === u.phone_number && msg.is_read === false) {
                         if(!firstUnreadId && !isIncoming) firstUnreadId = msg.id;
-                        try { await sb.from('shop_messages').update({ is_read: true }).eq('id', msg.id); } catch(e) {}
+                        // SASISHA BILA KUSUBIRI (Non-blocking)
+                        sb.from('shop_messages').update({ is_read: true }).eq('id', msg.id).then(() => {}).catch(()=>{});
                     }
                 }
                 updateBadges();
@@ -6519,17 +6516,14 @@
                         let actionsHtml = '';
                         let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
                         
-                        // KAMA NI MFUMO WA KITAMA
                         let isSystemAccount = (c.sender_phone === window.adminPhone);
                         if (isSystemAccount && !isSelf) {
-                            let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover; vertical-align: middle; margin-right: 5px;">`;
+                            let systemLogo = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20yetu%20logo.png" style="width:24px; height:24px; border-radius:50%; object-fit:cover; vertical-align: middle; margin-right: 5px;">`;
                             let systemBadge = getWhatsAppVerifiedBadge(); 
                             
                             let contentHtml = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                            
-                            // KAMA NI UJUMBE WA LINK, TENGNEZA KITUFU NDANI YAKE (Tumia c.content asili)
                             if (c.content === "Bonyeza kitufe hapa chini kuungana tena na wananchi wako.") {
-                                contentHtml = "Karibu kuridi kwenye KITAMA FORUM! Bonyeza kitufe hapa chini kuungana tena na wananchi wako.<br><br><button onclick='event.stopPropagation(); acceptForumReturn(\"" + c.id + "\")' class='btn-p' style='margin-top:10px; padding: 10px 20px; font-size: 14px; width: auto;'>Ungana na Forum</button>";
+                                contentHtml = "Karibu kurudi kwenye KITAMA FORUM! Bonyeza kitufe hapa chini kuungana tena na wananchi wako.<br><br><button onclick='event.stopPropagation(); acceptForumReturn(\"" + c.id + "\")' class='btn-p' style='margin-top:10px; padding: 10px 20px; font-size: 14px; width: auto;'>Ungana na Forum</button>";
                             }
                             
                             actionsHtml = `<div class="chat-actions"></div>`;
@@ -6537,7 +6531,6 @@
                             return;
                         }
 
-                        // KWA WENGINE WOTE (UJUMBE WA KAWAIDA)
                         let displayName = isSelf ? 'Wewe' : c.sender_name;
                         let badgeHtml = '';
                         if (isSelf) {
@@ -6560,16 +6553,25 @@
                 }
                 div.innerHTML = chatHtml;
                 
-                if (isIncoming && !dmIsAtBottom) {
-                    div.scrollTop = oldScrollTop;
-                } else if (firstUnreadId) {
-                    const el = document.getElementById(`msg-${firstUnreadId}`);
-                    if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    dmIsAtBottom = false;
-                } else {
-                    div.scrollTop = div.scrollHeight;
-                    dmIsAtBottom = true;
-                }
+                // WHATSAPP EXACT SCROLL LOGIC (Double rAF)
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        if (isIncoming && !dmIsAtBottom) {
+                            div.scrollTop = oldScrollTop;
+                        } else if (firstUnreadId) {
+                            const el = document.getElementById(`msg-${firstUnreadId}`);
+                            if(el) {
+                                div.scrollTop = el.offsetTop - (div.clientHeight / 3);
+                            } else {
+                                div.scrollTop = div.scrollHeight;
+                            }
+                            dmIsAtBottom = false;
+                        } else {
+                            div.scrollTop = div.scrollHeight;
+                            dmIsAtBottom = true;
+                        }
+                    });
+                });
             } catch(e) { 
                 if(!hasContent) div.innerHTML = `<p style="color:red;">${e.message}</p>`;
             }
