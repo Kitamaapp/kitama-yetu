@@ -6008,7 +6008,7 @@ function renderActiveTripCard() {
         if (reqList) reqList.parentNode.insertBefore(container, reqList);
     }
     if (activeBodaTrip) {
-        container.innerHTML = `<div class="list-i" style="border: 2px solid var(--accent); margin-bottom: 15px; background: rgba(16, 185, 129, 0.05);"><h4 style="color:var(--accent); display:flex; align-items:center; gap:5px;">✅ Safari Inaendelea</h4><p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">Fuata ramani kwenda kumkuta mteja.</p><div style="display:flex; gap:10px; margin-top:10px;"><button onclick="viewActiveTripMap()" class="m-btn m-btn-primary" style="flex:1; padding:10px;">📍 Ramani ya Mteja</button><button onclick="completeBodaTrip()" class="m-btn m-btn-secondary" style="flex:1; padding:10px; background:var(--bg); color:var(--text); border:1px solid var(--border);">✓ Malisha Safari</button></div></div>`;
+        container.innerHTML = `<div class="list-i" style="border: 2px solid var(--accent); margin-bottom: 15px; background: rgba(16, 185, 129, 0.05);"><h4 style="color:var(--accent); display:flex; align-items:center; gap:5px;">✅ Safari Inaendelea</h4><p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">Fuata ramani kwenda kumkuta mteja.</p><div style="display:flex; gap:10px; margin-top:10px;"><button onclick="viewActiveTripMap()" class="m-btn m-btn-primary" style="flex:1; padding:10px;">📍 Ramani ya Mteja</button><button onclick="completeBodaTrip()" class="m-btn m-btn-secondary" style="flex:1; padding:10px; background:var(--bg); color:var(--text); border:1px solid var(--border);">✓ Maliza Safari</button></div></div>`;
     } else {
         container.innerHTML = '';
     }
