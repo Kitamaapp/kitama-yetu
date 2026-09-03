@@ -5884,7 +5884,7 @@ playBeep();
             document.getElementById('boda-fare-details').style.display = 'none';
         } catch(e) { openModal("Kosa", e.message); btn.disabled = false; btn.innerHTML = 'Endelea'; }
     }
-     async function checkMyBodaRequestStatus() {
+   async function checkMyBodaRequestStatus() {
     const usr = JSON.parse(localStorage.getItem('kitama_user'));
     if(!usr) return;
     try {
@@ -5901,42 +5901,48 @@ playBeep();
         const btnConfirm = document.getElementById('btn-boda-confirm');
         const btnCancel = document.getElementById('btn-boda-cancel');
         
-        // KAMA SAFARI HII IMESHAFUTWA/IMALIZIWA HAPA HAPA SIMUNI, FICHA TAARIFA ZA DEREVA
+        // 1. KAMA SAFARI IMESHAFUTWA/IMALIZIWA
         if (data && endedBodaRides.includes(data.id)) {
             if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
-            if(btnSearch) btnSearch.style.display = 'none';
             if(btnConfirm) btnConfirm.style.display = 'none';
             if(btnCancel) btnCancel.style.display = 'none';
+            if(btnSearch) btnSearch.style.display = 'none';
             return;
         }
         
+        // 2. KAMA HAKUNA SAFARI YOYOTE INAYOENDA
         if (!data) {
-            if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
+            const fareDetails = document.getElementById('boda-fare-details');
+            const isFareShowing = fareDetails && fareDetails.style.display === 'block';
+            
+            // HII NDIO FIX: KAMA BEI IPO ONYESHWA (User anachagua eneo), USIFUTE KITUFE CHA ENDELEA
+            if(!isFareShowing) {
+                if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
+                if(btnConfirm) btnConfirm.style.display = 'none';
+            }
             if(btnSearch) btnSearch.style.display = 'none';
-            if(btnConfirm) btnConfirm.style.display = 'none';
             if(btnCancel) btnCancel.style.display = 'none';
             return;
         }
         
+        // 3. KAMA DEREVA AMEKUBALI
         if (data.status === 'accepted') {
-    if(statusBox) {
-        statusBox.className = 'boda-status accepted';
-        const fare = data.fare || 0;
-        const payMethod = data.payment_method || 'CASH';
-        const driverName = data.driver_name || 'Hajajulikani';
-        const driverPhone = data.driver_phone || 'Hakuna Namba';
-        
-        // VITUFE VIWILI: MALISHA NA GHAIRI
-        statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a> 
-<div style="display:flex; gap:10px; margin-top:15px;">
-    <button onclick="finishBodaRide('${data.id}')" class="btn-p" style="flex:1; background:var(--accent); color:white;">Safari Imeisha</button>
-    <button onclick="cancelAcceptedBodaRide('${data.id}')" class="btn-p" style="flex:1; background:var(--bg); color:var(--danger); border:1px solid var(--border);">Ghairi Safari</button>
-</div>`;
-    }
-    if(btnCancel) btnCancel.style.display = 'none';
-    if(btnSearch) btnSearch.style.display = 'none';
-    if(btnConfirm) btnConfirm.style.display = 'none';
-}
+            if(statusBox) {
+                statusBox.className = 'boda-status accepted';
+                const fare = data.fare || 0;
+                const payMethod = data.payment_method || 'CASH';
+                const driverName = data.driver_name || 'Hajajulikani';
+                const driverPhone = data.driver_phone || 'Hakuna Namba';
+                statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a> 
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button onclick="finishBodaRide('${data.id}')" class="btn-p" style="flex:1; background:var(--accent); color:white;">Safari Imeisha</button>
+                    <button onclick="cancelAcceptedBodaRide('${data.id}')" class="btn-p" style="flex:1; background:var(--bg); color:var(--danger); border:1px solid var(--border);">Ghairi Safari</button>
+                </div>`;
+            }
+            if(btnCancel) btnCancel.style.display = 'none';
+            if(btnConfirm) btnConfirm.style.display = 'none';
+            if(btnSearch) btnSearch.style.display = 'none';
+        }
     } catch(e) { console.error("Boda status check error:", e); }
 }
 
