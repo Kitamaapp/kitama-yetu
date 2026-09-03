@@ -1867,6 +1867,7 @@
     let lastBodaStatus = null;
     let bodaPickupLat = null, bodaPickupLng = null;
     let bodaDestLat = null, bodaDestLng = null;
+    let endedBodaRides = JSON.parse(localStorage.getItem('ended_boda_rides') || '[]');
     
     const BAD_WORDS = ['litoko', 'kuma', 'matako', 'ushenzi', 'pumbu', 'mpumbavu', 'pumbavu', 'nikutombe', 'kumamako', 'kumamayo', 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumamyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge', 'fuck', 'shit', 'asshole', 'bitch', 'idiot'];
     function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
@@ -2329,38 +2330,61 @@
              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_requests' }, payload => {
     const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
     
-    // Kwa Dereva
+    // 1. Kwa Dereva: kama yupo ukurasa wa maombi, yasasisha
     if (document.getElementById('boda-driver-sec').classList.contains('active')) {
         fetchBodaRequests();
     }
 
-    // Kwa Abiria
-    if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'accepted') {
+    // 2. Kwa Abiria
+    if(payload.new.rider_phone === currentUser.phone_number) {
         const statusBox = document.getElementById('boda-status-box');
         const btnSearch = document.getElementById('btn-boda-search');
         const btnConfirm = document.getElementById('btn-boda-confirm');
         const btnCancel = document.getElementById('btn-boda-cancel');
-        if(statusBox) {
-            statusBox.className = 'boda-status accepted';
-            // TUMIA || 0 KUEPUKA APP KUFIKA
-            const fare = payload.new.fare || 0;
-            const payMethod = payload.new.payment_method || 'CASH';
-            const driverName = payload.new.driver_name || 'Hajajulikani';
-            const driverPhone = payload.new.driver_phone || 'Hakuna Namba';
-            statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a>`;
+        
+        // HII NDIO SEHEMU MUHIMU YA HATUA YA 4:
+        // Kama ombi hili lipo kwenye 'Orodha ya Safari Zilizokwisha' (endedBodaRides), usionyeshi tena!
+        if (endedBodaRides.includes(payload.new.id)) {
+            if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
+            if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
+            if(btnConfirm) btnConfirm.style.display = 'none';
+            if(btnCancel) btnCancel.style.display = 'none';
+            return; // Simama hapa, usiende mbeleni kutoa taarifa za dereva tena.
         }
-        if(btnCancel) btnCancel.style.display = 'none';
-        if(btnSearch) btnSearch.style.display = 'none';
-        if(btnConfirm) btnConfirm.style.display = 'none';
-    }
-    
-    if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'expired') {
-        const statusBox = document.getElementById('boda-status-box');
-        const btnSearch = document.getElementById('btn-boda-search');
-        const btnCancel = document.getElementById('btn-boda-cancel');
-        if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = '⏱️ Ombi limeisha muda. Hakuna dereva aliyekubali. Jaribu tena.'; }
-        if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
-        if(btnCancel) btnCancel.style.display = 'none';
+
+        // KAMA HAIJAMALIZIWA, ENDELEA KUONYESHA TAARIFA ZA DEREVA
+        if (payload.new.status === 'accepted') {
+            if(statusBox) {
+                statusBox.className = 'boda-status accepted';
+                const fare = payload.new.fare || 0;
+                const payMethod = payload.new.payment_method || 'CASH';
+                const driverName = payload.new.driver_name || 'Hajajulikani';
+                const driverPhone = payload.new.driver_phone || 'Hakuna Namba';
+                statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a> <br><br> <button onclick="finishBodaRide('${payload.new.id}')" class="btn-p" style="background:var(--bg); color:var(--text); border:1px solid var(--border); margin-top:10px; width:100%;">Safari Imeisha? (Bonyeza hapa)</button>`;
+            }
+            if(btnCancel) btnCancel.style.display = 'none';
+            if(btnSearch) btnSearch.style.display = 'none';
+            if(btnConfirm) btnConfirm.style.display = 'none';
+        } 
+        // KAMA OMBI LIMEKATA MUDA (EXPIRED)
+        else if (payload.new.status === 'expired') {
+            if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = '⏱️ Ombi limeisha muda. Hakuna dereva aliyekubali. Jaribu tena.'; }
+            if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
+            if(btnConfirm) btnConfirm.style.display = 'none';
+            if(btnCancel) btnCancel.style.display = 'none';
+        }
+        // KAMA DEREVA AU ABIRIA AMEMALIZA SAFARI (COMPLETED)
+        else if (payload.new.status === 'completed') {
+            // Weka kwenye orodha ya zilizokwisha na futa screen
+            if (!endedBodaRides.includes(payload.new.id)) {
+                endedBodaRides.push(payload.new.id);
+                localStorage.setItem('ended_boda_rides', JSON.stringify(endedBodaRides));
+            }
+            if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
+            if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
+            if(btnConfirm) btnConfirm.style.display = 'none';
+            if(btnCancel) btnCancel.style.display = 'none';
+        }
     }
 })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_status' }, payload => {
@@ -2463,41 +2487,6 @@
     if (activeSec.id === 'my-inbox-sec') fetchMyInbox();
     if (activeSec.id === 'boda-driver-sec') fetchBodaRequests();
 }
-
-        async function checkMyBodaRequestStatus() {
-            const usr = JSON.parse(localStorage.getItem('kitama_user'));
-            if(!usr) return;
-            try {
-                const { data } = await sb.from('boda_requests')
-                    .select('*')
-                    .eq('rider_phone', usr.phone_number)
-                    .in('status', ['searching', 'accepted'])
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-                    
-                if (data) {
-             if (data.status === 'accepted') {
-    const statusBox = document.getElementById('boda-status-box');
-    const btnSearch = document.getElementById('btn-boda-search');
-    const btnConfirm = document.getElementById('btn-boda-confirm');
-    const btnCancel = document.getElementById('btn-boda-cancel');
-    if(statusBox) {
-        statusBox.className = 'boda-status accepted';
-        // TUMIA || 0 NA || CASH KUEPUKA KOSA LA APP KUJIFUNGA
-        const fare = data.fare || 0;
-        const payMethod = data.payment_method || 'CASH';
-        const driverName = data.driver_name || 'Hajajulikani';
-        const driverPhone = data.driver_phone || 'Hakuna Namba';
-        statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a>`;
-    }
-    if(btnCancel) btnCancel.style.display = 'none';
-    if(btnSearch) btnSearch.style.display = 'none';
-    if(btnConfirm) btnConfirm.style.display = 'none';
-}
-                }
-            } catch(e) { console.error("Boda status check error:", e); }
-        }
 
         // 1. EVENT: Mtumiaji anaporudisha App kwenye screen (Resume)
             document.addEventListener('visibilitychange', () => {
@@ -5876,6 +5865,55 @@ if (data) data.reverse();
             document.getElementById('boda-fare-details').style.display = 'none';
         } catch(e) { openModal("Kosa", e.message); btn.disabled = false; btn.innerHTML = 'Endelea'; }
     }
+     async function checkMyBodaRequestStatus() {
+    const usr = JSON.parse(localStorage.getItem('kitama_user'));
+    if(!usr) return;
+    try {
+        const { data } = await sb.from('boda_requests')
+            .select('*')
+            .eq('rider_phone', usr.phone_number)
+            .in('status', ['searching', 'accepted'])
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+            
+        const statusBox = document.getElementById('boda-status-box');
+        const btnSearch = document.getElementById('btn-boda-search');
+        const btnConfirm = document.getElementById('btn-boda-confirm');
+        const btnCancel = document.getElementById('btn-boda-cancel');
+        
+        // KAMA SAFARI HII IMESHAFUTWA/IMALIZIWA HAPA HAPA SIMUNI, FICHA TAARIFA ZA DEREVA
+        if (data && endedBodaRides.includes(data.id)) {
+            if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
+            if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
+            if(btnConfirm) btnConfirm.style.display = 'none';
+            if(btnCancel) btnCancel.style.display = 'none';
+            return;
+        }
+        
+        if (!data) {
+            if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
+            if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
+            if(btnConfirm) btnConfirm.style.display = 'none';
+            if(btnCancel) btnCancel.style.display = 'none';
+            return;
+        }
+        
+        if (data.status === 'accepted') {
+            if(statusBox) {
+                statusBox.className = 'boda-status accepted';
+                const fare = data.fare || 0;
+                const payMethod = data.payment_method || 'CASH';
+                const driverName = data.driver_name || 'Hajajulikani';
+                const driverPhone = data.driver_phone || 'Hakuna Namba';
+                statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a> <br><br> <button onclick="finishBodaRide('${data.id}')" class="btn-p" style="background:var(--bg); color:var(--text); border:1px solid var(--border); margin-top:10px; width:100%;">Safari Imeisha? (Bonyeza hapa)</button>`;
+            }
+            if(btnCancel) btnCancel.style.display = 'none';
+            if(btnSearch) btnSearch.style.display = 'none';
+            if(btnConfirm) btnConfirm.style.display = 'none';
+        }
+    } catch(e) { console.error("Boda status check error:", e); }
+}
 
     function cancelBodaRide() {
         document.getElementById('boda-status-box').className = 'boda-status';
@@ -5893,8 +5931,43 @@ if (data) data.reverse();
         if (destMarker) { bodaMap.removeLayer(destMarker); destMarker = null; }
         showToast("Ombi limefutwa.");
     }
+    async function finishBodaRide(rideId) {
+    // 1. WEKA OMBI HILI KATIKA "ORODHA YA SAFARI ZILIZOKWISHA" KWENYE SIMU
+    if (!endedBodaRides.includes(rideId)) {
+        endedBodaRides.push(rideId);
+        localStorage.setItem('ended_boda_rides', JSON.stringify(endedBodaRides));
+    }
+
+    // 2. JARIBU KUMWAMBIA DATABASE (Ila haitaharibu App ikiwa RLS itakataa)
+    sb.from('boda_requests').update({ status: 'completed' }).eq('id', rideId).then(() => {}).catch(e => console.error("RLS blocked update, but local state is clean."));
+
+    // 3. FUTA TAARIFA ZA DEREVA MOJA KWA MOJA
+    const statusBox = document.getElementById('boda-status-box');
+    const btnSearch = document.getElementById('btn-boda-search');
+    const btnConfirm = document.getElementById('btn-boda-confirm');
+    const btnCancel = document.getElementById('btn-boda-cancel');
+    
+    if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
+    if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
+    if(btnConfirm) btnConfirm.style.display = 'none';
+    if(btnCancel) btnCancel.style.display = 'none';
+    
+    const destInput = document.getElementById('boda-dest');
+    if(destInput) destInput.value = '';
+    const fareDetails = document.getElementById('boda-fare-details');
+    if(fareDetails) fareDetails.style.display = 'none';
+    
+    bodaDestLat = null; 
+    bodaDestLng = null;
+    if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); bodaRoutingControl = null; }
+    if (bodaRouteLine) { bodaMap.removeLayer(bodaRouteLine); bodaRouteLine = null; }
+    if (destMarker) { bodaMap.removeLayer(destMarker); destMarker = null; }
+    
+    showToast("Safari imekamilika! Unaweza kuomba Boda tena.");
+    playBeep();
+}
             // --- BODA DRIVER FUNCTIONS ---
-                async function registerDriver() {
+        async function registerDriver() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             let plate = document.getElementById('driver-plate').value.trim();
             const fileInput = document.getElementById('driver-plate-photo');
