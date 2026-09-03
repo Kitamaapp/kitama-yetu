@@ -2219,7 +2219,7 @@
         // --- REALTIME LISTENERS & HEARTBEAT ---
         if (!isRealtimeInitialized) {
             isRealtimeInitialized = true;
-            sb.channel('public:kitama-realtime')
+            window.kitamaRealtimeChannel = sb.channel('public:kitama-realtime')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
                   console.log("REALTIME FORUM: Ujumbe mpya umetumwa!", payload.new); // ONGEZA HII
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
@@ -2232,7 +2232,7 @@
                           } else { playBeep(); }
                       }
                       // HII NDIO INAITA KUSOMA MESSAGE MPYA PAMOJA HAP KITAMA FORUM
-                      if(isOnForum) fetchCitizenChat(!isSelf);
+                      if(isOnForum) setTimeout(() => fetchCitizenChat(!isSelf), 500);
                   }
                   updateBadges(); 
               })
@@ -2274,7 +2274,7 @@
                           else { playBeep(); }
                       }
                       // HII NDIO INAITA KUSOMA MESSAGE MPYA PAMOJA HAP CHUMB CHA VIONGOZI
-                      if(isOnChat) fetchLeaderChat(true); 
+                      if(isOnChat) setTimeout(() => fetchLeaderChat(true), 500); 
                   }
                   updateBadges(); 
               })
@@ -2292,11 +2292,13 @@
                   if (dmChatSec.classList.contains('active') && dmOtherPhone) {
                       const msg = payload.new;
                       if (msg.sender_phone === dmOtherPhone || msg.recipient_phone === dmOtherPhone) {
-                          if ((msg.shop_id === null && dmShopId === null) || (msg.shop_id === dmShopId)) {
-                              // HII NDIO INAITA KUSOMA MESSAGE MPYA PAMOJA HAP INBOX
-                              fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, true);
-                          }
-                      }
+                          const msgShopId = msg.shop_id || null;
+                          const currentShopId = dmShopId || null;
+                          if (msgShopId === currentShopId) {
+    // HII NDIO INAITA KUSOMA MESSAGE MPYA PAMOJA HAP INBOX
+        setTimeout(() => fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, true), 500);
+    }
+}
                   }
                   updateBadges();
               })
@@ -2471,25 +2473,33 @@
         }
 
         // 1. EVENT: Mtumiaji anaporudisha App kwenye screen (Resume)
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                setTimeout(resyncActiveScreen, 300);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    setTimeout(resyncActiveScreen, 300);
+        // ONGEZA HII: RUDISHA REALTIME KAMA IMEKATIKA
+        if (window.kitamaRealtimeChannel && window.kitamaRealtimeChannel.state !== 'joined' && window.kitamaRealtimeChannel.state !== 'joining') {
+            window.kitamaRealtimeChannel.subscribe();
+        }
+    }
+});
+
+// 2. EVENT: Mtumiaji anaporudisha mtandao
+window.addEventListener('online', () => {
+    showToast("Mtandao urudi! App inasasisha...");
+    setTimeout(resyncActiveScreen, 500);
+});
+
+// 3. EVENT: Native Android App Resume & Back Button
+if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+    window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
+        if (isActive) {
+            resyncActiveScreen();
+            // ONGEZA HII: RUDISHA REALTIME KAMA IMEKATIKA
+            if (window.kitamaRealtimeChannel && window.kitamaRealtimeChannel.state !== 'joined' && window.kitamaRealtimeChannel.state !== 'joining') {
+                window.kitamaRealtimeChannel.subscribe();
             }
-        });
-
-        // 2. EVENT: Mtumiaji anaporudisha mtandao
-        window.addEventListener('online', () => {
-            showToast("Mtandao urudi! App inasasisha...");
-            setTimeout(resyncActiveScreen, 500);
-        });
-
-        // 3. EVENT: Native Android App Resume & Back Button
-        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-            window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
-                if (isActive) {
-                    resyncActiveScreen();
-                }
-            });
+        }
+    });
             
             window.Capacitor.Plugins.App.addListener('backButton', () => {
                 if (document.getElementById('modal-overlay').style.display === 'flex') {
@@ -2503,6 +2513,19 @@
                 }
             });
         }
+            // --- BACKUP CHAT POLLING (Ikiwa Realtime Imeshindwa) ---
+let chatPollInterval = null;
+function startChatPolling() {
+    if (chatPollInterval) clearInterval(chatPollInterval);
+    chatPollInterval = setInterval(() => {
+        const activeSec = document.querySelector('.sec.active');
+        if (!activeSec) return;
+        if (activeSec.id === 'citizen-chat-sec') fetchCitizenChat(true);
+        else if (activeSec.id === 'leader-chat-sec') fetchLeaderChat(true);
+        else if (activeSec.id === 'dm-chat-sec' && dmOtherPhone) fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, true);
+    }, 3000); // Kila sekunde 3
+}
+startChatPolling();
     }
     
         // --- BACK BUTTON HANDLER (WhatsApp Style) ---
@@ -3478,7 +3501,8 @@
         }
         
         try {
-            const { data, error } = await sb.from('citizen_chat').select('*').order('created_at', { ascending:true }).limit(100);
+            const { data, error } = await sb.from('citizen_chat').select('*').order('created_at', { ascending: false }).limit(100);
+if (data) data.reverse();
             if(error) throw error;
             
             // SASISHA READ_BILA KUSUBIRI (Ili isifanye App ihema)
@@ -4093,7 +4117,8 @@
                     updateBadges();
                 }
                 
-                const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending: true }).limit(100);
+                const { data, error } = await sb.from('leader_chat').select('*').order('created_at', { ascending: false }).limit(100);
+                if (data) data.reverse();
                 if (error) throw error;
 
                 let chatHtml = `<div class="chat-msg system-alert" style="margin-top: 15px;">
@@ -6485,11 +6510,12 @@
                 const u = JSON.parse(localStorage.getItem('kitama_user'));
 
                 const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${phone}),and(sender_phone.eq.${phone},recipient_phone.eq.${u.phone_number})`;
-                let query = sb.from('shop_messages').select('*').or(orFilter).order('created_at', { ascending: true }).limit(100);
+                let query = sb.from('shop_messages').select('*').or(orFilter).order('created_at', { ascending: false }).limit(100);
                 
                 if(shopId) query = query.eq('shop_id', shopId); else query = query.is('shop_id', null);
                 
                 const { data, error } = await query;
+                if (data) data.reverse();
                 if(error) throw error;
                 
                 let firstUnreadId = null;
