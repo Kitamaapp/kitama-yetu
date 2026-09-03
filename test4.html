@@ -2220,7 +2220,8 @@
         if (!isRealtimeInitialized) {
             isRealtimeInitialized = true;
             sb.channel('public:kitama-realtime')
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
+                  console.log("REALTIME FORUM: Ujumbe mpya umetumwa!", payload.new); // ONGEZA HII
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if(currentUser && currentUser.role === 'citizen') { 
                       const isSelf = payload.new.sender_phone === currentUser.phone_number;
@@ -2396,14 +2397,9 @@
               .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'polls' }, payload => {
                   if(document.getElementById('polls-sec').classList.contains('active')) fetchPolls();
               })
-              .subscribe();
-
-            // --- HEARTBEAT (Kuzuia Android kufunga mtandao wa Realtime) ---
-            setInterval(() => {
-                if (navigator.onLine) {
-                    sb.channel('heartbeat').send({ type: 'broadcast', event: 'ping', payload: {} }).catch(()=>{});
-                }
-            }, 20000); // Kila sekunde 20
+              .subscribe((status) => {
+                  console.log("Supabase Realtime Status:", status); // ONGEZA HII MISTARI
+              });
         }
 
         updateBadges();
@@ -3490,7 +3486,11 @@
             if(unreadMsgs.length > 0) {
                 for(let msg of unreadMsgs) {
                     const newReadBy = [...(msg.read_by || []), u.phone_number];
-                    await sb.from('citizen_chat').update({ read_by: newReadBy }).eq('id', msg.id);
+                    try { 
+                        await sb.from('citizen_chat').update({ read_by: newReadBy }).eq('id', msg.id); 
+                    } catch(e) { 
+                        console.error("Read_by update error (Ignored):", e); 
+                    }
                 }
             }
 
