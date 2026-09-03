@@ -2149,19 +2149,19 @@
         }
     }
 
-    function enterApp() {
+        function enterApp() {
         document.getElementById('auth-c').style.display='none'; 
         document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         
-        // ONGEZA HII: SASISHA TAARIFA ZA MTUMIAJI ANAPOINGIA APP
+        // SASISHA TAARIFA ZA MTUMIAJI ANAPOINGIA APP
         sb.from('users').select('*').eq('id', u.id).single().then(({ data: freshUser }) => {
             if(freshUser) {
                 localStorage.setItem('kitama_user', JSON.stringify(freshUser));
             }
         });
         
-        // PATA NAMBA YA ADMIN KIOTOMATIKI (Bila await)
+        // PATA NAMBA YA ADMIN KIOTOMATIKI
         if (u.role === 'system_admin') {
             window.adminPhone = u.phone_number;
         } else {
@@ -2174,7 +2174,6 @@
         document.getElementById('p-name').innerText = u.full_name;
         
         // --- LOGIC YA UTHIBITISHO (VERIFIED BADGE) ---
-        // Tumia if checks ili kuzuia app kufa (crash) iwapo HTML haipo
         const pNameBadge = document.getElementById('p-name-badge');
         if (pNameBadge) pNameBadge.innerHTML = u.is_activist ? getActivistBadge(true) : '';
 
@@ -2208,7 +2207,7 @@
             if(pAva) { pAva.style.display = 'flex'; pAva.innerText = u.full_name.charAt(0).toUpperCase(); }
         }
         
-         fetchActiveCitizens(); // Pakia orodha ya wananchi kwa kila mtu (kwa ajili ya Status)
+        fetchActiveCitizens(); 
         if(u.role === 'citizen' && u.status === 'active') {
             enforceCitizenLocation(u);
             setupCitizenPresence();
@@ -2217,7 +2216,8 @@
             setupDashboard(u);
         }
 
-            if (!isRealtimeInitialized) {
+        // --- REALTIME LISTENERS ---
+        if (!isRealtimeInitialized) {
             isRealtimeInitialized = true;
             sb.channel('public:kitama-realtime')
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citizen_chat' }, payload => {
@@ -2225,66 +2225,40 @@
                   if(currentUser && currentUser.role === 'citizen') { 
                       const isSelf = payload.new.sender_phone === currentUser.phone_number;
                       const isOnForum = document.getElementById('citizen-chat-sec').classList.contains('active');
-                      
                       if (!isSelf) {
                           if (!isOnForum || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
                               triggerNotification('Ujumbe Mpya - Forum', `${payload.new.sender_name}: ${payload.new.content.substring(0, 30)}...`, 'citizen-chat-sec');
-                          } else {
-                              playBeep();
-                          }
+                          } else { playBeep(); }
                       }
                       if(isOnForum) fetchCitizenChat(!isSelf);
                   }
                   updateBadges(); 
               })
-                          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'activist_articles' }, payload => {
+              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'activist_articles' }, payload => {
                   const updatedArticle = payload.new;
-                  const u = JSON.parse(localStorage.getItem('kitama_user'));
-                  
+                  const usr = JSON.parse(localStorage.getItem('kitama_user'));
                   const likeCountEl = document.getElementById(`like-count-${updatedArticle.id}`);
                   const dislikeCountEl = document.getElementById(`dislike-count-${updatedArticle.id}`);
                   const likeBtn = document.getElementById(`like-btn-${updatedArticle.id}`);
                   const dislikeBtn = document.getElementById(`dislike-btn-${updatedArticle.id}`);
-                  
-                  // Kama mtumiaji yupo kwenye page ya makala na anaiona hiyo makala
                   if (likeCountEl && dislikeCountEl) {
                       const likedArr = updatedArticle.liked_by || [];
                       const dislikedArr = updatedArticle.disliked_by || [];
-                      
-                      // Sasisha idadi (counts) kimyakimya
                       likeCountEl.innerText = likedArr.length;
                       dislikeCountEl.innerText = dislikedArr.length;
-                      
-                      // Sasisha rangi za vitufe kulingana na aliyefanya mwenyewe
-                      if (likedArr.includes(u.phone_number)) {
-                          likeBtn.classList.add('liked');
-                          dislikeBtn.classList.remove('disliked');
-                      } else if (dislikedArr.includes(u.phone_number)) {
-                          dislikeBtn.classList.add('disliked');
-                          likeBtn.classList.remove('liked');
-                      } else {
-                          likeBtn.classList.remove('liked');
-                          dislikeBtn.classList.remove('disliked');
-                      }
+                      if (likedArr.includes(usr.phone_number)) { likeBtn.classList.add('liked'); dislikeBtn.classList.remove('disliked'); } 
+                      else if (dislikedArr.includes(usr.phone_number)) { dislikeBtn.classList.add('disliked'); likeBtn.classList.remove('liked'); } 
+                      else { likeBtn.classList.remove('liked'); dislikeBtn.classList.remove('disliked'); }
                   }
               })
-             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_drivers' }, payload => {
+              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_drivers' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (payload.new.phone === currentUser.phone_number) {
                       const newStatus = payload.new.status;
-                      
-                      // KAMESHA MZUNGUKO: Fanya kitu tu kama status imebadilika, sio kila mara inasasishwa
                       if (newStatus !== lastBodaStatus) {
                           lastBodaStatus = newStatus;
-                          
-                          if (newStatus === 'active') {
-                              showToast("Hongera! Umekubaliwa kuwa Dereva wa Boda.");
-                              playBeep();
-                              checkDriverStatus(); 
-                          } else if (newStatus === 'rejected') {
-                              showToast("Ombi lako la kuwa Dereva limekataliwa na Admin.");
-                              checkDriverStatus(); 
-                          }
+                          if (newStatus === 'active') { showToast("Hongera! Umekubaliwa kuwa Dereva wa Boda."); playBeep(); checkDriverStatus(); } 
+                          else if (newStatus === 'rejected') { showToast("Ombi lako la kuwa Dereva limekataliwa na Admin."); checkDriverStatus(); }
                       }
                   }
               })
@@ -2293,13 +2267,9 @@
                   if(currentUser && currentUser.role !== 'citizen') { 
                       const isSelf = (payload.new.sender_name === currentUser.full_name && payload.new.sender_role === currentUser.role);
                       const isOnChat = document.getElementById('leader-chat-sec').classList.contains('active');
-                      
                       if (!isSelf) {
-                          if (!isOnChat || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
-                              triggerNotification('Ujumbe Mpya - Viongozi', `${payload.new.sender_name}: ${payload.new.content.substring(0, 30)}...`, 'leader-chat-sec');
-                          } else {
-                              playBeep();
-                          }
+                          if (!isOnChat || (typeof isTabHidden !== 'undefined' && isTabHidden)) { triggerNotification('Ujumbe Mpya - Viongozi', `${payload.new.sender_name}: ${payload.new.content.substring(0, 30)}...`, 'leader-chat-sec'); } 
+                          else { playBeep(); }
                       }
                       if(isOnChat) fetchLeaderChat(true); 
                   }
@@ -2310,16 +2280,11 @@
                   if (currentUser && payload.new.recipient_phone === currentUser.phone_number) {
                       const isOnDM = document.getElementById('dm-chat-sec').classList.contains('active') && dmOtherPhone === payload.new.sender_phone;
                       const shopName = payload.new.shop_id ? 'Duka' : 'Faragha';
-                      
-                      if (!isOnDM || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
-                          triggerNotification(`Ujumbe Mpya wa ${shopName}`, payload.new.content.substring(0, 30) + '...', 'my-inbox-sec');
-                      } else {
-                          playBeep();
-                      }
+                      if (!isOnDM || (typeof isTabHidden !== 'undefined' && isTabHidden)) { triggerNotification(`Ujumbe Mpya wa ${shopName}`, payload.new.content.substring(0, 30) + '...', 'my-inbox-sec'); } 
+                      else { playBeep(); }
                   }
                   if(document.getElementById('my-inbox-sec').classList.contains('active')) fetchMyInbox();
                   if(document.getElementById('shop-inbox-sec').classList.contains('active') && currentShopId) fetchShopInbox(currentShopId);
-                  
                   const dmChatSec = document.getElementById('dm-chat-sec');
                   if (dmChatSec.classList.contains('active') && dmOtherPhone) {
                       const msg = payload.new;
@@ -2335,11 +2300,8 @@
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if(currentUser && currentUser.role !== 'citizen') {
                       const isOnReports = document.getElementById('leader-reports-sec').classList.contains('active');
-                      if (!isOnReports || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
-                          triggerNotification('Kero Mpya!', payload.new.title, 'leader-reports-sec');
-                      } else {
-                          playBeep(); 
-                      }
+                      if (!isOnReports || (typeof isTabHidden !== 'undefined' && isTabHidden)) { triggerNotification('Kero Mpya!', payload.new.title, 'leader-reports-sec'); } 
+                      else { playBeep(); }
                   }
                   if(document.getElementById('leader-reports-sec').classList.contains('active')) fetchLeaderReports();
                   if(document.getElementById('progress-sec').classList.contains('active')) fetchPublicProgress();
@@ -2349,11 +2311,8 @@
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (currentUser && currentUser.role === 'system_admin') {
                       const isOnPage = document.getElementById('admin-verifications-sec').classList.contains('active');
-                      if (!isOnPage || (typeof isTabHidden !== 'undefined' && isTabHidden)) {
-                          triggerNotification('Ombi Jipya la Uthibitisho', payload.new.user_name + ' anasubiri kuwa Verified.', 'admin-verifications-sec');
-                      } else {
-                          playBeep();
-                      }
+                      if (!isOnPage || (typeof isTabHidden !== 'undefined' && isTabHidden)) { triggerNotification('Ombi Jipya la Uthibitisho', payload.new.user_name + ' anasubiri kuwa Verified.', 'admin-verifications-sec'); } 
+                      else { playBeep(); }
                       if(isOnPage) fetchAdminVerifications();
                   }
               })
@@ -2361,104 +2320,70 @@
                   if(document.getElementById('market-sec').classList.contains('active')) fetchMarket();
                   if(document.getElementById('admin-moderation-sec').classList.contains('active')) fetchModeration();
               })
-                         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_requests' }, payload => {
+              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_requests' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  
-                  // 1. KAMA DEREVA AMEKUBALI (KWA ABIRIA)
                   if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'accepted') {
                       const statusBox = document.getElementById('boda-status-box');
                       const btnSearch = document.getElementById('btn-boda-search');
                       const btnConfirm = document.getElementById('btn-boda-confirm');
                       const btnCancel = document.getElementById('btn-boda-cancel');
-                      
                       if(statusBox) {
                           statusBox.className = 'boda-status accepted';
-                          let waPhone = payload.new.driver_phone.replace(/^0/, '255');
                           statusBox.innerHTML = `✅ Dereva <b>${payload.new.driver_name}</b> amekubali! <br><br> Nauli: ${payload.new.fare.toLocaleString()} Tsh (${payload.new.payment_method.toUpperCase()}) <br><br> Piga: <a href="tel:${payload.new.driver_phone}" style="color:var(--accent); font-weight:800;">${payload.new.driver_phone}</a>`;
                       }
                       if(btnCancel) btnCancel.style.display = 'none';
                       if(btnSearch) btnSearch.style.display = 'none';
                       if(btnConfirm) btnConfirm.style.display = 'none';
                   }
-                  
-                  // 2. KAMA OMBI LIMEISHA MUDA (Expired)
                   if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'expired') {
                       const statusBox = document.getElementById('boda-status-box');
                       const btnSearch = document.getElementById('btn-boda-search');
                       const btnCancel = document.getElementById('btn-boda-cancel');
-                      
-                      if(statusBox) {
-                          statusBox.className = 'boda-status';
-                          statusBox.innerHTML = '⏱️ Ombi limeisha muda. Hakuna dereva aliyekubali. Jaribu tena.';
-                      }
+                      if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = '⏱️ Ombi limeisha muda. Hakuna dereva aliyekubali. Jaribu tena.'; }
                       if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
                       if(btnCancel) btnCancel.style.display = 'none';
                   }
-                  
-                  // 3. KAMA DEREVA YUPO KWENYE UKURASA WA MAOMBI
                   if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
               })
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_status' }, payload => {
                   playBeep();
                   showToast("Tip mpya kutoka Kitama Yetu!");
-                  if(document.getElementById('status-sec').classList.contains('active')) loadStatusUI(); // HAPA NDIO ILIKUWA KOSA
+                  if(document.getElementById('status-sec').classList.contains('active')) loadStatusUI();
               })
-                          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
+              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, payload => {
                   const updatedUser = payload.new;
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   if (!currentUser) return;
-                  
                   if (updatedUser.id === currentUser.id) {
                       localStorage.setItem('kitama_user', JSON.stringify(updatedUser));
-                      
                       const canEditMapChanged = updatedUser.can_edit_map !== currentUser.can_edit_map;
                       const activistChanged = updatedUser.is_activist !== currentUser.is_activist;
                       const statusChanged = updatedUser.status !== currentUser.status;
 
-                      // 1. UWEZO WA RAMANI
                       if (canEditMapChanged) {
                           showToast(updatedUser.can_edit_map ? "Umepata uwezo wa kuongeza maeneo!" : "Umeondolewa uwezo wa kuongeza maeneo.");
                           if (document.getElementById('kitama-map-sec').classList.contains('active')) initKitamaMap();
                       }
 
-                      // 2. MABADILIKO YA STATUS (View-Only, Ban, au Active)
                       if (statusChanged) {
-                          if (updatedUser.status === 'rejected') {
-                              openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kabisa na Admin wa Mfumo. Utatoka kwenye app sasa.", false);
-                              setTimeout(() => handleLogout(), 3000);
-                              return;
-                          } else if (updatedUser.status === 'restricted') {
-                              openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu.", false);
-                          } else if (updatedUser.status === 'active') {
-                              showToast("Akaunti yako imerudishiwa! Unaweza kuandika tena.");
-                          }
-                          
-                          // SASISHA UI KIMYAKIMYA (Badala ya reload)
-                          setupDashboard(updatedUser);
-                          resyncActiveScreen(); 
-                          return;
+                          if (updatedUser.status === 'rejected') { openModal("Akaunti Imefungwa", "Akaunti yako imefungwa kabisa na Admin wa Mfumo. Utatoka kwenye app sasa.", false); setTimeout(() => handleLogout(), 3000); return; } 
+                          else if (updatedUser.status === 'restricted') { openModal("Akaunti Imezuiwa", "Akaunti yako imezuiwa kufanya vitendo (View-Only) na Admin. Unaweza kuona tu.", false); } 
+                          else if (updatedUser.status === 'active') { showToast("Akaunti yako imerudishiwa! Unaweza kuandika tena."); }
+                          setupDashboard(updatedUser); resyncActiveScreen(); return;
                       }
 
-                      // 3. MABADILIKO YA UTHIBITISHO (Activist Badge)
                       if (activistChanged) {
-                          if (updatedUser.is_activist) {
-                              openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b> (Verified).", false);
-                          } else {
-                              showToast("Hadhi yako ya Activist imeondolewa.");
-                          }
-                          
-                          // SASISHA UI KIMYAKIMYA
-                          setupDashboard(updatedUser);
-                          resyncActiveScreen();
+                          if (updatedUser.is_activist) { openModal("Hongera! 🎉", "Umepewa hadhi ya <b>Activist</b> (Verified).", false); } 
+                          else { showToast("Hadhi yako ya Activist imeondolewa."); }
+                          setupDashboard(updatedUser); resyncActiveScreen();
                       }
                   } else {
-                      // ADMIN: SASISHA ORODHA KAMA YUPO KWENYE CONSOLE
                       if(document.getElementById('pending-users-sec') && document.getElementById('pending-users-sec').classList.contains('active')) fetchPendingUsers();
                       if(document.getElementById('admin-activists-sec') && document.getElementById('admin-activists-sec').classList.contains('active')) fetchActivistsControl();
                       if(document.getElementById('admin-users-sec') && document.getElementById('admin-users-sec').classList.contains('active')) fetchAdminUsers();
                   }
               })
-             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'polls' }, payload => {
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'polls' }, payload => {
                   playBeep();
                   if(document.getElementById('polls-sec').classList.contains('active')) fetchPolls();
               })
@@ -2470,71 +2395,90 @@
               })
               .subscribe();
         }
-              updateBadges();
-        
-        // Washa mtandao wa Status (P2P) kwa kila mtumiaji
+
+        updateBadges();
         initStatusNetwork(u);
-        
-        // OMBA RUHUSA YA NOTIFICATIONS
         requestNotificationPermission();
         checkForUpdates();
-        setupReportFormLimits(); // ONGEZA HII: Weka limit za kero kulingana na hadhi
-        
-        // FUTA STATUS ZILIZOKWISHA MUDA (Auto-clean)
+        setupReportFormLimits(); 
         cleanExpiredStatuses();
 
-            // --- FIREBASE PUSH NOTIFICATIONS (Background & Foreground) ---
+        // --- FIREBASE PUSH NOTIFICATIONS (Background & Foreground) ---
         if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.PushNotifications) {
             const PushNotifications = window.Capacitor.Plugins.PushNotifications;
-            
-            // 1. Omba ruhusa kutoa notifications
             PushNotifications.requestPermissions().then(result => {
-                if (result.receive === 'granted') {
-                    PushNotifications.register();
-                }
+                if (result.receive === 'granted') { PushNotifications.register(); }
             });
-
-            // 2. Hifadhi kitambulisho (Token) cha simu ya mtumiaji kwenye database
             PushNotifications.addListener('registration', async ({ value }) => {
-                const u = JSON.parse(localStorage.getItem('kitama_user'));
-                if (u) {
-                    try {
-                        await sb.from('users').update({ fcm_token: value }).eq('id', u.id);
-                    } catch(e) {}
+                const usr = JSON.parse(localStorage.getItem('kitama_user'));
+                if (usr) {
+                    try { await sb.from('users').update({ fcm_token: value }).eq('id', usr.id); } catch(e) {}
                 }
             });
-
-            // 3. Pokea Ujumbe na cheza sauti (Beep) hata App ikiwa wazi
             PushNotifications.addListener('pushNotificationReceived', notification => {
                 playBeep();
                 showToast(notification.title || "Ujumbe Mpya");
             });
         }
-        // --- APP LIFECYCLE & REALTIME RESYNC (Kama WhatsApp) ---
+
+        // --- APP LIFECYCLE & REALTIME RESYNC (The Ultimate Fix) ---
         function resyncActiveScreen() {
             if (!navigator.onLine) return;
             const activeSec = document.querySelector('.sec.active');
             if (activeSec) {
-                showSec(activeSec.id); 
-                
-                // Kama yupo kwenye Boda, kagua kama dereva ameshakubali wakati alipokuwa ametoka
-                if (activeSec.id === 'boda-sec') {
-                    checkMyBodaRequestStatus();
-                }
+                // SOSHA MESSAGE MOJA KWA MOJA BILA KUSUBIRI MTANDAO
+                if (activeSec.id === 'citizen-chat-sec') fetchCitizenChat(false);
+                if (activeSec.id === 'leader-chat-sec') fetchLeaderChat(false);
+                if (activeSec.id === 'dm-chat-sec' && dmOtherPhone) fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, false);
+                if (activeSec.id === 'boda-sec') checkMyBodaRequestStatus();
+                if (activeSec.id === 'my-inbox-sec') fetchMyInbox();
             }
         }
 
+        async function checkMyBodaRequestStatus() {
+            const usr = JSON.parse(localStorage.getItem('kitama_user'));
+            if(!usr) return;
+            try {
+                const { data } = await sb.from('boda_requests')
+                    .select('*')
+                    .eq('rider_phone', usr.phone_number)
+                    .in('status', ['searching', 'accepted'])
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                    
+                if (data) {
+                    if (data.status === 'accepted') {
+                        const statusBox = document.getElementById('boda-status-box');
+                        const btnSearch = document.getElementById('btn-boda-search');
+                        const btnConfirm = document.getElementById('btn-boda-confirm');
+                        const btnCancel = document.getElementById('btn-boda-cancel');
+                        if(statusBox) {
+                            statusBox.className = 'boda-status accepted';
+                            statusBox.innerHTML = `✅ Dereva <b>${data.driver_name}</b> amekubali! <br><br> Nauli: ${data.fare.toLocaleString()} Tsh (${data.payment_method.toUpperCase()}) <br><br> Piga: <a href="tel:${data.driver_phone}" style="color:var(--accent); font-weight:800;">${data.driver_phone}</a>`;
+                        }
+                        if(btnCancel) btnCancel.style.display = 'none';
+                        if(btnSearch) btnSearch.style.display = 'none';
+                        if(btnConfirm) btnConfirm.style.display = 'none';
+                    }
+                }
+            } catch(e) { console.error("Boda status check error:", e); }
+        }
+
+        // 1. EVENT: Mtumiaji anaporudisha App kwenye screen (Resume)
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                setTimeout(resyncActiveScreen, 300); 
+                setTimeout(resyncActiveScreen, 300); // Subiri kidugu iongofue, kisha sasisha
             }
         });
 
+        // 2. EVENT: Mtumiaji anaporudisha mtandao
         window.addEventListener('online', () => {
             showToast("Mtandao urudi! App inasasisha...");
             setTimeout(resyncActiveScreen, 500);
         });
 
+        // 3. EVENT: Native Android App Resume & Back Button (Kwa APK)
         if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
             window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
                 if (isActive) {
@@ -2553,37 +2497,6 @@
                     window.Capacitor.Plugins.App.exitApp();
                 }
             });
-        }
-
-        async function checkMyBodaRequestStatus() {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            if(!u) return;
-            try {
-                const { data } = await sb.from('boda_requests')
-                    .select('*')
-                    .eq('rider_phone', u.phone_number)
-                    .in('status', ['searching', 'accepted'])
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-                    
-                if (data) {
-                    if (data.status === 'accepted') {
-                        const statusBox = document.getElementById('boda-status-box');
-                        const btnSearch = document.getElementById('btn-boda-search');
-                        const btnConfirm = document.getElementById('btn-boda-confirm');
-                        const btnCancel = document.getElementById('btn-boda-cancel');
-                        
-                        if(statusBox) {
-                            statusBox.className = 'boda-status accepted';
-                            statusBox.innerHTML = `✅ Dereva <b>${data.driver_name}</b> amekubali! <br><br> Nauli: ${data.fare.toLocaleString()} Tsh (${data.payment_method.toUpperCase()}) <br><br> Piga: <a href="tel:${data.driver_phone}" style="color:var(--accent); font-weight:800;">${data.driver_phone}</a>`;
-                        }
-                        if(btnCancel) btnCancel.style.display = 'none';
-                        if(btnSearch) btnSearch.style.display = 'none';
-                        if(btnConfirm) btnConfirm.style.display = 'none';
-                    }
-                }
-            } catch(e) { console.error("Boda status check error:", e); }
         }
     }
     
