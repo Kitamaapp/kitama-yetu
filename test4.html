@@ -6051,9 +6051,9 @@ if (data) data.reverse();
                                 <small>Simu: ${r.rider_phone}</small>
                             </div>
                             <div style="display:flex; flex-direction:column; gap:5px;">
-                                <button onclick="viewBodaLocation('${r.id}', '${r.pickup_lat}', '${r.pickup_lng}', '${r.dest_lat}', '${r.dest_lng}')" class="m-btn m-btn-secondary" style="flex:none; padding:8px 12px; font-size:11px;">Ramani</button>
-                                <button onclick="acceptBoda('${r.id}', '${r.rider_phone}')" class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:11px;">Kubali</button>
-                            </div>
+                  <button onclick="viewBodaLocation('${r.id}', '${r.pickup_lat}', '${r.pickup_lng}', '${r.dest_lat}', '${r.dest_lng}')" class="m-btn m-btn-secondary" style="flex:none; padding:8px 12px; font-size:11px;">Ramani</button>
+                  <button onclick="acceptBoda('${r.id}', '${r.rider_phone}', '${r.pickup_lat}', '${r.pickup_lng}', '${r.dest_lat}', '${r.dest_lng}')" class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:11px;">Kubali</button>
+                  </div>
                         </div>`;
                     }).join('');
                 } else {
@@ -6099,16 +6099,69 @@ if (data) data.reverse();
             }, 200);
         }    
     
-    async function acceptBoda(reqId, riderPhone) {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        try {
-            await sb.from('boda_requests').update({ status: 'accepted', driver_phone: u.phone_number, driver_name: u.full_name }).eq('id', reqId);
-            showToast("Umekubali ombi! Piga simu abiria.");
-            let waPhone = riderPhone.replace(/^0/, '255');
-            openModal("Mteja Wako", `Piga simu <a href="tel:${riderPhone}" style="color:var(--accent);">${riderPhone}</a> au <a href="https://wa.me/${waPhone}" target="_blank" style="color:var(--accent);">WhatsApp</a> kumjulisha umeshakuja.`, false);
-            fetchBodaRequests();
-        } catch(e) { openModal("Kosa", e.message); }
-    }
+    async function acceptBoda(reqId, riderPhone, pLat, pLng, dLat, dLng) {
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    try {
+        await sb.from('boda_requests').update({ status: 'accepted', driver_phone: u.phone_number, driver_name: u.full_name }).eq('id', reqId);
+        
+        let waPhone = riderPhone.replace(/^0/, '255');
+        
+        // 1. FUNGUA DIRISHA LA RAMANI MOJA KWA MOJA
+        openModal("Ramani ya Mteja", `
+            <div id="boda-req-map-${reqId}" style="height: 50vh; width: 100%; border-radius: 12px; margin-bottom: 15px;"></div>
+            <div style="text-align: center; padding: 10px; background: var(--bg); border-radius: 10px;">
+                <p style="margin-bottom: 10px; font-weight: 600;">Umekubali ombi! Fuata ramani hapo juu kwenda kumkuta mteja.</p>
+                <a href="tel:${riderPhone}" class="m-btn m-btn-primary" style="margin-right: 10px; text-decoration: none;">📞 Piga Simu</a>
+                <a href="https://wa.me/${waPhone}" target="_blank" class="m-btn m-btn-secondary" style="background:#25D366; color:white; text-decoration: none;">💬 WhatsApp</a>
+            </div>
+        `, false);
+        
+        showToast("Umekubali ombi! Ramani inapakia...");
+        playBeep();
+        
+        // 2. CHORA NJIA YA RAMANI (Pamoja na alama za Pickup na Destination)
+        setTimeout(async () => {
+            const reqMap = L.map(`boda-req-map-${reqId}`).setView([parseFloat(pLat), parseFloat(pLng)], 14);
+            L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(reqMap);
+            
+            const rc = L.Routing.control({
+                waypoints: [ L.latLng(parseFloat(pLat), parseFloat(pLng)), L.latLng(parseFloat(dLat), parseFloat(dLng)) ],
+                routeWhileDragging: false, addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
+                lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
+            }).addTo(reqMap);
+
+            // Kama barabara haipatikani, chor mstari wa moja kwa moja
+            rc.on('routingerror', () => {
+                if (rc) { reqMap.removeControl(rc); }
+                L.polyline([[parseFloat(pLat), parseFloat(pLng)], [parseFloat(dLat), parseFloat(dLng)]], {color: '#10B981', weight: 4, dashArray: '10, 10'}).addTo(reqMap);
+                reqMap.fitBounds([[parseFloat(pLat), parseFloat(pLng)], [parseFloat(dLat), parseFloat(dLng)]]);
+            });
+
+            // ALAMA YA KYEJI (Kule abiria yupo)
+            const pickupIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15]});
+            L.marker([parseFloat(pLat), parseFloat(pLng)], {icon: pickupIcon}).addTo(reqMap).bindPopup("<b>Abiria yupo hapa (Pickup)</b>").openPopup();
+            
+            // ALAMA NYEKUNDU (Kule abiria anaelekea)
+            const destIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot" style="background:#EF4444;"></div>', iconSize: [15, 15]});
+            L.marker([parseFloat(dLat), parseFloat(dLng)], {icon: destIcon}).addTo(reqMap).bindPopup("<b>Mteja anaenda hapa (Destination)</b>");
+            
+            // ONGEZA MAENEO YA KITAMA Kwenye Ramani ya Dereva
+            try {
+                const { data: places } = await sb.from('map_places').select('*');
+                if (places && places.length > 0) {
+                    places.forEach(p => {
+                        const placeIcon = getMapPinIcon(p.category, p.name);
+                        L.marker([parseFloat(p.lat), parseFloat(p.lng)], { icon: placeIcon }).addTo(reqMap);
+                    });
+                }
+            } catch(e) { console.error("Places error on driver map:", e); }
+
+            setTimeout(() => { reqMap.invalidateSize(); }, 300);
+        }, 200);
+
+        fetchBodaRequests();
+    } catch(e) { openModal("Kosa", e.message); }
+}
             
     // --- FURSA NA MICHANGO FUNCTIONS ---
     async function postOpportunity() {
