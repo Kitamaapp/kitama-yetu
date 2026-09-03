@@ -2473,6 +2473,23 @@
                 }
             } catch(e) { console.error("Boda status check error:", e); }
         }
+                // --- SMART CHAT POLLING (Kama WhatsApp) ---
+        // Hii itaangalia kila sekunde 3 kama kuna message mpya kwenye page aliypo
+        let chatPollInterval = null;
+        
+        function startChatPolling() {
+            if (chatPollInterval) clearInterval(chatPollInterval);
+            chatPollInterval = setInterval(() => {
+                const activeSec = document.querySelector('.sec.active');
+                if (activeSec && navigator.onLine) {
+                    if (activeSec.id === 'citizen-chat-sec') fetchCitizenChat(false);
+                    else if (activeSec.id === 'leader-chat-sec') fetchLeaderChat(false);
+                    else if (activeSec.id === 'dm-chat-sec' && dmOtherPhone) fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, false);
+                    else if (activeSec.id === 'my-inbox-sec') fetchMyInbox();
+                }
+            }, 3000); // Kila sekunde 3
+        }
+        startChatPolling(); // Anza kupima moja kwa moja
 
         // 1. EVENT: Mtumiaji anaporudisha App kwenye screen (Resume)
         document.addEventListener('visibilitychange', () => {
