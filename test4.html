@@ -2216,7 +2216,7 @@
             setupDashboard(u);
         }
 
-        // --- REALTIME LISTENERS ---
+        // --- REALTIME LISTENERS & HEARTBEAT ---
         if (!isRealtimeInitialized) {
             isRealtimeInitialized = true;
             sb.channel('public:kitama-realtime')
@@ -2230,6 +2230,7 @@
                               triggerNotification('Ujumbe Mpya - Forum', `${payload.new.sender_name}: ${payload.new.content.substring(0, 30)}...`, 'citizen-chat-sec');
                           } else { playBeep(); }
                       }
+                      // HII NDIO INAITA KUSOMA MESSAGE MPYA PAMOJA HAP KITAMA FORUM
                       if(isOnForum) fetchCitizenChat(!isSelf);
                   }
                   updateBadges(); 
@@ -2271,6 +2272,7 @@
                           if (!isOnChat || (typeof isTabHidden !== 'undefined' && isTabHidden)) { triggerNotification('Ujumbe Mpya - Viongozi', `${payload.new.sender_name}: ${payload.new.content.substring(0, 30)}...`, 'leader-chat-sec'); } 
                           else { playBeep(); }
                       }
+                      // HII NDIO INAITA KUSOMA MESSAGE MPYA PAMOJA HAP CHUMB CHA VIONGOZI
                       if(isOnChat) fetchLeaderChat(true); 
                   }
                   updateBadges(); 
@@ -2290,6 +2292,7 @@
                       const msg = payload.new;
                       if (msg.sender_phone === dmOtherPhone || msg.recipient_phone === dmOtherPhone) {
                           if ((msg.shop_id === null && dmShopId === null) || (msg.shop_id === dmShopId)) {
+                              // HII NDIO INAITA KUSOMA MESSAGE MPYA PAMOJA HAP INBOX
                               fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, true);
                           }
                       }
@@ -2394,6 +2397,13 @@
                   if(document.getElementById('polls-sec').classList.contains('active')) fetchPolls();
               })
               .subscribe();
+
+            // --- HEARTBEAT (Kuzuia Android kufunga mtandao wa Realtime) ---
+            setInterval(() => {
+                if (navigator.onLine) {
+                    sb.channel('heartbeat').send({ type: 'broadcast', event: 'ping', payload: {} }).catch(()=>{});
+                }
+            }, 20000); // Kila sekunde 20
         }
 
         updateBadges();
@@ -2426,7 +2436,6 @@
             if (!navigator.onLine) return;
             const activeSec = document.querySelector('.sec.active');
             if (activeSec) {
-                // SOSHA MESSAGE MOJA KWA MOJA BILA KUSUBIRI MTANDAO
                 if (activeSec.id === 'citizen-chat-sec') fetchCitizenChat(false);
                 if (activeSec.id === 'leader-chat-sec') fetchLeaderChat(false);
                 if (activeSec.id === 'dm-chat-sec' && dmOtherPhone) fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, false);
@@ -2468,7 +2477,7 @@
         // 1. EVENT: Mtumiaji anaporudisha App kwenye screen (Resume)
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                setTimeout(resyncActiveScreen, 300); // Subiri kidugu iongofue, kisha sasisha
+                setTimeout(resyncActiveScreen, 300);
             }
         });
 
@@ -2478,7 +2487,7 @@
             setTimeout(resyncActiveScreen, 500);
         });
 
-        // 3. EVENT: Native Android App Resume & Back Button (Kwa APK)
+        // 3. EVENT: Native Android App Resume & Back Button
         if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
             window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
                 if (isActive) {
