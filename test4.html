@@ -2326,31 +2326,43 @@
                   if(document.getElementById('market-sec').classList.contains('active')) fetchMarket();
                   if(document.getElementById('admin-moderation-sec').classList.contains('active')) fetchModeration();
               })
-              .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_requests' }, payload => {
-                  const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
-                  if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'accepted') {
-                      const statusBox = document.getElementById('boda-status-box');
-                      const btnSearch = document.getElementById('btn-boda-search');
-                      const btnConfirm = document.getElementById('btn-boda-confirm');
-                      const btnCancel = document.getElementById('btn-boda-cancel');
-                      if(statusBox) {
-                          statusBox.className = 'boda-status accepted';
-                          statusBox.innerHTML = `✅ Dereva <b>${payload.new.driver_name}</b> amekubali! <br><br> Nauli: ${payload.new.fare.toLocaleString()} Tsh (${payload.new.payment_method.toUpperCase()}) <br><br> Piga: <a href="tel:${payload.new.driver_phone}" style="color:var(--accent); font-weight:800;">${payload.new.driver_phone}</a>`;
-                      }
-                      if(btnCancel) btnCancel.style.display = 'none';
-                      if(btnSearch) btnSearch.style.display = 'none';
-                      if(btnConfirm) btnConfirm.style.display = 'none';
-                  }
-                  if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'expired') {
-                      const statusBox = document.getElementById('boda-status-box');
-                      const btnSearch = document.getElementById('btn-boda-search');
-                      const btnCancel = document.getElementById('btn-boda-cancel');
-                      if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = '⏱️ Ombi limeisha muda. Hakuna dereva aliyekubali. Jaribu tena.'; }
-                      if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
-                      if(btnCancel) btnCancel.style.display = 'none';
-                  }
-                  if(document.getElementById('boda-driver-sec').classList.contains('active')) fetchBodaRequests();
-              })
+             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_requests' }, payload => {
+    const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+    
+    // Kwa Dereva
+    if (document.getElementById('boda-driver-sec').classList.contains('active')) {
+        fetchBodaRequests();
+    }
+
+    // Kwa Abiria
+    if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'accepted') {
+        const statusBox = document.getElementById('boda-status-box');
+        const btnSearch = document.getElementById('btn-boda-search');
+        const btnConfirm = document.getElementById('btn-boda-confirm');
+        const btnCancel = document.getElementById('btn-boda-cancel');
+        if(statusBox) {
+            statusBox.className = 'boda-status accepted';
+            // TUMIA || 0 KUEPUKA APP KUFIKA
+            const fare = payload.new.fare || 0;
+            const payMethod = payload.new.payment_method || 'CASH';
+            const driverName = payload.new.driver_name || 'Hajajulikani';
+            const driverPhone = payload.new.driver_phone || 'Hakuna Namba';
+            statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a>`;
+        }
+        if(btnCancel) btnCancel.style.display = 'none';
+        if(btnSearch) btnSearch.style.display = 'none';
+        if(btnConfirm) btnConfirm.style.display = 'none';
+    }
+    
+    if(payload.new.rider_phone === currentUser.phone_number && payload.new.status === 'expired') {
+        const statusBox = document.getElementById('boda-status-box');
+        const btnSearch = document.getElementById('btn-boda-search');
+        const btnCancel = document.getElementById('btn-boda-cancel');
+        if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = '⏱️ Ombi limeisha muda. Hakuna dereva aliyekubali. Jaribu tena.'; }
+        if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
+        if(btnCancel) btnCancel.style.display = 'none';
+    }
+})
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_status' }, payload => {
                   playBeep();
                   showToast("Tip mpya kutoka Kitama Yetu!");
@@ -2399,6 +2411,15 @@
               .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'polls' }, payload => {
                   if(document.getElementById('polls-sec').classList.contains('active')) fetchPolls();
               })
+                // ONGEZA HII KWA DEREVA KUONA MAOMBI REAL-TIME
+.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'boda_requests' }, payload => {
+    const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
+    // Kama dereva yupo ukurasa wa maombi, yasasisha list
+    if(document.getElementById('boda-driver-sec').classList.contains('active')) {
+        playBeep(); // Mwachie asikie sauti kama WhatsApp
+        fetchBodaRequests();
+    }
+})
               .subscribe((status) => {
                   console.log("Supabase Realtime Status:", status); // ONGEZA HII MISTARI
               });
@@ -2431,16 +2452,17 @@
 
         // --- APP LIFECYCLE & REALTIME RESYNC (The Ultimate Fix) ---
         function resyncActiveScreen() {
-            if (!navigator.onLine) return;
-            const activeSec = document.querySelector('.sec.active');
-            if (activeSec) {
-                if (activeSec.id === 'citizen-chat-sec') fetchCitizenChat(false);
-                if (activeSec.id === 'leader-chat-sec') fetchLeaderChat(false);
-                if (activeSec.id === 'dm-chat-sec' && dmOtherPhone) fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, false);
-                if (activeSec.id === 'boda-sec') checkMyBodaRequestStatus();
-                if (activeSec.id === 'my-inbox-sec') fetchMyInbox();
-            }
-        }
+    if (!navigator.onLine) return;
+    const activeSec = document.querySelector('.sec.active');
+    if (!activeSec) return;
+
+    if (activeSec.id === 'citizen-chat-sec') fetchCitizenChat(false);
+    if (activeSec.id === 'leader-chat-sec') fetchLeaderChat(false);
+    if (activeSec.id === 'dm-chat-sec' && dmOtherPhone) fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, false);
+    if (activeSec.id === 'boda-sec') checkMyBodaRequestStatus();
+    if (activeSec.id === 'my-inbox-sec') fetchMyInbox();
+    if (activeSec.id === 'boda-driver-sec') fetchBodaRequests();
+}
 
         async function checkMyBodaRequestStatus() {
             const usr = JSON.parse(localStorage.getItem('kitama_user'));
@@ -2455,19 +2477,24 @@
                     .maybeSingle();
                     
                 if (data) {
-                    if (data.status === 'accepted') {
-                        const statusBox = document.getElementById('boda-status-box');
-                        const btnSearch = document.getElementById('btn-boda-search');
-                        const btnConfirm = document.getElementById('btn-boda-confirm');
-                        const btnCancel = document.getElementById('btn-boda-cancel');
-                        if(statusBox) {
-                            statusBox.className = 'boda-status accepted';
-                            statusBox.innerHTML = `✅ Dereva <b>${data.driver_name}</b> amekubali! <br><br> Nauli: ${data.fare.toLocaleString()} Tsh (${data.payment_method.toUpperCase()}) <br><br> Piga: <a href="tel:${data.driver_phone}" style="color:var(--accent); font-weight:800;">${data.driver_phone}</a>`;
-                        }
-                        if(btnCancel) btnCancel.style.display = 'none';
-                        if(btnSearch) btnSearch.style.display = 'none';
-                        if(btnConfirm) btnConfirm.style.display = 'none';
-                    }
+             if (data.status === 'accepted') {
+    const statusBox = document.getElementById('boda-status-box');
+    const btnSearch = document.getElementById('btn-boda-search');
+    const btnConfirm = document.getElementById('btn-boda-confirm');
+    const btnCancel = document.getElementById('btn-boda-cancel');
+    if(statusBox) {
+        statusBox.className = 'boda-status accepted';
+        // TUMIA || 0 NA || CASH KUEPUKA KOSA LA APP KUJIFUNGA
+        const fare = data.fare || 0;
+        const payMethod = data.payment_method || 'CASH';
+        const driverName = data.driver_name || 'Hajajulikani';
+        const driverPhone = data.driver_phone || 'Hakuna Namba';
+        statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a>`;
+    }
+    if(btnCancel) btnCancel.style.display = 'none';
+    if(btnSearch) btnSearch.style.display = 'none';
+    if(btnConfirm) btnConfirm.style.display = 'none';
+}
                 }
             } catch(e) { console.error("Boda status check error:", e); }
         }
@@ -2513,19 +2540,79 @@ if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App
                 }
             });
         }
-            // --- BACKUP CHAT POLLING (Ikiwa Realtime Imeshindwa) ---
-let chatPollInterval = null;
-function startChatPolling() {
-    if (chatPollInterval) clearInterval(chatPollInterval);
-    chatPollInterval = setInterval(() => {
+            // --- SMART POLLING (Professional Fallback) ---
+     function startSmartPolling() {
+      setInterval(async () => {
+        if (!navigator.onLine) return;
         const activeSec = document.querySelector('.sec.active');
         if (!activeSec) return;
-        if (activeSec.id === 'citizen-chat-sec') fetchCitizenChat(true);
-        else if (activeSec.id === 'leader-chat-sec') fetchLeaderChat(true);
-        else if (activeSec.id === 'dm-chat-sec' && dmOtherPhone) fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, true);
-    }, 3000); // Kila sekunde 3
+        
+        try {
+            // 1. KITAMA FORUM
+            if (activeSec.id === 'citizen-chat-sec') {
+                const { data } = await sb.from('citizen_chat').select('created_at').order('created_at', { ascending: false }).limit(1).maybeSingle();
+                if (data) {
+                    if (!lastForumMsgTime) {
+                        lastForumMsgTime = data.created_at;
+                    } else if (new Date(data.created_at).getTime() > new Date(lastForumMsgTime).getTime()) {
+                        fetchCitizenChat(true);
+                    }
+                }
+            }
+            
+            // 2. CHUMB CHA VIONGOZI
+            if (activeSec.id === 'leader-chat-sec') {
+                const { data } = await sb.from('leader_chat').select('created_at').order('created_at', { ascending: false }).limit(1).maybeSingle();
+                if (data) {
+                    if (!lastLeaderMsgTime) {
+                        lastLeaderMsgTime = data.created_at;
+                    } else if (new Date(data.created_at).getTime() > new Date(lastLeaderMsgTime).getTime()) {
+                        fetchLeaderChat(true);
+                    }
+                }
+            }
+            
+            // 3. INBOX (DM)
+            if (activeSec.id === 'dm-chat-sec' && dmOtherPhone) {
+                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${dmOtherPhone}),and(sender_phone.eq.${dmOtherPhone},recipient_phone.eq.${u.phone_number})`;
+                let query = sb.from('shop_messages').select('created_at').or(orFilter).order('created_at', { ascending: false }).limit(1);
+                if (dmShopId) query = query.eq('shop_id', dmShopId); else query = query.is('shop_id', null);
+                const { data } = await query.maybeSingle();
+                if (data) {
+                    if (!window.lastDmMsgTime) {
+                        window.lastDmMsgTime = data.created_at;
+                    } else if (new Date(data.created_at).getTime() > new Date(window.lastDmMsgTime).getTime()) {
+                        window.lastDmMsgTime = data.created_at;
+                        fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId, true);
+                    }
+                }
+            }
+            
+            // 4. BODA DEREVA (Maombi Mpya)
+            if (activeSec.id === 'boda-driver-sec') {
+                const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+                const { data } = await sb.from('boda_requests').select('created_at').eq('status', 'searching').gte('created_at', tenMinsAgo).order('created_at', { ascending: false }).limit(1).maybeSingle();
+                if (data) {
+                    if (!window.lastBodaReqTime) {
+                        window.lastBodaReqTime = data.created_at;
+                    } else if (new Date(data.created_at).getTime() > new Date(window.lastBodaReqTime).getTime()) {
+                        window.lastBodaReqTime = data.created_at;
+                        playBeep(); // Mwachie asikie sauti
+                        fetchBodaRequests();
+                    }
+                }
+            }
+            
+            // 5. BODA ABIRIA (Kuangalia kama dereva amekubali)
+            if (activeSec.id === 'boda-sec') {
+                checkMyBodaRequestStatus();
+            }
+            
+        } catch(e) { console.error("Polling error:", e); }
+    }, 3000); // Inakagua kila sekunde 3 bila kubadilisha screen
 }
-startChatPolling();
+startSmartPolling();
     }
     
         // --- BACK BUTTON HANDLER (WhatsApp Style) ---
@@ -5919,7 +6006,7 @@ if (data) data.reverse();
         async function fetchBodaRequests() {
             const div = document.getElementById('boda-requests-list');
             const u = JSON.parse(localStorage.getItem('kitama_user'));
-            
+            window.lastBodaReqTime = null; // Seti upya ili kuchunguza ombi jipya
             const { data: driver } = await sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle();
             
             if (!driver || driver.status !== 'active') {
@@ -6508,7 +6595,7 @@ if (data) data.reverse();
             
             try {
                 const u = JSON.parse(localStorage.getItem('kitama_user'));
-
+                window.lastDmMsgTime = null; // Seti upya ili kuchunguza muda mpya
                 const orFilter = `and(sender_phone.eq.${u.phone_number},recipient_phone.eq.${phone}),and(sender_phone.eq.${phone},recipient_phone.eq.${u.phone_number})`;
                 let query = sb.from('shop_messages').select('*').or(orFilter).order('created_at', { ascending: false }).limit(100);
                 
