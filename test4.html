@@ -1865,6 +1865,8 @@
     let pickupMarker = null;
     let destMarker = null;
     let lastBodaStatus = null;
+    let activeBodaTrip = null;
+    let tripMapInstance = null;
     let bodaPickupLat = null, bodaPickupLng = null;
     let bodaDestLat = null, bodaDestLng = null;
     let endedBodaRides = JSON.parse(localStorage.getItem('ended_boda_rides') || '[]');
@@ -2342,17 +2344,14 @@
         const btnConfirm = document.getElementById('btn-boda-confirm');
         const btnCancel = document.getElementById('btn-boda-cancel');
         
-        // HII NDIO SEHEMU MUHIMU YA HATUA YA 4:
-        // Kama ombi hili lipo kwenye 'Orodha ya Safari Zilizokwisha' (endedBodaRides), usionyeshi tena!
         if (endedBodaRides.includes(payload.new.id)) {
             if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
             if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
             if(btnConfirm) btnConfirm.style.display = 'none';
             if(btnCancel) btnCancel.style.display = 'none';
-            return; // Simama hapa, usiende mbeleni kutoa taarifa za dereva tena.
+            return;
         }
 
-        // KAMA HAIJAMALIZIWA, ENDELEA KUONYESHA TAARIFA ZA DEREVA
         if (payload.new.status === 'accepted') {
             if(statusBox) {
                 statusBox.className = 'boda-status accepted';
@@ -2360,30 +2359,43 @@
                 const payMethod = payload.new.payment_method || 'CASH';
                 const driverName = payload.new.driver_name || 'Hajajulikani';
                 const driverPhone = payload.new.driver_phone || 'Hakuna Namba';
-                statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a> <br><br> <button onclick="finishBodaRide('${payload.new.id}')" class="btn-p" style="background:var(--bg); color:var(--text); border:1px solid var(--border); margin-top:10px; width:100%;">Safari Imeisha? (Bonyeza hapa)</button>`;
+                
+                // HII NDIO INAONGEZA VITUFE VIWILI KWENYE SCREEN YA ABIRIA
+                statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a> 
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button onclick="finishBodaRide('${payload.new.id}')" class="btn-p" style="flex:1; background:var(--accent); color:white;">Safari Imeisha</button>
+                    <button onclick="cancelBodaRide('${payload.new.id}')" class="btn-p" style="flex:1; background:var(--bg); color:var(--danger); border:1px solid var(--border);">Ghairi Safari</button>
+                </div>`;
             }
             if(btnCancel) btnCancel.style.display = 'none';
             if(btnSearch) btnSearch.style.display = 'none';
             if(btnConfirm) btnConfirm.style.display = 'none';
         } 
-        // KAMA OMBI LIMEKATA MUDA (EXPIRED)
         else if (payload.new.status === 'expired') {
             if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = '⏱️ Ombi limeisha muda. Hakuna dereva aliyekubali. Jaribu tena.'; }
             if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
             if(btnConfirm) btnConfirm.style.display = 'none';
             if(btnCancel) btnCancel.style.display = 'none';
         }
-        // KAMA DEREVA AU ABIRIA AMEMALIZA SAFARI (COMPLETED)
-        else if (payload.new.status === 'completed') {
-            // Weka kwenye orodha ya zilizokwisha na futa screen
-            if (!endedBodaRides.includes(payload.new.id)) {
-                endedBodaRides.push(payload.new.id);
-                localStorage.setItem('ended_boda_rides', JSON.stringify(endedBodaRides));
+        else if (payload.new.status === 'completed' || payload.new.status === 'cancelled') {
+            // KAMA DEREVA AMEMALIZA AU ABIRIA AMEGHAIRI
+            if (payload.new.driver_phone === currentUser.phone_number && payload.new.status === 'cancelled') {
+                // DEREVA ANAARIFIWA ABIRIA AMEGHAIRI
+                activeBodaTrip = null;
+                renderActiveTripCard();
+                showToast("Abiria ameghairi safari!");
+                playBeep();
             }
-            if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
-            if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
-            if(btnConfirm) btnConfirm.style.display = 'none';
-            if(btnCancel) btnCancel.style.display = 'none';
+            if (payload.new.rider_phone === currentUser.phone_number) {
+                if (!endedBodaRides.includes(payload.new.id)) {
+                    endedBodaRides.push(payload.new.id);
+                    localStorage.setItem('ended_boda_rides', JSON.stringify(endedBodaRides));
+                }
+                if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
+                if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
+                if(btnConfirm) btnConfirm.style.display = 'none';
+                if(btnCancel) btnCancel.style.display = 'none';
+            }
         }
     }
 })
@@ -5768,12 +5780,15 @@ if (data) data.reverse();
             // Kama umbali ni 0, nauli ishuke chini kabisa na iwe 500 Tsh tu
             if (bodaFareAmount < 500) bodaFareAmount = 500;
             
-            document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
-            document.getElementById('boda-fare-details').style.display = 'block';
-            document.getElementById('btn-boda-confirm').style.display = 'block';
-            document.getElementById('btn-boda-search').style.display = 'none';
-            document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
-            playBeep();
+            // Futa kitufe cha Tafuta Nauli kabisa
+document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
+document.getElementById('boda-fare-details').style.display = 'block';
+
+// Onyesha kitufe cha kuthibitisha na endelea
+document.getElementById('btn-boda-confirm').style.display = 'block';
+document.getElementById('btn-boda-search').style.display = 'none';
+document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
+playBeep();
 
             // 3. CHORA NJIA KWENYE RAMANI KUFUATA BARABARA
             bodaRoutingControl = L.Routing.control({
@@ -5900,18 +5915,24 @@ if (data) data.reverse();
         }
         
         if (data.status === 'accepted') {
-            if(statusBox) {
-                statusBox.className = 'boda-status accepted';
-                const fare = data.fare || 0;
-                const payMethod = data.payment_method || 'CASH';
-                const driverName = data.driver_name || 'Hajajulikani';
-                const driverPhone = data.driver_phone || 'Hakuna Namba';
-                statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a> <br><br> <button onclick="finishBodaRide('${data.id}')" class="btn-p" style="background:var(--bg); color:var(--text); border:1px solid var(--border); margin-top:10px; width:100%;">Safari Imeisha? (Bonyeza hapa)</button>`;
-            }
-            if(btnCancel) btnCancel.style.display = 'none';
-            if(btnSearch) btnSearch.style.display = 'none';
-            if(btnConfirm) btnConfirm.style.display = 'none';
-        }
+    if(statusBox) {
+        statusBox.className = 'boda-status accepted';
+        const fare = data.fare || 0;
+        const payMethod = data.payment_method || 'CASH';
+        const driverName = data.driver_name || 'Hajajulikani';
+        const driverPhone = data.driver_phone || 'Hakuna Namba';
+        
+        // VITUFE VIWILI: MALISHA NA GHAIRI
+        statusBox.innerHTML = `✅ Dereva <b>${driverName}</b> amekubali! <br><br> Nauli: ${fare.toLocaleString()} Tsh (${payMethod.toUpperCase()}) <br><br> Piga: <a href="tel:${driverPhone}" style="color:var(--accent); font-weight:800;">${driverPhone}</a> 
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button onclick="finishBodaRide('${data.id}')" class="btn-p" style="flex:1; background:var(--accent); color:white;">Safari Imeisha</button>
+            <button onclick="cancelBodaRide('${data.id}')" class="btn-p" style="flex:1; background:var(--bg); color:var(--danger); border:1px solid var(--border);">Ghairi Safari</button>
+        </div>`;
+    }
+    if(btnCancel) btnCancel.style.display = 'none';
+    if(btnSearch) btnSearch.style.display = 'none';
+    if(btnConfirm) btnConfirm.style.display = 'none';
+}
     } catch(e) { console.error("Boda status check error:", e); }
 }
 
@@ -5965,6 +5986,103 @@ if (data) data.reverse();
     
     showToast("Safari imekamilika! Unaweza kuomba Boda tena.");
     playBeep();
+}
+
+// KADI INAYOONEKANA KWA DEREVA
+function renderActiveTripCard() {
+    let container = document.getElementById('active-trip-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'active-trip-container';
+        const reqList = document.getElementById('boda-requests-list');
+        if (reqList) reqList.parentNode.insertBefore(container, reqList);
+    }
+
+    if (activeBodaTrip) {
+        container.innerHTML = `
+            <div class="list-i" style="border: 2px solid var(--accent); margin-bottom: 15px; background: rgba(16, 185, 129, 0.05);">
+                <h4 style="color:var(--accent); display:flex; align-items:center; gap:5px;">✅ Safari Inaendelea</h4>
+                <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">Fuata ramani kwenda kumkuta mteja.</p>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="viewActiveTripMap()" class="m-btn m-btn-primary" style="flex:1; padding:10px;">📍 Ramani ya Mteja</button>
+                    <button onclick="completeBodaTrip()" class="m-btn m-btn-secondary" style="flex:1; padding:10px; background:var(--bg); color:var(--text); border:1px solid var(--border);">✓ Malisha Safari</button>
+                </div>
+            </div>
+        `;
+    } else {
+        container.innerHTML = '';
+    }
+}
+
+// KUFUNGUA RAMANI YA MTEJA WAKATI WOWOTÉ
+function viewActiveTripMap() {
+    if (!activeBodaTrip) return;
+    const { pLat, pLng, dLat, dLng } = activeBodaTrip;
+    
+    openModal("Ramani ya Mteja", `<div id="active-trip-map" style="height: 50vh; width: 100%; border-radius: 12px; margin-bottom: 15px;"></div>`, false);
+    
+    setTimeout(() => {
+        if (tripMapInstance) { tripMapInstance.remove(); }
+        tripMapInstance = L.map('active-trip-map').setView([parseFloat(pLat), parseFloat(pLng)], 14);
+        L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(tripMapInstance);
+        
+        const rc = L.Routing.control({
+            waypoints: [ L.latLng(parseFloat(pLat), parseFloat(pLng)), L.latLng(parseFloat(dLat), parseFloat(dLng)) ],
+            routeWhileDragging: false, addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
+            lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
+        }).addTo(tripMapInstance);
+
+        rc.on('routingerror', () => {
+            if (rc) { tripMapInstance.removeControl(rc); }
+            L.polyline([[parseFloat(pLat), parseFloat(pLng)], [parseFloat(dLat), parseFloat(dLng)]], {color: '#10B981', weight: 4, dashArray: '10, 10'}).addTo(tripMapInstance);
+            tripMapInstance.fitBounds([[parseFloat(pLat), parseFloat(pLng)], [parseFloat(dLat), parseFloat(dLng)]]);
+        });
+
+        const pickupIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15]});
+        L.marker([parseFloat(pLat), parseFloat(pLng)], {icon: pickupIcon}).addTo(tripMapInstance).bindPopup("<b>Abiria yupo hapa</b>").openPopup();
+        
+        const destIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot" style="background:#EF4444;"></div>', iconSize: [15, 15]});
+        L.marker([parseFloat(dLat), parseFloat(dLng)], {icon: destIcon}).addTo(tripMapInstance).bindPopup("<b>Mteja anaenda hapa</b>");
+        
+        setTimeout(() => { tripMapInstance.invalidateSize(); }, 300);
+    }, 200);
+}
+
+// DEREVA KUMALIZIA SAFARI
+async function completeBodaTrip() {
+    if (!activeBodaTrip) return;
+    sb.from('boda_requests').update({ status: 'completed' }).eq('id', activeBodaTrip.reqId).then(() => {}).catch(()=>{});
+    activeBodaTrip = null;
+    renderActiveTripCard();
+    showToast("Safari imekamilika kikamilifu!");
+    playBeep();
+}
+
+// ABIRIA KUGHAIRI SAFARI
+async function cancelBodaRide(rideId) {
+    if (!endedBodaRides.includes(rideId)) {
+        endedBodaRides.push(rideId);
+        localStorage.setItem('ended_boda_rides', JSON.stringify(endedBodaRides));
+    }
+
+    sb.from('boda_requests').update({ status: 'cancelled' }).eq('id', rideId).then(() => {}).catch(e => console.error("RLS blocked cancel:", e));
+
+    const statusBox = document.getElementById('boda-status-box');
+    const btnSearch = document.getElementById('btn-boda-search');
+    const btnConfirm = document.getElementById('btn-boda-confirm');
+    const btnCancel = document.getElementById('btn-boda-cancel');
+    
+    if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
+    if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
+    if(btnConfirm) btnConfirm.style.display = 'none';
+    if(btnCancel) btnCancel.style.display = 'none';
+    
+    bodaDestLat = null; bodaDestLng = null;
+    if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); bodaRoutingControl = null; }
+    if (bodaRouteLine) { bodaMap.removeLayer(bodaRouteLine); bodaRouteLine = null; }
+    if (destMarker) { bodaMap.removeLayer(destMarker); destMarker = null; }
+    
+    showToast("Safari imeghairiwa.");
 }
             // --- BODA DRIVER FUNCTIONS ---
         async function registerDriver() {
@@ -6172,14 +6290,20 @@ if (data) data.reverse();
             }, 200);
         }    
     
-    async function acceptBoda(reqId, riderPhone, pLat, pLng, dLat, dLng) {
+   async function acceptBoda(reqId, riderPhone, pLat, pLng, dLat, dLng) {
     const u = JSON.parse(localStorage.getItem('kitama_user'));
     try {
         await sb.from('boda_requests').update({ status: 'accepted', driver_phone: u.phone_number, driver_name: u.full_name }).eq('id', reqId);
         
         let waPhone = riderPhone.replace(/^0/, '255');
         
-        // 1. FUNGUA DIRISHA LA RAMANI MOJA KWA MOJA
+        // 1. HIFADHI TAARIFA ZA SAFARI HALISI KWA DEREVA
+        activeBodaTrip = { reqId, riderPhone, pLat, pLng, dLat, dLng };
+        
+        // 2. ONYESHA KADI YA SAFARI KWENYE SCREEN YA DEREVA
+        renderActiveTripCard();
+        
+        // 3. FUNGUA DIRISHA LA RAMANI MOJA KWA MOJA (Iliyopo)
         openModal("Ramani ya Mteja", `
             <div id="boda-req-map-${reqId}" style="height: 50vh; width: 100%; border-radius: 12px; margin-bottom: 15px;"></div>
             <div style="text-align: center; padding: 10px; background: var(--bg); border-radius: 10px;">
@@ -6192,7 +6316,7 @@ if (data) data.reverse();
         showToast("Umekubali ombi! Ramani inapakia...");
         playBeep();
         
-        // 2. CHORA NJIA YA RAMANI (Pamoja na alama za Pickup na Destination)
+        // 4. CHORA NJIA YA RAMANI
         setTimeout(async () => {
             const reqMap = L.map(`boda-req-map-${reqId}`).setView([parseFloat(pLat), parseFloat(pLng)], 14);
             L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(reqMap);
@@ -6203,22 +6327,18 @@ if (data) data.reverse();
                 lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
             }).addTo(reqMap);
 
-            // Kama barabara haipatikani, chor mstari wa moja kwa moja
             rc.on('routingerror', () => {
                 if (rc) { reqMap.removeControl(rc); }
                 L.polyline([[parseFloat(pLat), parseFloat(pLng)], [parseFloat(dLat), parseFloat(dLng)]], {color: '#10B981', weight: 4, dashArray: '10, 10'}).addTo(reqMap);
                 reqMap.fitBounds([[parseFloat(pLat), parseFloat(pLng)], [parseFloat(dLat), parseFloat(dLng)]]);
             });
 
-            // ALAMA YA KYEJI (Kule abiria yupo)
             const pickupIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15]});
             L.marker([parseFloat(pLat), parseFloat(pLng)], {icon: pickupIcon}).addTo(reqMap).bindPopup("<b>Abiria yupo hapa (Pickup)</b>").openPopup();
             
-            // ALAMA NYEKUNDU (Kule abiria anaelekea)
             const destIcon = L.divIcon({className: 'blink-marker', html: '<div class="blink-dot" style="background:#EF4444;"></div>', iconSize: [15, 15]});
             L.marker([parseFloat(dLat), parseFloat(dLng)], {icon: destIcon}).addTo(reqMap).bindPopup("<b>Mteja anaenda hapa (Destination)</b>");
             
-            // ONGEZA MAENEO YA KITAMA Kwenye Ramani ya Dereva
             try {
                 const { data: places } = await sb.from('map_places').select('*');
                 if (places && places.length > 0) {
