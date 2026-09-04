@@ -2624,6 +2624,8 @@ if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App
             if (activeSec.id === 'boda-sec') {
                 checkMyBodaRequestStatus();
             }
+            // ONGEZA HII: KAGUA IDADI YA MESSAGE ZISIZOSOMWA KILA SEKUNDE 3
+            updateBadges();
             
         } catch(e) { console.error("Polling error:", e); }
     }, 3000); // Inakagua kila sekunde 3 bila kubadilisha screen
