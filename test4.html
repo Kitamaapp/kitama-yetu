@@ -8255,6 +8255,20 @@ async function cancelBodaRide(rideId) {
                 if (statusNetworkChannel) statusNetworkChannel.untrack().then(() => statusNetworkChannel.track({ phone: u.phone_number, name: u.full_name }));
                 statusMediaBase64 = null;
             });
+            // ONGEZA HII MISTARI HAPA CHINI YA OPENMODAL
+        const cancelBtn = document.getElementById('modal-cancel');
+        if (cancelBtn) {
+            cancelBtn.onclick = async () => {
+                // KAMA AMEPAKIA VIDEO CLOUDINARY KISHA AMEGHAIRI, IFUTE KWENYE CLOUDINARY
+                if (statusMediaBase64 && statusMediaBase64.startsWith('http')) {
+                    showToast("Inafuta video iliyoachwa...");
+                    await deleteCloudinaryAsset(statusMediaBase64);
+                }
+                statusMediaBase64 = null;
+                statusMediaType = null;
+                closeModal();
+            };
+        }
         }
     
                async function viewOfficialStatus(id) {
@@ -8666,17 +8680,29 @@ async function cancelBodaRide(rideId) {
         }
 
         function deleteCurrentStatus() {
-            const currentStatus = currentStatusList[currentViewingIndex];
-            if (!currentStatus) return;
+    const currentStatus = currentStatusList[currentViewingIndex];
+    if (!currentStatus) return;
+    
+    openModal("Futa Status", "Una uhakika unataka kufuta status hii?", false, async () => {
+        try {
+            // 1. KAMA NI VIDEO/AUDIO YA CLOUDINARY, FUTA KWENYE CLOUDINARY
+            if (currentStatus.media_base64 && currentStatus.media_base64.startsWith('http')) {
+                await deleteCloudinaryAsset(currentStatus.media_base64);
+            }
             
-            openModal("Futa Status", "Una uhakika unataka kufuta status hii?", false, async () => {
-                let myStorage = getStatusFromStorage();
-                myStorage = myStorage.filter(s => s.id !== currentStatus.id);
-                saveStatusToStorage(myStorage);
-                showToast("Status imefutwa!");
-                closeStatusViewer();
-            });
+            // 2. FUTA KWENYE SIMU (LOCAL STORAGE)
+            let myStorage = getStatusFromStorage();
+            myStorage = myStorage.filter(s => s.id !== currentStatus.id);
+            saveStatusToStorage(myStorage);
+            
+            showToast("Status imefutwa kikamilifu!");
+            playBeep();
+            closeStatusViewer();
+        } catch(e) {
+            openModal("Kosa", e.message);
         }
+    });
+}
 
           function closeStatusViewer() {
             isViewingOfficial = false;
@@ -9071,34 +9097,43 @@ async function cancelBodaRide(rideId) {
             console.error("Update check error:", e);
         }
     }
-            function handleDirectStatusSelect(input) {
+    function handleDirectStatusSelect(input) {
     const file = input.files[0];
     if (!file) return;
     
     statusMediaBase64 = null;
     
     if (file.type.startsWith('video')) {
-        showToast("Inapakia video kwenye server...");
         statusMediaType = 'video';
+        
+        // ONYESHA SPINNER KABISA KWENYE MODAL BADALA YA TOAST
+        openModal("Inapakia Video", `<div style="text-align:center; padding:30px 0;"><div class="spinner"></div><p style="margin-top:15px; color:var(--text-sec);">Video inapakia kwenye server...</p></div>`, false);
+        document.getElementById('modal-ok').style.display = 'none';
+        document.getElementById('modal-cancel').style.display = 'none';
         
         // KAMA NI KUBWA, PELEKA CLOUDINARY
         if (file.size > 2 * 1024 * 1024) {
             uploadToCloudinary(file).then(url => {
                 statusMediaBase64 = url;
-                openStatusCaptionModal();
+                closeModal(); // Funga ile modal ya spinner
+                openStatusCaptionModal(); // Fungua ile ya kuandika caption
             }).catch(err => {
                 showToast("Kosa la kupakia video: " + err.message);
+                closeModal();
                 input.value = '';
             });
         } else {
+            // KWA VIDEO NDOGEO (Base64)
             const reader = new FileReader();
             reader.onload = (e) => {
                 statusMediaBase64 = e.target.result;
+                closeModal();
                 openStatusCaptionModal();
             };
             reader.readAsDataURL(file);
         }
     } else {
+        // KWA PICHA
         statusMediaType = 'image';
         const reader = new FileReader();
         reader.onload = (e) => {
