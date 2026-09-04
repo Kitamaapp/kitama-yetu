@@ -1821,7 +1821,20 @@
             }
         });
     }
-
+// FUNCTION YA KUFUTA PICHA/VIDEO KWENYE CLOUDINARY
+async function deleteCloudinaryAsset(url) {
+    if (!url || !url.includes('cloudinary.com')) return;
+    try {
+        // Ongeza headers ili iwe sawa na Edge Function
+        await sb.functions.invoke('delete-cloudinary-asset', {
+            body: { url: url },
+            headers: { "Content-Type": "application/json" }
+        });
+        console.log("Cloudinary asset deleted successfully");
+    } catch(e) {
+        console.error("Cloudinary Delete Error:", e);
+    }
+}
     function refreshApp() {
         location.reload();
     }
@@ -3331,14 +3344,27 @@ startSmartPolling();
         }
 
     async function deleteArticle(id) {
-        openModal("Futa Makala", "Una uhakika unataka kufuta makala hii?", false, async () => {
-            try {
-                await sb.from('activist_articles').delete().eq('id', id);
-                showToast("Makala imefutwa!");
-                fetchActivistArticles();
-            } catch(e) { openModal("Kosa", e.message); }
-        });
-    }
+    openModal("Futa Makala", "Una uhakika unataka kufuta makala hii kabisa?", false, async () => {
+        try {
+            // 1. PATA MAUDHUI YA MAKALA
+            const { data: article } = await sb.from('activist_articles').select('content').eq('id', id).maybeSingle();
+            
+            // 2. TAFUTA NA FUTA PICHA ZOTE ZILIZO NDANI YA MAKALA
+            if (article && article.content) {
+                const regex = /\[IMG\](.*?)\[\/IMG\]/g;
+                let match;
+                while ((match = regex.exec(article.content)) !== null) {
+                    await deleteCloudinaryAsset(match[1]);
+                }
+            }
+            
+            // 3. FUTA MAKALA KWENYE DATABASE
+            await sb.from('activist_articles').delete().eq('id', id);
+            showToast("Makala imefutwa!");
+            fetchActivistArticles();
+        } catch(e) { openModal("Kosa", e.message); }
+    });
+}
 
         async function fetchActivistsControl() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -3964,7 +3990,25 @@ if (data) data.reverse();
         else { box.style.display = 'block'; fetchComments(id); } 
     }
 
-    async function archiveReport(id) { openModal("Funga Ripoti", "Una uhakika unataka kufunga ripoti hii? Itaondolewa kwenye orodha ya umma lakini itabaki kwenye kumbukumbu.", false, async () => { try { await sb.from('reports').update({ status: 'archived' }).eq('id', id); showToast("Ripoti imefungwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }); }
+    async function archiveReport(id) { 
+    openModal("Funga Ripoti", "Una uhakika unataka kufunga/futa ripoti hii? Picha yake pia itafutika kwenye hifadhi.", false, async () => { 
+        try {
+            // 1. PATA URL YA PICHA
+            const { data: report } = await sb.from('reports').select('image_url, resolution_image').eq('id', id).maybeSingle();
+            
+            // 2. FUTA PICHA ZOTE (KERO NA UTHIBITISHO)
+            if (report) {
+                if (report.image_url) await deleteCloudinaryAsset(report.image_url);
+                if (report.resolution_image) await deleteCloudinaryAsset(report.resolution_image);
+            }
+            
+            // 3. FUTA/FUNGA KWENYE DATABASE
+            await sb.from('reports').update({ status: 'archived' }).eq('id', id); // Au .delete() kama unataka kufuta kabisa
+            showToast("Ripoti imefungwa na picha zimefutwa!"); 
+            fetchLeaderReports(); 
+        } catch(e) { openModal("Kosa", e.message); } 
+    }); 
+}
     function refreshActiveList() { const id = document.querySelector('.sec.active').id; if(id === 'leader-reports-sec') fetchLeaderReports(); if(id === 'progress-sec') fetchPublicProgress(); if(id === 'report-sec') fetchCitizenReports(); }
     async function fetchComments(id) { 
         try { 
@@ -4125,7 +4169,31 @@ if (data) data.reverse();
         } 
     }
     async function updateStatus(id, newStatus) { try { await sb.from('reports').update({ status: newStatus }).eq('id', id); showToast("Status imebadilishwa!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }
-    async function promptResolution(id, leaderName) { openModal("Uthibitisho wa Kazi", "Andika kile ulichokifanya (Uthibitisho). Kisha utachagua picha ya mradi uliokamilisha.", true, async (note) => { if(!note) return openModal("Taarifa", "Lazima uandika uthibitisho."); const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.click(); fileInput.onchange = async () => { let imgUrl = null; if(fileInput.files.length > 0) { const fileName = `resolution_${Date.now()}.jpg`; const { error: upErr } = await sb.storage.from('kitama-images').upload(fileName, fileInput.files[0]); if(!upErr) imgUrl = `${SUPABASE_URL}/storage/v1/object/public/kitama-images/${fileName}`; } try { await sb.from('reports').update({ status: 'resolved', resolution_note: note, resolution_image: imgUrl, resolved_by_name: leaderName }).eq('id', id); showToast("Umekamilisha kazi na kuweka uthibitisho!"); fetchLeaderReports(); } catch(e) { openModal("Kosa", e.message); } }; }); }
+    async function promptResolution(id, leaderName) {
+    openModal("Uthibitisho wa Kazi", "Andika kile ulichokifanya (Uthibitisho). Kisha utachagua picha ya mradi uliokamilisha.", true, async (note) => { 
+        if(!note) return openModal("Taarifa", "Lazima uandike uthibitisho."); 
+        const fileInput = document.createElement('input'); 
+        fileInput.type = 'file'; 
+        fileInput.accept = 'image/*'; 
+        fileInput.click(); 
+        fileInput.onchange = async () => { 
+            let imgUrl = null; 
+            if(fileInput.files.length > 0) { 
+                try {
+                    // TUMIA CLOUDINARY BADALA YA SUPABASE STORAGE
+                    imgUrl = await uploadToCloudinary(fileInput.files[0]);
+                } catch(upErr) {
+                    return openModal("Kosa la Kupakia Picha", upErr.message);
+                }
+            } 
+            try { 
+                await sb.from('reports').update({ status: 'resolved', resolution_note: note, resolution_image: imgUrl, resolved_by_name: leaderName }).eq('id', id); 
+                showToast("Umekamilisha kazi na kuweka uthibitisho!"); 
+                fetchLeaderReports(); 
+            } catch(e) { openModal("Kosa", e.message); } 
+        }; 
+    }); 
+}
     async function shareToLeaders(reportId, title) { openModal("Shiriki kwa Viongozi", `Una uhakika unataka kushiriki ripoti hii kwenye Chumb cha Viongozi?`, false, async () => { const u = JSON.parse(localStorage.getItem('kitama_user')); try { await sb.from('leader_chat').insert([{ sender_name: u.full_name, sender_role: u.role, sender_village: u.village, content: `Naomba msaada/maoni kuhusu ripoti hii: "${title}"`, shared_report_id: reportId }]); showToast("Imeshirikiwa kwenye Chumb cha Viongozi!"); showSec('leader-chat-sec'); } catch(e) { openModal("Kosa", e.message); } }); }
 
         let leaderIsAtBottom = true;
@@ -5520,14 +5588,23 @@ if (data) data.reverse();
     }
     
     async function deleteMarketItem(id) {
-        openModal("Futa Bidhaa", "Una uhakika unataka kufuta bidhaa hii? Ukiifuta, picha yake pia itafutika kwenye storage na haitaonekana kwenye soko.", false, async () => {
-            try {
-                await sb.from('marketplace').delete().eq('id', id);
-                showToast("Bidhaa imefutwa kikamilifu!"); playBeep();
-                fetchModeration();
-            } catch(e) { openModal("Kosa", e.message); }
-        });
-    }
+    openModal("Futa Bidhaa", "Una uhakika unataka kufuta bidhaa hii?", false, async () => {
+        try {
+            // 1. PATA URL YA PICHA KWENYE DB
+            const { data: item } = await sb.from('marketplace').select('image_url').eq('id', id).maybeSingle();
+            
+            // 2. FUTA PICHA KWENYE CLOUDINARY KABLA YA DB
+            if (item && item.image_url) {
+                await deleteCloudinaryAsset(item.image_url);
+            }
+            
+            // 3. FUTA REKODI KWENYE DATABASE
+            await sb.from('marketplace').delete().eq('id', id);
+            showToast("Bidhaa imefutwa kikamilifu!"); playBeep();
+            fetchModeration();
+        } catch(e) { openModal("Kosa", e.message); }
+    });
+}
         async function fetchCitizenReports() { 
         const div = document.getElementById('citizen-reports-list');
         if(!div) return;
@@ -6194,6 +6271,14 @@ async function cancelBodaRide(rideId) {
         async function fetchBodaRequests() {
             const div = document.getElementById('boda-requests-list');
             const u = JSON.parse(localStorage.getItem('kitama_user'));
+            // KAGUA KAMA KADI YA SAFARI ILIYOKUBALIWA BADO IPo HALALI
+            if (activeBodaTrip) {
+            const { data: tripStatus } = await sb.from('boda_requests').select('status').eq('id', activeBodaTrip.reqId).maybeSingle();
+            if (!tripStatus || tripStatus.status === 'completed' || tripStatus.status === 'cancelled') {
+            activeBodaTrip = null;
+           renderActiveTripCard();
+        }
+      }
             window.lastBodaReqTime = null; // Seti upya ili kuchunguza ombi jipya
             const { data: driver } = await sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle();
             
@@ -9462,37 +9547,37 @@ async function cancelBodaRide(rideId) {
             });
         }
         async function approveBodaDriver(phone, photoUrl) {
-            try {
-                await sb.from('boda_drivers').update({ status: 'active' }).eq('phone', phone);
-                
-                // FUTA PICHA KWENYE STORAGE
-                if(photoUrl) {
-                    const filePath = photoUrl.split('/kitama-images/')[1];
-                    await sb.storage.from('kitama-images').remove([filePath]);
-                    await sb.from('boda_drivers').update({ plate_photo_url: null }).eq('phone', phone);
-                }
-                
-                showToast("Dereva amekubaliwa! Picha imefutwa kwenye server.");
-                playBeep();
-                fetchBodaDriverRequests();
-            } catch(e) { openModal("Kosa", e.message); }
+    try {
+        // 1. KUBALI DEREVA
+        await sb.from('boda_drivers').update({ status: 'active' }).eq('phone', phone);
+        
+        // 2. FUTA PICHA YA TASHI KWENYE CLOUDINARY
+        if(photoUrl) {
+            await deleteCloudinaryAsset(photoUrl);
+            await sb.from('boda_drivers').update({ plate_photo_url: null }).eq('phone', phone);
         }
+        
+        showToast("Dereva amekubaliwa! Picha imefutwa kwenye server.");
+        playBeep();
+        fetchBodaDriverRequests();
+    } catch(e) { openModal("Kosa", e.message); }
+}
 
-        async function rejectBodaDriver(phone, photoUrl) {
-            try {
-                await sb.from('boda_drivers').update({ status: 'rejected' }).eq('phone', phone);
-                
-                // FUTA PICHA KWENYE STORAGE
-                if(photoUrl) {
-                    const filePath = photoUrl.split('/kitama-images/')[1];
-                    await sb.storage.from('kitama-images').remove([filePath]);
-                    await sb.from('boda_drivers').update({ plate_photo_url: null }).eq('phone', phone);
-                }
-                
-                showToast("Ombi limekataliwa! Picha imefutwa kwenye server.");
-                fetchBodaDriverRequests();
-            } catch(e) { openModal("Kosa", e.message); }
+async function rejectBodaDriver(phone, photoUrl) {
+    try {
+        // 1. KATAZA DEREVA
+        await sb.from('boda_drivers').update({ status: 'rejected' }).eq('phone', phone);
+        
+        // 2. FUTA PICHA YA TASHI KWENYE CLOUDINARY
+        if(photoUrl) {
+            await deleteCloudinaryAsset(photoUrl);
+            await sb.from('boda_drivers').update({ plate_photo_url: null }).eq('phone', phone);
         }
+        
+        showToast("Ombi limekataliwa! Picha imefutwa kwenye server.");
+        fetchBodaDriverRequests();
+    } catch(e) { openModal("Kosa", e.message); }
+}
             // --- FORUM DROPDOWN MENU ---
         function toggleForumMenu() {
             const menu = document.getElementById('forum-dropdown-menu');
