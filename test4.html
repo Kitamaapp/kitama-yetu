@@ -4573,25 +4573,35 @@ if (data) data.reverse();
             if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`; 
         } 
     }
-        async function uploadAvatar() { 
-        const u = JSON.parse(localStorage.getItem('kitama_user')); 
-        const fileInput = document.getElementById('avatar-upload'); 
-        if(fileInput.files.length > 0) { 
-            const file = fileInput.files[0]; 
-            try { 
-                // CLOUDINARY UPLOAD
-                const url = await uploadToCloudinary(file); 
-                await sb.from('users').update({ avatar_url: url }).eq('id', u.id); 
-                u.avatar_url = url; 
-                localStorage.setItem('kitama_user', JSON.stringify(u)); 
-                closeModal(); 
-                updateProfileUI(u); 
-                showToast("Picha imewekwa!"); playBeep(); 
-            } catch(e) { 
-                openModal("Kosa", e.message); 
-            } 
+    async function uploadAvatar() { 
+    const u = JSON.parse(localStorage.getItem('kitama_user')); 
+    const fileInput = document.getElementById('avatar-upload'); 
+    if(fileInput.files.length > 0) { 
+        const file = fileInput.files[0]; 
+        try { 
+            // 1. WEKA PICHA MPYA KWENYE CLOUDINARY
+            const url = await uploadToCloudinary(file); 
+            
+            // 2. HIFADHI LINK YA PICHA YA ZAMANI
+            const oldAvatarUrl = u.avatar_url;
+            
+            // 3. SASISHA DATABASE NA SIMU NA PICHA MPYA
+            await sb.from('users').update({ avatar_url: url }).eq('id', u.id); 
+            u.avatar_url = url; 
+            localStorage.setItem('kitama_user', JSON.stringify(u)); 
+            closeModal(); 
+            updateProfileUI(u); 
+            showToast("Picha imewekwa!"); playBeep(); 
+            
+            // 4. FUTA PICHA YA ZAMANI KWENYE CLOUDINARY (Kama ilikuwepo)
+            if (oldAvatarUrl) {
+                await deleteCloudinaryAsset(oldAvatarUrl);
+            }
+        } catch(e) { 
+            openModal("Kosa", e.message); 
         } 
-    }
+    } 
+}
     async function createShop() {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
@@ -7926,11 +7936,28 @@ async function cancelBodaRide(rideId) {
             localStorage.setItem(STATUS_DB_NAME, JSON.stringify(data)); 
         }
         
-        function cleanExpiredStatuses() {
-            let myStorage = getStatusFromStorage();
-            const valid = myStorage.filter(s => new Date(s.expiry).getTime() > Date.now());
-            if (valid.length !== myStorage.length) saveStatusToStorage(valid);
+        async function cleanExpiredStatuses() {
+    let myStorage = getStatusFromStorage();
+    
+    // 1. TAFUTA STATUS ZILIZOKWISHA MUDA WAO (Zaidi ya masaa 24)
+    const expiredStatuses = myStorage.filter(s => new Date(s.expiry).getTime() <= Date.now());
+    
+    // 2. TAFUTA STATUS HALALI (Ambazo bado hazijafika masaa 24)
+    const validStatuses = myStorage.filter(s => new Date(s.expiry).getTime() > Date.now());
+    
+    // 3. KAMA KUNA STATUS ZILIZOKWISHA, FUTA PICHA/VIDEO ZAKE KWENYE CLOUDINARY
+    if (expiredStatuses.length > 0) {
+        for (const s of expiredStatuses) {
+            // Kama media_base64 ni Link ya Cloudinary (http), futa kwenye Cloudinary
+            if (s.media_base64 && s.media_base64.startsWith('http')) {
+                await deleteCloudinaryAsset(s.media_base64);
+            }
         }
+        
+        // 4. HIFADHI STATUS HALALI TU KWENYE SIMU (Hii itafuta zile zenye muda uliopita moja kwa moja)
+        saveStatusToStorage(validStatuses);
+    }
+}
         
         function getGroupedStatuses() {
             const allStatuses = getStatusFromStorage();
@@ -8212,52 +8239,64 @@ async function cancelBodaRide(rideId) {
             });
         }
         function previewStatusMedia(input) {
-            const file = input.files[0];
-            if (!file) return;
-            
-            statusMediaBase64 = null;
-            const previewBox = document.getElementById('status-media-preview');
-            const captionBox = document.getElementById('caption-box');
-            captionBox.style.display = 'none';
-            
-            if (file.type.startsWith('video')) {
-                if (file.size > 2.5 * 1024 * 1024) {
-                    showToast("Video kubwa sana (zaidi ya 2.5MB). Tafadhali chagua video fupi au punguza ukubwa.");
-                    input.value = '';
-                    return;
-                }
-                
-                statusMediaType = 'video';
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    statusMediaBase64 = e.target.result;
-                    previewBox.innerHTML = `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;" controls></video>`;
-                    captionBox.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            } else {
-                statusMediaType = 'image';
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    statusMediaBase64 = e.target.result;
-                    const img = new Image();
-                    img.onload = () => {
-                        let canvas = document.createElement('canvas');
-                        let ctx = canvas.getContext('2d');
-                        const maxW = 600;
-                        const scale = Math.min(maxW / img.width, maxW / img.height);
-                        canvas.width = img.width * scale;
-                        canvas.height = img.height * scale;
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        statusMediaBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                        previewBox.innerHTML = `<img src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;">`;
-                        captionBox.style.display = 'block';
-                    };
-                    img.src = statusMediaBase64;
-                };
-                reader.readAsDataURL(file);
-            }
+    const file = input.files[0];
+    if (!file) return;
+    
+    statusMediaBase64 = null;
+    const previewBox = document.getElementById('status-media-preview');
+    const captionBox = document.getElementById('caption-box');
+    captionBox.style.display = 'none';
+    
+    if (file.type.startsWith('video')) {
+        statusMediaType = 'video';
+        
+        // ONYESHA LOADER WAKATI WA KUPAKIA
+        if (previewBox) previewBox.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;"><div class="spinner"></div><p style="margin-left:10px;color:white;">Inapakia video...</p></div>';
+        
+        // KAMA VIDEO NI KUBWA (Zaidi ya 2MB), PELEKA CLOUDINARY KAMA WHATSAPP
+        if (file.size > 2 * 1024 * 1024) {
+            uploadToCloudinary(file).then(url => {
+                statusMediaBase64 = url; // Hapa tunashikilia Link ya Cloudinary badala ya Base64
+                if (previewBox) previewBox.innerHTML = `<video src="${url}" style="width:100%; height:100%; object-fit:cover;" controls></video>`;
+                if (captionBox) captionBox.style.display = 'block';
+            }).catch(err => {
+                showToast("Imeshindwa kupakia video: " + err.message);
+                if(input) input.value = '';
+            });
+        } else {
+            // KAMA NI NDONGE (Chini ya 2MB), TUMIA BASE64 KAWAIDA
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                statusMediaBase64 = e.target.result;
+                if (previewBox) previewBox.innerHTML = `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;" controls></video>`;
+                if (captionBox) captionBox.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
         }
+    } else {
+        // KWA PICHA, TUMIA BASE64 KAWAIDA
+        statusMediaType = 'image';
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            statusMediaBase64 = e.target.result;
+            const img = new Image();
+            img.onload = () => {
+                let canvas = document.createElement('canvas');
+                let ctx = canvas.getContext('2d');
+                const maxW = 600;
+                const scale = Math.min(maxW / img.width, maxW / img.height);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                statusMediaBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                if (previewBox) previewBox.innerHTML = `<img src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;">`;
+                if (captionBox) captionBox.style.display = 'block';
+            };
+            img.src = statusMediaBase64;
+        };
+        reader.readAsDataURL(file);
+    }
+}
             function openTextStatusModal() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
             const citizensList = activeCitizens.filter(c => c.role !== 'system_admin');
@@ -8951,50 +8990,55 @@ async function cancelBodaRide(rideId) {
         }
     }
             function handleDirectStatusSelect(input) {
-            const file = input.files[0];
-            if (!file) return;
-            
-            statusMediaBase64 = null;
-            const previewBox = null; // Tutatumia modal kama preview
-            
-            if (file.type.startsWith('video')) {
-                if (file.size > 2.5 * 1024 * 1024) {
-                    showToast("Video kubwa sana (zaidi ya 2.5MB). Tafadhali chagua video fupi au punguza ukubwa.");
-                    input.value = '';
-                    return;
-                }
-                
-                statusMediaType = 'video';
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    statusMediaBase64 = e.target.result;
-                    openStatusCaptionModal();
-                };
-                reader.readAsDataURL(file);
-            } else {
-                statusMediaType = 'image';
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    statusMediaBase64 = e.target.result;
-                    const img = new Image();
-                    img.onload = () => {
-                        let canvas = document.createElement('canvas');
-                        let ctx = canvas.getContext('2d');
-                        const maxW = 600;
-                        const scale = Math.min(maxW / img.width, maxW / img.height);
-                        canvas.width = img.width * scale;
-                        canvas.height = img.height * scale;
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        statusMediaBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                        openStatusCaptionModal();
-                    };
-                    img.src = statusMediaBase64;
-                };
-                reader.readAsDataURL(file);
-            }
-            // Reset input ili iweze kuruhusu kuchagua tena
-            input.value = '';
+    const file = input.files[0];
+    if (!file) return;
+    
+    statusMediaBase64 = null;
+    
+    if (file.type.startsWith('video')) {
+        showToast("Inapakia video kwenye server...");
+        statusMediaType = 'video';
+        
+        // KAMA NI KUBWA, PELEKA CLOUDINARY
+        if (file.size > 2 * 1024 * 1024) {
+            uploadToCloudinary(file).then(url => {
+                statusMediaBase64 = url;
+                openStatusCaptionModal();
+            }).catch(err => {
+                showToast("Kosa la kupakia video: " + err.message);
+                input.value = '';
+            });
+        } else {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                statusMediaBase64 = e.target.result;
+                openStatusCaptionModal();
+            };
+            reader.readAsDataURL(file);
         }
+    } else {
+        statusMediaType = 'image';
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            statusMediaBase64 = e.target.result;
+            const img = new Image();
+            img.onload = () => {
+                let canvas = document.createElement('canvas');
+                let ctx = canvas.getContext('2d');
+                const maxW = 600;
+                const scale = Math.min(maxW / img.width, maxW / img.height);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                statusMediaBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                openStatusCaptionModal();
+            };
+            img.src = statusMediaBase64;
+        };
+        reader.readAsDataURL(file);
+    }
+    input.value = '';
+}
                 // --- KITAMA MAP FUNCTIONS ---
         let kitamaMap = null;
         let mapMarkers = [];
