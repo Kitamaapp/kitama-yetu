@@ -4803,39 +4803,58 @@ if (data) data.reverse();
     }
 
     async function viewShopPost(postId, shopId) {
-        try {
-            const { data: shop } = await sb.from('shops').select('*').eq('id', shopId).single();
-            const { data: m, error } = await sb.from('marketplace').select('*').eq('id', postId).single();
-            if(error) throw error;
-            let imgHtml = m.image_url ? `<img src="${m.image_url}" style="width:100%; border-radius:8px; margin-top:10px; cursor: pointer;" onclick="openFullScreenImage('${m.image_url}')">` : '';
-            let modalContent = `
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-                    ${shop.logo_url ? `<img src="${shop.logo_url}" style="width:40px; height:40px; border-radius:50%;">` : `<div style="width:40px; height:40px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${shop.shop_name.charAt(0)}</div>`}
-                    <div>
-                        <b style="font-size:15px;">${shop.shop_name}</b><br>
-                        <small style="color:var(--text-sec);">${new Date(m.created_at).toLocaleString()}</small>
-                    </div>
-                </div>
-                <div style="font-size:15px; margin-bottom:10px;">
-                    <span style="color:var(--accent); font-weight:800; font-size:18px; display:block; margin-bottom:5px;">${m.price || 'Agana'}</span>
-                    <b>${m.item_name}</b><br>
-                    ${m.description || ''}
-                </div>
-                ${imgHtml}
-                
-                <div class="safety-box">
-                    <h4>⚠️ Vidokezo vya Usalama</h4>
-                    <ul>
-                        <li>Epuka kutuma malipo yoyote ya awali.</li>
-                        <li>Kutana na muuzaji katika eneo la umma lililo salama.</li>
-                        <li>Kagua bidhaa unayotaka kununua ili uhakikishe kuwa ndiyo unayehitaji.</li>
-                        <li>Hakiki nyaraka zote na ulipe tu ikiwa umeridhika.</li>
-                    </ul>
-                </div>
-            `;
-            openModal(m.item_name, modalContent, false);
-        } catch(e) { openModal("Kosa", e.message); }
+    try {
+        const { data: shop } = await sb.from('shops').select('*').eq('id', shopId).single();
+        const { data: m, error } = await sb.from('marketplace').select('*').eq('id', postId).single();
+        if(error) throw error;
+        
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const isOwner = u.phone_number === shop.owner_phone; // Hii inamtambua mmiliki
+        
+        let imgHtml = m.image_url ? `<img src="${m.image_url}" style="width:100%; border-radius:8px; margin-top:10px; cursor: pointer;" onclick="openFullScreenImage('${m.image_url}')">` : '';
+        
+        let actionBtns = '';
+        if (isOwner) {
+        let statusBtn = '';
+        if (m.status === 'active') {
+        statusBtn = `<button onclick="markAsSold('${m.id}')" class="btn-p" style="margin-top:10px; width:100%; background: var(--bg); color: var(--text-sec); border: 1px solid var(--border);">${ICONS.check} Weka Alama ya Imeuzwa</button>`;
+     } else if (m.status === 'sold') {
+        // KITUFE CHA KURUDISHA IKIWA AMESHABONYEZA KWA BAHATI MBAYA
+        statusBtn = `<button onclick="markAsActive('${m.id}')" class="btn-p" style="margin-top:10px; width:100%; background: var(--bg); color: var(--accent); border: 1px solid var(--accent);">↩️ Badilisha kuwa Haijauzwa</button>`;
     }
+     let deleteBtn = `<button onclick="deleteMarketItem('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--danger); color: white; width: 100%;">Futa Bidhaa</button>`;
+     actionBtns = statusBtn + deleteBtn;
+   }
+        
+        let modalContent = `
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                ${shop.logo_url ? `<img src="${shop.logo_url}" style="width:40px; height:40px; border-radius:50%;">` : `<div style="width:40px; height:40px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${shop.shop_name.charAt(0)}</div>`}
+                <div>
+                    <b style="font-size:15px;">${shop.shop_name}</b><br>
+                    <small style="color:var(--text-sec);">${new Date(m.created_at).toLocaleString()}</small>
+                </div>
+            </div>
+            <div style="font-size:15px; margin-bottom:10px;">
+                <span style="color:var(--accent); font-weight:800; font-size:18px; display:block; margin-bottom:5px;">${m.price || 'Agana'}</span>
+                <b>${m.item_name}</b><br>
+                ${m.description || ''}
+            </div>
+            ${imgHtml}
+            ${actionBtns}
+            
+            <div class="safety-box" style="margin-top:20px;">
+                <h4>⚠️ Vidokezo vya Usalama</h4>
+                <ul>
+                    <li>Epuka kutuma malipo yoyote ya awali.</li>
+                    <li>Kutana na muuzaji katika eneo la umma lililo salama.</li>
+                    <li>Kagua bidhaa unayotaka kununua ili uhakikishe kuwa ndiyo unayehitaji.</li>
+                    <li>Hakiki nyaraka zote na ulipe tu ikiwa umeridhika.</li>
+                </ul>
+            </div>
+        `;
+        openModal(m.item_name, modalContent, false);
+    } catch(e) { openModal("Kosa", e.message); }
+}
 
     async function viewMarketItem(itemId) {
         try {
@@ -4854,9 +4873,15 @@ if (data) data.reverse();
                     <a href="https://wa.me/${waPhone}" target="_blank" class="m-btn m-btn-secondary" style="background:#25D366; color:white; text-decoration:none; flex:1;">${ICONS.whatsapp} WhatsApp</a>
                 </div>
             `;
-            
-            let markSoldBtn = isOwner && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--text-sec); border: 1px solid var(--border);">${ICONS.check} Weka Alama ya Imeuzwa</button>` : '';
-            
+
+            let markSoldBtn = '';
+            if (isOwner && m.status === 'active') {
+            markSoldBtn = `<button onclick="markAsSold('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--text-sec); border: 1px solid var(--border);">${ICONS.check} Weka Alama ya Imeuzwa</button>`;
+       } else if (isOwner && m.status === 'sold') {
+          markSoldBtn = `<button onclick="markAsActive('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--accent); border: 1px solid var(--accent);">↩️ Badilisha kuwa Haijauzwa</button>`;
+      }
+            // KITUFE CHA KUFUTA BIDHAA (Kwa Mmiliki tu)
+            let deleteBtn = isOwner ? `<button onclick="deleteMarketItem('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--danger); color: white; width: 100%;">Futa Bidhaa</button>` : '';
             let shopBadge = m.shop_id ? `<div style="display:inline-block; margin-bottom:10px; background:var(--bg); padding:5px 10px; border-radius:8px; font-size:12px; font-weight:700; color:var(--accent); cursor:pointer;" onclick="closeModal(); viewShopById('${m.shop_id}')">${ICONS.store} ${m.shop_name || 'Duka'}</div>` : '';
 
             let modalContent = `
@@ -4870,6 +4895,7 @@ if (data) data.reverse();
                 ${imgHtml}
                 ${actionBtns}
                 ${markSoldBtn}
+                ${deleteBtn}
                 
                 <div class="safety-box" style="margin-top:20px;">
                     <h4>⚠️ Vidokezo vya Usalama</h4>
@@ -5566,7 +5592,20 @@ if (data) data.reverse();
             } catch(e) { openModal("Kosa", e.message); } 
         }); 
     }
-    
+    async function markAsActive(id) {
+    openModal("Rudisha Bidhaa", "Una uhakika unataka kurudisha bidhaa hii kuwa inauzwa tena?", false, async () => {
+        try {
+            await sb.from('marketplace').update({ status: 'active' }).eq('id', id);
+            showToast("Bidhaa imerudishwa kuwa haijauzwa!");
+            playBeep();
+            closeModal();
+            
+            // Onyesha screen mpya
+            if (document.getElementById('market-sec').classList.contains('active')) fetchMarket();
+            if (document.getElementById('my-shop-sec').classList.contains('active')) viewMyShop();
+        } catch(e) { openModal("Kosa", e.message); }
+    });
+}
     async function fetchModeration() {
         const div = document.getElementById('moderation-list');
         const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -5598,12 +5637,12 @@ if (data) data.reverse();
     }
     
     async function deleteMarketItem(id) {
-    openModal("Futa Bidhaa", "Una uhakika unataka kufuta bidhaa hii?", false, async () => {
+    openModal("Futa Bidhaa", "Una uhakika unataka kufuta bidhaa hii? Ukiifuta, picha yake pia itafutika kwenye hifadhi na haitaonekana tena.", false, async () => {
         try {
-            // 1. PATA URL YA PICHA KWENYE DB
+            // 1. PATA URL YA PICHA
             const { data: item } = await sb.from('marketplace').select('image_url').eq('id', id).maybeSingle();
             
-            // 2. FUTA PICHA KWENYE CLOUDINARY KABLA YA DB
+            // 2. FUTA PICHA KWENYE CLOUDINARY
             if (item && item.image_url) {
                 await deleteCloudinaryAsset(item.image_url);
             }
@@ -5611,7 +5650,12 @@ if (data) data.reverse();
             // 3. FUTA REKODI KWENYE DATABASE
             await sb.from('marketplace').delete().eq('id', id);
             showToast("Bidhaa imefutwa kikamilifu!"); playBeep();
-            fetchModeration();
+            closeModal(); // Funga dirisha la bidhaa
+            
+            // 4. ONESHA SCREEN MPYA (Kama yupo Soko au Dukani)
+            if (document.getElementById('market-sec').classList.contains('active')) fetchMarket();
+            if (document.getElementById('my-shop-sec').classList.contains('active')) viewMyShop();
+            if (document.getElementById('admin-moderation-sec').classList.contains('active')) fetchModeration();
         } catch(e) { openModal("Kosa", e.message); }
     });
 }
