@@ -3089,127 +3089,131 @@ startSmartPolling();
     }
 
     function showSec(id, isBack = false) {
-        document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
-        // HIFADHI HISTORIA YA PAGE
-        if (!isBack && appHistory[appHistory.length - 1] !== id) {
-            appHistory.push(id);
-            window.history.pushState({ sec: id }, null, null);
+    // HAPA: KUSAFISHA TAARIFA ZA BODA UKIWA UMETOKA HUKO BILA KUTHIBITISHA OMBI
+    const currentActive = document.querySelector('.sec.active');
+    if (currentActive && currentActive.id === 'boda-sec' && id !== 'boda-sec') {
+        const statusBox = document.getElementById('boda-status-box');
+        if (statusBox && !statusBox.className.includes('searching') && !statusBox.className.includes('accepted')) {
+            const fareDetails = document.getElementById('boda-fare-details');
+            if(fareDetails) fareDetails.style.display = 'none';
+            const destInput = document.getElementById('boda-dest');
+            if(destInput) destInput.value = '';
+            const btnConfirm = document.getElementById('btn-boda-confirm');
+            if(btnConfirm) { btnConfirm.style.display = 'none'; btnConfirm.disabled = false; btnConfirm.innerHTML = 'Endelea'; }
+            bodaDestLat = null; 
+            bodaDestLng = null;
         }
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-b').forEach(n => n.classList.remove('active'));
-        document.querySelectorAll('.nav-b').forEach(n => { if(n.getAttribute('onclick').includes(id)) n.classList.add('active'); });
-        
-        const nav = document.getElementById('b-nav');
-        const feedbackBubble = document.getElementById('dev-feedback-bubble');
-        
-        // Onyesha bubble ya feedback kwenye Nyumbani tu
-        if (feedbackBubble) {
-            feedbackBubble.style.display = (id === 'home-sec') ? 'flex' : 'none';
-        }
-        
-        // Default Nav (bila Habari)
-        let defaultNavHtml = `<button class="nav-b active" onclick="handleNav('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button>
-        <button class="nav-b" onclick="handleNav('citizen-chat-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span></button>
-        <button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>
-        <button class="nav-b" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>`;
-
-        if(id === 'citizen-chat-sec' || id === 'dm-chat-sec' || id === 'leader-chat-sec') {
-            nav.style.display = 'none'; // Futa kabisa nav kwenye Forum na DM (Full Screen)
-        } else {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            
-            // Tambua ni chat gani kulingana na hadhi ya mtumiaji
-            const chatSec = (u.role === 'citizen') ? 'citizen-chat-sec' : 'leader-chat-sec';
-            const chatBadgeId = (u.role === 'citizen') ? 'forum-badge' : 'leader-chat-badge';
-            
-            // Jenga Bottom Nav ya Vitufe 5
-            let navHtml = `<button class="nav-b ${id === 'home-sec' ? 'active' : ''}" onclick="handleNav('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button>`;
-            
-            navHtml += `<button class="nav-b ${id === chatSec ? 'active' : ''}" onclick="handleNav('${chatSec}')" style="position: relative;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span><span id="${chatBadgeId}" style="position: absolute; top: 2px; right: 8px; background: #EF4444; color: white; font-size: 9px; min-width: 14px; height: 14px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span></button>`;
-            
-            navHtml += `<button class="nav-b ${id === 'market-sec' ? 'active' : ''}" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
-            
-            navHtml += `<button class="nav-b ${id === 'opportunities-sec' ? 'active' : ''}" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>`;
-            
-            navHtml += `<button class="nav-b ${id === 'status-sec' ? 'active' : ''}" onclick="handleNav('status-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="2 2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg><span>Status</span></button>`;
-            
-            nav.innerHTML = navHtml;
-            nav.style.display = 'flex';
-        }
-        
-        // Update active state
-        document.querySelectorAll('.nav-b').forEach(n => n.classList.remove('active'));
-        document.querySelectorAll('.nav-b').forEach(n => { if(n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) n.classList.add('active'); });
-        
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-
-        if(id==='hub-sec') fetchHub();
-        if(id==='market-sec') fetchMarket();
-        if(id==='shops-directory-sec') fetchShopsDirectory();
-        if(id==='progress-sec') fetchPublicProgress();
-        if(id==='leader-reports-sec') fetchLeaderReports();
-        if(id==='leader-chat-sec') fetchLeaderChat();
-        if(id==='citizen-chat-sec') { unreadChatCount = 0; document.getElementById('new-msg-banner').style.display = 'none'; fetchCitizenChat(false); }
-        if(id==='manage-villages-sec') fetchSubVillages();
-        if(id==='admin-pins-sec') fetchPins();
-        if(id==='pending-users-sec') fetchPendingUsers();
-        if(id==='campaign-sec') fetchProjects();
-        if(id==='solidarity-sec') fetchCauses();
-        if(id==='events-sec') fetchEvents();
-        if(id==='admin-moderation-sec') fetchModeration();
-        if(id==='my-inbox-sec') fetchMyInbox();
-        if(id==='activist-hub-sec') fetchActivistArticles();
-        if(id==='admin-activists-sec') fetchActivistsControl();
-        if(id==='boda-sec') { checkDriverStatus(); setTimeout(() => initBodaMap(), 100); }
-        if(id==='boda-driver-sec') fetchBodaRequests();
-        if(id==='opportunities-sec') fetchOpportunities();
-        if(id==='admin-feedback-sec') fetchAdminFeedbacks();
-        if(id==='campaign-sec' && (u.role === 'mtendaji_kata' || u.role === 'diwani' || u.role === 'system_admin')) document.getElementById('project-form-box').style.display = 'block';
-        if(id==='solidarity-sec' && u.role === 'citizen' && u.status === 'active') document.getElementById('cause-form-box').style.display = 'block';
-        if(id==='events-sec' && u.role !== 'citizen') document.getElementById('event-form-box').style.display = 'block';
-        if(id==='admin-verifications-sec') fetchAdminVerifications();
-        if(id==='admin-users-sec') fetchAdminUsers();
-        if(id==='admin-schools-sec') fetchAdminSchools();
-        if(id==='schools-public-sec') fetchPublicSchools();
-        if(id==='headmaster-sec') initHmClassInputs();
-        if(id==='status-sec') loadStatusUI();
-        if(id==='kitama-map-sec') initKitamaMap();
-        if(id==='report-sec') fetchCitizenReports();
-        if(id==='admin-map-requests-sec') fetchMapPlaceRequests();
-        if(id==='admin-analytics-sec') fetchAdminAnalytics();
-        if(id==='polls-sec') fetchPolls();
-        const pollAddBtn = document.getElementById('poll-add-btn');
-        if(pollAddBtn) {
-            // ONYESHA KITUFU KWA ACTIVISTS (VERIFIED) NA VIONGOZI TU
-            if (u.is_activist || u.role !== 'citizen') {
-                pollAddBtn.style.display = 'flex';
-            } else {
-                pollAddBtn.style.display = 'none';
-            }
-        }
-        if(id==='admin-boda-sec') fetchBodaDriverRequests();
-        if(id==='kitama-map-sec') { initKitamaMap(); requestLocationOnEnter(); }
-        if(id==='boda-sec') { checkDriverStatus(); setTimeout(() => initBodaMap(), 100); requestLocationOnEnter(); }
-        const marketAddBtn = document.getElementById('market-add-btn');
-        if(marketAddBtn) {
-            if(u.status === 'pending' || u.role !== 'citizen') marketAddBtn.style.display = 'none';
-            else marketAddBtn.style.display = 'flex';
-        }
-        
-        const activistAddBtn = document.getElementById('activist-add-btn');
-        if(activistAddBtn) {
-            if(u.is_activist) activistAddBtn.style.display = 'flex';
-            else activistAddBtn.style.display = 'none';
-        }
-        
-        const oppAddBtn = document.getElementById('opp-add-btn');
-        if(oppAddBtn) {
-            if(u.status === 'active') oppAddBtn.style.display = 'flex';
-            else oppAddBtn.style.display = 'none';
-        }
-        
-        if(id==='add-item-sec') checkUserShop();
     }
+
+    document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+    // HIFADHI HISTORIA YA PAGE
+    if (!isBack && appHistory[appHistory.length - 1] !== id) {
+        appHistory.push(id);
+        window.history.pushState({ sec: id }, null, null);
+    }
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-b').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.nav-b').forEach(n => { if(n.getAttribute('onclick').includes(id)) n.classList.add('active'); });
+    
+    const nav = document.getElementById('b-nav');
+    const feedbackBubble = document.getElementById('dev-feedback-bubble');
+    
+    if (feedbackBubble) {
+        feedbackBubble.style.display = (id === 'home-sec') ? 'flex' : 'none';
+    }
+    
+    let defaultNavHtml = `<button class="nav-b active" onclick="handleNav('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button>
+    <button class="nav-b" onclick="handleNav('citizen-chat-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span></button>
+    <button class="nav-b" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>
+    <button class="nav-b" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>`;
+
+    if(id === 'citizen-chat-sec' || id === 'dm-chat-sec' || id === 'leader-chat-sec') {
+        nav.style.display = 'none';
+    } else {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const chatSec = (u.role === 'citizen') ? 'citizen-chat-sec' : 'leader-chat-sec';
+        const chatBadgeId = (u.role === 'citizen') ? 'forum-badge' : 'leader-chat-badge';
+        
+        let navHtml = `<button class="nav-b ${id === 'home-sec' ? 'active' : ''}" onclick="handleNav('home-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Nyumbani</span></button>`;
+        navHtml += `<button class="nav-b ${id === chatSec ? 'active' : ''}" onclick="handleNav('${chatSec}')" style="position: relative;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Forum</span><span id="${chatBadgeId}" style="position: absolute; top: 2px; right: 8px; background: #EF4444; color: white; font-size: 9px; min-width: 14px; height: 14px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-weight: 700; border: 1px solid var(--surface);"></span></button>`;
+        navHtml += `<button class="nav-b ${id === 'market-sec' ? 'active' : ''}" onclick="handleNav('market-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9"/></svg><span>Soko</span></button>`;
+        navHtml += `<button class="nav-b ${id === 'opportunities-sec' ? 'active' : ''}" onclick="handleNav('opportunities-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Fursa</span></button>`;
+        navHtml += `<button class="nav-b ${id === 'status-sec' ? 'active' : ''}" onclick="handleNav('status-sec')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="2 2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg><span>Status</span></button>`;
+        nav.innerHTML = navHtml;
+        nav.style.display = 'flex';
+    }
+    
+    document.querySelectorAll('.nav-b').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.nav-b').forEach(n => { if(n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) n.classList.add('active'); });
+    
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+
+    if(id==='hub-sec') fetchHub();
+    if(id==='market-sec') fetchMarket();
+    if(id==='shops-directory-sec') fetchShopsDirectory();
+    if(id==='progress-sec') fetchPublicProgress();
+    if(id==='leader-reports-sec') fetchLeaderReports();
+    if(id==='leader-chat-sec') fetchLeaderChat();
+    if(id==='citizen-chat-sec') { unreadChatCount = 0; document.getElementById('new-msg-banner').style.display = 'none'; fetchCitizenChat(false); }
+    if(id==='manage-villages-sec') fetchSubVillages();
+    if(id==='admin-pins-sec') fetchPins();
+    if(id==='pending-users-sec') fetchPendingUsers();
+    if(id==='campaign-sec') fetchProjects();
+    if(id==='solidarity-sec') fetchCauses();
+    if(id==='events-sec') fetchEvents();
+    if(id==='admin-moderation-sec') fetchModeration();
+    if(id==='my-inbox-sec') fetchMyInbox();
+    if(id==='activist-hub-sec') fetchActivistArticles();
+    if(id==='admin-activists-sec') fetchActivistsControl();
+    if(id==='boda-sec') { checkDriverStatus(); setTimeout(() => initBodaMap(), 100); requestLocationOnEnter(); }
+    if(id==='boda-driver-sec') fetchBodaRequests();
+    if(id==='opportunities-sec') fetchOpportunities();
+    if(id==='admin-feedback-sec') fetchAdminFeedbacks();
+    if(id==='campaign-sec' && (u.role === 'mtendaji_kata' || u.role === 'diwani' || u.role === 'system_admin')) document.getElementById('project-form-box').style.display = 'block';
+    if(id==='solidarity-sec' && u.role === 'citizen' && u.status === 'active') document.getElementById('cause-form-box').style.display = 'block';
+    if(id==='events-sec' && u.role !== 'citizen') document.getElementById('event-form-box').style.display = 'block';
+    if(id==='admin-verifications-sec') fetchAdminVerifications();
+    if(id==='admin-users-sec') fetchAdminUsers();
+    if(id==='admin-schools-sec') fetchAdminSchools();
+    if(id==='schools-public-sec') fetchPublicSchools();
+    if(id==='headmaster-sec') initHmClassInputs();
+    if(id==='status-sec') loadStatusUI();
+    if(id==='kitama-map-sec') initKitamaMap();
+    if(id==='report-sec') fetchCitizenReports();
+    if(id==='admin-map-requests-sec') fetchMapPlaceRequests();
+    if(id==='admin-analytics-sec') fetchAdminAnalytics();
+    if(id==='polls-sec') fetchPolls();
+    const pollAddBtn = document.getElementById('poll-add-btn');
+    if(pollAddBtn) {
+        if (u.is_activist || u.role !== 'citizen') {
+            pollAddBtn.style.display = 'flex';
+        } else {
+            pollAddBtn.style.display = 'none';
+        }
+    }
+    if(id==='admin-boda-sec') fetchBodaDriverRequests();
+    if(id==='kitama-map-sec') { initKitamaMap(); requestLocationOnEnter(); }
+    
+    const marketAddBtn = document.getElementById('market-add-btn');
+    if(marketAddBtn) {
+        if(u.status === 'pending' || u.role !== 'citizen') marketAddBtn.style.display = 'none';
+        else marketAddBtn.style.display = 'flex';
+    }
+    
+    const activistAddBtn = document.getElementById('activist-add-btn');
+    if(activistAddBtn) {
+        if(u.is_activist) activistAddBtn.style.display = 'flex';
+        else activistAddBtn.style.display = 'none';
+    }
+    
+    const oppAddBtn = document.getElementById('opp-add-btn');
+    if(oppAddBtn) {
+        if(u.status === 'active') oppAddBtn.style.display = 'flex';
+        else oppAddBtn.style.display = 'none';
+    }
+    
+    if(id==='add-item-sec') checkUserShop();
+}
 
             async function fetchActivistArticles() {
             const div = document.getElementById('activist-articles-list');
@@ -5936,58 +5940,49 @@ if (data) data.reverse();
             }
         }
 
-            function updateRoute() {
-            if (!bodaPickupLat || !bodaDestLat) return;
+    function updateRoute() {
+    if (!bodaPickupLat || !bodaDestLat) return;
 
-            if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); }
-            if (bodaRouteLine) { bodaMap.removeLayer(bodaRouteLine); }
+    if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); }
+    if (bodaRouteLine) { bodaMap.removeLayer(bodaRouteLine); }
 
-            document.getElementById('btn-boda-search').innerHTML = '<div class="spinner"></div> Inapanga Njia...';
+    const pLat = parseFloat(bodaPickupLat);
+    const pLng = parseFloat(bodaPickupLng);
+    const dLat = parseFloat(bodaDestLat);
+    const dLng = parseFloat(bodaDestLng);
+    
+    const straightDistanceKm = getDistance(pLat, pLng, dLat, dLng);
+    const rawFare = 500 + (straightDistanceKm * 500);
+    bodaFareAmount = Math.round(rawFare / 500) * 500;
+    if (bodaFareAmount < 500) bodaFareAmount = 500;
+    
+    document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
+    document.getElementById('boda-fare-details').style.display = 'block';
 
-                        // 1. HESABU UMBALI WA MOJA KWA MOJA (Straight Line) KWA USAHIHI
-            const pLat = parseFloat(bodaPickupLat);
-            const pLng = parseFloat(bodaPickupLng);
-            const dLat = parseFloat(bodaDestLat);
-            const dLng = parseFloat(bodaDestLng);
-            
-            const straightDistanceKm = getDistance(pLat, pLng, dLat, dLng);
-            
-            // 2. WEKA NAULI HALISI MWANZO (500 Tsh Base + 500 Tsh kwa KM)
-            const rawFare = 500 + (straightDistanceKm * 500);
-            
-            // 3. IIRUDI (ROUND) KWENYE 500 INAYOFUATA ILI KUEPUKA CHENCHI (Mfano: 1234 -> 1000 au 1500)
-            bodaFareAmount = Math.round(rawFare / 500) * 500;
-            
-            // Kama umbali ni 0, nauli ishuke chini kabisa na iwe 500 Tsh tu
-            if (bodaFareAmount < 500) bodaFareAmount = 500;
-            
-            // Futa kitufe cha Tafuta Nauli kabisa
-document.getElementById('boda-fare-price').innerText = `${bodaFareAmount.toLocaleString()} Tsh`;
-document.getElementById('boda-fare-details').style.display = 'block';
+    // HII NDIO FIX YA SPINNER KUKAA: RUDISHA MFUMO WA KAWAIDA
+    const btnConfirm = document.getElementById('btn-boda-confirm');
+    btnConfirm.style.display = 'block';
+    btnConfirm.disabled = false; 
+    btnConfirm.innerHTML = 'Endelea';
+    
+    document.getElementById('btn-boda-search').style.display = 'none';
+    playBeep();
 
-// Onyesha kitufe cha kuthibitisha na endelea
-document.getElementById('btn-boda-confirm').style.display = 'block';
-document.getElementById('btn-boda-search').style.display = 'none';
-document.getElementById('btn-boda-search').innerHTML = 'Tafuta Nauli';
-playBeep();
+    bodaRoutingControl = L.Routing.control({
+        waypoints: [ L.latLng(pLat, pLng), L.latLng(dLat, dLng) ],
+        routeWhileDragging: false, addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
+        lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
+    }).addTo(bodaMap);
 
-            // 3. CHORA NJIA KWENYE RAMANI KUFUATA BARABARA
-            bodaRoutingControl = L.Routing.control({
-                waypoints: [ L.latLng(pLat, pLng), L.latLng(dLat, dLng) ],
-                routeWhileDragging: false, addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false,
-                lineOptions: { styles: [{color: '#10B981', opacity: 0.9, weight: 6}] }
-            }).addTo(bodaMap);
-
-            // KAMA BARABARA HAIPATIKANI, CHORA MSTARI WA MOJA KWA MOJA
-            bodaRoutingControl.on('routingerror', function(e) {
-                if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); bodaRoutingControl = null; }
-                bodaRouteLine = L.polyline([
-                    [pLat, pLng], [dLat, dLng]
-                ], {color: '#10B981', opacity: 0.9, weight: 4, dashArray: '10, 10'}).addTo(bodaMap);
-                bodaMap.fitBounds(bodaRouteLine.getBounds());
-                showToast("Nauli imewekwa kulingana na umbali wa moja kwa moja.");
-            });
-        }
+    bodaRoutingControl.on('routingerror', function(e) {
+        if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); bodaRoutingControl = null; }
+        bodaRouteLine = L.polyline([
+            [pLat, pLng], [dLat, dLng]
+        ], {color: '#10B981', opacity: 0.9, weight: 4, dashArray: '10, 10'}).addTo(bodaMap);
+        bodaMap.fitBounds(bodaRouteLine.getBounds());
+        showToast("Nauli imewekwa kulingana na umbali wa moja kwa moja.");
+    });
+}
         
         function getDistance(lat1, lon1, lat2, lon2) {
             const R = 6371e3; // Radius ya dunia kwa MITA
@@ -6219,12 +6214,26 @@ async function completeBodaTrip() {
 }
 
 async function cancelAcceptedBodaRide(rideId) {
-    if (!endedBodaRides.includes(rideId)) { endedBodaRides.push(rideId); localStorage.setItem('ended_boda_rides', JSON.stringify(endedBodaRides)); }
+    if (!endedBodaRides.includes(rideId)) { 
+        endedBodaRides.push(rideId); 
+        localStorage.setItem('ended_boda_rides', JSON.stringify(endedBodaRides)); 
+    }
     sb.from('boda_requests').update({ status: 'cancelled' }).eq('id', rideId).then(()=>{}).catch(e => console.error("Err:",e));
+    
     const statusBox = document.getElementById('boda-status-box');
-    if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
     const btnConfirm = document.getElementById('btn-boda-confirm');
-    if(btnConfirm) btnConfirm.style.display = 'none';
+    const btnCancel = document.getElementById('btn-boda-cancel');
+    const fareDetails = document.getElementById('boda-fare-details');
+    const destInput = document.getElementById('boda-dest');
+    
+    if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
+    if(btnConfirm) { btnConfirm.style.display = 'none'; btnConfirm.disabled = false; btnConfirm.innerHTML = 'Endelea'; }
+    if(btnCancel) btnCancel.style.display = 'none';
+    
+    // FUTA BEI NA MAHALI
+    if(fareDetails) fareDetails.style.display = 'none';
+    if(destInput) destInput.value = '';
+    
     bodaDestLat = null; bodaDestLng = null;
     if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); bodaRoutingControl = null; }
     if (bodaRouteLine) { bodaMap.removeLayer(bodaRouteLine); bodaRouteLine = null; }
@@ -6242,14 +6251,18 @@ async function cancelBodaRide(rideId) {
     sb.from('boda_requests').update({ status: 'cancelled' }).eq('id', rideId).then(() => {}).catch(e => console.error("RLS blocked cancel:", e));
 
     const statusBox = document.getElementById('boda-status-box');
-    const btnSearch = document.getElementById('btn-boda-search');
     const btnConfirm = document.getElementById('btn-boda-confirm');
     const btnCancel = document.getElementById('btn-boda-cancel');
+    const fareDetails = document.getElementById('boda-fare-details');
+    const destInput = document.getElementById('boda-dest');
     
     if(statusBox) { statusBox.className = 'boda-status'; statusBox.innerHTML = ''; }
-    if(btnSearch) { btnSearch.style.display = 'block'; btnSearch.innerHTML = 'Tafuta Nauli'; btnSearch.disabled = false; }
-    if(btnConfirm) btnConfirm.style.display = 'none';
+    if(btnConfirm) { btnConfirm.style.display = 'none'; btnConfirm.disabled = false; btnConfirm.innerHTML = 'Endelea'; }
     if(btnCancel) btnCancel.style.display = 'none';
+    
+    // FUTA BEI NA MAHALI
+    if(fareDetails) fareDetails.style.display = 'none';
+    if(destInput) destInput.value = '';
     
     bodaDestLat = null; bodaDestLng = null;
     if (bodaRoutingControl) { bodaMap.removeControl(bodaRoutingControl); bodaRoutingControl = null; }
