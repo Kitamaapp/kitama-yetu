@@ -1808,19 +1808,45 @@
     }
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         // --- HANDLE ANDROID BACK BUTTON & REFRESH ---
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-        window.Capacitor.Plugins.App.addListener('backButton', () => {
-            if (document.getElementById('modal-overlay').style.display === 'flex') {
-                closeModal();
-            } else if (document.getElementById('status-viewer-overlay') && document.getElementById('status-viewer-overlay').style.display === 'flex') {
-                closeStatusViewer();
-            } else if (document.querySelector('.sec.active') && document.querySelector('.sec.active').id !== 'home-sec') {
-                handleNav('home-sec');
-            } else {
-                window.Capacitor.Plugins.App.exitApp();
-            }
-        });
-    }
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+            window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
+                if (isActive) {
+                    resyncActiveScreen();
+                    if (window.kitamaRealtimeChannel && window.kitamaRealtimeChannel.state !== 'joined' && window.kitamaRealtimeChannel.state !== 'joining') {
+                        window.kitamaRealtimeChannel.subscribe();
+                    }
+                }
+            });
+            
+            window.Capacitor.Plugins.App.addListener('backButton', () => {
+                // 1. Kama Modal wazi, ifunge tu
+                if (document.getElementById('modal-overlay').style.display === 'flex') {
+                    closeModal();
+                    return;
+                }
+                
+                // 2. Kama Status Viewer wazi, ifunge tu
+                if (document.getElementById('status-viewer-overlay') && document.getElementById('status-viewer-overlay').style.display === 'flex') {
+                    closeStatusViewer();
+                    return;
+                }
+                
+                // 3. Kama Panel ya Waliotazama wazi, ifunge
+                const viewersPanel = document.getElementById('viewers-panel');
+                if (viewersPanel && viewersPanel.style.transform === 'translateY(0%)') {
+                    hideViewersPanel();
+                    return;
+                }
+                
+                // 4. Rudi Nyuma (History) kama inapatikana
+                if (appHistory.length > 1) {
+                    window.history.back(); // Hii itasababisha popstate event na kurudi nyuma sahihi
+                } else {
+                    // 5. Kama hayari history (upo mwanzo kabisa), toka kwenye App
+                    window.Capacitor.Plugins.App.exitApp();
+                }
+            });
+        }
 // FUNCTION YA KUFUTA PICHA/VIDEO KWENYE CLOUDINARY
 async function deleteCloudinaryAsset(url) {
     if (!url || !url.includes('cloudinary.com')) return;
