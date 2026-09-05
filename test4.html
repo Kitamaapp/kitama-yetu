@@ -8575,15 +8575,21 @@ async function cancelBodaRide(rideId) {
     if (status.sender_phone === u.phone_number) {
         footerEl.style.display = 'flex';
         viewersEl.innerHTML = '<small>Inatafuta waliotazama...</small>';
-        try {
-            const { data: viewersData } = await sb.from('users').select('full_name').in('phone_number', status.seen_by || []);
-            if (viewersData && viewersData.length > 0) {
-                viewersEl.innerHTML = '<small>Waliotazama:</small><br>' + viewersData.map(v => `<span style="background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:10px;">${v.full_name}</span>`).join('');
-            } else {
-                viewersEl.innerHTML = '<small>Hakuna aliyetazama bado</small>';
-            }
-        } catch(e) { viewersEl.innerHTML = '<small>Hakuna aliyetazama</small>'; }
-    } else {
+       try {
+        const { data: viewersData } = await sb.from('users').select('full_name').in('phone_number', status.seen_by || []);
+        if (viewersData && viewersData.length > 0) {
+        viewersEl.innerHTML = '<small>Waliotazama:</small><br>' + viewersData.map(v => `<span style="background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:10px;">${v.full_name}</span>`).join('');
+     } else {
+        viewersEl.innerHTML = '<small>Hakuna aliyetazama bado</small>';
+        }
+     } catch(e) { viewersEl.innerHTML = '<small>Hakuna aliyetazama</small>'; }
+                
+     // ONGEZA KITUFE CHA KUFUTA STATUS HAPA
+     viewersEl.innerHTML += `<button onclick="deleteCurrentStatus()" style="margin-top:15px; background:var(--danger); color:white; padding:10px 20px; border:none; border-radius:8px; font-weight:600; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:5px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    Futa
+    </button>`;
+     } else {
         footerEl.style.display = 'none';
         if (u.phone_number !== window.adminPhone) {
             if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
