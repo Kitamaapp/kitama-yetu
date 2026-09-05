@@ -5837,29 +5837,38 @@ if (data) data.reverse();
             });
         }
 
-        function findMyLocation() {
-            if (!navigator.geolocation) return showToast("Kifaa chako hakiauni GPS.");
+    function findMyLocation() {
+    if (!navigator.geolocation) return showToast("Kifaa chako hakiauni GPS.");
+    
+    showToast("Inatafuta eneo lako...");
+    
+    // TUMIA WATCHPOSITION ILA KUFUATILIA TEMBEA
+    if (window.bodaLocWatchId) navigator.geolocation.clearWatch(window.bodaLocWatchId);
+    
+    window.bodaLocWatchId = navigator.geolocation.watchPosition(pos => {
+        bodaPickupLat = pos.coords.latitude;
+        bodaPickupLng = pos.coords.longitude;
+        
+        if(!bodaMap) return;
+        
+        // Kama ni mara ya kwanza, nenda kwenye eneo hilo
+        if (!pickupMarker) {
+            bodaMap.invalidateSize(); 
+            bodaMap.flyTo([bodaPickupLat, bodaPickupLng], 16, { duration: 1.5 });
             
-            showToast("Inatafuta eneo lako...");
-            navigator.geolocation.getCurrentPosition(pos => {
-                bodaPickupLat = pos.coords.latitude;
-                bodaPickupLng = pos.coords.longitude;
-                
-                if(!bodaMap) return;
-                bodaMap.invalidateSize(); // FIX TATIZO LA KUKWAMA KWENYE APK
-                bodaMap.flyTo([bodaPickupLat, bodaPickupLng], 16, { duration: 1.5 });
-                
-                if (pickupMarker) bodaMap.removeLayer(pickupMarker);
-                const pickupIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15] });
-                pickupMarker = L.marker([bodaPickupLat, bodaPickupLng], { icon: pickupIcon }).addTo(bodaMap);
-                pickupMarker.bindPopup("<b>Wapo hapa (Pickup)</b>").openPopup();
-                
-                document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
-            }, err => {
-                if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
-                else showToast("Washa GPS kwa High Accuracy.");
-            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            const pickupIcon = L.divIcon({ className: 'blink-marker', html: '<div class="blink-dot" style="background:#10B981;"></div>', iconSize: [15, 15] });
+            pickupMarker = L.marker([bodaPickupLat, bodaPickupLng], { icon: pickupIcon }).addTo(bodaMap);
+            pickupMarker.bindPopup("<b>Wapo hapa (Pickup)</b>").openPopup();
+            document.getElementById('boda-pickup').value = "Mahali ulipo sasa (GPS)";
+        } else {
+            // Kama alama ipo tayari, isogeze tu laini bila kusumbua ramani
+            pickupMarker.setLatLng([bodaPickupLat, bodaPickupLng]);
         }
+    }, err => {
+        if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
+        else showToast("Washa GPS kwa High Accuracy.");
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+}
 
         async function loadBodaMapPlaces() {
             if(!bodaMap) return;
@@ -9392,33 +9401,40 @@ async function openStatusViewersModal() {
         }
 
         function findMyLocationOnMap() {
-            if (!navigator.geolocation) return showToast("Kifaa chako hakikai GPS.");
-            
-            showToast("Inatafuta eneo lako...");
-            navigator.geolocation.getCurrentPosition(pos => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                
-                if(!kitamaMap) return;
-                kitamaMap.invalidateSize(); // HAKIKISHA RAMANI HAIFUNGWI KWENYE APK
-                kitamaMap.flyTo([lat, lng], 16, { duration: 1.5 }); // RUDIA KWA LAINI
-                
-                if (myLocationMarker) kitamaMap.removeLayer(myLocationMarker);
-                
-                const myLocationIcon = L.divIcon({
-                    className: 'blink-marker',
-                    html: '<div style="width:20px; height:20px; background:#3B82F6; border-radius:50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); animation: blink 1s infinite;"></div>',
-                    iconSize: [20, 20]
-                });
-                
-                myLocationMarker = L.marker([lat, lng], { icon: myLocationIcon }).addTo(kitamaMap);
-                myLocationMarker.bindPopup("<b>Wewe uko hapa</b>").openPopup();
-                
-            }, err => {
-                if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
-                else showToast("Washa GPS kwa High Accuracy.");
-            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+    if (!navigator.geolocation) return showToast("Kifaa chako hakikai GPS.");
+    
+    showToast("Inatafuta eneo lako...");
+    
+    // TUMIA WATCHPOSITION ILA KUFUATILIA TEMBEA
+    if (window.kitamaLocWatchId) navigator.geolocation.clearWatch(window.kitamaLocWatchId);
+    
+    window.kitamaLocWatchId = navigator.geolocation.watchPosition(pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        
+        if(!kitamaMap) return;
+        
+        const myLocationIcon = L.divIcon({
+            className: 'blink-marker',
+            html: '<div style="width:20px; height:20px; background:#3B82F6; border-radius:50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8); animation: blink 1s infinite;"></div>',
+            iconSize: [20, 20]
+        });
+        
+        if (!myLocationMarker) {
+            // Kama ni mara ya kwanza, nenda kwenye eneo hilo
+            kitamaMap.invalidateSize(); 
+            kitamaMap.flyTo([lat, lng], 16, { duration: 1.5 });
+            myLocationMarker = L.marker([lat, lng], { icon: myLocationIcon, zIndexOffset: 1000 }).addTo(kitamaMap);
+            myLocationMarker.bindPopup("<b>Wewe uko hapa</b>").openPopup();
+        } else {
+            // Kama alama ipo tayari, isogeze tu laini
+            myLocationMarker.setLatLng([lat, lng]);
         }
+    }, err => {
+        if (err.code === 1) showToast("App haina ruhusa ya GPS. Washa Location kwenye Settings.");
+        else showToast("Washa GPS kwa High Accuracy.");
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+}
 
             // DICTIONARY YA IKONI NA RANGI KULINGANA NA CATEGORY
         const MAP_ICONS = {
