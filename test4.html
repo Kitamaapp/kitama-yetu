@@ -8468,19 +8468,26 @@ async function cancelBodaRide(rideId) {
         }
 
         function renderStatusSegments() {
-            const barContainer = document.getElementById('status-progress-bar');
-            barContainer.innerHTML = '';
-            statusSegments = [];
-            currentStatusList.forEach((s, i) => {
-                const seg = document.createElement('div');
-                seg.style.cssText = `flex:1; height:3px; background:rgba(255,255,255,0.3); border-radius:2px; overflow:hidden; ${i < currentViewingIndex ? 'opacity: 1;' : ''}`;
-                const fill = document.createElement('div');
-                fill.style.cssText = `width:${i < currentViewingIndex ? '100%' : '0%'}; height:100%; background:#fff;`;
-                seg.appendChild(fill);
-                barContainer.appendChild(seg);
-                statusSegments.push(fill);
-            });
-        }
+    const barContainer = document.getElementById('status-progress-bar');
+    if(!barContainer) return;
+    barContainer.innerHTML = '';
+    statusSegments = [];
+    
+    currentStatusList.forEach((s, i) => {
+        const seg = document.createElement('div');
+        // Mistari ifuate kwa mbali kidogo kama WhatsApp
+        seg.style.cssText = `flex:1; height:3px; background:rgba(255,255,255,0.3); border-radius:2px; overflow:hidden; margin-right:2px;`;
+        
+        const fill = document.createElement('div');
+        // Kama ni status iliyopita, ijae 100%. Kama ni ya sasa, ianze 0%.
+        let widthVal = (i < currentViewingIndex) ? '100%' : '0%';
+        fill.style.cssText = `width:${widthVal}; height:100%; background:#fff; border-radius:2px;`;
+        
+        seg.appendChild(fill);
+        barContainer.appendChild(seg);
+        statusSegments.push(fill);
+    });
+}
 
             function viewStatus(phone, isOfficial = false) {
             isViewingOfficial = false;
@@ -8499,103 +8506,106 @@ async function cancelBodaRide(rideId) {
             showStatusViewer(currentStatusList[currentViewingIndex]);
         }
 
-            async function showStatusViewer(status) {
-            clearTimeout(statusTimer);
-            pausedStatus = false;
-            
-            document.getElementById('status-viewer-overlay').style.display = 'flex';
-            const imgEl = document.getElementById('status-viewer-img');
-            const captionEl = document.getElementById('sv-caption');
-            const footerEl = document.getElementById('sv-footer');
-            const viewersEl = document.getElementById('sv-viewers');
-            
-            imgEl.style.background = ''; 
-            imgEl.innerHTML = ''; 
-            
-            const progressFill = statusSegments[currentViewingIndex];
-            if (progressFill) {
-                progressFill.style.transition = 'none';
-                progressFill.style.width = '0%';
-            }
-            
-            let duration = 30000; 
-            if (status.media_type === 'video') {
-                const video = document.createElement('video');
-                video.src = status.media_base64;
-                video.style.cssText = 'width:100%; height:100%; object-fit:contain; background:#000;';
-                video.playsInline = true;
-                imgEl.appendChild(video);
-                
-                let effectiveDuration = status.max_play_duration;
-                video.addEventListener('loadedmetadata', () => {
-                    effectiveDuration = Math.min(video.duration, status.max_play_duration);
-                    video.play().catch(e => console.error("Video play error:", e));
-                });
-                video.addEventListener('timeupdate', () => {
-                    const percentage = (video.currentTime / effectiveDuration) * 100;
-                    if (progressFill) { progressFill.style.transition = 'none'; progressFill.style.width = Math.min(percentage, 100) + '%'; }
-                    if (video.currentTime >= effectiveDuration) { video.pause(); nextStatus(); }
-                });
-                video.addEventListener('ended', () => nextStatus());
-            } else if (status.media_type === 'text') {
-                const colors = ['#1E293B', '#7F1D1D', '#14532D', '#581C87', '#155E75', '#92400E'];
-                const bgColor = colors[status.id.length % colors.length]; 
-                imgEl.style.background = bgColor;
-                imgEl.innerHTML = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><p style="color:white; font-size:20px; font-weight:600; padding:20px; text-align:center;">${status.media_base64}</p></div>`;
+        async function showStatusViewer(status) {
+    clearTimeout(statusTimer);
+    pausedStatus = false;
+    
+    document.getElementById('status-viewer-overlay').style.display = 'flex';
+    const imgEl = document.getElementById('status-viewer-img');
+    const captionEl = document.getElementById('sv-caption');
+    const footerEl = document.getElementById('sv-footer');
+    const viewersEl = document.getElementById('sv-viewers');
+    
+    imgEl.style.background = ''; 
+    imgEl.innerHTML = ''; 
+    
+    const progressFill = statusSegments[currentViewingIndex];
+    if (progressFill) {
+        progressFill.style.transition = 'none';
+        progressFill.style.width = '0%';
+    }
+    
+    let duration = 30000; // Picha na Text ni sekunde 30
+    if (status.media_type === 'video') {
+        const video = document.createElement('video');
+        video.src = status.media_base64;
+        video.style.cssText = 'width:100%; height:100%; object-fit:contain; background:#000;';
+        video.playsInline = true;
+        imgEl.appendChild(video);
+        
+        let effectiveDuration = status.max_play_duration;
+        video.addEventListener('loadedmetadata', () => {
+            effectiveDuration = Math.min(video.duration, status.max_play_duration);
+            video.play().catch(e => console.error("Video play error:", e));
+        });
+        video.addEventListener('timeupdate', () => {
+            const percentage = (video.currentTime / effectiveDuration) * 100;
+            if (progressFill) { progressFill.style.transition = 'none'; progressFill.style.width = Math.min(percentage, 100) + '%'; }
+            if (video.currentTime >= effectiveDuration) { video.pause(); nextStatus(); }
+        });
+        video.addEventListener('ended', () => nextStatus());
+    } else if (status.media_type === 'text') {
+        const colors = ['#1E293B', '#7F1D1D', '#14532D', '#581C87', '#155E75', '#92400E'];
+        const bgColor = colors[status.id.length % colors.length]; 
+        imgEl.style.background = bgColor;
+        imgEl.innerHTML = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><p style="color:white; font-size:20px; font-weight:600; padding:20px; text-align:center;">${status.media_base64}</p></div>`;
+    } else {
+        imgEl.style.background = `url('${status.media_base64}') center/contain no-repeat`;
+    }
+    
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    
+    let isSystemStatus = (status.sender_phone === window.adminPhone);
+    const svAvatar = document.getElementById('sv-avatar');
+    const svName = document.getElementById('sv-name');
+    
+    if (isSystemStatus) {
+        svAvatar.innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        svName.innerHTML = `Kitama Yetu ${getWhatsAppVerifiedBadge()}`;
+    } else {
+        svAvatar.innerText = status.sender_name.charAt(0);
+        svName.innerText = status.sender_name;
+    }
+    
+    document.getElementById('sv-time').innerText = new Date(status.timestamp).toLocaleString();
+    
+    captionEl.innerText = status.caption || '';
+    captionEl.style.display = status.caption ? 'block' : 'none';
+    
+    if (status.sender_phone === u.phone_number) {
+        footerEl.style.display = 'flex';
+        viewersEl.innerHTML = '<small>Inatafuta waliotazama...</small>';
+        try {
+            const { data: viewersData } = await sb.from('users').select('full_name').in('phone_number', status.seen_by || []);
+            if (viewersData && viewersData.length > 0) {
+                viewersEl.innerHTML = '<small>Waliotazama:</small><br>' + viewersData.map(v => `<span style="background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:10px;">${v.full_name}</span>`).join('');
             } else {
-                imgEl.style.background = `url('${status.media_base64}') center/contain no-repeat`;
+                viewersEl.innerHTML = '<small>Hakuna aliyetazama bado</small>';
             }
-            
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            
-            // HAPA: TAMBUA ADMIN NA WEKA BADGE
-            let isSystemStatus = (status.sender_phone === window.adminPhone);
-            const svAvatar = document.getElementById('sv-avatar');
-            const svName = document.getElementById('sv-name');
-            
-            if (isSystemStatus) {
-                svAvatar.innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-                svName.innerHTML = `Kitama Yetu ${getWhatsAppVerifiedBadge()}`; // HAPA NDIO LILIKUWA KOSA, TUMIA innerHTML
-            } else {
-                svAvatar.innerText = status.sender_name.charAt(0);
-                svName.innerText = status.sender_name;
+        } catch(e) { viewersEl.innerHTML = '<small>Hakuna aliyetazama</small>'; }
+    } else {
+        footerEl.style.display = 'none';
+        if (u.phone_number !== window.adminPhone) {
+            if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
+                statusNetworkChannel.send({ type: 'broadcast', event: 'status_seen', payload: { 
+                    to: status.sender_phone, status_id: status.id, seen_by: u.phone_number, hide_seen_receipts: status.hide_seen_receipts 
+                }});
+                let myStorage = getStatusFromStorage();
+                const s = myStorage.find(x => x.id === status.id);
+                if (s) { if (!s.seen_by) s.seen_by = []; s.seen_by.push(u.phone_number); saveStatusToStorage(myStorage); }
             }
-            
-            document.getElementById('sv-time').innerText = new Date(status.timestamp).toLocaleString();
-            
-            captionEl.innerText = status.caption || '';
-            captionEl.style.display = status.caption ? 'block' : 'none';
-            
-            if (status.sender_phone === u.phone_number) {
-                footerEl.style.display = 'flex';
-                viewersEl.innerHTML = '<small>Inatafuta waliotazama...</small>';
-                try {
-                    const { data: viewersData } = await sb.from('users').select('full_name').in('phone_number', status.seen_by || []);
-                    if (viewersData && viewersData.length > 0) {
-                        viewersEl.innerHTML = '<small>Waliotazama:</small><br>' + viewersData.map(v => `<span style="background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:10px;">${v.full_name}</span>`).join('');
-                    } else {
-                        viewersEl.innerHTML = '<small>Hakuna aliyetazama bado</small>';
-                    }
-                } catch(e) { viewersEl.innerHTML = '<small>Hakuna aliyetazama</small>'; }
-            } else {
-                footerEl.style.display = 'none';
-                if (u.phone_number !== window.adminPhone) {
-                    if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
-                        statusNetworkChannel.send({ type: 'broadcast', event: 'status_seen', payload: { 
-                            to: status.sender_phone, status_id: status.id, seen_by: u.phone_number, hide_seen_receipts: status.hide_seen_receipts 
-                        }});
-                        let myStorage = getStatusFromStorage();
-                        const s = myStorage.find(x => x.id === status.id);
-                        if (s) { if (!s.seen_by) s.seen_by = []; s.seen_by.push(u.phone_number); saveStatusToStorage(myStorage); }
-                    }
-                }
-            }
-            
-            if (status.media_type !== 'video' && progressFill) {
-                setTimeout(() => { progressFill.style.transition = `width ${duration}ms linear`; progressFill.style.width = '100%'; }, 100);
-                statusTimer = setTimeout(() => { nextStatus(); }, duration);
-            }
-         }
+        }
+    }
+    
+    // MISTARI YA PICHA NA TEXT IJAEE LAINI KWA SEKUNDE 30
+    if (status.media_type !== 'video' && progressFill) {
+        setTimeout(() => { 
+            progressFill.style.transition = `width ${duration}ms linear`; 
+            progressFill.style.width = '100%'; 
+        }, 100);
+        statusTimer = setTimeout(() => { nextStatus(); }, duration);
+    }
+}
 
         function pauseStatus() {
             if (!pausedStatus) {
@@ -8635,49 +8645,62 @@ async function cancelBodaRide(rideId) {
         }
 
         function nextStatus() {
-            clearTimeout(statusTimer);
-            const video = document.querySelector('#status-viewer-img video');
-            if (video) video.pause();
-            
-            currentViewingIndex++;
-            if (currentViewingIndex < currentStatusList.length) {
-                showStatusViewer(currentStatusList[currentViewingIndex]);
-            } else {
-                const allUsers = Object.keys(getGroupedStatuses());
-                const currentIdx = allUsers.indexOf(currentViewingPhone);
-                if (currentIdx !== -1 && currentIdx + 1 < allUsers.length) {
-                    viewStatus(allUsers[currentIdx + 1]);
-                } else {
-                    closeStatusViewer();
-                }
-            }
-        }
+    clearTimeout(statusTimer);
+    const video = document.querySelector('#status-viewer-img video');
+    if (video) video.pause();
 
-        function prevStatus() {
-            clearTimeout(statusTimer);
-            const video = document.querySelector('#status-viewer-img video');
-            if (video) video.pause();
-            
-            currentViewingIndex--;
-            if (currentViewingIndex >= 0) {
-                showStatusViewer(currentStatusList[currentViewingIndex]);
-            } else {
-                const allUsers = Object.keys(getGroupedStatuses());
-                const currentIdx = allUsers.indexOf(currentViewingPhone);
-                if (currentIdx > 0) {
-                    const prevUser = allUsers[currentIdx - 1];
-                    const prevList = getGroupedStatuses()[prevUser];
-                    currentViewingPhone = prevUser;
-                    currentStatusList = prevList;
-                    currentViewingIndex = currentStatusList.length - 1;
-                    renderStatusSegments();
-                    showStatusViewer(currentStatusList[currentViewingIndex]);
-                } else {
-                    currentViewingIndex = 0;
-                    showStatusViewer(currentStatusList[0]);
-                }
-            }
+    // JAZA MSTARI WA SASA UFE UMEJAA 100% Mara unapobonyeza Next
+    const currentFill = statusSegments[currentViewingIndex];
+    if (currentFill) currentFill.style.width = '100%';
+
+    currentViewingIndex++;
+    if (currentViewingIndex < currentStatusList.length) {
+        // Kama bado zipo za mtu huyu, cheza inayofuata yake
+        showStatusViewer(currentStatusList[currentViewingIndex]);
+    } else {
+        // Kama zimeisha za mtu huyu, nenda kwa mtu anayefuata
+        const allUsers = Object.keys(getGroupedStatuses());
+        const currentIdx = allUsers.indexOf(currentViewingPhone);
+        if (currentIdx !== -1 && currentIdx + 1 < allUsers.length) {
+            currentViewingPhone = allUsers[currentIdx + 1];
+            currentStatusList = getGroupedStatuses()[currentViewingPhone];
+            currentViewingIndex = 0;
+            renderStatusSegments();
+            showStatusViewer(currentStatusList[0]);
+        } else {
+            closeStatusViewer();
         }
+    }
+}
+
+function prevStatus() {
+    clearTimeout(statusTimer);
+    const video = document.querySelector('#status-viewer-img video');
+    if (video) video.pause();
+
+    const currentFill = statusSegments[currentViewingIndex];
+    if (currentFill) currentFill.style.width = '0%';
+
+    currentViewingIndex--;
+    if (currentViewingIndex >= 0) {
+        // Rudi kwenye status iliyotangulia ya mtu huyu
+        showStatusViewer(currentStatusList[currentViewingIndex]);
+    } else {
+        // Kama huyu ndiye wa kwanza, rudi kwa mtu wa nyuma
+        const allUsers = Object.keys(getGroupedStatuses());
+        const currentIdx = allUsers.indexOf(currentViewingPhone);
+        if (currentIdx > 0) {
+            currentViewingPhone = allUsers[currentIdx - 1];
+            currentStatusList = getGroupedStatuses()[currentViewingPhone];
+            currentViewingIndex = currentStatusList.length - 1;
+            renderStatusSegments();
+            showStatusViewer(currentStatusList[currentViewingIndex]);
+        } else {
+            currentViewingIndex = 0;
+            showStatusViewer(currentStatusList[0]);
+        }
+    }
+}
 
         function deleteCurrentStatus() {
     const currentStatus = currentStatusList[currentViewingIndex];
@@ -8705,15 +8728,27 @@ async function cancelBodaRide(rideId) {
 }
 
           function closeStatusViewer() {
-            isViewingOfficial = false;
-            clearTimeout(statusTimer);
-            const overlay = document.getElementById('status-viewer-overlay');
-            overlay.style.display = 'none';
-            document.getElementById('viewers-panel').style.transform = 'translateY(100%)'; // Ficha paneli
-            const video = overlay.querySelector('video');
-            if (video) video.pause();
-            loadStatusUI();
-          }
+    isViewingOfficial = false;
+    clearTimeout(statusTimer);
+    const overlay = document.getElementById('status-viewer-overlay');
+    if (overlay) overlay.style.display = 'none';
+    
+    const viewersPanel = document.getElementById('viewers-panel');
+    if (viewersPanel) viewersPanel.style.transform = 'translateY(100%)';
+    
+    const imgEl = document.getElementById('status-viewer-img');
+    if (imgEl) {
+        const video = imgEl.querySelector('video');
+        if (video) {
+            video.pause();
+            video.removeAttribute('src'); // Ondoa source kabisa
+            video.load(); // Funga stream moja kwa moja
+        }
+        imgEl.innerHTML = ''; // Futa picha/video zote ndani
+        imgEl.style.background = ''; // Futa background
+    }
+    loadStatusUI();
+}
     
             async function openStatusViewersModal() {
             const status = currentStatusList[currentViewingIndex];
@@ -9106,28 +9141,62 @@ async function cancelBodaRide(rideId) {
     if (file.type.startsWith('video')) {
         statusMediaType = 'video';
         
-        // ONYESHA SPINNER KABISA KWENYE MODAL BADALA YA TOAST
-        openModal("Inapakia Video", `<div style="text-align:center; padding:30px 0;"><div class="spinner"></div><p style="margin-top:15px; color:var(--text-sec);">Video inapakia kwenye server...</p></div>`, false);
-        document.getElementById('modal-ok').style.display = 'none';
-        document.getElementById('modal-cancel').style.display = 'none';
-        
-        // KAMA NI KUBWA, PELEKA CLOUDINARY
+        // KAMA NI KUBWA, PELEKA CLOUDINARY KWA PROGRESS BAR
         if (file.size > 2 * 1024 * 1024) {
-            uploadToCloudinary(file).then(url => {
-                statusMediaBase64 = url;
-                closeModal(); // Funga ile modal ya spinner
-                openStatusCaptionModal(); // Fungua ile ya kuandika caption
-            }).catch(err => {
-                showToast("Kosa la kupakia video: " + err.message);
+            const xhr = new XMLHttpRequest();
+            const cloudName = 'aedw95ht';
+            const url = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'kitama_unsigned');
+
+            // ONYESHA MODAL NA PROGRESS BAR HALISI
+            openModal("Inapakia Video", `<div style="text-align:center; padding:30px 10px;">
+                <p style="color:var(--text-sec); margin-bottom:20px;">Video inapakia kwenye server...</p>
+                <div style="width:100%; background:var(--bg); height:8px; border-radius:4px; overflow:hidden;">
+                    <div id="upload-progress-bar" style="width:0%; height:100%; background:var(--accent); transition:width 0.2s;"></div>
+                </div>
+                <p id="upload-percent" style="margin-top:10px; color:var(--accent); font-weight:700;">0%</p>
+            </div>`, false);
+            document.getElementById('modal-ok').style.display = 'none';
+            document.getElementById('modal-cancel').style.display = 'none';
+
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    const bar = document.getElementById('upload-progress-bar');
+                    const txt = document.getElementById('upload-percent');
+                    if(bar) bar.style.width = percentComplete + '%';
+                    if(txt) txt.innerText = percentComplete + '%';
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    statusMediaBase64 = response.secure_url; // Hifadisha Link ya Cloudinary
+                    closeModal();
+                    openStatusCaptionModal(); // Nenda kwenye sehemu ya kuandika caption
+                } else {
+                    showToast("Kosa la kupakia video. Jaribu tena.");
+                    closeModal();
+                    input.value = '';
+                }
+            };
+
+            xhr.onerror = () => {
+                showToast("Kosa la mtandao wakati wa kupakia.");
                 closeModal();
                 input.value = '';
-            });
+            };
+
+            xhr.open('POST', url, true);
+            xhr.send(formData);
         } else {
-            // KWA VIDEO NDOGEO (Base64)
+            // KWA VIDEO NDOG0 (Base64)
             const reader = new FileReader();
             reader.onload = (e) => {
                 statusMediaBase64 = e.target.result;
-                closeModal();
                 openStatusCaptionModal();
             };
             reader.readAsDataURL(file);
