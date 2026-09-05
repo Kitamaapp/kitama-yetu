@@ -8521,7 +8521,7 @@ async function cancelBodaRide(rideId) {
             showStatusViewer(currentStatusList[currentViewingIndex]);
         }
 
-    async function showStatusViewer(status) {
+async function showStatusViewer(status) {
     clearTimeout(statusTimer);
     pausedStatus = false;
     
@@ -8578,15 +8578,13 @@ async function cancelBodaRide(rideId) {
         svAvatar.innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
         svName.innerHTML = `Kitama Yetu ${getWhatsAppVerifiedBadge()}`;
     } else if (status.sender_phone === u.phone_number) {
-        // HAPA: KAMA NI STATUS YAKO, ANDIKA "My Status"
         svAvatar.innerText = u.full_name.charAt(0);
-        svName.innerText = "My Status"; 
+        svName.innerText = "My Status";
     } else {
         svAvatar.innerText = status.sender_name.charAt(0);
         svName.innerText = status.sender_name;
     }
     
-    // HAPA: TUMIA FUNCTION MPYA YA LEO/JANA
     document.getElementById('sv-time').innerText = getStatusTimeLabel(status.timestamp);
     
     captionEl.innerText = status.caption || '';
@@ -8594,17 +8592,20 @@ async function cancelBodaRide(rideId) {
     
     if (status.sender_phone === u.phone_number) {
         footerEl.style.display = 'flex';
+        footerEl.style.cursor = 'pointer';
+        footerEl.onclick = openStatusViewersModal; // Itafungua dirisha la waliotazama
         viewersEl.innerHTML = '<small>Inatafuta waliotazama...</small>';
         try {
             const { data: viewersData } = await sb.from('users').select('full_name').in('phone_number', status.seen_by || []);
             if (viewersData && viewersData.length > 0) {
                 viewersEl.innerHTML = '<small>Waliotazama:</small><br>' + viewersData.map(v => `<span style="background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:10px;">${v.full_name}</span>`).join('');
             } else {
-                viewersEl.innerHTML = '<small>Hakuna aliyetazama bado</small>';
+                viewersEl.innerHTML = '<small>Hakuna aliyetazama bado (Bonyeza hapa)</small>';
             }
         } catch(e) { viewersEl.innerHTML = '<small>Hakuna aliyetazama</small>'; }
     } else {
         footerEl.style.display = 'none';
+        footerEl.onclick = null;
         if (u.phone_number !== window.adminPhone) {
             if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
                 statusNetworkChannel.send({ type: 'broadcast', event: 'status_seen', payload: { 
@@ -8617,7 +8618,6 @@ async function cancelBodaRide(rideId) {
         }
     }
     
-    // MISTARI YA PICHA NA TEXT IJAEE LAINI
     if (status.media_type !== 'video' && progressFill) {
         setTimeout(() => { 
             progressFill.style.transition = `width ${duration}ms linear`; 
@@ -8664,11 +8664,13 @@ async function cancelBodaRide(rideId) {
             }
         }
 
-        function nextStatus() {
+    function nextStatus() {
     clearTimeout(statusTimer);
     const video = document.querySelector('#status-viewer-img video');
     if (video) video.pause();
-
+    // ONGEZA HII: Futa icon ya kufuta unapobonyeza next
+    const delIcon = document.getElementById('status-delete-icon');
+    if (delIcon) delIcon.remove();
     // JAZA MSTARI WA SASA UFE UMEJAA 100% Mara unapobonyeza Next
     const currentFill = statusSegments[currentViewingIndex];
     if (currentFill) currentFill.style.width = '100%';
@@ -8697,7 +8699,8 @@ function prevStatus() {
     clearTimeout(statusTimer);
     const video = document.querySelector('#status-viewer-img video');
     if (video) video.pause();
-
+    const delIcon = document.getElementById('status-delete-icon');
+    if (delIcon) delIcon.remove();
     const currentFill = statusSegments[currentViewingIndex];
     if (currentFill) currentFill.style.width = '0%';
 
@@ -8722,34 +8725,90 @@ function prevStatus() {
     }
 }
 
-        function deleteCurrentStatus() {
+    async function showViewersPanel() {
+    const panel = document.getElementById('viewers-panel');
+    if (!panel) return;
+    
+    panel.style.transform = 'translateY(0%)';
+    
+    // FUTA KABISA HTML ILIYOKUWENDEPO ILI KUEPUKA KUONEKANA MARADADI (MBILI MBILI)
+    panel.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:15px 20px; border-bottom: 1px solid var(--border);">
+            <div onclick="deleteCurrentStatus()" style="cursor:pointer; color:#EF4444; display:flex; align-items:center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </div>
+            <div style="font-weight:700; font-size:18px; color:var(--text);">Waliotazama</div>
+            <div onclick="hideViewersPanel()" style="cursor:pointer; color:var(--text-sec); font-size:28px; line-height:1;">✕</div>
+        </div>
+        <div id="viewers-list-items" style="padding:20px; max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; justify-content:center; padding:30px;"><div class="spinner"></div></div>
+        </div>
+    `;
+    
+    const status = currentStatusList[currentViewingIndex];
+    if (!status) return;
+    
+    try {
+        let html = '';
+        if (status.seen_by && status.seen_by.length > 0) {
+            const { data: viewersData, error } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', status.seen_by);
+            if (error) throw error;
+            
+            html = viewersData.map(v => `
+                <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg);border-radius:12px;border:1px solid var(--border);">
+                    ${v.avatar_url ? `<img src="${v.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;">${v.full_name.charAt(0)}</div>`}
+                    <div>
+                        <b style="font-size:14px; color:var(--text);">${v.full_name}</b><br>
+                        <small style="color:var(--text-sec);font-size:12px;">${v.phone_number}</small>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            html = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna aliyetazama bado</p>';
+        }
+        
+        const itemsContainer = document.getElementById('viewers-list-items');
+        if (itemsContainer) itemsContainer.innerHTML = html;
+    } catch(e) {
+        const itemsContainer = document.getElementById('viewers-list-items');
+        if (itemsContainer) itemsContainer.innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
+    }
+}
+async function deleteCurrentStatus() {
     const currentStatus = currentStatusList[currentViewingIndex];
     if (!currentStatus) return;
     
-    openModal("Futa Status", "Una uhakika unataka kufuta status hii?", false, async () => {
+    // TUMIA CONFIRM YA SIMU ILI IFUNGUE JUU KABISA YA PANEL
+    if (confirm("Una uhakika unataka kufuta status hii?")) {
         try {
-            // 1. KAMA NI VIDEO/AUDIO YA CLOUDINARY, FUTA KWENYE CLOUDINARY
+            // 1. Futa picha/video kwenye Cloudinary kama ipo
             if (currentStatus.media_base64 && currentStatus.media_base64.startsWith('http')) {
                 await deleteCloudinaryAsset(currentStatus.media_base64);
             }
             
-            // 2. FUTA KWENYE SIMU (LOCAL STORAGE)
+            // 2. Futa kwenye simu (Local Storage)
             let myStorage = getStatusFromStorage();
             myStorage = myStorage.filter(s => s.id !== currentStatus.id);
             saveStatusToStorage(myStorage);
             
             showToast("Status imefutwa kikamilifu!");
             playBeep();
+            
+            // 3. Funga panel na ukurasa wa status
+            hideViewersPanel(); 
             closeStatusViewer();
+            
         } catch(e) {
-            openModal("Kosa", e.message);
+            alert("Kosa: " + e.message);
         }
-    });
+    }
 }
-
-          function closeStatusViewer() {
+    function closeStatusViewer() {
     isViewingOfficial = false;
     clearTimeout(statusTimer);
+    // ONGEZA HII: Futa icon ya kufuta unapofunga
+    const delIcon = document.getElementById('status-delete-icon');
+    if (delIcon) delIcon.remove();
     const overlay = document.getElementById('status-viewer-overlay');
     if (overlay) overlay.style.display = 'none';
     
@@ -8770,19 +8829,41 @@ function prevStatus() {
     loadStatusUI();
 }
     
-    async function openStatusViewersModal() {
+async function openStatusViewersModal() {
     const status = currentStatusList[currentViewingIndex];
     if (!status) return;
     
-    openModal("Waliotazama Status", "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>", false);
+    openModal("", "", false); // Fungua modal iwe wazi
     
+    // Ficha vichwa vya habari vya awali vya modal kabisa
+    document.getElementById('modal-title').style.display = 'none';
+    document.getElementById('modal-cancel').style.display = 'none';
+    document.getElementById('modal-ok').style.display = 'none';
+    
+    // Andika header na orodha moja kwa moja kwenye modal-text
+    let html = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
+            <div onclick="deleteCurrentStatus()" style="cursor:pointer; color:#EF4444; display:flex; align-items:center; padding: 5px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </div>
+            <div style="font-weight: 700; font-size: 17px; color: var(--text);">Waliotazama</div>
+            <div onclick="closeModal()" style="cursor: pointer; color: var(--text-sec); font-size: 26px; line-height: 1; padding: 0 5px;">✕</div>
+        </div>
+        <div id="viewers-list-container" style="max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: center; padding: 20px;"><div class="spinner"></div></div>
+        </div>
+    `;
+    
+    document.getElementById('modal-text').innerHTML = html;
+    
+    // Pata taarifa za waliotazama
     try {
-        let html = '<div style="max-height: 50vh; overflow-y: auto; display:flex; flex-direction:column; gap:10px; margin-bottom: 15px;">';
+        let listHtml = '';
         if (status.seen_by && status.seen_by.length > 0) {
             const { data: viewersData, error } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', status.seen_by);
             if (error) throw error;
             
-            html += viewersData.map(v => `
+            listHtml = viewersData.map(v => `
                 <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--bg); border-radius:12px; border:1px solid var(--border);">
                     ${v.avatar_url ? `<img src="${v.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : `<div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${v.full_name.charAt(0)}</div>`}
                     <div>
@@ -8792,21 +8873,12 @@ function prevStatus() {
                 </div>
             `).join('');
         } else {
-            html += '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna aliyetazama bado</p>';
+            listHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna aliyetazama bado</p>';
         }
-        html += '</div>';
         
-        // ONGEZA KITUFE CHA KUFUTA HAPA
-        html += `<button onclick="deleteCurrentStatus()" style="background:var(--danger); color:white; padding:14px; border:none; border-radius:12px; width:100%; font-weight:700; font-size:15px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            Futa
-        </button>`;
-        
-        document.getElementById('modal-text').innerHTML = html;
-        document.getElementById('modal-ok').style.display = 'none';
-        document.getElementById('modal-cancel').innerText = 'Funga';
+        document.getElementById('viewers-list-container').innerHTML = listHtml;
     } catch(e) {
-        document.getElementById('modal-text').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
+        document.getElementById('viewers-list-container').innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
     }
 }
         
@@ -8930,39 +9002,6 @@ function prevStatus() {
             // 4. Kama hakuna kitu, endelea kucheza
             else {
                 if (!isPanelOpen) resumeStatus();
-            }
-        }
-                async function showViewersPanel() {
-            const panel = document.getElementById('viewers-panel');
-            const listEl = document.getElementById('viewers-list-content');
-            
-            panel.style.transform = 'translateY(0%)';
-            listEl.innerHTML = "<div style='display:flex; justify-content:center; padding:20px;'><div class='spinner'></div></div>";
-            
-            const status = currentStatusList[currentViewingIndex];
-            if (!status) return;
-            
-            try {
-                let html = '';
-                if (status.seen_by && status.seen_by.length > 0) {
-                    const { data: viewersData, error } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', status.seen_by);
-                    if (error) throw error;
-                    
-                    html += viewersData.map(v => `
-                        <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border);">
-                            ${v.avatar_url ? `<img src="${v.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : `<div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${v.full_name.charAt(0)}</div>`}
-                            <div>
-                                <b style="font-size:14px; color:var(--text);">${v.full_name}</b><br>
-                                <small style="color:var(--text-sec); font-size:12px;">${v.phone_number}</small>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    html = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Hakuna aliyetazama bado</p>';
-                }
-                listEl.innerHTML = html;
-            } catch(e) {
-                listEl.innerHTML = `<p style='color:red; text-align:center;'>${e.message}</p>`;
             }
         }
 
