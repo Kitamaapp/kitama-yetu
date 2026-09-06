@@ -5403,29 +5403,39 @@ if (data) data.reverse();
     }
 
     function renderMarketCard(m) { 
-    let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" referrerpolicy="no-referrer" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`; 
+    // KAMA HAKUNA PICHA, WEKA WAZI (EMPTY) BADALA YA PLACEHOLDER
+    let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" referrerpolicy="no-referrer" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : ''; 
     let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZWA</span></div>` : ''; 
     
+    // TAMBUA MUUZAJI, PICHA YAKE NA BADGE
     let sellerName, sellerImgHtml, isSellerVerified = false;
     
     if (m.shop_id) {
+        // KAMA NI DUKA
         const shop = marketShopMap[m.shop_id] || {};
         sellerName = shop.shop_name || "Duka";
+        
+        // Angalia kama mmiliki wa duka ni Verified (Activist)
         if (shop.owner_phone && marketUserMap[shop.owner_phone]) {
             isSellerVerified = marketUserMap[shop.owner_phone].is_activist || false;
         }
+        
         sellerImgHtml = shop.logo_url ? 
             `<img src="${shop.logo_url}" referrerpolicy="no-referrer" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : 
             `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">${ICONS.store}</div>`;
     } else {
+        // KAMA NI MTU BINAFSI
         const personData = marketUserMap[m.phone] || {};
         sellerName = personData.full_name || "Mtumiaji";
         isSellerVerified = personData.is_activist || false;
+        
+        // Daima tumia icon ya mtu, sio picha yake
         sellerImgHtml = `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
         </div>`;
     }
     
+    // Ongeza Badge kama ni Verified
     let verifiedBadgeHtml = isSellerVerified ? getActivistBadge(true) : '';
     
     let headerHtml = `
@@ -5438,7 +5448,10 @@ if (data) data.reverse();
         </div>
     `;
     
-    let imageSectionHtml = imgHtml ? `<div class="market-img-box">${imgHtml}${soldHtml}</div>` : '';
+    // MBOX YA PICHA ITAJITENGA IKIWA TU PICHA IPO
+    let imageSectionHtml = imgHtml ? `
+        <div class="market-img-box">${imgHtml}${soldHtml}</div>
+    ` : '';
     
     let textSectionHtml = `
         <div class="market-body" style="padding: 15px;">
