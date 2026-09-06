@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
+    <meta name="referrer" content="no-referrer-when-downgrade">
     <title>Kitama Yetu | Civic Tech Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1787,8 +1789,8 @@
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
         // HII NDIO YA KUPAKIA PICHA KWENYE CLOUDINARY
-    async function uploadToCloudinary(file) {
-        const cloudName = 'aedw95ht'; // Badilisha hili!
+        async function uploadToCloudinary(file) {
+        const cloudName = 'aedw95ht';
         const url = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
         const formData = new FormData();
         formData.append('file', file);
@@ -1798,7 +1800,10 @@
             const res = await fetch(url, { method: 'POST', body: formData });
             const data = await res.json();
             if (data.secure_url) {
-                return data.secure_url; // Link la picha
+                // FIX YA KUDUMU: Badilisha '/upload/' kuwa '/upload/f_auto,q_auto/'
+                // Hii inamwambia Cloudinary afanye picha iwe format inayosomeka haraka (f_auto) na afinye size (q_auto)
+                let optimizedUrl = data.secure_url.replace('/upload/', '/upload/f_auto,q_auto/');
+                return optimizedUrl;
             } else {
                 throw new Error("Imeshindwa kupakia picha.");
             }
@@ -2191,7 +2196,17 @@ async function deleteCloudinaryAsset(url) {
         }
     }
 
-        function enterApp() {
+     function enterApp() {
+        document.body.addEventListener('error', (e) => {
+            if (e.target.tagName === 'IMG') {
+                e.target.style.display = 'none';
+                // Kama ni ya profaili, onesha herufi ya kwanza
+                if (e.target.id === 'p-ava-img') {
+                    const pAva = document.getElementById('p-ava');
+                    if (pAva) { pAva.style.display = 'flex'; pAva.style.background = 'var(--accent)'; pAva.style.color = 'white'; }
+                }
+            }
+        }, true); // true hapa ni muhimu sana kushika picha zote
         document.getElementById('auth-c').style.display='none'; 
         document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
