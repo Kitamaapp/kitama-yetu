@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; img-src * 'self' data: blob: https:; media-src * 'self' data: blob: https:; style-src * 'self' 'unsafe-inline'; script-src * 'self' 'unsafe-inline' 'unsafe-eval';">
     <title>Kitama Yetu | Civic Tech Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1788,7 +1789,7 @@
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
         // HII NDIO YA KUPAKIA PICHA KWENYE CLOUDINARY
-     async function uploadToCloudinary(file) {
+         async function uploadToCloudinary(file) {
         const cloudName = 'aedw95ht';
         const url = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
         const formData = new FormData();
@@ -1799,9 +1800,10 @@
             const res = await fetch(url, { method: 'POST', body: formData });
             const data = await res.json();
             if (data.secure_url) {
-                // BADILISHA '/upload/' KUWA '/upload/w_600,c_limit,q_auto/'
-                // Hii inafinya picha kuwa 600px na quality inayosomeka haraka kwa simu
-                let optimizedUrl = data.secure_url.replace('/upload/', '/upload/w_600,c_limit,q_auto/');
+                // Q_AUTO: Hufinya bila kuharibu picha (AI Compression)
+                // W_800: Inatosha kwa screen za simu kubwa na za kisasa
+                // F_AUTO: Inageuza picha kuwa WebP inayosomeka kwa haraka kwenye Android
+                let optimizedUrl = data.secure_url.replace('/upload/', '/upload/f_auto,q_auto,w_800,c_limit/');
                 return optimizedUrl;
             } else {
                 throw new Error("Imeshindwa kupakia picha.");
