@@ -4694,100 +4694,99 @@ if (data) data.reverse();
 
     async function checkUserShop() { const u = JSON.parse(localStorage.getItem('kitama_user')); try { const { data: shop } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle(); if(shop) { document.getElementById('shop-select-box').style.display = 'block'; const select = document.getElementById('item-shop'); select.innerHTML = `<option value="">- Ni bidhaa ya kibinafsi -</option><option value="${shop.id}|${shop.shop_name}">${shop.shop_name}</option>`; } } catch(e) { console.error(e); } }
     
-            async function viewMyShop() {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            
-            // OFFLINE MODE: Pakia duka kutoka kwenye hifadhi
-            if (!navigator.onLine) {
-                const cachedShop = JSON.parse(localStorage.getItem('kitama_my_shop') || 'null');
-                if (cachedShop) {
-                    document.getElementById('my-shop-name').innerText = cachedShop.shop_name;
-                    document.getElementById('my-shop-desc').innerText = cachedShop.description || 'Hakuna maelezo.';
-                    
-                    const cachedProducts = getFromCache('shop_products_' + cachedShop.id);
-                    document.getElementById('my-shop-products').innerHTML = cachedProducts || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Bidhaa za dukani hazijahifadhiwa.</p>';
-                } else {
-                    document.getElementById('my-shop-products').innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona duka lako.</p>';
-                }
-                showSec('my-shop-sec');
-                return;
-            }
-            
-            try {
-                const { data: shop, error } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle();
-                if(error) throw error;
-                if(shop) {
-                    localStorage.setItem('kitama_my_shop', JSON.stringify(shop)); // HIFADHI DUKA KWA OFFLINE
-                    currentShopId = shop.id;
-                    document.getElementById('my-shop-name').innerText = shop.shop_name;
-                    document.getElementById('my-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
-                    if(shop.cover_url) { document.getElementById('my-shop-cover').src = shop.cover_url; document.getElementById('my-shop-cover').style.display = 'block'; document.getElementById('my-shop-cover-placeholder').style.display = 'none'; } 
-                    else { document.getElementById('my-shop-cover').style.display = 'none'; document.getElementById('my-shop-cover-placeholder').style.display = 'block'; }
-                    if(shop.logo_url) { document.getElementById('my-shop-logo').src = shop.logo_url; document.getElementById('my-shop-logo').style.display = 'block'; document.getElementById('my-shop-initial').style.display = 'none'; } 
-                    else { document.getElementById('my-shop-logo').style.display = 'none'; document.getElementById('my-shop-initial').style.display = 'flex'; document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0); }
-                    fetchShopProducts(shop, 'my-shop-products');
-                    fetchShopReviews(shop.id, 'my-shop-reviews-list');
-                    showSec('my-shop-sec');
-                }
-            } catch(e) { openModal("Kosa", e.message); }
+        async function viewMyShop() {
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    if (!navigator.onLine) {
+        const cachedShop = JSON.parse(localStorage.getItem('kitama_my_shop') || 'null');
+        if (cachedShop) {
+            document.getElementById('my-shop-name').innerText = cachedShop.shop_name;
+            document.getElementById('my-shop-desc').innerText = cachedShop.description || 'Hakuna maelezo.';
+            const cachedProducts = getFromCache('shop_products_' + cachedShop.id);
+            document.getElementById('my-shop-products').innerHTML = cachedProducts || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Bidhaa za dukani hazijahifadhiwa.</p>';
+        } else {
+            document.getElementById('my-shop-products').innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona duka lako.</p>';
         }
+        showSec('my-shop-sec');
+        return;
+    }
+    try {
+        const { data: shop, error } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle();
+        if(error) throw error;
+        if(shop) {
+            localStorage.setItem('kitama_my_shop', JSON.stringify(shop));
+            currentShopId = shop.id;
+            document.getElementById('my-shop-name').innerText = shop.shop_name;
+            document.getElementById('my-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
+            
+            const myShopCover = document.getElementById('my-shop-cover');
+            const myShopLogo = document.getElementById('my-shop-logo');
+            if(myShopCover) myShopCover.referrerPolicy = 'no-referrer';
+            if(myShopLogo) myShopLogo.referrerPolicy = 'no-referrer';
 
-            async function viewShopById(id) {
-            try {
-                const u = JSON.parse(localStorage.getItem('kitama_user'));
-                
-                // OFFLINE MODE: Pakia duka kutoka kwenye cache
-                if (!navigator.onLine) {
-                    const cachedShop = JSON.parse(localStorage.getItem('cached_shop_' + id) || 'null');
-                    if (cachedShop) {
-                        currentShopId = cachedShop.id;
-                        document.getElementById('view-shop-name').innerText = cachedShop.shop_name;
-                        document.getElementById('view-shop-village').innerHTML = `${ICONS.pin} ${cachedShop.village}`;
-                        document.getElementById('view-shop-desc').innerText = cachedShop.description || 'Hakuna maelezo.';
-                        
-                        const msgBtn = document.getElementById('view-shop-msg-btn');
-                        msgBtn.style.display = 'none'; // Ficha kitufe cha ku-message ukiwa offline
-                        
-                        // Pakia bidhaa kutoka kwenye cache
-                        const cachedProducts = getFromCache('shop_products_' + cachedShop.id);
-                        document.getElementById('view-shop-products').innerHTML = cachedProducts || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Bidhaa hazijahifadhiwa.</p>';
-                        
-                        document.getElementById('view-shop-reviews-list').innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Huna mtandao. Ushuhuda hauwezi kupakia.</p>';
-                        showSec('view-shop-sec');
-                    } else {
-                        openModal("Taarifa", "Huna mtandao na taarifa za duka hili hazijahifadhiwa kwenye simu yako.");
-                    }
-                    return;
-                }
-                
-                const { data: shop, error } = await sb.from('shops').select('*').eq('id', id).single();
-                if(error) throw error;
-                
-                // HIFADHI DUKA KWENYE CACHE KWA AJILI YA OFFLINE
-                localStorage.setItem('cached_shop_' + id, JSON.stringify(shop));
-                
-                currentShopId = shop.id;
-                document.getElementById('view-shop-name').innerText = shop.shop_name;
-                document.getElementById('view-shop-village').innerHTML = `${ICONS.pin} ${shop.village}`;
-                document.getElementById('view-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
-                if(shop.cover_url) { document.getElementById('view-shop-cover').src = shop.cover_url; document.getElementById('view-shop-cover').style.display = 'block'; document.getElementById('view-shop-cover-placeholder').style.display = 'none'; } 
-                else { document.getElementById('view-shop-cover').style.display = 'none'; document.getElementById('view-shop-cover-placeholder').style.display = 'block'; }
-                if(shop.logo_url) { document.getElementById('view-shop-logo').src = shop.logo_url; document.getElementById('view-shop-logo').style.display = 'block'; document.getElementById('view-shop-initial').style.display = 'none'; } 
-                else { document.getElementById('view-shop-logo').style.display = 'none'; document.getElementById('view-shop-initial').style.display = 'flex'; document.getElementById('view-shop-initial').innerText = shop.shop_name.charAt(0); }
-                const msgBtn = document.getElementById('view-shop-msg-btn');
-                if(u.phone_number === shop.owner_phone) { msgBtn.style.display = 'none'; } 
-                else {
-                    msgBtn.style.display = 'flex';
-                    let waPhone = shop.owner_phone.replace(/^0/, '255');
-                    document.getElementById('view-shop-call').href = `tel:${shop.owner_phone}`;
-                    document.getElementById('view-shop-wa').href = `https://wa.me/${waPhone}`;
-                    msgBtn.onclick = () => sendShopMessage(shop.id, shop.shop_name, shop.owner_phone);
-                }
-                fetchShopProducts(shop, 'view-shop-products');
-                fetchShopReviews(shop.id, 'view-shop-reviews-list');
-                showSec('view-shop-sec');
-            } catch(e) { openModal("Kosa", e.message); }
+            if(shop.cover_url) { myShopCover.src = shop.cover_url; myShopCover.style.display = 'block'; document.getElementById('my-shop-cover-placeholder').style.display = 'none'; } 
+            else { myShopCover.style.display = 'none'; document.getElementById('my-shop-cover-placeholder').style.display = 'block'; }
+            if(shop.logo_url) { myShopLogo.src = shop.logo_url; myShopLogo.style.display = 'block'; document.getElementById('my-shop-initial').style.display = 'none'; } 
+            else { myShopLogo.style.display = 'none'; document.getElementById('my-shop-initial').style.display = 'flex'; document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0); }
+            fetchShopProducts(shop, 'my-shop-products');
+            fetchShopReviews(shop.id, 'my-shop-reviews-list');
+            showSec('my-shop-sec');
         }
+    } catch(e) { openModal("Kosa", e.message); }
+}
+
+        async function viewShopById(id) {
+    try {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if (!navigator.onLine) {
+            const cachedShop = JSON.parse(localStorage.getItem('cached_shop_' + id) || 'null');
+            if (cachedShop) {
+                currentShopId = cachedShop.id;
+                document.getElementById('view-shop-name').innerText = cachedShop.shop_name;
+                document.getElementById('view-shop-village').innerHTML = `${ICONS.pin} ${cachedShop.village}`;
+                document.getElementById('view-shop-desc').innerText = cachedShop.description || 'Hakuna maelezo.';
+                const msgBtn = document.getElementById('view-shop-msg-btn');
+                msgBtn.style.display = 'none'; 
+                const cachedProducts = getFromCache('shop_products_' + cachedShop.id);
+                document.getElementById('view-shop-products').innerHTML = cachedProducts || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Bidhaa hazijahifadhiwa.</p>';
+                document.getElementById('view-shop-reviews-list').innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Huna mtandao. Ushuhuda hauweza kupakia.</p>';
+                showSec('view-shop-sec');
+            } else {
+                openModal("Taarifa", "Huna mtandao na taarifa za duka hili hazijahifadhiwa kwenye simu yako.");
+            }
+            return;
+        }
+        const { data: shop, error } = await sb.from('shops').select('*').eq('id', id).single();
+        if(error) throw error;
+        localStorage.setItem('cached_shop_' + id, JSON.stringify(shop));
+        currentShopId = shop.id;
+        document.getElementById('view-shop-name').innerText = shop.shop_name;
+        document.getElementById('view-shop-village').innerHTML = `${ICONS.pin} ${shop.village}`;
+        document.getElementById('view-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
+        
+        const viewShopCover = document.getElementById('view-shop-cover');
+        const viewShopLogo = document.getElementById('view-shop-logo');
+        if(viewShopCover) viewShopCover.referrerPolicy = 'no-referrer';
+        if(viewShopLogo) viewShopLogo.referrerPolicy = 'no-referrer';
+
+        if(shop.cover_url) { viewShopCover.src = shop.cover_url; viewShopCover.style.display = 'block'; document.getElementById('view-shop-cover-placeholder').style.display = 'none'; } 
+        else { viewShopCover.style.display = 'none'; document.getElementById('view-shop-cover-placeholder').style.display = 'block'; }
+        if(shop.logo_url) { viewShopLogo.src = shop.logo_url; viewShopLogo.style.display = 'block'; document.getElementById('view-shop-initial').style.display = 'none'; } 
+        else { viewShopLogo.style.display = 'none'; document.getElementById('view-shop-initial').style.display = 'flex'; document.getElementById('view-shop-initial').innerText = shop.shop_name.charAt(0); }
+        
+        const msgBtn = document.getElementById('view-shop-msg-btn');
+        if(u.phone_number === shop.owner_phone) { msgBtn.style.display = 'none'; } 
+        else {
+            msgBtn.style.display = 'flex';
+            let waPhone = shop.owner_phone.replace(/^0/, '255');
+            document.getElementById('view-shop-call').href = `tel:${shop.owner_phone}`;
+            document.getElementById('view-shop-wa').href = `https://wa.me/${waPhone}`;
+            msgBtn.onclick = () => sendShopMessage(shop.id, shop.shop_name, shop.owner_phone);
+        }
+        fetchShopProducts(shop, 'view-shop-products');
+        fetchShopReviews(shop.id, 'view-shop-reviews-list');
+        showSec('view-shop-sec');
+    } catch(e) { openModal("Kosa", e.message); }
+}
 
         async function fetchShopProducts(shop, divId) {
         const div = document.getElementById(divId);
@@ -4817,47 +4816,47 @@ if (data) data.reverse();
     }
 
     function renderShopPost(m, shop) {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const isOwner = u.phone_number === shop.owner_phone;
-        let logoHtml = shop.logo_url ? `<img src="${shop.logo_url}">` : `<div class="fb-initial">${shop.shop_name.charAt(0)}</div>`;
-        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="fb-post-img" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : '';
-        let waPhone = shop.owner_phone.replace(/^0/, '255');
-        let soldTag = m.status === 'sold' ? `<span class="fb-sold-tag">IMEUZWA</span>` : '';
-        let markSoldBtn = isOwner && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" class="fb-post-btn">${ICONS.check} Imeuzwa</button>` : '';
-        let actionBtns = m.status === 'sold' ? '' : `
-            <a href="tel:${shop.owner_phone}" class="fb-post-btn">${ICONS.phone} Piga</a>
-            <a href="https://wa.me/${waPhone}" target="_blank" class="fb-post-btn">${ICONS.whatsapp} WhatsApp</a>
-            ${markSoldBtn}
-        `;
-        return `
-            <div class="fb-post-card">
-                <div class="fb-post-header" onclick="viewShopPost('${m.id}', '${shop.id}')">
-                    ${logoHtml}
-                    <div>
-                        <b>${shop.shop_name} ${soldTag}</b>
-                        <small>${new Date(m.created_at).toLocaleString()} • ${shop.village}</small>
-                    </div>
-                </div>
-                <div class="fb-post-text" onclick="viewShopPost('${m.id}', '${shop.id}')">
-                    <span class="fb-post-price">${m.price || 'Agana'}</span>
-                    <b>${m.item_name}</b><br>
-                    ${m.description || ''}
-                </div>
-                ${imgHtml}
-                <div class="fb-post-actions">
-                    ${actionBtns}
-                    <button onclick="toggleShopComments('${m.id}')" class="fb-post-btn">${ICONS.comment} Maoni</button>
-                </div>
-                <div id="fb-comments-${m.id}" class="fb-comment-box" style="display:none;">
-                    <div class="fb-comment-list" id="fb-comment-list-${m.id}"><p style="font-size:11px; color:var(--text-sec); text-align:center;">Inapakia maoni...</p></div>
-                    <div class="fb-comment-input">
-                        <input type="text" id="fb-comment-input-${m.id}" placeholder="Andika maoni...">
-                        <button onclick="postShopComment('${m.id}', null)">Tuma</button>
-                    </div>
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    const isOwner = u.phone_number === shop.owner_phone;
+    let logoHtml = shop.logo_url ? `<img src="${shop.logo_url}" referrerpolicy="no-referrer">` : `<div class="fb-initial">${shop.shop_name.charAt(0)}</div>`;
+    let imgHtml = m.image_url ? `<img src="${m.image_url}" class="fb-post-img" referrerpolicy="no-referrer" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : '';
+    let waPhone = shop.owner_phone.replace(/^0/, '255');
+    let soldTag = m.status === 'sold' ? `<span class="fb-sold-tag">IMEUZWA</span>` : '';
+    let markSoldBtn = isOwner && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" class="fb-post-btn">${ICONS.check} Imeuzwa</button>` : '';
+    let actionBtns = m.status === 'sold' ? '' : `
+        <a href="tel:${shop.owner_phone}" class="fb-post-btn">${ICONS.phone} Piga</a>
+        <a href="https://wa.me/${waPhone}" target="_blank" class="fb-post-btn">${ICONS.whatsapp} WhatsApp</a>
+        ${markSoldBtn}
+    `;
+    return `
+        <div class="fb-post-card">
+            <div class="fb-post-header" onclick="viewShopPost('${m.id}', '${shop.id}')">
+                ${logoHtml}
+                <div>
+                    <b>${shop.shop_name} ${soldTag}</b>
+                    <small>${new Date(m.created_at).toLocaleString()} • ${shop.village}</small>
                 </div>
             </div>
-        `;
-    }
+            <div class="fb-post-text" onclick="viewShopPost('${m.id}', '${shop.id}')">
+                <span class="fb-post-price">${m.price || 'Agana'}</span>
+                <b>${m.item_name}</b><br>
+                ${m.description || ''}
+            </div>
+            ${imgHtml}
+            <div class="fb-post-actions">
+                ${actionBtns}
+                <button onclick="toggleShopComments('${m.id}')" class="fb-post-btn">${ICONS.comment} Maoni</button>
+            </div>
+            <div id="fb-comments-${m.id}" class="fb-comment-box" style="display:none;">
+                <div class="fb-comment-list" id="fb-comment-list-${m.id}"><p style="font-size:11px; color:var(--text-sec); text-align:center;">Inapakia maoni...</p></div>
+                <div class="fb-comment-input">
+                    <input type="text" id="fb-comment-input-${m.id}" placeholder="Andika maoni...">
+                    <button onclick="postShopComment('${m.id}', null)">Tuma</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
 
     async function viewShopPost(postId, shopId) {
     try {
@@ -4914,59 +4913,58 @@ if (data) data.reverse();
 }
 
     async function viewMarketItem(itemId) {
-        try {
-            const m = marketItemsCache.find(item => item.id === itemId);
-            if(!m) return showToast("Bidhaa haijapatikana");
-            
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            const isOwner = u.phone_number === m.phone;
-            
-            let imgHtml = m.image_url ? `<img src="${m.image_url}" style="width:100%; border-radius:8px; margin-top:10px; max-height: 300px; object-fit: cover; cursor: pointer;" onclick="openFullScreenImage('${m.image_url}')">` : '';
-            let waPhone = m.phone.replace(/^0/, '255');
-            
-            let actionBtns = m.status === 'sold' ? '<div style="text-align:center; padding:10px; background:var(--bg); border-radius:8px; font-weight:700; color:var(--danger);">BIDHAA HII IMEUZWA</div>' : `
-                <div style="display:flex; gap:10px; margin-top:15px;">
-                    <a href="tel:${m.phone}" class="m-btn m-btn-primary" style="text-decoration:none; flex:1;">${ICONS.phone} Piga</a>
-                    <a href="https://wa.me/${waPhone}" target="_blank" class="m-btn m-btn-secondary" style="background:#25D366; color:white; text-decoration:none; flex:1;">${ICONS.whatsapp} WhatsApp</a>
-                </div>
-            `;
+    try {
+        const m = marketItemsCache.find(item => item.id === itemId);
+        if(!m) return showToast("Bidhaa haijapatikana");
+        
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const isOwner = u.phone_number === m.phone;
+        
+        let imgHtml = m.image_url ? `<img src="${m.image_url}" referrerpolicy="no-referrer" style="width:100%; border-radius:8px; margin-top:10px; max-height: 300px; object-fit: cover; cursor: pointer;" onclick="openFullScreenImage('${m.image_url}')">` : '';
+        let waPhone = m.phone.replace(/^0/, '255');
+        
+        let actionBtns = m.status === 'sold' ? '<div style="text-align:center; padding:10px; background:var(--bg); border-radius:8px; font-weight:700; color:var(--danger);">BIDHAA HII IMEUZWA</div>' : `
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <a href="tel:${m.phone}" class="m-btn m-btn-primary" style="text-decoration:none; flex:1;">${ICONS.phone} Piga</a>
+                <a href="https://wa.me/${waPhone}" target="_blank" class="m-btn m-btn-secondary" style="background:#25D366; color:white; text-decoration:none; flex:1;">${ICONS.whatsapp} WhatsApp</a>
+            </div>
+        `;
 
-            let markSoldBtn = '';
-            if (isOwner && m.status === 'active') {
+        let markSoldBtn = '';
+        if (isOwner && m.status === 'active') {
             markSoldBtn = `<button onclick="markAsSold('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--text-sec); border: 1px solid var(--border);">${ICONS.check} Weka Alama ya Imeuzwa</button>`;
-       } else if (isOwner && m.status === 'sold') {
-          markSoldBtn = `<button onclick="markAsActive('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--accent); border: 1px solid var(--accent);">↩️ Badilisha kuwa Haijauzwa</button>`;
-      }
-            // KITUFE CHA KUFUTA BIDHAA (Kwa Mmiliki tu)
-            let deleteBtn = isOwner ? `<button onclick="deleteMarketItem('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--danger); color: white; width: 100%;">Futa Bidhaa</button>` : '';
-            let shopBadge = m.shop_id ? `<div style="display:inline-block; margin-bottom:10px; background:var(--bg); padding:5px 10px; border-radius:8px; font-size:12px; font-weight:700; color:var(--accent); cursor:pointer;" onclick="closeModal(); viewShopById('${m.shop_id}')">${ICONS.store} ${m.shop_name || 'Duka'}</div>` : '';
+        } else if (isOwner && m.status === 'sold') {
+            markSoldBtn = `<button onclick="markAsActive('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--accent); border: 1px solid var(--accent);">↩️ Badilisha kuwa Haijauzwa</button>`;
+        }
+        
+        let deleteBtn = isOwner ? `<button onclick="deleteMarketItem('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--danger); color: white; width: 100%;">Futa Bidhaa</button>` : '';
+        let shopBadge = m.shop_id ? `<div style="display:inline-block; margin-bottom:10px; background:var(--bg); padding:5px 10px; border-radius:8px; font-size:12px; font-weight:700; color:var(--accent); cursor:pointer;" onclick="closeModal(); viewShopById('${m.shop_id}')">${ICONS.store} ${m.shop_name || 'Duka'}</div>` : '';
 
-            let modalContent = `
-                ${shopBadge}
-                <div style="font-size:15px; margin-bottom:10px;">
-                    <span style="color:var(--accent); font-weight:800; font-size:20px; display:block; margin-bottom:5px;">${m.price || 'Agana'}</span>
-                    <b style="font-size:17px;">${m.item_name}</b><br>
-                    <small style="color: var(--text-sec);">${m.category || 'Mengineyo'} • ${m.village}</small>
-                </div>
-                <p style="font-size:14px; color:var(--text); line-height:1.5; margin-bottom:10px;">${m.description || 'Hakuna maelezo zaidi.'}</p>
-                ${imgHtml}
-                ${actionBtns}
-                ${markSoldBtn}
-                ${deleteBtn}
-                
-                <div class="safety-box" style="margin-top:20px;">
-                    <h4>⚠️ Vidokezo vya Usalama</h4>
-                    <ul>
-                        <li>Epuka kutuma malipo yoyote ya awali.</li>
-                        <li>Kutana na muuzaji katika eneo la umma lililo salama.</li>
-                        <li>Kagua bidhaa unayotaka kununua ili uhakikishe kuwa ndiyo unayehitaji.</li>
-                        <li>Hakiki nyaraka zote na ulipe tu ikiwa umeridhika.</li>
-                    </ul>
-                </div>
-            `;
-            openModal(m.item_name, modalContent, false);
-        } catch(e) { openModal("Kosa", e.message); }
-    }
+        let modalContent = `
+            ${shopBadge}
+            <div style="font-size:15px; margin-bottom:10px;">
+                <span style="color:var(--accent); font-weight:800; font-size:20px; display:block; margin-bottom:5px;">${m.price || 'Agana'}</span>
+                <b style="font-size:17px;">${m.item_name}</b><br>
+                <small style="color: var(--text-sec);">${m.category || 'Mengineyo'} • ${m.village}</small>
+            </div>
+            <p style="font-size:14px; color:var(--text); line-height:1.5; margin-bottom:10px;">${m.description || 'Hakuna maelezo zaidi.'}</p>
+            ${imgHtml}
+            ${actionBtns}
+            ${markSoldBtn}
+            ${deleteBtn}
+            <div class="safety-box" style="margin-top:20px;">
+                <h4>⚠️ Vidokezo vya Usalama</h4>
+                <ul>
+                    <li>Epuka kutuma malipo yoyote ya awali.</li>
+                    <li>Kutana na muuzaji katika eneo la umma lililo salama.</li>
+                    <li>Kagua bidhaa unayotaka kununua ili uhakikishe kuwa ndiyo unayehitaji.</li>
+                    <li>Hakiki nyaraka zote na ulipe tu ikiwa umeridhika.</li>
+                </ul>
+            </div>
+        `;
+        openModal(m.item_name, modalContent, false);
+    } catch(e) { openModal("Kosa", e.message); }
+}
 
     // --- SHOP REVIEWS FUNCTIONS ---
     async function fetchShopReviews(shopId, divId) {
@@ -5410,71 +5408,60 @@ if (data) data.reverse();
     }
 
     function renderMarketCard(m) { 
-        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`; 
-        let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZWA</span></div>` : ''; 
-        
-        // TAMBUA MUUZAJI, PICHA YAKE NA BADGE
-        let sellerName, sellerImgHtml, isSellerVerified = false;
-        
-        if (m.shop_id) {
-            // KAMA NI DUKA
-            const shop = marketShopMap[m.shop_id] || {};
-            sellerName = shop.shop_name || "Duka";
-            
-            // Angalia kama mmiliki wa duka ni Verified (Activist)
-            if (shop.owner_phone && marketUserMap[shop.owner_phone]) {
-                isSellerVerified = marketUserMap[shop.owner_phone].is_activist || false;
-            }
-            
-            sellerImgHtml = shop.logo_url ? 
-                `<img src="${shop.logo_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : 
-                `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">${ICONS.store}</div>`;
-        } else {
-            // KAMA NI MTU BINAFSI
-            const personData = marketUserMap[m.phone] || {};
-            sellerName = personData.full_name || "Mtumiaji";
-            isSellerVerified = personData.is_activist || false;
-            
-            // Daima tumia icon ya mtu, sio picha yake
-            sellerImgHtml = `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-            </div>`;
+    let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" referrerpolicy="no-referrer" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`; 
+    let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZWA</span></div>` : ''; 
+    
+    let sellerName, sellerImgHtml, isSellerVerified = false;
+    
+    if (m.shop_id) {
+        const shop = marketShopMap[m.shop_id] || {};
+        sellerName = shop.shop_name || "Duka";
+        if (shop.owner_phone && marketUserMap[shop.owner_phone]) {
+            isSellerVerified = marketUserMap[shop.owner_phone].is_activist || false;
         }
-        
-        // Ongeza Badge kama ni Verified
-        let verifiedBadgeHtml = isSellerVerified ? getActivistBadge(true) : '';
-        
-        let headerHtml = `
-            <div class="market-post-header">
-                ${sellerImgHtml}
-                <div class="header-info">
-                    <b>${sellerName} ${verifiedBadgeHtml}</b>
-                    <small>${ICONS.pin} ${m.village}</small>
-                </div>
+        sellerImgHtml = shop.logo_url ? 
+            `<img src="${shop.logo_url}" referrerpolicy="no-referrer" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : 
+            `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">${ICONS.store}</div>`;
+    } else {
+        const personData = marketUserMap[m.phone] || {};
+        sellerName = personData.full_name || "Mtumiaji";
+        isSellerVerified = personData.is_activist || false;
+        sellerImgHtml = `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+        </div>`;
+    }
+    
+    let verifiedBadgeHtml = isSellerVerified ? getActivistBadge(true) : '';
+    
+    let headerHtml = `
+        <div class="market-post-header">
+            ${sellerImgHtml}
+            <div class="header-info">
+                <b>${sellerName} ${verifiedBadgeHtml}</b>
+                <small>${ICONS.pin} ${m.village}</small>
             </div>
-        `;
-        
-        let imageSectionHtml = imgHtml ? `
-            <div class="market-img-box">${imgHtml}${soldHtml}</div>
-        ` : '';
-        
-        let textSectionHtml = `
-            <div class="market-body" style="padding: 15px;">
-                <h4 style="margin-bottom: 5px;">${m.item_name}</h4>
-                <div class="market-price" style="margin-bottom: 10px;">${m.price || 'Agana'}</div>
-                ${m.description ? `<p style="font-size: 14px; color: var(--text-sec); line-height: 1.5; margin-bottom: 10px;">${m.description}</p>` : ''}
-                <div class="list-meta" style="margin-top:0; margin-bottom:0;">
-                    <span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span>
-                </div>
+        </div>
+    `;
+    
+    let imageSectionHtml = imgHtml ? `<div class="market-img-box">${imgHtml}${soldHtml}</div>` : '';
+    
+    let textSectionHtml = `
+        <div class="market-body" style="padding: 15px;">
+            <h4 style="margin-bottom: 5px;">${m.item_name}</h4>
+            <div class="market-price" style="margin-bottom: 10px;">${m.price || 'Agana'}</div>
+            ${m.description ? `<p style="font-size: 14px; color: var(--text-sec); line-height: 1.5; margin-bottom: 10px;">${m.description}</p>` : ''}
+            <div class="list-meta" style="margin-top:0; margin-bottom:0;">
+                <span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span>
             </div>
-        `;
-        
-        return `<div class="market-card" onclick="viewMarketItem('${m.id}')">
-            ${headerHtml}
-            ${imageSectionHtml}
-            ${textSectionHtml}
-        </div>`; 
-    }    
+        </div>
+    `;
+    
+    return `<div class="market-card" onclick="viewMarketItem('${m.id}')">
+        ${headerHtml}
+        ${imageSectionHtml}
+        ${textSectionHtml}
+    </div>`; 
+}   
 
  async function fetchMarket() { 
         if (marketIsLoading) return;
@@ -9766,37 +9753,36 @@ async function openStatusViewersModal() {
                 openProfileAvatarModal();
             };
         }
-                function updateProfileUI(u) {
-            const pAvaImg = document.getElementById('p-ava-img');
-            const pAva = document.getElementById('p-ava');
-            const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
-            
-            // KAMA NI ADMIN, LAZIMISHA LOGO KUWA PROFILE PICHA
-            if (u.role === 'system_admin') {
-                pAvaImg.src = adminLogoUrl;
-                pAvaImg.style.display = 'block';
-                pAva.style.display = 'none';
-                
-                // Pia sasisha kichwa cha nyumbani
-                const hAvatar = document.getElementById('h-avatar');
-                const hInitial = document.getElementById('h-initial');
-                if(hAvatar) { hAvatar.src = adminLogoUrl; hAvatar.style.display = 'block'; }
-                if(hInitial) hInitial.style.display = 'none';
-                return;
-            }
-            
-            // KWA WENGINE WOTE (KAWAIDA)
-            if(u.avatar_url) {
-                const bustUrl = u.avatar_url + (u.avatar_url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
-                pAvaImg.src = bustUrl;
-                pAvaImg.style.display = 'block';
-                pAva.style.display = 'none';
-            } else {
-                pAvaImg.style.display = 'none';
-                pAva.style.display = 'flex';
-                pAva.innerText = u.full_name.charAt(0).toUpperCase();
-            }
-        }
+        function updateProfileUI(u) {
+    const pAvaImg = document.getElementById('p-ava-img');
+    const pAva = document.getElementById('p-ava');
+    const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
+    
+    // ONGEZA HII: Ipuke usalama wa Referrer
+    if (pAvaImg) pAvaImg.referrerPolicy = 'no-referrer';
+    
+    if (u.role === 'system_admin') {
+        pAvaImg.src = adminLogoUrl;
+        pAvaImg.style.display = 'block';
+        pAva.style.display = 'none';
+        const hAvatar = document.getElementById('h-avatar');
+        const hInitial = document.getElementById('h-initial');
+        if(hAvatar) { hAvatar.referrerPolicy = 'no-referrer'; hAvatar.src = adminLogoUrl; hAvatar.style.display = 'block'; }
+        if(hInitial) hInitial.style.display = 'none';
+        return;
+    }
+    
+    if(u.avatar_url) {
+        const bustUrl = u.avatar_url + (u.avatar_url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+        pAvaImg.src = bustUrl;
+        pAvaImg.style.display = 'block';
+        pAva.style.display = 'none';
+    } else {
+        pAvaImg.style.display = 'none';
+        pAva.style.display = 'flex';
+        pAva.innerText = u.full_name.charAt(0).toUpperCase();
+    }
+}
             // --- OFFLINE MESSAGE QUEUE (WhatsApp Style) ---
         function addToMsgQueue(table, data) {
             let queue = JSON.parse(localStorage.getItem('kitama_msg_queue') || '[]');
