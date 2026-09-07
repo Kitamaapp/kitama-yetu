@@ -1805,46 +1805,37 @@
         }
     }
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        // --- HANDLE ANDROID BACK BUTTON & REFRESH ---
-            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-            window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
-                if (isActive) {
-                    resyncActiveScreen();
-                    if (window.kitamaRealtimeChannel && window.kitamaRealtimeChannel.state !== 'joined' && window.kitamaRealtimeChannel.state !== 'joining') {
-                        window.kitamaRealtimeChannel.subscribe();
-                    }
-                }
-            });
-            
-            window.Capacitor.Plugins.App.addListener('backButton', () => {
-                // 1. Kama Modal wazi, ifunge tu
-                if (document.getElementById('modal-overlay').style.display === 'flex') {
-                    closeModal();
-                    return;
-                }
-                
-                // 2. Kama Status Viewer wazi, ifunge tu
-                if (document.getElementById('status-viewer-overlay') && document.getElementById('status-viewer-overlay').style.display === 'flex') {
-                    closeStatusViewer();
-                    return;
-                }
-                
-                // 3. Kama Panel ya Waliotazama wazi, ifunge
-                const viewersPanel = document.getElementById('viewers-panel');
-                if (viewersPanel && viewersPanel.style.transform === 'translateY(0%)') {
-                    hideViewersPanel();
-                    return;
-                }
-                
-                // 4. Rudi Nyuma (History) kama inapatikana
-                if (appHistory.length > 1) {
-                    window.history.back(); // Hii itasababisha popstate event na kurudi nyuma sahihi
-                } else {
-                    // 5. Kama hayari history (upo mwanzo kabisa), toka kwenye App
-                    window.Capacitor.Plugins.App.exitApp();
-                }
-            });
+    // --- HANDLE ANDROID BACK BUTTON ---
+   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+    window.Capacitor.Plugins.App.addListener('backButton', () => {
+        // 1. Kama Modal wazi, ifunge tu
+        if (document.getElementById('modal-overlay').style.display === 'flex') {
+            closeModal();
+            return;
         }
+        
+        // 2. Kama Status Viewer wazi, ifunge tu
+        if (document.getElementById('status-viewer-overlay') && document.getElementById('status-viewer-overlay').style.display === 'flex') {
+            closeStatusViewer();
+            return;
+        }
+        
+        // 3. Kama Panel ya Waliotazama wazi, ifunge
+        const viewersPanel = document.getElementById('viewers-panel');
+        if (viewersPanel && viewersPanel.style.transform === 'translateY(0%)') {
+            hideViewersPanel();
+            return;
+        }
+        
+        // 4. Rudi Nyuma
+        if (appHistory.length > 1) {
+            window.history.back(); // Itaita popstate event ili kubadilisha screen
+        } else {
+            // 5. Toka kwenye App
+            window.Capacitor.Plugins.App.exitApp();
+        }
+    });
+}
 // FUNCTION YA KUFUTA PICHA/VIDEO KWENYE CLOUDINARY
 async function deleteCloudinaryAsset(url) {
     if (!url || !url.includes('cloudinary.com')) return;
@@ -2668,34 +2659,41 @@ startSmartPolling();
     }
     
         // --- BACK BUTTON HANDLER (WhatsApp Style) ---
-        window.addEventListener('popstate', function(event) {
-            // 1. Kama Modal wazi, ifunge tu
-            if (document.getElementById('modal-overlay').style.display === 'flex') {
-                closeModal();
-                window.history.pushState(null, null, null); // Rudisha state ili isitoke app
-                return;
-            }
-            
-            // 2. Kama Status Viewer wazi, ifunge tu
-            if (document.getElementById('status-viewer-overlay').style.display === 'flex') {
-                closeStatusViewer();
-                window.history.pushState(null, null, null);
-                return;
-            }
-            
-            // 3. Kama kuna Historia ya page, rudi nyuma
-            if (appHistory.length > 1) {
-                appHistory.pop(); // Futa page ya sasa
-                showSec(appHistory[appHistory.length - 1], true); // Rudi page iliyotangulia bila kuhifadhi tena
-            } else {
-                // 4. Kama hayari history (upo mwanzo kabisa), toka kwenye App
-                if (navigator.app && navigator.app.exitApp) {
-                    navigator.app.exitApp();
-                } else {
-                    window.history.back();
-                }
-            }
-        });
+    window.addEventListener('popstate', function(event) {
+    // 1. Kama Modal wazi, ifunge tu
+    if (document.getElementById('modal-overlay').style.display === 'flex') {
+        closeModal();
+        window.history.pushState(null, null, null);
+        return;
+    }
+    
+    // 2. Kama Status Viewer wazi, ifunge tu
+    if (document.getElementById('status-viewer-overlay') && document.getElementById('status-viewer-overlay').style.display === 'flex') {
+        closeStatusViewer();
+        window.history.pushState(null, null, null);
+        return;
+    }
+    
+    // 3. Kama Panel ya Waliotazama wazi, ifunge
+    const viewersPanel = document.getElementById('viewers-panel');
+    if (viewersPanel && viewersPanel.style.transform === 'translateY(0%)') {
+        hideViewersPanel();
+        window.history.pushState(null, null, null);
+        return;
+    }
+    
+    // 4. Rudi Nyuma kwenye Historia (appHistory)
+    if (appHistory.length > 1) {
+        appHistory.pop();
+        showSec(appHistory[appHistory.length - 1], true);
+    } else {
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+            window.Capacitor.Plugins.App.exitApp();
+        } else {
+            window.history.back();
+        }
+    }
+});
     function getActivistBadge(isActivist) {
     if (!isActivist) return '';
     // Tumefuta linearGradient (kitambaa cha rangi) na kuweka rangi moja kwa moja ili kuepuka mapigano ya HTML IDs
