@@ -1460,13 +1460,10 @@
             <!-- Caption -->
             <div id="sv-caption" style="position:absolute; bottom:30px; left:20px; right:20px; color:white; font-size:18px; text-align:center; text-shadow: 0 1px 4px rgba(0,0,0,0.8); display:none; z-index:6; pointer-events:none;"></div>
             
-            <!-- Viewers Panel (Hujificha chini, inajipush juu unapofinya/swipe up) -->
+             <!-- Viewers Panel (Hujificha chini, inajipush juu unapofinya/swipe up) -->
             <div id="viewers-panel" style="position:absolute; bottom:0; left:0; width:100%; height:75%; background:var(--surface); border-radius:20px 20px 0 0; transform:translateY(100%); transition:transform 0.3s ease; z-index:20; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 -5px 20px rgba(0,0,0,0.3);">
-                <div style="padding:15px 20px; text-align:center; border-bottom:1px solid var(--border); position:relative;">
-                    <b>Waliotazama</b>
-                    <button onclick="hideViewersPanel()" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); background:var(--bg); border:none; width:30px; height:30px; border-radius:50%; font-size:18px; cursor:pointer; color:var(--text-sec);">X</button>
-                </div>
-                <div id="viewers-list-content" style="flex:1; overflow-y:auto; padding:15px 20px;"></div>
+                <!-- Header na Orodha vitakuwa kuundwa na JavaScript moja kwa moja -->
+                <div id="viewers-list-content" style="flex:1; overflow-y:auto;"></div>
             </div>
 
             <div style="position:absolute; top:30px; left:0; width:100%; padding:10px 20px; background:linear-gradient(to bottom, rgba(0,0,0,0.6), transparent); display:flex; align-items:center; gap:10px; z-index:6;">
@@ -1787,8 +1784,8 @@
     const SUPABASE_URL = 'https://okzqfkghhuymrzgpfxua.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9renFma2doaHV5bXJ6Z3BmeHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NzE1ODAsImV4cCI6MjEwMDA0NzU4MH0.XLlfTZHzcEoTBxheUw4LphS-ESdH1OKclQXPTtl9VLI';
         // HII NDIO YA KUPAKIA PICHA KWENYE CLOUDINARY
-    async function uploadToCloudinary(file) {
-        const cloudName = 'aedw95ht'; // Badilisha hili!
+        async function uploadToCloudinary(file) {
+        const cloudName = 'aedw95ht';
         const url = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
         const formData = new FormData();
         formData.append('file', file);
@@ -1798,7 +1795,8 @@
             const res = await fetch(url, { method: 'POST', body: formData });
             const data = await res.json();
             if (data.secure_url) {
-                return data.secure_url; // Link la picha
+                // RUDISHA LINK HALISI BILA KUONGEZA MAMBO YA OPTIMIZATION
+                return data.secure_url; 
             } else {
                 throw new Error("Imeshindwa kupakia picha.");
             }
@@ -1807,46 +1805,37 @@
         }
     }
     let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        // --- HANDLE ANDROID BACK BUTTON & REFRESH ---
-            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-            window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
-                if (isActive) {
-                    resyncActiveScreen();
-                    if (window.kitamaRealtimeChannel && window.kitamaRealtimeChannel.state !== 'joined' && window.kitamaRealtimeChannel.state !== 'joining') {
-                        window.kitamaRealtimeChannel.subscribe();
-                    }
-                }
-            });
-            
-            window.Capacitor.Plugins.App.addListener('backButton', () => {
-                // 1. Kama Modal wazi, ifunge tu
-                if (document.getElementById('modal-overlay').style.display === 'flex') {
-                    closeModal();
-                    return;
-                }
-                
-                // 2. Kama Status Viewer wazi, ifunge tu
-                if (document.getElementById('status-viewer-overlay') && document.getElementById('status-viewer-overlay').style.display === 'flex') {
-                    closeStatusViewer();
-                    return;
-                }
-                
-                // 3. Kama Panel ya Waliotazama wazi, ifunge
-                const viewersPanel = document.getElementById('viewers-panel');
-                if (viewersPanel && viewersPanel.style.transform === 'translateY(0%)') {
-                    hideViewersPanel();
-                    return;
-                }
-                
-                // 4. Rudi Nyuma (History) kama inapatikana
-                if (appHistory.length > 1) {
-                    window.history.back(); // Hii itasababisha popstate event na kurudi nyuma sahihi
-                } else {
-                    // 5. Kama hayari history (upo mwanzo kabisa), toka kwenye App
-                    window.Capacitor.Plugins.App.exitApp();
-                }
-            });
+    // --- HANDLE ANDROID BACK BUTTON ---
+   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+    window.Capacitor.Plugins.App.addListener('backButton', () => {
+        // 1. Kama Modal wazi, ifunge tu
+        if (document.getElementById('modal-overlay').style.display === 'flex') {
+            closeModal();
+            return;
         }
+        
+        // 2. Kama Status Viewer wazi, ifunge tu
+        if (document.getElementById('status-viewer-overlay') && document.getElementById('status-viewer-overlay').style.display === 'flex') {
+            closeStatusViewer();
+            return;
+        }
+        
+        // 3. Kama Panel ya Waliotazama wazi, ifunge
+        const viewersPanel = document.getElementById('viewers-panel');
+        if (viewersPanel && viewersPanel.style.transform === 'translateY(0%)') {
+            hideViewersPanel();
+            return;
+        }
+        
+        // 4. Rudi Nyuma
+        if (appHistory.length > 1) {
+            window.history.back(); // Itaita popstate event ili kubadilisha screen
+        } else {
+            // 5. Toka kwenye App
+            window.Capacitor.Plugins.App.exitApp();
+        }
+    });
+}
 // FUNCTION YA KUFUTA PICHA/VIDEO KWENYE CLOUDINARY
 async function deleteCloudinaryAsset(url) {
     if (!url || !url.includes('cloudinary.com')) return;
@@ -2012,34 +2001,44 @@ async function deleteCloudinaryAsset(url) {
             }
             updateCharCount('rep-desc', 'rep-count');
         }
-        function openModal(title, text, isPrompt, callback) {
-        document.getElementById('modal-title').innerHTML = title;
-        document.getElementById('modal-text').innerHTML = text;
-        document.getElementById('modal-input-container').style.display = isPrompt ? 'block' : 'none';
-        document.getElementById('modal-input').value = '';
-        
-        const okBtn = document.getElementById('modal-ok');
-        const cancelBtn = document.getElementById('modal-cancel');
-        okBtn.style.display = 'flex'; 
-        cancelBtn.style.display = 'flex';
-        
-        okBtn.onclick = () => {
-            if(isPrompt) { 
-                const val = document.getElementById('modal-input').value.trim(); 
-                if(!val) return; 
-                closeModal(); 
-                callback(val); 
-            } else { 
-                closeModal(); 
-                if(callback) callback(); 
-            }
-        };
-        okBtn.className = 'm-btn m-btn-primary';
-        okBtn.innerText = 'Sawa';
-        cancelBtn.innerText = isPrompt ? 'Ghairi' : 'Funga';
-        
-        document.getElementById('modal-overlay').style.display = 'flex';
-    }
+    function openModal(title, text, isPrompt, callback) {
+    document.getElementById('modal-title').innerHTML = title;
+    document.getElementById('modal-text').innerHTML = text;
+    document.getElementById('modal-input-container').style.display = isPrompt ? 'block' : 'none';
+    document.getElementById('modal-input').value = '';
+    const okBtn = document.getElementById('modal-ok');
+    const cancelBtn = document.getElementById('modal-cancel');
+    
+    // FIX YA APK: Hakikisha kitufe hakiko disabled na sio la kufanya submit
+    okBtn.disabled = false;
+    okBtn.type = 'button';
+    cancelBtn.disabled = false;
+    cancelBtn.type = 'button';
+    okBtn.style.display = 'flex'; 
+    cancelBtn.style.display = 'flex';
+    
+    // FIX YA APK: Tumia function() na e.preventDefault() ili kuzuia Android ikatae click
+    okBtn.onclick = function(e) {
+        if(e) e.preventDefault(); // Ondoa tabia ya kufanya reload kwenye Android
+        if(isPrompt) { 
+            const val = document.getElementById('modal-input').value.trim(); 
+            if(!val) return; 
+            closeModal(); 
+            if(callback) callback(val); 
+        } else { 
+            closeModal(); 
+            if(callback) callback(); 
+        }
+    };
+    cancelBtn.onclick = function(e) {
+        if(e) e.preventDefault();
+        closeModal();
+    };
+    okBtn.className = 'm-btn m-btn-primary';
+    okBtn.innerText = 'Sawa';
+    cancelBtn.innerText = isPrompt ? 'Ghairi' : 'Funga';
+    document.getElementById('modal-overlay').style.display = 'flex';
+}
     function closeModal() { 
         document.getElementById('modal-overlay').style.display = 'none'; 
         document.getElementById('map-container').style.display = 'none'; 
@@ -2191,7 +2190,7 @@ async function deleteCloudinaryAsset(url) {
         }
     }
 
-        function enterApp() {
+     function enterApp() {
         document.getElementById('auth-c').style.display='none'; 
         document.getElementById('app-c').style.display='block';
         const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -2660,34 +2659,41 @@ startSmartPolling();
     }
     
         // --- BACK BUTTON HANDLER (WhatsApp Style) ---
-        window.addEventListener('popstate', function(event) {
-            // 1. Kama Modal wazi, ifunge tu
-            if (document.getElementById('modal-overlay').style.display === 'flex') {
-                closeModal();
-                window.history.pushState(null, null, null); // Rudisha state ili isitoke app
-                return;
-            }
-            
-            // 2. Kama Status Viewer wazi, ifunge tu
-            if (document.getElementById('status-viewer-overlay').style.display === 'flex') {
-                closeStatusViewer();
-                window.history.pushState(null, null, null);
-                return;
-            }
-            
-            // 3. Kama kuna Historia ya page, rudi nyuma
-            if (appHistory.length > 1) {
-                appHistory.pop(); // Futa page ya sasa
-                showSec(appHistory[appHistory.length - 1], true); // Rudi page iliyotangulia bila kuhifadhi tena
-            } else {
-                // 4. Kama hayari history (upo mwanzo kabisa), toka kwenye App
-                if (navigator.app && navigator.app.exitApp) {
-                    navigator.app.exitApp();
-                } else {
-                    window.history.back();
-                }
-            }
-        });
+    window.addEventListener('popstate', function(event) {
+    // 1. Kama Modal wazi, ifunge tu
+    if (document.getElementById('modal-overlay').style.display === 'flex') {
+        closeModal();
+        window.history.pushState(null, null, null);
+        return;
+    }
+    
+    // 2. Kama Status Viewer wazi, ifunge tu
+    if (document.getElementById('status-viewer-overlay') && document.getElementById('status-viewer-overlay').style.display === 'flex') {
+        closeStatusViewer();
+        window.history.pushState(null, null, null);
+        return;
+    }
+    
+    // 3. Kama Panel ya Waliotazama wazi, ifunge
+    const viewersPanel = document.getElementById('viewers-panel');
+    if (viewersPanel && viewersPanel.style.transform === 'translateY(0%)') {
+        hideViewersPanel();
+        window.history.pushState(null, null, null);
+        return;
+    }
+    
+    // 4. Rudi Nyuma kwenye Historia (appHistory)
+    if (appHistory.length > 1) {
+        appHistory.pop();
+        showSec(appHistory[appHistory.length - 1], true);
+    } else {
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+            window.Capacitor.Plugins.App.exitApp();
+        } else {
+            window.history.back();
+        }
+    }
+});
     function getActivistBadge(isActivist) {
     if (!isActivist) return '';
     // Tumefuta linearGradient (kitambaa cha rangi) na kuweka rangi moja kwa moja ili kuepuka mapigano ya HTML IDs
@@ -2981,6 +2987,10 @@ startSmartPolling();
                         <div class="admin-tool-card" onclick="handleNav('admin-activists-sec')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg><h4>Activists</h4><p>Thibitisha/Ondoa</p></div>
                         <div class="admin-tool-card" onclick="handleNav('admin-moderation-sec')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><h4>Moderation</h4><p>Kagua Bidhaa</p></div>
                         <div class="admin-tool-card" onclick="handleNav('admin-verifications-sec')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg><h4>Uthibitisho</h4><p>Maombi ya Badges</p></div>
+                       <div class="admin-tool-card" onclick="handleNav('kitama-map-sec')">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 9m0 8V9m0 0L9 7"/></svg>
+                            <h4>Ramani ya Kitama</h4><p>Ramani ya Kitama</p>
+                        </div>
                         <div class="admin-tool-card" onclick="handleNav('admin-map-requests-sec')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><h4>Maombi ya Ramani</h4><p>Aidhinisha Maeneo</p></div>
                         <div class="admin-tool-card" onclick="handleNav('admin-boda-sec')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"/></svg><h4>Dereva Boda</h4><p>Aidhinisha Madereva</p></div>
                         <div class="admin-tool-card" onclick="handleNav('admin-schools-sec')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg><h4>Shule</h4><p>Ongeza / Teua Walimu</p></div>
@@ -4684,100 +4694,99 @@ if (data) data.reverse();
 
     async function checkUserShop() { const u = JSON.parse(localStorage.getItem('kitama_user')); try { const { data: shop } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle(); if(shop) { document.getElementById('shop-select-box').style.display = 'block'; const select = document.getElementById('item-shop'); select.innerHTML = `<option value="">- Ni bidhaa ya kibinafsi -</option><option value="${shop.id}|${shop.shop_name}">${shop.shop_name}</option>`; } } catch(e) { console.error(e); } }
     
-            async function viewMyShop() {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            
-            // OFFLINE MODE: Pakia duka kutoka kwenye hifadhi
-            if (!navigator.onLine) {
-                const cachedShop = JSON.parse(localStorage.getItem('kitama_my_shop') || 'null');
-                if (cachedShop) {
-                    document.getElementById('my-shop-name').innerText = cachedShop.shop_name;
-                    document.getElementById('my-shop-desc').innerText = cachedShop.description || 'Hakuna maelezo.';
-                    
-                    const cachedProducts = getFromCache('shop_products_' + cachedShop.id);
-                    document.getElementById('my-shop-products').innerHTML = cachedProducts || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Bidhaa za dukani hazijahifadhiwa.</p>';
-                } else {
-                    document.getElementById('my-shop-products').innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona duka lako.</p>';
-                }
-                showSec('my-shop-sec');
-                return;
-            }
-            
-            try {
-                const { data: shop, error } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle();
-                if(error) throw error;
-                if(shop) {
-                    localStorage.setItem('kitama_my_shop', JSON.stringify(shop)); // HIFADHI DUKA KWA OFFLINE
-                    currentShopId = shop.id;
-                    document.getElementById('my-shop-name').innerText = shop.shop_name;
-                    document.getElementById('my-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
-                    if(shop.cover_url) { document.getElementById('my-shop-cover').src = shop.cover_url; document.getElementById('my-shop-cover').style.display = 'block'; document.getElementById('my-shop-cover-placeholder').style.display = 'none'; } 
-                    else { document.getElementById('my-shop-cover').style.display = 'none'; document.getElementById('my-shop-cover-placeholder').style.display = 'block'; }
-                    if(shop.logo_url) { document.getElementById('my-shop-logo').src = shop.logo_url; document.getElementById('my-shop-logo').style.display = 'block'; document.getElementById('my-shop-initial').style.display = 'none'; } 
-                    else { document.getElementById('my-shop-logo').style.display = 'none'; document.getElementById('my-shop-initial').style.display = 'flex'; document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0); }
-                    fetchShopProducts(shop, 'my-shop-products');
-                    fetchShopReviews(shop.id, 'my-shop-reviews-list');
-                    showSec('my-shop-sec');
-                }
-            } catch(e) { openModal("Kosa", e.message); }
+        async function viewMyShop() {
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    if (!navigator.onLine) {
+        const cachedShop = JSON.parse(localStorage.getItem('kitama_my_shop') || 'null');
+        if (cachedShop) {
+            document.getElementById('my-shop-name').innerText = cachedShop.shop_name;
+            document.getElementById('my-shop-desc').innerText = cachedShop.description || 'Hakuna maelezo.';
+            const cachedProducts = getFromCache('shop_products_' + cachedShop.id);
+            document.getElementById('my-shop-products').innerHTML = cachedProducts || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Bidhaa za dukani hazijahifadhiwa.</p>';
+        } else {
+            document.getElementById('my-shop-products').innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona duka lako.</p>';
         }
+        showSec('my-shop-sec');
+        return;
+    }
+    try {
+        const { data: shop, error } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle();
+        if(error) throw error;
+        if(shop) {
+            localStorage.setItem('kitama_my_shop', JSON.stringify(shop));
+            currentShopId = shop.id;
+            document.getElementById('my-shop-name').innerText = shop.shop_name;
+            document.getElementById('my-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
+            
+            const myShopCover = document.getElementById('my-shop-cover');
+            const myShopLogo = document.getElementById('my-shop-logo');
+            if(myShopCover) myShopCover.referrerPolicy = 'no-referrer';
+            if(myShopLogo) myShopLogo.referrerPolicy = 'no-referrer';
 
-            async function viewShopById(id) {
-            try {
-                const u = JSON.parse(localStorage.getItem('kitama_user'));
-                
-                // OFFLINE MODE: Pakia duka kutoka kwenye cache
-                if (!navigator.onLine) {
-                    const cachedShop = JSON.parse(localStorage.getItem('cached_shop_' + id) || 'null');
-                    if (cachedShop) {
-                        currentShopId = cachedShop.id;
-                        document.getElementById('view-shop-name').innerText = cachedShop.shop_name;
-                        document.getElementById('view-shop-village').innerHTML = `${ICONS.pin} ${cachedShop.village}`;
-                        document.getElementById('view-shop-desc').innerText = cachedShop.description || 'Hakuna maelezo.';
-                        
-                        const msgBtn = document.getElementById('view-shop-msg-btn');
-                        msgBtn.style.display = 'none'; // Ficha kitufe cha ku-message ukiwa offline
-                        
-                        // Pakia bidhaa kutoka kwenye cache
-                        const cachedProducts = getFromCache('shop_products_' + cachedShop.id);
-                        document.getElementById('view-shop-products').innerHTML = cachedProducts || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Bidhaa hazijahifadhiwa.</p>';
-                        
-                        document.getElementById('view-shop-reviews-list').innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Huna mtandao. Ushuhuda hauwezi kupakia.</p>';
-                        showSec('view-shop-sec');
-                    } else {
-                        openModal("Taarifa", "Huna mtandao na taarifa za duka hili hazijahifadhiwa kwenye simu yako.");
-                    }
-                    return;
-                }
-                
-                const { data: shop, error } = await sb.from('shops').select('*').eq('id', id).single();
-                if(error) throw error;
-                
-                // HIFADHI DUKA KWENYE CACHE KWA AJILI YA OFFLINE
-                localStorage.setItem('cached_shop_' + id, JSON.stringify(shop));
-                
-                currentShopId = shop.id;
-                document.getElementById('view-shop-name').innerText = shop.shop_name;
-                document.getElementById('view-shop-village').innerHTML = `${ICONS.pin} ${shop.village}`;
-                document.getElementById('view-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
-                if(shop.cover_url) { document.getElementById('view-shop-cover').src = shop.cover_url; document.getElementById('view-shop-cover').style.display = 'block'; document.getElementById('view-shop-cover-placeholder').style.display = 'none'; } 
-                else { document.getElementById('view-shop-cover').style.display = 'none'; document.getElementById('view-shop-cover-placeholder').style.display = 'block'; }
-                if(shop.logo_url) { document.getElementById('view-shop-logo').src = shop.logo_url; document.getElementById('view-shop-logo').style.display = 'block'; document.getElementById('view-shop-initial').style.display = 'none'; } 
-                else { document.getElementById('view-shop-logo').style.display = 'none'; document.getElementById('view-shop-initial').style.display = 'flex'; document.getElementById('view-shop-initial').innerText = shop.shop_name.charAt(0); }
-                const msgBtn = document.getElementById('view-shop-msg-btn');
-                if(u.phone_number === shop.owner_phone) { msgBtn.style.display = 'none'; } 
-                else {
-                    msgBtn.style.display = 'flex';
-                    let waPhone = shop.owner_phone.replace(/^0/, '255');
-                    document.getElementById('view-shop-call').href = `tel:${shop.owner_phone}`;
-                    document.getElementById('view-shop-wa').href = `https://wa.me/${waPhone}`;
-                    msgBtn.onclick = () => sendShopMessage(shop.id, shop.shop_name, shop.owner_phone);
-                }
-                fetchShopProducts(shop, 'view-shop-products');
-                fetchShopReviews(shop.id, 'view-shop-reviews-list');
-                showSec('view-shop-sec');
-            } catch(e) { openModal("Kosa", e.message); }
+            if(shop.cover_url) { myShopCover.src = shop.cover_url; myShopCover.style.display = 'block'; document.getElementById('my-shop-cover-placeholder').style.display = 'none'; } 
+            else { myShopCover.style.display = 'none'; document.getElementById('my-shop-cover-placeholder').style.display = 'block'; }
+            if(shop.logo_url) { myShopLogo.src = shop.logo_url; myShopLogo.style.display = 'block'; document.getElementById('my-shop-initial').style.display = 'none'; } 
+            else { myShopLogo.style.display = 'none'; document.getElementById('my-shop-initial').style.display = 'flex'; document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0); }
+            fetchShopProducts(shop, 'my-shop-products');
+            fetchShopReviews(shop.id, 'my-shop-reviews-list');
+            showSec('my-shop-sec');
         }
+    } catch(e) { openModal("Kosa", e.message); }
+}
+
+        async function viewShopById(id) {
+    try {
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if (!navigator.onLine) {
+            const cachedShop = JSON.parse(localStorage.getItem('cached_shop_' + id) || 'null');
+            if (cachedShop) {
+                currentShopId = cachedShop.id;
+                document.getElementById('view-shop-name').innerText = cachedShop.shop_name;
+                document.getElementById('view-shop-village').innerHTML = `${ICONS.pin} ${cachedShop.village}`;
+                document.getElementById('view-shop-desc').innerText = cachedShop.description || 'Hakuna maelezo.';
+                const msgBtn = document.getElementById('view-shop-msg-btn');
+                msgBtn.style.display = 'none'; 
+                const cachedProducts = getFromCache('shop_products_' + cachedShop.id);
+                document.getElementById('view-shop-products').innerHTML = cachedProducts || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Bidhaa hazijahifadhiwa.</p>';
+                document.getElementById('view-shop-reviews-list').innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Huna mtandao. Ushuhuda hauweza kupakia.</p>';
+                showSec('view-shop-sec');
+            } else {
+                openModal("Taarifa", "Huna mtandao na taarifa za duka hili hazijahifadhiwa kwenye simu yako.");
+            }
+            return;
+        }
+        const { data: shop, error } = await sb.from('shops').select('*').eq('id', id).single();
+        if(error) throw error;
+        localStorage.setItem('cached_shop_' + id, JSON.stringify(shop));
+        currentShopId = shop.id;
+        document.getElementById('view-shop-name').innerText = shop.shop_name;
+        document.getElementById('view-shop-village').innerHTML = `${ICONS.pin} ${shop.village}`;
+        document.getElementById('view-shop-desc').innerText = shop.description || 'Hakuna maelezo.';
+        
+        const viewShopCover = document.getElementById('view-shop-cover');
+        const viewShopLogo = document.getElementById('view-shop-logo');
+        if(viewShopCover) viewShopCover.referrerPolicy = 'no-referrer';
+        if(viewShopLogo) viewShopLogo.referrerPolicy = 'no-referrer';
+
+        if(shop.cover_url) { viewShopCover.src = shop.cover_url; viewShopCover.style.display = 'block'; document.getElementById('view-shop-cover-placeholder').style.display = 'none'; } 
+        else { viewShopCover.style.display = 'none'; document.getElementById('view-shop-cover-placeholder').style.display = 'block'; }
+        if(shop.logo_url) { viewShopLogo.src = shop.logo_url; viewShopLogo.style.display = 'block'; document.getElementById('view-shop-initial').style.display = 'none'; } 
+        else { viewShopLogo.style.display = 'none'; document.getElementById('view-shop-initial').style.display = 'flex'; document.getElementById('view-shop-initial').innerText = shop.shop_name.charAt(0); }
+        
+        const msgBtn = document.getElementById('view-shop-msg-btn');
+        if(u.phone_number === shop.owner_phone) { msgBtn.style.display = 'none'; } 
+        else {
+            msgBtn.style.display = 'flex';
+            let waPhone = shop.owner_phone.replace(/^0/, '255');
+            document.getElementById('view-shop-call').href = `tel:${shop.owner_phone}`;
+            document.getElementById('view-shop-wa').href = `https://wa.me/${waPhone}`;
+            msgBtn.onclick = () => sendShopMessage(shop.id, shop.shop_name, shop.owner_phone);
+        }
+        fetchShopProducts(shop, 'view-shop-products');
+        fetchShopReviews(shop.id, 'view-shop-reviews-list');
+        showSec('view-shop-sec');
+    } catch(e) { openModal("Kosa", e.message); }
+}
 
         async function fetchShopProducts(shop, divId) {
         const div = document.getElementById(divId);
@@ -4807,47 +4816,47 @@ if (data) data.reverse();
     }
 
     function renderShopPost(m, shop) {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const isOwner = u.phone_number === shop.owner_phone;
-        let logoHtml = shop.logo_url ? `<img src="${shop.logo_url}">` : `<div class="fb-initial">${shop.shop_name.charAt(0)}</div>`;
-        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="fb-post-img" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : '';
-        let waPhone = shop.owner_phone.replace(/^0/, '255');
-        let soldTag = m.status === 'sold' ? `<span class="fb-sold-tag">IMEUZWA</span>` : '';
-        let markSoldBtn = isOwner && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" class="fb-post-btn">${ICONS.check} Imeuzwa</button>` : '';
-        let actionBtns = m.status === 'sold' ? '' : `
-            <a href="tel:${shop.owner_phone}" class="fb-post-btn">${ICONS.phone} Piga</a>
-            <a href="https://wa.me/${waPhone}" target="_blank" class="fb-post-btn">${ICONS.whatsapp} WhatsApp</a>
-            ${markSoldBtn}
-        `;
-        return `
-            <div class="fb-post-card">
-                <div class="fb-post-header" onclick="viewShopPost('${m.id}', '${shop.id}')">
-                    ${logoHtml}
-                    <div>
-                        <b>${shop.shop_name} ${soldTag}</b>
-                        <small>${new Date(m.created_at).toLocaleString()} • ${shop.village}</small>
-                    </div>
-                </div>
-                <div class="fb-post-text" onclick="viewShopPost('${m.id}', '${shop.id}')">
-                    <span class="fb-post-price">${m.price || 'Agana'}</span>
-                    <b>${m.item_name}</b><br>
-                    ${m.description || ''}
-                </div>
-                ${imgHtml}
-                <div class="fb-post-actions">
-                    ${actionBtns}
-                    <button onclick="toggleShopComments('${m.id}')" class="fb-post-btn">${ICONS.comment} Maoni</button>
-                </div>
-                <div id="fb-comments-${m.id}" class="fb-comment-box" style="display:none;">
-                    <div class="fb-comment-list" id="fb-comment-list-${m.id}"><p style="font-size:11px; color:var(--text-sec); text-align:center;">Inapakia maoni...</p></div>
-                    <div class="fb-comment-input">
-                        <input type="text" id="fb-comment-input-${m.id}" placeholder="Andika maoni...">
-                        <button onclick="postShopComment('${m.id}', null)">Tuma</button>
-                    </div>
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    const isOwner = u.phone_number === shop.owner_phone;
+    let logoHtml = shop.logo_url ? `<img src="${shop.logo_url}" referrerpolicy="no-referrer">` : `<div class="fb-initial">${shop.shop_name.charAt(0)}</div>`;
+    let imgHtml = m.image_url ? `<img src="${m.image_url}" class="fb-post-img" referrerpolicy="no-referrer" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : '';
+    let waPhone = shop.owner_phone.replace(/^0/, '255');
+    let soldTag = m.status === 'sold' ? `<span class="fb-sold-tag">IMEUZWA</span>` : '';
+    let markSoldBtn = isOwner && m.status === 'active' ? `<button onclick="markAsSold('${m.id}')" class="fb-post-btn">${ICONS.check} Imeuzwa</button>` : '';
+    let actionBtns = m.status === 'sold' ? '' : `
+        <a href="tel:${shop.owner_phone}" class="fb-post-btn">${ICONS.phone} Piga</a>
+        <a href="https://wa.me/${waPhone}" target="_blank" class="fb-post-btn">${ICONS.whatsapp} WhatsApp</a>
+        ${markSoldBtn}
+    `;
+    return `
+        <div class="fb-post-card">
+            <div class="fb-post-header" onclick="viewShopPost('${m.id}', '${shop.id}')">
+                ${logoHtml}
+                <div>
+                    <b>${shop.shop_name} ${soldTag}</b>
+                    <small>${new Date(m.created_at).toLocaleString()} • ${shop.village}</small>
                 </div>
             </div>
-        `;
-    }
+            <div class="fb-post-text" onclick="viewShopPost('${m.id}', '${shop.id}')">
+                <span class="fb-post-price">${m.price || 'Agana'}</span>
+                <b>${m.item_name}</b><br>
+                ${m.description || ''}
+            </div>
+            ${imgHtml}
+            <div class="fb-post-actions">
+                ${actionBtns}
+                <button onclick="toggleShopComments('${m.id}')" class="fb-post-btn">${ICONS.comment} Maoni</button>
+            </div>
+            <div id="fb-comments-${m.id}" class="fb-comment-box" style="display:none;">
+                <div class="fb-comment-list" id="fb-comment-list-${m.id}"><p style="font-size:11px; color:var(--text-sec); text-align:center;">Inapakia maoni...</p></div>
+                <div class="fb-comment-input">
+                    <input type="text" id="fb-comment-input-${m.id}" placeholder="Andika maoni...">
+                    <button onclick="postShopComment('${m.id}', null)">Tuma</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
 
     async function viewShopPost(postId, shopId) {
     try {
@@ -4904,59 +4913,58 @@ if (data) data.reverse();
 }
 
     async function viewMarketItem(itemId) {
-        try {
-            const m = marketItemsCache.find(item => item.id === itemId);
-            if(!m) return showToast("Bidhaa haijapatikana");
-            
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            const isOwner = u.phone_number === m.phone;
-            
-            let imgHtml = m.image_url ? `<img src="${m.image_url}" style="width:100%; border-radius:8px; margin-top:10px; max-height: 300px; object-fit: cover; cursor: pointer;" onclick="openFullScreenImage('${m.image_url}')">` : '';
-            let waPhone = m.phone.replace(/^0/, '255');
-            
-            let actionBtns = m.status === 'sold' ? '<div style="text-align:center; padding:10px; background:var(--bg); border-radius:8px; font-weight:700; color:var(--danger);">BIDHAA HII IMEUZWA</div>' : `
-                <div style="display:flex; gap:10px; margin-top:15px;">
-                    <a href="tel:${m.phone}" class="m-btn m-btn-primary" style="text-decoration:none; flex:1;">${ICONS.phone} Piga</a>
-                    <a href="https://wa.me/${waPhone}" target="_blank" class="m-btn m-btn-secondary" style="background:#25D366; color:white; text-decoration:none; flex:1;">${ICONS.whatsapp} WhatsApp</a>
-                </div>
-            `;
+    try {
+        const m = marketItemsCache.find(item => item.id === itemId);
+        if(!m) return showToast("Bidhaa haijapatikana");
+        
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        const isOwner = u.phone_number === m.phone;
+        
+        let imgHtml = m.image_url ? `<img src="${m.image_url}" referrerpolicy="no-referrer" style="width:100%; border-radius:8px; margin-top:10px; max-height: 300px; object-fit: cover; cursor: pointer;" onclick="openFullScreenImage('${m.image_url}')">` : '';
+        let waPhone = m.phone.replace(/^0/, '255');
+        
+        let actionBtns = m.status === 'sold' ? '<div style="text-align:center; padding:10px; background:var(--bg); border-radius:8px; font-weight:700; color:var(--danger);">BIDHAA HII IMEUZWA</div>' : `
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <a href="tel:${m.phone}" class="m-btn m-btn-primary" style="text-decoration:none; flex:1;">${ICONS.phone} Piga</a>
+                <a href="https://wa.me/${waPhone}" target="_blank" class="m-btn m-btn-secondary" style="background:#25D366; color:white; text-decoration:none; flex:1;">${ICONS.whatsapp} WhatsApp</a>
+            </div>
+        `;
 
-            let markSoldBtn = '';
-            if (isOwner && m.status === 'active') {
+        let markSoldBtn = '';
+        if (isOwner && m.status === 'active') {
             markSoldBtn = `<button onclick="markAsSold('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--text-sec); border: 1px solid var(--border);">${ICONS.check} Weka Alama ya Imeuzwa</button>`;
-       } else if (isOwner && m.status === 'sold') {
-          markSoldBtn = `<button onclick="markAsActive('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--accent); border: 1px solid var(--accent);">↩️ Badilisha kuwa Haijauzwa</button>`;
-      }
-            // KITUFE CHA KUFUTA BIDHAA (Kwa Mmiliki tu)
-            let deleteBtn = isOwner ? `<button onclick="deleteMarketItem('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--danger); color: white; width: 100%;">Futa Bidhaa</button>` : '';
-            let shopBadge = m.shop_id ? `<div style="display:inline-block; margin-bottom:10px; background:var(--bg); padding:5px 10px; border-radius:8px; font-size:12px; font-weight:700; color:var(--accent); cursor:pointer;" onclick="closeModal(); viewShopById('${m.shop_id}')">${ICONS.store} ${m.shop_name || 'Duka'}</div>` : '';
+        } else if (isOwner && m.status === 'sold') {
+            markSoldBtn = `<button onclick="markAsActive('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--bg); color: var(--accent); border: 1px solid var(--accent);">↩️ Badilisha kuwa Haijauzwa</button>`;
+        }
+        
+        let deleteBtn = isOwner ? `<button onclick="deleteMarketItem('${m.id}')" class="btn-p" style="margin-top:10px; background: var(--danger); color: white; width: 100%;">Futa Bidhaa</button>` : '';
+        let shopBadge = m.shop_id ? `<div style="display:inline-block; margin-bottom:10px; background:var(--bg); padding:5px 10px; border-radius:8px; font-size:12px; font-weight:700; color:var(--accent); cursor:pointer;" onclick="closeModal(); viewShopById('${m.shop_id}')">${ICONS.store} ${m.shop_name || 'Duka'}</div>` : '';
 
-            let modalContent = `
-                ${shopBadge}
-                <div style="font-size:15px; margin-bottom:10px;">
-                    <span style="color:var(--accent); font-weight:800; font-size:20px; display:block; margin-bottom:5px;">${m.price || 'Agana'}</span>
-                    <b style="font-size:17px;">${m.item_name}</b><br>
-                    <small style="color: var(--text-sec);">${m.category || 'Mengineyo'} • ${m.village}</small>
-                </div>
-                <p style="font-size:14px; color:var(--text); line-height:1.5; margin-bottom:10px;">${m.description || 'Hakuna maelezo zaidi.'}</p>
-                ${imgHtml}
-                ${actionBtns}
-                ${markSoldBtn}
-                ${deleteBtn}
-                
-                <div class="safety-box" style="margin-top:20px;">
-                    <h4>⚠️ Vidokezo vya Usalama</h4>
-                    <ul>
-                        <li>Epuka kutuma malipo yoyote ya awali.</li>
-                        <li>Kutana na muuzaji katika eneo la umma lililo salama.</li>
-                        <li>Kagua bidhaa unayotaka kununua ili uhakikishe kuwa ndiyo unayehitaji.</li>
-                        <li>Hakiki nyaraka zote na ulipe tu ikiwa umeridhika.</li>
-                    </ul>
-                </div>
-            `;
-            openModal(m.item_name, modalContent, false);
-        } catch(e) { openModal("Kosa", e.message); }
-    }
+        let modalContent = `
+            ${shopBadge}
+            <div style="font-size:15px; margin-bottom:10px;">
+                <span style="color:var(--accent); font-weight:800; font-size:20px; display:block; margin-bottom:5px;">${m.price || 'Agana'}</span>
+                <b style="font-size:17px;">${m.item_name}</b><br>
+                <small style="color: var(--text-sec);">${m.category || 'Mengineyo'} • ${m.village}</small>
+            </div>
+            <p style="font-size:14px; color:var(--text); line-height:1.5; margin-bottom:10px;">${m.description || 'Hakuna maelezo zaidi.'}</p>
+            ${imgHtml}
+            ${actionBtns}
+            ${markSoldBtn}
+            ${deleteBtn}
+            <div class="safety-box" style="margin-top:20px;">
+                <h4>⚠️ Vidokezo vya Usalama</h4>
+                <ul>
+                    <li>Epuka kutuma malipo yoyote ya awali.</li>
+                    <li>Kutana na muuzaji katika eneo la umma lililo salama.</li>
+                    <li>Kagua bidhaa unayotaka kununua ili uhakikishe kuwa ndiyo unayehitaji.</li>
+                    <li>Hakiki nyaraka zote na ulipe tu ikiwa umeridhika.</li>
+                </ul>
+            </div>
+        `;
+        openModal(m.item_name, modalContent, false);
+    } catch(e) { openModal("Kosa", e.message); }
+}
 
     // --- SHOP REVIEWS FUNCTIONS ---
     async function fetchShopReviews(shopId, divId) {
@@ -5400,71 +5408,73 @@ if (data) data.reverse();
     }
 
     function renderMarketCard(m) { 
-        let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : `<div class="market-placeholder"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`; 
-        let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZWA</span></div>` : ''; 
+    // KAMA HAKUNA PICHA, WEKA WAZI (EMPTY) BADALA YA PLACEHOLDER
+    let imgHtml = m.image_url ? `<img src="${m.image_url}" class="market-img" referrerpolicy="no-referrer" onclick="event.stopPropagation(); openFullScreenImage('${m.image_url}')">` : ''; 
+    let soldHtml = m.status === 'sold' ? `<div class="sold-overlay"><span class="sold-badge">IMEUZWA</span></div>` : ''; 
+    
+    // TAMBUA MUUZAJI, PICHA YAKE NA BADGE
+    let sellerName, sellerImgHtml, isSellerVerified = false;
+    
+    if (m.shop_id) {
+        // KAMA NI DUKA
+        const shop = marketShopMap[m.shop_id] || {};
+        sellerName = shop.shop_name || "Duka";
         
-        // TAMBUA MUUZAJI, PICHA YAKE NA BADGE
-        let sellerName, sellerImgHtml, isSellerVerified = false;
-        
-        if (m.shop_id) {
-            // KAMA NI DUKA
-            const shop = marketShopMap[m.shop_id] || {};
-            sellerName = shop.shop_name || "Duka";
-            
-            // Angalia kama mmiliki wa duka ni Verified (Activist)
-            if (shop.owner_phone && marketUserMap[shop.owner_phone]) {
-                isSellerVerified = marketUserMap[shop.owner_phone].is_activist || false;
-            }
-            
-            sellerImgHtml = shop.logo_url ? 
-                `<img src="${shop.logo_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : 
-                `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">${ICONS.store}</div>`;
-        } else {
-            // KAMA NI MTU BINAFSI
-            const personData = marketUserMap[m.phone] || {};
-            sellerName = personData.full_name || "Mtumiaji";
-            isSellerVerified = personData.is_activist || false;
-            
-            // Daima tumia icon ya mtu, sio picha yake
-            sellerImgHtml = `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-            </div>`;
+        // Angalia kama mmiliki wa duka ni Verified (Activist)
+        if (shop.owner_phone && marketUserMap[shop.owner_phone]) {
+            isSellerVerified = marketUserMap[shop.owner_phone].is_activist || false;
         }
         
-        // Ongeza Badge kama ni Verified
-        let verifiedBadgeHtml = isSellerVerified ? getActivistBadge(true) : '';
+        sellerImgHtml = shop.logo_url ? 
+            `<img src="${shop.logo_url}" referrerpolicy="no-referrer" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : 
+            `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">${ICONS.store}</div>`;
+    } else {
+        // KAMA NI MTU BINAFSI
+        const personData = marketUserMap[m.phone] || {};
+        sellerName = personData.full_name || "Mtumiaji";
+        isSellerVerified = personData.is_activist || false;
         
-        let headerHtml = `
-            <div class="market-post-header">
-                ${sellerImgHtml}
-                <div class="header-info">
-                    <b>${sellerName} ${verifiedBadgeHtml}</b>
-                    <small>${ICONS.pin} ${m.village}</small>
-                </div>
+        // Daima tumia icon ya mtu, sio picha yake
+        sellerImgHtml = `<div style="width:40px; height:40px; border-radius:50%; background:var(--bg); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+        </div>`;
+    }
+    
+    // Ongeza Badge kama ni Verified
+    let verifiedBadgeHtml = isSellerVerified ? getActivistBadge(true) : '';
+    
+    let headerHtml = `
+        <div class="market-post-header">
+            ${sellerImgHtml}
+            <div class="header-info">
+                <b>${sellerName} ${verifiedBadgeHtml}</b>
+                <small>${ICONS.pin} ${m.village}</small>
             </div>
-        `;
-        
-        let imageSectionHtml = imgHtml ? `
-            <div class="market-img-box">${imgHtml}${soldHtml}</div>
-        ` : '';
-        
-        let textSectionHtml = `
-            <div class="market-body" style="padding: 15px;">
-                <h4 style="margin-bottom: 5px;">${m.item_name}</h4>
-                <div class="market-price" style="margin-bottom: 10px;">${m.price || 'Agana'}</div>
-                ${m.description ? `<p style="font-size: 14px; color: var(--text-sec); line-height: 1.5; margin-bottom: 10px;">${m.description}</p>` : ''}
-                <div class="list-meta" style="margin-top:0; margin-bottom:0;">
-                    <span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span>
-                </div>
+        </div>
+    `;
+    
+    // MBOX YA PICHA ITAJITENGA IKIWA TU PICHA IPO
+    let imageSectionHtml = imgHtml ? `
+        <div class="market-img-box">${imgHtml}${soldHtml}</div>
+    ` : '';
+    
+    let textSectionHtml = `
+        <div class="market-body" style="padding: 15px;">
+            <h4 style="margin-bottom: 5px;">${m.item_name}</h4>
+            <div class="market-price" style="margin-bottom: 10px;">${m.price || 'Agana'}</div>
+            ${m.description ? `<p style="font-size: 14px; color: var(--text-sec); line-height: 1.5; margin-bottom: 10px;">${m.description}</p>` : ''}
+            <div class="list-meta" style="margin-top:0; margin-bottom:0;">
+                <span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span>
             </div>
-        `;
-        
-        return `<div class="market-card" onclick="viewMarketItem('${m.id}')">
-            ${headerHtml}
-            ${imageSectionHtml}
-            ${textSectionHtml}
-        </div>`; 
-    }    
+        </div>
+    `;
+    
+    return `<div class="market-card" onclick="viewMarketItem('${m.id}')">
+        ${headerHtml}
+        ${imageSectionHtml}
+        ${textSectionHtml}
+    </div>`; 
+}   
 
  async function fetchMarket() { 
         if (marketIsLoading) return;
@@ -6769,8 +6779,9 @@ async function cancelBodaRide(rideId) {
         const okBtn = document.getElementById('modal-ok');
         okBtn.innerText = "Tuma Alert";
         okBtn.style.display = 'block';
-        okBtn.onclick = async () => {
-            const text = document.getElementById('broadcast-input').value.trim();
+        okBtn.onclick = async function(e) {
+        if(e) e.preventDefault(); // Hii ndio fix ya Android APK
+        const text = document.getElementById('broadcast-input').value.trim();
             if(!text) return showToast("Tafadhali andika ujumbe.");
             
             okBtn.innerHTML = '<div class="spinner"></div>';
@@ -7491,7 +7502,8 @@ async function cancelBodaRide(rideId) {
             
             const okBtn = document.getElementById('modal-ok');
             okBtn.innerText = "Endelea";
-            okBtn.onclick = async () => {
+            okBtn.onclick = async function(e) {
+            if(e) e.preventDefault();
                 const paySection = document.getElementById('payment-details-section');
                 
                 if (paySection.style.display === 'none') {
@@ -8123,7 +8135,7 @@ async function cancelBodaRide(rideId) {
         }
 
         // --- MAIN UI LOADER (With Error Catching) ---
-                async function loadStatusUI() {
+                 async function loadStatusUI() {
             try {
                 cleanExpiredStatuses();
                 const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -8136,8 +8148,13 @@ async function cancelBodaRide(rideId) {
                 const myList = document.getElementById('my-status-list');
                 if (myList) {
                     if (myStatuses.length > 0) {
+                        // KAMA NI LINK YA CLOUDINARY, ONDOA KIZUIA CHA USALAMA
+                        let myFirstImg = myStatuses[0].media_base64.startsWith('http') ? 
+                            `<img src="${myStatuses[0].media_base64}" referrerpolicy="no-referrer" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent); opacity: 0.9;">` : 
+                            `<img src="${myStatuses[0].media_base64}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent); opacity: 0.9;">`;
+                        
                         myList.innerHTML = `<div style="position:relative; cursor:pointer;" onclick="viewStatus('${u.phone_number}')">
-                            <img src="${myStatuses[0].media_base64}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent); opacity: 0.9;">
+                            ${myFirstImg}
                             ${myStatuses.length > 1 ? `<div style="position:absolute; top:-5px; right:-5px; background:var(--accent); color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border: 2px solid var(--surface);">${myStatuses.length}</div>` : ''}
                         </div>`;
                     } else {
@@ -8147,8 +8164,7 @@ async function cancelBodaRide(rideId) {
 
                 const otherList = document.getElementById('other-status-list');
                 const permContainer = document.getElementById('contacts-permission-container');
-                const savedContacts = JSON.parse(localStorage.getItem('kitama_saved_contacts') || '[]');
-                const canReadContacts = ('contacts' in navigator && navigator.contacts.select);
+                const kitamaFriends = JSON.parse(localStorage.getItem('kitama_saved_contacts') || '[]'); // Sasa hii ni orodha ya marafiki
                 
                 let statusItems = [];
                 const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
@@ -8158,7 +8174,7 @@ async function cancelBodaRide(rideId) {
                     const { data: adminStatuses } = await sb.from('admin_status').select('*').gt('expiry', new Date().toISOString()).order('created_at', { ascending: false }).limit(1);
                     if (adminStatuses && adminStatuses.length > 0) {
                         const s = adminStatuses[0];
-                        let avatarHtml = s.image_url ? `<img src="${s.image_url}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">` : `<img src="${adminLogoUrl}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">`;
+                        let avatarHtml = s.image_url ? `<img src="${s.image_url}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">` : `<img src="${adminLogoUrl}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">`;
                         statusItems.push(`
                             <div onclick="viewOfficialStatus('${s.id}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
                                 <div style="position:relative;">${avatarHtml}</div>
@@ -8178,11 +8194,20 @@ async function cancelBodaRide(rideId) {
                     phonesToRender.forEach(phone => {
                         let isSystem = (phone === window.adminPhone);
                         let statuses = grouped[phone];
+                        if(!statuses || statuses.length === 0) return;
+                        
                         let border = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number)) ? 'var(--border)' : 'var(--accent)';
                         
-                        let avatarHtml = isSystem ? 
-                            `<img src="${adminLogoUrl}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">` : 
-                            `<img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">`;
+                        let avatarHtml;
+                        if (isSystem) {
+                            avatarHtml = `<img src="${adminLogoUrl}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">`;
+                        } else {
+                            // KAMA NI LINK YA CLOUDINARY (HTTP), ONDOA KIZUIA CHA USALAMA
+                            let imgSrc = statuses[0].media_base64.startsWith('http') ? 
+                                `<img src="${statuses[0].media_base64}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">` : 
+                                `<img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">`;
+                            avatarHtml = imgSrc;
+                        }
                         
                         let nameHtml = isSystem ? `Kitama Yetu ${getWhatsAppVerifiedBadge()}` : statuses[0].sender_name;
                         
@@ -8196,36 +8221,33 @@ async function cancelBodaRide(rideId) {
                     });
                 };
 
-                if (!canReadContacts) {
-                    // A. KAMA SIMU HAIWEZI KUSOMA CONTACTS, ONESHA WOTE
-                    if(permContainer) permContainer.innerHTML = '';
-                    renderP2PStatuses(otherUsers);
-                } else if (savedContacts.length === 0) {
-                    // B. KAMA SIMU INAWEZA LAKINI HAJARUHUSU
+                // HAPA NDIO MABADILIKO MAKUBWA: KUTUMIA "KITAMA FRIENDS" BADALA YA CONTACTS ZA SIMU
+                if (kitamaFriends.length === 0) {
+                    // KAMA HAJAONGEZA RAFIKI YOYOTE, ONYESHA KITUFE CHA "ONGEZA RAFIKI"
                     let hasOtherUsers = otherUsers.some(phone => phone !== window.adminPhone); 
                     if(permContainer && hasOtherUsers) {
                         permContainer.innerHTML = `<div class="contacts-permission-box">
                             <div class="icon-box">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
                             </div>
                             <div class="text-box">
                                 <h4>Ona Status za Marafiki</h4>
-                                <p>Ruhusu Kitama Yetu kusoma contacts ili kuona status za watu uliowasave kwenye simu yako.</p>
+                                <p>Ongeza watu unaowafahamu ili uweze kuona Status.</p>
                             </div>
-                            <button onclick="syncContacts()">Ruhusu</button>
+                            <button onclick="openAddFriendModal()">Ongeza Rafiki</button>
                         </div>`;
                     }
                     
-                    // NGUVU: ONESHA TU STATUS YA ADMIN (P2P) HATA HAJARUHUSU CONTACTS
+                    // ONYESHA TU STATUS YA ADMIN (P2P) HATA HAJAONGEZA RAFIKI
                     let adminP2P = otherUsers.filter(phone => phone === window.adminPhone);
                     renderP2PStatuses(adminP2P);
                     
                 } else {
-                    // C. AMESHARUHUSU (Onesha wale aliowasave tu, lakini Admin daima aonekane)
+                    // KAMA ANA MARAFIKI (AMEWACHAGUA), ONYESHA WAO NA ADMIN TU
                     if(permContainer) permContainer.innerHTML = '';
                     let visiblePhones = otherUsers.filter(phone => {
                         if (phone === window.adminPhone) return true; // Admin aonekane daima
-                        return savedContacts.includes(normalizePhone(phone));
+                        return kitamaFriends.includes(normalizePhone(phone));
                     });
                     renderP2PStatuses(visiblePhones);
                 }
@@ -8240,7 +8262,55 @@ async function cancelBodaRide(rideId) {
                 console.error("Status UI Crash Error:", e);
             }
           }
+    function openAddFriendModal() {
+    if(activeCitizens.length === 0) return showToast("Hakuna wananchi waliopatikana.");
+    
+    let kitamaFriends = JSON.parse(localStorage.getItem('kitama_saved_contacts') || '[]');
+    
+    let html = `<p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Chagua watu unowafahau ili uweze kuona Status zao na kuwasiliana nayo kwa urahisi.</p>`;
+    html += '<div style="max-height: 60vh; overflow-y: auto; display:flex; flex-direction:column; gap:8px;">';
+    
+    activeCitizens.forEach(c => {
+        let isFriend = kitamaFriends.includes(normalizePhone(c.phone_number));
+        let btnText = isFriend ? '✓ Mfriende' : '+ Ongeza';
+        let btnColor = isFriend ? 'var(--accent)' : 'var(--bg)';
+        let btnTxtColor = isFriend ? 'white' : 'var(--accent)';
+        let btnBorder = isFriend ? 'none' : '1px solid var(--accent)';
         
+        let avatarHtml = c.avatar_url ? `<img src="${c.avatar_url}" referrerpolicy="no-referrer" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;">${c.full_name.charAt(0)}</div>`;
+        
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface);border-radius:12px;border:1px solid var(--border);">
+            ${avatarHtml}
+            <div style="flex:1;">
+                <b style="font-size:14px;color:var(--text);">${c.full_name}</b><br>
+                <small style="color:var(--text-sec);font-size:12px;">${c.phone_number}</small>
+            </div>
+            <button onclick="toggleKitamaFriend('${c.phone_number}')" style="padding:8px 12px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;background:${btnColor};color:${btnTxtColor};border:${btnBorder};">${btnText}</button>
+        </div>`;
+    });
+    
+    html += '</div>';
+    openModal("Kitama Address Book", html, false);
+    document.getElementById('modal-ok').style.display = 'none';
+    document.getElementById('modal-cancel').innerText = 'Funga';
+}
+
+function toggleKitamaFriend(phone) {
+    let kitamaFriends = JSON.parse(localStorage.getItem('kitama_saved_contacts') || '[]');
+    let normPhone = normalizePhone(phone);
+    
+    if (kitamaFriends.includes(normPhone)) {
+        kitamaFriends = kitamaFriends.filter(p => p !== normPhone);
+        showToast("Ameondolewa kwenye marafiki.");
+    } else {
+        kitamaFriends.push(normPhone);
+        showToast("Ameongezwa! Sasa utaiona Status yake.");
+    }
+    
+    localStorage.setItem('kitama_saved_contacts', JSON.stringify(kitamaFriends));
+    openAddFriendModal(); // Fungua tena kusasisha vitufe
+    loadStatusUI(); // Sasisha screen ya status
+}
         // 4. Upload Modal
             function openStatusCaptionModal() {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -8274,7 +8344,7 @@ async function cancelBodaRide(rideId) {
                     <input type="checkbox" id="status-hide-seen" style="width:auto;">
                     <label for="status-hide-seen" style="font-size:12px; color:var(--text-sec);">Ficha wanaoiona (Blue Ticks)</label>
                 </div>
-                <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top: 10px;">* Picha itaonekana kwa sekunde 30. Video itaonekana kwa ${videoLimitText}.</small>
+                <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top: 10px;">* Picha itaonekana kwa sekunde 15. Video itachezwa hadi sekunde 30 (au sekunde 90 kwa Activists).</small>
             `;
             
             openModal("New Status", html, false, async () => {
@@ -8288,8 +8358,11 @@ async function cancelBodaRide(rideId) {
                 const caption = document.getElementById('status-caption').value.trim();
                 const duration = 24;
                 
-                let maxPlayDuration = 30; 
-                if (statusMediaType === 'video') { maxPlayDuration = isVerified ? 180 : 40; }
+               let maxPlayDuration = 30; 
+               if (statusMediaType === 'video') { 
+               // KAMA NI ACTIVIST, CHEZA SEKUNDE 90. KAMA HAJAIDHINISHWA, CHEZA SEKUNDE 30.
+               maxPlayDuration = isVerified ? 90 : 30; 
+             }
                 
                 const newStatus = {
                     id: 'st_' + Date.now() + u.phone_number,
@@ -8415,8 +8488,9 @@ async function cancelBodaRide(rideId) {
         // KAMA VIDEO NI KUBWA (Zaidi ya 2MB), PELEKA CLOUDINARY KAMA WHATSAPP
         if (file.size > 2 * 1024 * 1024) {
             uploadToCloudinary(file).then(url => {
-                statusMediaBase64 = url; // Hapa tunashikilia Link ya Cloudinary badala ya Base64
-                if (previewBox) previewBox.innerHTML = `<video src="${url}" style="width:100%; height:100%; object-fit:cover;" controls></video>`;
+                // ONGEZA eo_90 KUIMIZA VIDEO KUWA SEKUNDE 90 TU (Cloudinary atafanya hili mwenyewe)
+                statusMediaBase64 = url.replace('/upload/', '/upload/eo_90/');
+                if (previewBox) previewBox.innerHTML = `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;" controls></video>`;
                 if (captionBox) captionBox.style.display = 'block';
             }).catch(err => {
                 showToast("Imeshindwa kupakia video: " + err.message);
@@ -8779,17 +8853,23 @@ function prevStatus() {
     
     panel.style.transform = 'translateY(0%)';
     
-    // FUTA KABISA HTML ILIYOKUWENDEPO ILI KUEPUKA KUONEKANA MARADADI (MBILI MBILI)
-    panel.innerHTML = `
+    // ANDIKA HEADER MPYA NA ORODHA MOJA KWA MOJA KWENYE VIEWERS-LIST-CONTENT
+    const listEl = document.getElementById('viewers-list-content');
+    if (!listEl) return;
+    
+    listEl.innerHTML = `
+        <!-- HEADER MPYA: DUSTBIN KUSHOTO, WALIOTAZAMA KATIKATI, X KULIA -->
         <div style="display:flex; justify-content:space-between; align-items:center; padding:15px 20px; border-bottom: 1px solid var(--border);">
             <div onclick="deleteCurrentStatus()" style="cursor:pointer; color:#EF4444; display:flex; align-items:center;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </div>
             <div style="font-weight:700; font-size:18px; color:var(--text);">Waliotazama</div>
-            <div onclick="hideViewersPanel()" style="cursor:pointer; color:var(--text-sec); font-size:28px; line-height:1;">✕</div>
+            <div onclick="hideViewersPanel()" style="cursor:pointer; color:var(--text-sec); font-size:28px; line-height:1; padding: 0 5px;">✕</div>
         </div>
-        <div id="viewers-list-items" style="padding:20px; max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
-            <div style="display:flex; justify-content:center; padding:30px;"><div class="spinner"></div></div>
+        
+        <!-- ORODHA YA WALIOTAZAMA -->
+        <div id="viewers-list-items" style="padding:20px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: center; padding: 30px;"><div class="spinner"></div></div>
         </div>
     `;
     
@@ -8804,7 +8884,7 @@ function prevStatus() {
             
             html = viewersData.map(v => `
                 <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg);border-radius:12px;border:1px solid var(--border);">
-                    ${v.avatar_url ? `<img src="${v.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;">${v.full_name.charAt(0)}</div>`}
+                    ${v.avatar_url ? `<img src="${v.avatar_url}" referrerpolicy="no-referrer" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;">${v.full_name.charAt(0)}</div>`}
                     <div>
                         <b style="font-size:14px; color:var(--text);">${v.full_name}</b><br>
                         <small style="color:var(--text-sec);font-size:12px;">${v.phone_number}</small>
@@ -8959,65 +9039,59 @@ async function openStatusViewersModal() {
             handleSwipeEnd(e.clientY);
         });
 
-                async function syncContacts() {
-            // TUMIA PLUGIN YA NATIVE ANDROID (Capacitor)
-            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Contacts) {
-                try {
-                    const Contacts = window.Capacitor.Plugins.Contacts;
-                    
-                    // 1. Omba Ruhusa
-                    const perm = await Contacts.requestPermissions();
-                    if (!perm.granted) {
-                        return showToast("Ruhusa ya kusoma contacts imekataliwa.");
-                    }
-                    
-                    showToast("Inasoma contacts zako... subiri kidogo.");
-                    
-                    // 2. Soma Contacts zote kimyakimya
-                    const result = await Contacts.getContacts({ projection: { name: true, phones: true } });
-                    
-                    let savedNumbers = [];
-                    if (result && result.contacts) {
-                        result.contacts.forEach(c => {
-                            if (c.phones && c.phones.length > 0) {
-                                c.phones.forEach(p => savedNumbers.push(normalizePhone(p.number)));
-                            }
-                        });
-                    }
-                    
-                    // 3. Hifadhi kwenye simu
-                    localStorage.setItem('kitama_saved_contacts', JSON.stringify(savedNumbers));
-                    showToast("Contacts zimehifadhiwa! Sasa utaona status zao tu.");
-                    
-                    const syncBtn = document.getElementById('sync-contacts-btn');
-                    if (syncBtn) syncBtn.style.display = 'none';
-                    loadStatusUI();
-                } catch(e) {
-                    console.error("Contacts error:", e);
-                    openModal("Kosa la Contacts", e.message);
-                }
-            } else {
-                // KAMA PLUGIN HAIPATIKANI (Fallback kwa Web)
-                if (!('contacts' in navigator) || !navigator.contacts.select) {
-                    return showToast("Kifaa chako hakiauni kusoma contacts.");
-                }
-                try {
-                    const contacts = await navigator.contacts.select(['tel'], { multiple: true });
-                    if (contacts.length === 0) return;
-                    
-                    let savedNumbers = [];
-                    contacts.forEach(c => {
-                        if (c.tel && c.tel.length > 0) c.tel.forEach(num => savedNumbers.push(normalizePhone(num)));
-                    });
-                    localStorage.setItem('kitama_saved_contacts', JSON.stringify(savedNumbers));
-                    showToast("Contacts zimehifadhiwa!");
-                    document.getElementById('sync-contacts-btn').style.display = 'none';
-                    loadStatusUI();
-                } catch(e) {
-                    openModal("Kosa", e.message);
-                }
+          async function syncContacts() {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Contacts) {
+        try {
+            const Contacts = window.Capacitor.Plugins.Contacts;
+            
+            // 1. KAGUA KAMA RUHUSA IPO
+            const checkPerm = await Contacts.checkPermissions();
+            if (checkPerm.granted) {
+                // Kama amesharuhusu, soma moja kwa moja
+                await fetchAndSaveContacts(Contacts);
+                return;
             }
+            
+            // 2. KAMA HAIJARUHUSWA, OMBA
+            showToast("Tafadhali ruhusu App kusoma contacts...");
+            const perm = await Contacts.requestPermissions();
+            
+            // 3. KAMA AMEKUBALI, SOMA
+            if (perm.granted || perm.contacts === 'granted') {
+                await fetchAndSaveContacts(Contacts);
+            } else {
+                showToast("Ruhusa ya kusoma contacts imekataliwa. Tafadhali iruhusu kwenye Settings za simu.");
+            }
+        } catch(e) {
+            console.error("Contacts error:", e);
+            openModal("Kosa la Contacts", e.message);
         }
+    } else {
+        showToast("Kifaa chako hakiauni kusoma contacts.");
+    }
+}
+
+// FUNCTION MPYA YA KUSOMA NA KUHIFADHI
+async function fetchAndSaveContacts(Contacts) {
+    showToast("Inasoma contacts zako... subiri kidogo.");
+    const result = await Contacts.getContacts({ projection: { name: true, phones: true } });
+    
+    let savedNumbers = [];
+    if (result && result.contacts) {
+        result.contacts.forEach(c => {
+            if (c.phones && c.phones.length > 0) {
+                c.phones.forEach(p => savedNumbers.push(normalizePhone(p.number)));
+            }
+        });
+    }
+    
+    localStorage.setItem('kitama_saved_contacts', JSON.stringify(savedNumbers));
+    showToast("Contacts zimehifadhiwa! Sasa utaona status zao tu.");
+    
+    const syncBtn = document.getElementById('sync-contacts-btn');
+    if (syncBtn) syncBtn.style.display = 'none';
+    loadStatusUI();
+}
         function handleSwipeEnd(endY) {
             const diffY = touchStartY - endY;
             const duration = Date.now() - touchStartTime;
@@ -9287,7 +9361,8 @@ async function openStatusViewersModal() {
             xhr.onload = () => {
                 if (xhr.status === 200) {
                     const response = JSON.parse(xhr.responseText);
-                    statusMediaBase64 = response.secure_url; // Hifadisha Link ya Cloudinary
+                    // ONGEZA eo_90 KUIMIZA VIDEO KUWA SEKUNDE 90 TU
+                    statusMediaBase64 = response.secure_url.replace('/upload/', '/upload/eo_90/'); 
                     closeModal();
                     openStatusCaptionModal(); // Nenda kwenye sehemu ya kuandika caption
                 } else {
@@ -9359,10 +9434,28 @@ async function openStatusViewersModal() {
                 } catch(e) {}
             }
             
-            const addBtn = document.getElementById('add-place-btn');
+                        const addBtn = document.getElementById('add-place-btn');
             if (addBtn) {
                 if (u.role === 'system_admin' || u.role === 'mtendaji_kata' || u.role === 'diwani' || canEditMap) {
-                    addBtn.style.display = 'flex';
+                    // WEKA ICON YA DUARA LENYE ALAMA YA + KUSHOTO CHINI
+                    addBtn.innerHTML = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>`;
+                    addBtn.style.cssText = `
+                        position: absolute; 
+                        bottom: 30px; 
+                        left: 15px; 
+                        z-index: 1000; 
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: center; 
+                        background: var(--accent); 
+                        color: white; 
+                        width: 50px; 
+                        height: 50px; 
+                        border: none; 
+                        border-radius: 50%; 
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+                        cursor: pointer;
+                    `;
                 } else {
                     addBtn.style.display = 'none';
                 }
@@ -9718,7 +9811,8 @@ async function openStatusViewersModal() {
             cancelBtn.style.display = 'block';
             cancelBtn.innerText = "Ghairi";
             
-            okBtn.onclick = async () => {
+            okBtn.onclick = async function(e) {
+            if(e) e.preventDefault();
                 try {
                     const u = JSON.parse(localStorage.getItem('kitama_user'));
                     await sb.from('users').update({ avatar_url: null }).eq('id', u.id);
@@ -9738,37 +9832,36 @@ async function openStatusViewersModal() {
                 openProfileAvatarModal();
             };
         }
-                function updateProfileUI(u) {
-            const pAvaImg = document.getElementById('p-ava-img');
-            const pAva = document.getElementById('p-ava');
-            const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
-            
-            // KAMA NI ADMIN, LAZIMISHA LOGO KUWA PROFILE PICHA
-            if (u.role === 'system_admin') {
-                pAvaImg.src = adminLogoUrl;
-                pAvaImg.style.display = 'block';
-                pAva.style.display = 'none';
-                
-                // Pia sasisha kichwa cha nyumbani
-                const hAvatar = document.getElementById('h-avatar');
-                const hInitial = document.getElementById('h-initial');
-                if(hAvatar) { hAvatar.src = adminLogoUrl; hAvatar.style.display = 'block'; }
-                if(hInitial) hInitial.style.display = 'none';
-                return;
-            }
-            
-            // KWA WENGINE WOTE (KAWAIDA)
-            if(u.avatar_url) {
-                const bustUrl = u.avatar_url + (u.avatar_url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
-                pAvaImg.src = bustUrl;
-                pAvaImg.style.display = 'block';
-                pAva.style.display = 'none';
-            } else {
-                pAvaImg.style.display = 'none';
-                pAva.style.display = 'flex';
-                pAva.innerText = u.full_name.charAt(0).toUpperCase();
-            }
-        }
+        function updateProfileUI(u) {
+    const pAvaImg = document.getElementById('p-ava-img');
+    const pAva = document.getElementById('p-ava');
+    const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
+    
+    // ONGEZA HII: Ipuke usalama wa Referrer
+    if (pAvaImg) pAvaImg.referrerPolicy = 'no-referrer';
+    
+    if (u.role === 'system_admin') {
+        pAvaImg.src = adminLogoUrl;
+        pAvaImg.style.display = 'block';
+        pAva.style.display = 'none';
+        const hAvatar = document.getElementById('h-avatar');
+        const hInitial = document.getElementById('h-initial');
+        if(hAvatar) { hAvatar.referrerPolicy = 'no-referrer'; hAvatar.src = adminLogoUrl; hAvatar.style.display = 'block'; }
+        if(hInitial) hInitial.style.display = 'none';
+        return;
+    }
+    
+    if(u.avatar_url) {
+        const bustUrl = u.avatar_url + (u.avatar_url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+        pAvaImg.src = bustUrl;
+        pAvaImg.style.display = 'block';
+        pAva.style.display = 'none';
+    } else {
+        pAvaImg.style.display = 'none';
+        pAva.style.display = 'flex';
+        pAva.innerText = u.full_name.charAt(0).toUpperCase();
+    }
+}
             // --- OFFLINE MESSAGE QUEUE (WhatsApp Style) ---
         function addToMsgQueue(table, data) {
             let queue = JSON.parse(localStorage.getItem('kitama_msg_queue') || '[]');
@@ -9961,7 +10054,8 @@ async function rejectBodaDriver(phone, photoUrl) {
             okBtn.style.background = "var(--danger)";
             okBtn.style.color = "white";
             okBtn.style.display = 'block';
-            okBtn.onclick = async () => {
+            okBtn.onclick = async function(e) {
+            if(e) e.preventDefault();
                 try {
                     const u = JSON.parse(localStorage.getItem('kitama_user'));
                     await sb.from('users').update({ forum_opted_out: true }).eq('id', u.id);
