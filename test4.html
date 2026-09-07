@@ -8334,7 +8334,7 @@ function toggleKitamaFriend(phone) {
                     <input type="checkbox" id="status-hide-seen" style="width:auto;">
                     <label for="status-hide-seen" style="font-size:12px; color:var(--text-sec);">Ficha wanaoiona (Blue Ticks)</label>
                 </div>
-                <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top: 10px;">* Picha itaonekana kwa sekunde 30. Video itaonekana kwa ${videoLimitText}.</small>
+                <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top: 10px;">* Picha itaonekana kwa sekunde 15. Video itachezwa hadi sekunde 30 (au sekunde 90 kwa Activists).</small>
             `;
             
             openModal("New Status", html, false, async () => {
@@ -8348,8 +8348,11 @@ function toggleKitamaFriend(phone) {
                 const caption = document.getElementById('status-caption').value.trim();
                 const duration = 24;
                 
-                let maxPlayDuration = 30; 
-                if (statusMediaType === 'video') { maxPlayDuration = isVerified ? 180 : 40; }
+               let maxPlayDuration = 30; 
+               if (statusMediaType === 'video') { 
+               // KAMA NI ACTIVIST, CHEZA SEKUNDE 90. KAMA HAJAIDHINISHWA, CHEZA SEKUNDE 30.
+               maxPlayDuration = isVerified ? 90 : 30; 
+             }
                 
                 const newStatus = {
                     id: 'st_' + Date.now() + u.phone_number,
@@ -8475,8 +8478,9 @@ function toggleKitamaFriend(phone) {
         // KAMA VIDEO NI KUBWA (Zaidi ya 2MB), PELEKA CLOUDINARY KAMA WHATSAPP
         if (file.size > 2 * 1024 * 1024) {
             uploadToCloudinary(file).then(url => {
-                statusMediaBase64 = url; // Hapa tunashikilia Link ya Cloudinary badala ya Base64
-                if (previewBox) previewBox.innerHTML = `<video src="${url}" style="width:100%; height:100%; object-fit:cover;" controls></video>`;
+                // ONGEZA eo_90 KUIMIZA VIDEO KUWA SEKUNDE 90 TU (Cloudinary atafanya hili mwenyewe)
+                statusMediaBase64 = url.replace('/upload/', '/upload/eo_90/');
+                if (previewBox) previewBox.innerHTML = `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;" controls></video>`;
                 if (captionBox) captionBox.style.display = 'block';
             }).catch(err => {
                 showToast("Imeshindwa kupakia video: " + err.message);
@@ -9347,7 +9351,8 @@ async function fetchAndSaveContacts(Contacts) {
             xhr.onload = () => {
                 if (xhr.status === 200) {
                     const response = JSON.parse(xhr.responseText);
-                    statusMediaBase64 = response.secure_url; // Hifadisha Link ya Cloudinary
+                    // ONGEZA eo_90 KUIMIZA VIDEO KUWA SEKUNDE 90 TU
+                    statusMediaBase64 = response.secure_url.replace('/upload/', '/upload/eo_90/'); 
                     closeModal();
                     openStatusCaptionModal(); // Nenda kwenye sehemu ya kuandika caption
                 } else {
