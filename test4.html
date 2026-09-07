@@ -9891,85 +9891,88 @@ async function rejectBodaDriver(phone, photoUrl) {
             }
         }
 
-                async function fetchPolls() {
-            const div = document.getElementById('polls-list');
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            
-            if (!navigator.onLine) {
-                const cached = getFromCache('polls_html');
-                div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao.</p>';
-                return;
-            }
-            
-            const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
-            const oldScroll = window.scrollY;
-            
-            if(!isRealtimeUpdate) div.innerHTML = '<div class="skeleton" style="height:100px; margin:0 20px 15px 20px;"></div>';
-            
-            try {
-                const { data: polls, error } = await sb.from('polls').select('*').order('created_at', { ascending: false }).limit(20);
-                if(error) throw error;
-                
-                const { data: myVotes, error: voteErr } = await sb.from('poll_votes').select('poll_id, option_index').eq('voter_phone', u.phone_number);
-                if(voteErr) throw voteErr;
-                
-                if (polls.length === 0) {
-                    div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna kura zilizowekwa kwa sasa.</p>';
-                    return;
-                }
-
-                const pollsHtmlArray = [];
-                
-                // TUMIA FOR...OF LOOP KUEPUKA KOSA LA AWAIT KWENYE MAP
-                for (const p of polls) {
-                    const { count: totalVotesCount } = await sb.from('poll_votes').select('*', { count: 'exact' }).eq('poll_id', p.id);
-                    const totalVotes = totalVotesCount || 0;
-                    
-                    const { data: allVotesForPoll } = await sb.from('poll_votes').select('option_index').eq('poll_id', p.id);
-                    const myVote = myVotes.find(v => v.poll_id === p.id);
-                    
-                    let optionsHtml = p.options.map((opt, index) => {
-                        const votesForOption = allVotesForPoll ? allVotesForPoll.filter(v => v.option_index === index).length : 0;
-                        const percentage = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
-                        const isMyChoice = myVote && myVote.option_index === index;
-                        
-                        if (myVote) {
-                            return `<div style="margin-bottom: 8px; padding: 10px; border-radius: 10px; background: ${isMyChoice ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg)'}; border: 1px solid ${isMyChoice ? 'var(--accent)' : 'var(--border)'}; position: relative; overflow: hidden;">
-                                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: ${percentage}%; background: ${isMyChoice ? 'rgba(16, 185, 129, 0.2)' : 'rgba(100, 116, 139, 0.1)'};"></div>
-                                <div style="position: relative; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-size: 14px; font-weight: 600; color: var(--text);">${opt}</span>
-                                    <span style="font-size: 12px; font-weight: 700; color: var(--text-sec);">${percentage}% (${votesForOption})</span>
-                                </div>
-                            </div>`;
-                        } else {
-                            return `<button onclick="castVote('${p.id}', ${index})" style="width: 100%; margin-bottom: 8px; padding: 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left;">${opt}</button>`;
-                        }
-                    }).join('');
-                    
-                    let deleteBtn = (u.phone_number === p.created_by_phone || u.role === 'system_admin') ? `<button onclick="deletePoll('${p.id}')" style="background:none; border:none; color:var(--danger); padding:5px; font-size:11px; cursor:pointer; margin-top:10px;">Futa Kura Hii</button>` : '';
-                    
-                    pollsHtmlArray.push(`<div class="list-i">
-                        <div class="list-meta">
-                            <span class="badge b-info">Kura (Poll)</span>
-                            <small style="color:var(--text-sec); margin-left:auto;">${new Date(p.created_at).toLocaleString()}</small>
-                        </div>
-                        <h4 style="margin-top: 10px;">${p.question}</h4>
-                        <small style="color:var(--text-sec); display:block; margin-bottom: 10px;">Imetumwa na: ${p.created_by_name}</small>
-                        <div>${optionsHtml}</div>
-                        <small style="display:block; margin-top:5px; color:var(--text-sec); font-size:11px; text-align:right;">Jumla ya kura: ${totalVotes}</small>
-                        ${deleteBtn}
-                    </div>`);
-                }
-                
-                const newHtml = pollsHtmlArray.join('');
-                div.innerHTML = newHtml;
-                saveToCache('polls_html', newHtml);
-                
-                if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
-            } catch(e) {
-                if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
-            }
+            async function fetchPolls() {
+    const div = document.getElementById('polls-list');
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    
+    if (!navigator.onLine) {
+        const cached = getFromCache('polls_html');
+        div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao.</p>';
+        return;
+    }
+    
+    const isRealtimeUpdate = div.children.length > 0 && !div.innerHTML.includes('skeleton');
+    const oldScroll = window.scrollY;
+    
+    if(!isRealtimeUpdate) div.innerHTML = '<div class="skeleton" style="height:100px; margin:0 20px 15px 20px;"></div>';
+    
+    try {
+        const { data: polls, error } = await sb.from('polls').select('*').order('created_at', { ascending: false }).limit(20);
+        if(error) throw error;
+        
+        const { data: myVotes, error: voteErr } = await sb.from('poll_votes').select('poll_id, option_index').eq('voter_phone', u.phone_number);
+        if(voteErr) throw voteErr;
+        
+        if (polls.length === 0) {
+            div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna kura zilizowekwa kwa sasa.</p>';
+            return;
         }
+
+        const pollsHtmlArray = [];
+        
+        for (const p of polls) {
+            const { count: totalVotesCount } = await sb.from('poll_votes').select('*', { count: 'exact' }).eq('poll_id', p.id);
+            const totalVotes = totalVotesCount || 0;
+            
+            const { data: allVotesForPoll } = await sb.from('poll_votes').select('option_index').eq('poll_id', p.id);
+            const myVote = myVotes.find(v => v.poll_id === p.id);
+            
+            let optionsHtml = p.options.map((opt, index) => {
+                const votesForOption = allVotesForPoll ? allVotesForPoll.filter(v => v.option_index === index).length : 0;
+                const percentage = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
+                const isMyChoice = myVote && myVote.option_index === index;
+                
+                if (myVote) {
+                    // Mtu ampiga kura, mistari ibaki lakini iwe kavu kubonyeza (onclick) ili aweze kubadilisha
+                    return `<div onclick="castVote('${p.id}', ${index})" style="margin-bottom: 8px; padding: 10px; border-radius: 10px; background: ${isMyChoice ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg)'}; border: 1px solid ${isMyChoice ? 'var(--accent)' : 'var(--border)'}; position: relative; overflow: hidden; cursor: pointer;">
+                        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: ${percentage}%; background: ${isMyChoice ? 'rgba(16, 185, 129, 0.2)' : 'rgba(100, 116, 139, 0.1)'};"></div>
+                        <div style="position: relative; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                                ${isMyChoice ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''} 
+                                ${opt}
+                            </span>
+                            <span style="font-size: 12px; font-weight: 700; color: var(--text-sec);">${percentage}% (${votesForOption})</span>
+                        </div>
+                    </div>`;
+                } else {
+                    return `<button onclick="castVote('${p.id}', ${index})" style="width: 100%; margin-bottom: 8px; padding: 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left;">${opt}</button>`;
+                }
+            }).join('');
+            
+            let deleteBtn = (u.phone_number === p.created_by_phone || u.role === 'system_admin') ? `<button onclick="deletePoll('${p.id}')" style="background:none; border:none; color:var(--danger); padding:5px; font-size:11px; cursor:pointer; margin-top:10px;">Futa Kura Hii</button>` : '';
+            
+            pollsHtmlArray.push(`<div class="list-i">
+                <div class="list-meta">
+                    <span class="badge b-info">Kura (Poll)</span>
+                    <small style="color:var(--text-sec); margin-left:auto;">${new Date(p.created_at).toLocaleString()}</small>
+                </div>
+                <h4 style="margin-top: 10px;">${p.question}</h4>
+                <small style="color:var(--text-sec); display:block; margin-bottom: 10px;">Imetumwa na: ${p.created_by_name}</small>
+                <div>${optionsHtml}</div>
+                <small style="display:block; margin-top:5px; color:var(--text-sec); font-size:11px; text-align:right;">Jumla ya kura: ${totalVotes}</small>
+                ${deleteBtn}
+            </div>`);
+        }
+        
+        const newHtml = pollsHtmlArray.join('');
+        div.innerHTML = newHtml;
+        saveToCache('polls_html', newHtml);
+        
+        if(isRealtimeUpdate) { playBeep(); window.scrollTo(0, oldScroll); } else { window.scrollTo(0, 0); }
+    } catch(e) {
+        if(!isRealtimeUpdate) div.innerHTML = `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+    }
+}
 
                 async function castVote(pollId, optionIndex) {
             const u = JSON.parse(localStorage.getItem('kitama_user'));
