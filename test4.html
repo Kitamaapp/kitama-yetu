@@ -8537,16 +8537,25 @@ async function showViewersPanel() {
     if (!status) return;
     
     try {
-        // 1. SOMA WALIOTAZAMA KUTOKA KWENYE DATABASE
+        // 1. ANGALIA WALIOTAZAMA WALIOHIFADHIWA KWENYE SIMU (Local)
+        let localViewers = status.seen_by || [];
+        
+        // 2. SOMA WALIOTAZAMA KUTOKA KWENYE DATABASE
+        let dbViewers = [];
         const { data: views, error } = await sb.from('status_views').select('viewer_phone').eq('status_id', status.id);
         if (error) throw error;
         
-        let html = '';
         if (views && views.length > 0) {
-            const viewerPhones = views.map(v => v.viewer_phone);
-            
-            // 2. TAFUTA MAJINA NA PICHA ZAO
-            const { data: viewersData, error: usrErr } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', viewerPhones);
+            dbViewers = views.map(v => v.viewer_phone);
+        }
+        
+        // 3. UNGANISHA WALIOTAZAMA WOTE (KUTOKA DB NA SIMU) BILA KURUDIA-RUDIA
+        const allViewers = [...new Set([...localViewers, ...dbViewers])];
+        
+        let html = '';
+        if (allViewers.length > 0) {
+            // TAFUTA MAJINA NA PICHA ZA WALIOTAZAMA WOTE
+            const { data: viewersData, error: usrErr } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', allViewers);
             if (usrErr) throw usrErr;
             
             html = viewersData.map(v => `
