@@ -528,6 +528,47 @@ img[src*="kitama-logo"] { background: #ffffff !important; padding: 4px !importan
     border: 1.5px solid var(--border) !important; 
     font-weight: 700 !important;
 }
+/* CSS WA MASWALI (FAQs) */
+.faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+.faq-header {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+.faq-header b {
+    font-size: 15px;
+    color: var(--text);
+}
+.faq-icon {
+    transition: transform 0.3s ease;
+}
+.faq-item.active .faq-icon {
+    transform: rotate(180deg);
+}
+.faq-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: var(--bg);
+}
+.faq-body p {
+    padding: 0 16px 16px 16px;
+    font-size: 14px;
+    color: var(--text-sec);
+    line-height: 1.6;
+    margin: 0;
+}
+.faq-item.active .faq-body {
+    max-height: 200px; /* Nafasi ya kutosha kwa jibu */
+}
 </style>
 </head>
 <body>
@@ -697,6 +738,14 @@ img[src*="kitama-logo"] { background: #ffffff !important; padding: 4px !importan
     </header>
     <main>
         <div id="home-sec" class="sec active"><div id="home-content"></div></div>
+        <!-- UKURASA WA MSAAADA NA MAONI -->
+<div class="sec" id="help-feedback-sec">
+    <div class="sec-h">
+        <h2>Msaada & Maoni</h2>
+        <span onclick="handleNav('home-sec')" style="flex-shrink: 0; cursor: pointer;">Nyumbani</span>
+    </div>
+    <div id="help-feedback-content" style="padding: 0 20px 100px 20px;"></div>
+</div>
         <div id="hub-sec" class="sec"><div class="sec-h"><h2>Mchanganyiko wa Habari</h2><span onclick="fetchHub()">Refresh</span></div><div id="hub-list"></div></div>
                
         <!-- BODA HAILING SECTION (BOLT STYLE) -->
@@ -2839,7 +2888,8 @@ startSmartPolling();
         else oppAddBtn.style.display = 'none';
     }
     
-    if(id==='add-item-sec') checkUserShop();
+        if(id==='add-item-sec') checkUserShop();
+        if(id==='help-feedback-sec') loadHelpFeedbackUI(); // ONGEZA HII
 }
 
             async function fetchActivistArticles() {
@@ -6370,20 +6420,102 @@ async function cancelBodaRide(rideId) {
     });
 
     // --- DEVELOPER FEEDBACK FUNCTIONS ---
-    function openFeedbackModal() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        if (u.role === 'system_admin') {
-            fetchDeveloperFeedback();
-        } else {
-            openModal("Maoni kwa Developer", `<p style="font-size:13px; color:var(--text-sec); margin-bottom:15px;">Una maoni gani kuhusu app hii? Andika hapa, Developer (IT) atayapokea moja kwa moja.</p><textarea id="dev-feedback-input" class="modal-input" style="min-height: 100px;" placeholder="Andika maoni yako hapa..."></textarea>`, true, async (text) => {
-                if(!text) return;
-                try {
-                    await sb.from('developer_feedback').insert([{ user_name: u.full_name, phone: u.phone_number, content: text }]);
-                    showToast("Asante kwa maoni yako! Developer ameyapokea.");
-                } catch(e) { openModal("Kosa", e.message); }
-            });
-        }
+  // ================================================== */
+// MSAAADA NA MAONI (FULL SCREEN PAGE) - INAJITENGENEZA YENYE
+// ================================================== */
+
+// 1. TENGENEZA UKURASA WA MSAAADA MOJA KWA MOJA PEMBEZONI MWA HOME-SEC
+if (!document.getElementById('help-feedback-sec')) {
+    const homeSec = document.getElementById('home-sec');
+    if (homeSec && homeSec.parentNode) {
+        const helpSec = document.createElement('div');
+        helpSec.className = 'sec';
+        helpSec.id = 'help-feedback-sec';
+        helpSec.innerHTML = `
+            <div class="sec-h">
+                <h2>Msaada & Maoni</h2>
+                <span onclick="handleNav('home-sec')" style="flex-shrink: 0;">Nyumbani</span>
+            </div>
+            <div id="help-feedback-content" style="padding: 0 20px 100px 20px;"></div>
+        `;
+        // Iweke kabisa pembezoni mwa home-sec ili irudi katikati
+        homeSec.parentNode.insertBefore(helpSec, homeSec.nextSibling);
     }
+}
+
+function openFeedbackModal() {
+    loadHelpFeedbackUI();
+    handleNav('help-feedback-sec');
+}
+
+function loadHelpFeedbackUI() {
+    const div = document.getElementById('help-feedback-content');
+    if (!div) return;
+    
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    let adminHtml = '';
+    if (u.role === 'system_admin') {
+        adminHtml = `<button onclick="handleNav('admin-feedback-sec')" class="btn-p" style="background:var(--bg); color:var(--accent); border:1px solid var(--accent); margin-bottom: 20px;">Soma Maoni ya Watu (Admin)</button>`;
+    }
+    
+    const faqs = [
+        { q: "Kwa nini picha zangu hazionekani kwenye simu?", a: "Hakikisha una mtandao wa kawaida. Mfumo unatumia hifadhi ya wingu (Cloudinary) ili kuhifadhi picha, hivyo inaweza kuchukua muda kidogo kupakia." },
+        { q: "Je, ninaweza kufuta akaunti yangu?", a: "Kwa sasa, unaweza kuwasiliana na Admin wa App ili akufutie akaunti kwenye mfumo. Namba yako na taarifa zote zitaondolewa." },
+        { q: "Kwa nini Status yangu haionekana kwa wengine?", a: "Mfumo wa Status unataka uwe umeongeza marafiki zako kwenye orodha ili uweze kuona status zao." },
+        { q: "Vipi naweza kuwa Activist (Verified)?", a: "Nenda kwenye Profaili yako, bonyeza 'Pata Uthibitisho', fuatilia maelekezo kulipia na kusubiri kuidhinishwa na Admin." }
+    ];
+    
+    let faqsHtml = faqs.map(f => `
+        <div class="faq-item" onclick="toggleFAQ(this)">
+            <div class="faq-header">
+                <b>${f.q}</b>
+                <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-sec)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="faq-body">
+                <p>${f.a}</p>
+            </div>
+        </div>
+    `).join('');
+    
+    div.innerHTML = `
+        ${adminHtml}
+        <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 15px 4px;">Maswali Yanayoulizwa Mara kwa Mara</h3>
+        ${faqsHtml}
+        <h3 style="font-size: 16px; font-weight: 700; margin: 25px 0 15px 4px;">Tuma Maoni au Kero kwa Developer</h3>
+        <div class="list-i" style="margin: 0;">
+            <textarea id="dev-feedback-input" class="modal-input" style="min-height: 120px; border: none; background: transparent; padding: 5px 0; margin: 0;" placeholder="Andika maoni yako, kero, au ushauri hapa..."></textarea>
+        </div>
+        <button onclick="sendHelpFeedback()" class="btn-p" style="margin-top: 15px;">Tuma Maoni</button>
+    `;
+}
+
+function toggleFAQ(el) {
+    el.classList.toggle('active');
+}
+
+async function sendHelpFeedback() {
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    const content = document.getElementById('dev-feedback-input').value.trim();
+    if(!content) return showToast("Tafadhali andika maoni yako.");
+    
+    const btn = document.querySelector('#help-feedback-content .btn-p');
+    if(btn) { btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true; }
+    
+    try {
+        const { error } = await sb.from('developer_feedback').insert([{ 
+            user_name: u.full_name, phone: u.phone_number, content: content, feedback_type: 'Pendekezo', status: 'pending'
+        }]);
+        if(error) throw error;
+        
+        showToast("Asante! Maoni yako yamepokewa na Developer.");
+        document.getElementById('dev-feedback-input').value = '';
+        handleNav('home-sec');
+    } catch(e) { 
+        openModal("Kosa", e.message); 
+    } finally { 
+        if(btn) { btn.innerHTML = 'Tuma Maoni'; btn.disabled = false; } 
+    }
+}
 
     // --- ADMIN GLOBAL BROADCAST FUNCTION (IMEBORESHWA) ---
     function openBroadcastModal() {
