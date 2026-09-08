@@ -7760,133 +7760,139 @@ async function cancelBodaRide(rideId) {
         }
 
         // --- MAIN UI LOADER (With Error Catching) ---
-                 async function loadStatusUI() {
-            try {
-                cleanExpiredStatuses();
-                const u = JSON.parse(localStorage.getItem('kitama_user'));
-                if (!u || !u.phone_number) return;
+    async function loadStatusUI() {
+    try {
+        cleanExpiredStatuses();
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        if (!u || !u.phone_number) return;
+        
+        const grouped = getGroupedStatuses();
+        
+        // 1. STATUS YANGU
+        const myStatuses = grouped[u.phone_number] || [];
+        const myList = document.getElementById('my-status-list');
+        if (myList) {
+            if (myStatuses.length > 0) {
+                let myFirstImg = myStatuses[0].media_base64.startsWith('http') ? 
+                    `<img src="${myStatuses[0].media_base64}" referrerpolicy="no-referrer" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent); opacity: 0.9;">` : 
+                    `<img src="${myStatuses[0].media_base64}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent); opacity: 0.9;">`;
                 
-                const grouped = getGroupedStatuses();
-                
-                // 1. STATUS YANGU
-                const myStatuses = grouped[u.phone_number] || [];
-                const myList = document.getElementById('my-status-list');
-                if (myList) {
-                    if (myStatuses.length > 0) {
-                        // KAMA NI LINK YA CLOUDINARY, ONDOA KIZUIA CHA USALAMA
-                        let myFirstImg = myStatuses[0].media_base64.startsWith('http') ? 
-                            `<img src="${myStatuses[0].media_base64}" referrerpolicy="no-referrer" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent); opacity: 0.9;">` : 
-                            `<img src="${myStatuses[0].media_base64}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent); opacity: 0.9;">`;
-                        
-                        myList.innerHTML = `<div style="position:relative; cursor:pointer;" onclick="viewStatus('${u.phone_number}')">
-                            ${myFirstImg}
-                            ${myStatuses.length > 1 ? `<div style="position:absolute; top:-5px; right:-5px; background:var(--accent); color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border: 2px solid var(--surface);">${myStatuses.length}</div>` : ''}
-                        </div>`;
-                    } else {
-                        myList.innerHTML = `<div onclick="openStatusUploadModal()" style="width:60px; height:60px; border-radius:50%; border: 2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-sec); cursor:pointer; font-size:24px;">+</div>`;
-                    }
-                }
-
-                const otherList = document.getElementById('other-status-list');
-                const permContainer = document.getElementById('contacts-permission-container');
-                const kitamaFriends = JSON.parse(localStorage.getItem('kitama_saved_contacts') || '[]'); // Sasa hii ni orodha ya marafiki
-                
-                let statusItems = [];
-                const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
-
-                // 2. VUTA STATUS YA MFUMO WA KITAMA (Kutoka DB) na iweke Juu
-                try {
-                    const { data: adminStatuses } = await sb.from('admin_status').select('*').gt('expiry', new Date().toISOString()).order('created_at', { ascending: false }).limit(1);
-                    if (adminStatuses && adminStatuses.length > 0) {
-                        const s = adminStatuses[0];
-                        let avatarHtml = s.image_url ? `<img src="${s.image_url}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">` : `<img src="${adminLogoUrl}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">`;
-                        statusItems.push(`
-                            <div onclick="viewOfficialStatus('${s.id}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
-                                <div style="position:relative;">${avatarHtml}</div>
-                                <div>
-                                    <b style="display:block; font-size:14px; display:flex; align-items:center; gap:4px;">Kitama Yetu ${getWhatsAppVerifiedBadge()}</b>
-                                    <small style="color:var(--text-sec); font-size:11px;">${new Date(s.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-                                </div>
-                            </div>
-                        `);
-                    }
-                } catch(e) { console.error("Admin status error:", e); }
-
-                // 3. VUTA STATUS ZA WENZANGU (P2P)
-                const otherUsers = Object.keys(grouped).filter(phone => phone !== u.phone_number);
-                
-                let renderP2PStatuses = (phonesToRender) => {
-                    phonesToRender.forEach(phone => {
-                        let isSystem = (phone === window.adminPhone);
-                        let statuses = grouped[phone];
-                        if(!statuses || statuses.length === 0) return;
-                        
-                        let border = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number)) ? 'var(--border)' : 'var(--accent)';
-                        
-                        let avatarHtml;
-                        if (isSystem) {
-                            avatarHtml = `<img src="${adminLogoUrl}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">`;
-                        } else {
-                            // KAMA NI LINK YA CLOUDINARY (HTTP), ONDOA KIZUIA CHA USALAMA
-                            let imgSrc = statuses[0].media_base64.startsWith('http') ? 
-                                `<img src="${statuses[0].media_base64}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">` : 
-                                `<img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">`;
-                            avatarHtml = imgSrc;
-                        }
-                        
-                        let nameHtml = isSystem ? `Kitama Yetu ${getWhatsAppVerifiedBadge()}` : statuses[0].sender_name;
-                        
-                        statusItems.push(`<div onclick="viewStatus('${phone}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
-                            <div style="position:relative;">${avatarHtml}</div>
-                            <div>
-                                <b style="display:block; font-size:14px;">${nameHtml}</b>
-                                <small style="color:var(--text-sec); font-size:11px;">${new Date(statuses[0].timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-                            </div>
-                        </div>`);
-                    });
-                };
-
-                // HAPA NDIO MABADILIKO MAKUBWA: KUTUMIA "KITAMA FRIENDS" BADALA YA CONTACTS ZA SIMU
-                if (kitamaFriends.length === 0) {
-                    // KAMA HAJAONGEZA RAFIKI YOYOTE, ONYESHA KITUFE CHA "ONGEZA RAFIKI"
-                    let hasOtherUsers = otherUsers.some(phone => phone !== window.adminPhone); 
-                    if(permContainer && hasOtherUsers) {
-                        permContainer.innerHTML = `<div class="contacts-permission-box">
-                            <div class="icon-box">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                            </div>
-                            <div class="text-box">
-                                <h4>Ona Status za Marafiki</h4>
-                                <p>Ongeza watu unaowafahamu ili uweze kuona Status.</p>
-                            </div>
-                            <button onclick="openAddFriendModal()">Ongeza Rafiki</button>
-                        </div>`;
-                    }
-                    
-                    // ONYESHA TU STATUS YA ADMIN (P2P) HATA HAJAONGEZA RAFIKI
-                    let adminP2P = otherUsers.filter(phone => phone === window.adminPhone);
-                    renderP2PStatuses(adminP2P);
-                    
-                } else {
-                    // KAMA ANA MARAFIKI (AMEWACHAGUA), ONYESHA WAO NA ADMIN TU
-                    if(permContainer) permContainer.innerHTML = '';
-                    let visiblePhones = otherUsers.filter(phone => {
-                        if (phone === window.adminPhone) return true; // Admin aonekane daima
-                        return kitamaFriends.includes(normalizePhone(phone));
-                    });
-                    renderP2PStatuses(visiblePhones);
-                }
-
-                // ONESHA STATUS ZILIZOJAA
-                if (statusItems.length > 0) {
-                    otherList.innerHTML = statusItems.join('');
-                } else {
-                    otherList.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna status mpya za wenzako. Rudi baadaye!</p>';
-                }
-            } catch(e) {
-                console.error("Status UI Crash Error:", e);
+                myList.innerHTML = `<div style="position:relative; cursor:pointer;" onclick="viewStatus('${u.phone_number}')">
+                    ${myFirstImg}
+                    ${myStatuses.length > 1 ? `<div style="position:absolute; top:-5px; right:-5px; background:var(--accent); color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border: 2px solid var(--surface);">${myStatuses.length}</div>` : ''}
+                </div>`;
+            } else {
+                myList.innerHTML = `<div onclick="openStatusUploadModal()" style="width:60px; height:60px; border-radius:50%; border: 2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-sec); cursor:pointer; font-size:24px;">+</div>`;
             }
-          }
+        }
+
+        const otherList = document.getElementById('other-status-list');
+        const permContainer = document.getElementById('contacts-permission-container');
+        const kitamaFriends = JSON.parse(localStorage.getItem('kitama_saved_contacts') || '[]');
+        
+        let statusItems = [];
+        const adminLogoUrl = 'https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png';
+
+        // 2. VUTA STATUS YA MFUMO WA KITAMA
+        try {
+            const { data: adminStatuses } = await sb.from('admin_status').select('*').gt('expiry', new Date().toISOString()).order('created_at', { ascending: false }).limit(1);
+            if (adminStatuses && adminStatuses.length > 0) {
+                const s = adminStatuses[0];
+                let avatarHtml = s.image_url ? `<img src="${s.image_url}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">` : `<img src="${adminLogoUrl}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid var(--accent);">`;
+                statusItems.push(`
+                    <div onclick="viewOfficialStatus('${s.id}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
+                        <div style="position:relative;">${avatarHtml}</div>
+                        <div>
+                            <b style="display:block; font-size:14px; display:flex; align-items:center; gap:4px;">Kitama Yetu ${getWhatsAppVerifiedBadge()}</b>
+                            <small style="color:var(--text-sec); font-size:11px;">${new Date(s.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                        </div>
+                    </div>
+                `);
+            }
+        } catch(e) { console.error("Admin status error:", e); }
+
+        // 3. VUTA STATUS ZA WENZANGU (P2P)
+        const otherUsers = Object.keys(grouped).filter(phone => phone !== u.phone_number);
+        
+        let renderP2PStatuses = (phonesToRender) => {
+            phonesToRender.forEach(phone => {
+                let isSystem = (phone === window.adminPhone);
+                let statuses = grouped[phone];
+                if(!statuses || statuses.length === 0) return;
+                
+                let border = statuses.every(s => s.seen_by && s.seen_by.includes(u.phone_number)) ? 'var(--border)' : 'var(--accent)';
+                
+                let avatarHtml;
+                if (isSystem) {
+                    avatarHtml = `<img src="${adminLogoUrl}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">`;
+                } else {
+                    let imgSrc = statuses[0].media_base64.startsWith('http') ? 
+                        `<img src="${statuses[0].media_base64}" referrerpolicy="no-referrer" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">` : 
+                        `<img src="${statuses[0].media_base64}" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border: 3px solid ${border};">`;
+                    avatarHtml = imgSrc;
+                }
+                
+                let nameHtml = isSystem ? `Kitama Yetu ${getWhatsAppVerifiedBadge()}` : statuses[0].sender_name;
+                
+                statusItems.push(`<div onclick="viewStatus('${phone}')" style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:8px; border-radius:12px; background:var(--surface); border:1px solid var(--border);">
+                    <div style="position:relative;">${avatarHtml}</div>
+                    <div>
+                        <b style="display:block; font-size:14px;">${nameHtml}</b>
+                        <small style="color:var(--text-sec); font-size:11px;">${new Date(statuses[0].timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                    </div>
+                </div>`);
+            });
+        };
+
+        if (kitamaFriends.length === 0) {
+            let hasOtherUsers = otherUsers.some(phone => phone !== window.adminPhone); 
+            if(permContainer && hasOtherUsers) {
+                permContainer.innerHTML = `<div class="contacts-permission-box">
+                    <div class="icon-box">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                    </div>
+                    <div class="text-box">
+                        <h4>Ona Status za Marafiki</h4>
+                        <p>Ongeza watu unaowafahamu ili uweze kuona Status.</p>
+                    </div>
+                    <button onclick="openAddFriendModal()">Ongeza Rafiki</button>
+                </div>`;
+            }
+            
+            let adminP2P = otherUsers.filter(phone => phone === window.adminPhone);
+            renderP2PStatuses(adminP2P);
+            
+        } else {
+            // SOSA: Badala ya kuficha kitufe, weka kitufe cha kuongeza rafiki mwingine muda wowote
+            if(permContainer) {
+                permContainer.innerHTML = `<div class="contacts-permission-box">
+                    <div class="icon-box">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                    </div>
+                    <div class="text-box">
+                        <h4>Ongeza Marafiki Wengine</h4>
+                        <p>Kama kuna wenzako ambao hawapo kwenye orodha, ongeza hapa.</p>
+                    </div>
+                    <button onclick="openAddFriendModal()">Ongeza Rafiki</button>
+                </div>`;
+            }
+            
+            let visiblePhones = otherUsers.filter(phone => {
+                if (phone === window.adminPhone) return true;
+                return kitamaFriends.includes(normalizePhone(phone));
+            });
+            renderP2PStatuses(visiblePhones);
+        }
+
+        if (statusItems.length > 0) {
+            otherList.innerHTML = statusItems.join('');
+        } else {
+            otherList.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna status mpya za wenzako. Rudi baadaye!</p>';
+        }
+    } catch(e) {
+        console.error("Status UI Crash Error:", e);
+    }
+}
     function openAddFriendModal() {
     if(activeCitizens.length === 0) return showToast("Hakuna wananchi waliopatikana.");
     
@@ -7938,99 +7944,101 @@ function toggleKitamaFriend(phone) {
 }
         // 4. Upload Modal
             function openStatusCaptionModal() {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            const citizensList = activeCitizens.filter(c => c.role !== 'system_admin');
-            const isVerified = u.is_activist;
-            const videoLimitText = isVerified ? "dakika 3" : "sekunde 40";
-            
-            const html = `
-                <!-- WHATSAPP STYLE PREVIEW -->
-                <div style="width: 100%; height: 250px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 15px; background: #000;">
-                    ${statusMediaType === 'video' ? 
-                        `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:contain;" controls></video>` : 
-                        `<img src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;">`
-                    }
-                </div>
-                
-                <!-- CAPTION INPUT -->
-                <div class="form-g">
-                    <input type="text" id="status-caption" class="modal-input" placeholder="Add a caption..." style="padding-left: 16px; margin-bottom: 0;">
-                </div>
-                
-                <!-- PRIVACY SETTINGS (Hidden by default, shows on click) -->
-                <div id="privacy-toggle" style="display: flex; align-items: center; gap: 8px; margin-top: 15px; cursor: pointer;" onclick="document.getElementById('status-hide-from').style.display = document.getElementById('status-hide-from').style.display === 'none' ? 'block' : 'none';">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-sec)" stroke-width="2"><path d="M17 98l4 4M9 17l-5-5m12-4l5 5-5 5M3 7l5 5"/></svg>
-                    <span style="font-size: 13px; color: var(--text-sec); font-weight: 600;">Mfichie nani? (Privacy)</span>
-                </div>
-                <select id="status-hide-from" multiple class="modal-input" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); display: none; margin-top: 5px;">
-                    ${citizensList.map(c => `<option value="${c.phone_number}">${c.full_name}</option>`).join('')}
-                </select>
-                <div class="form-g" style="display:flex; align-items:center; gap:8px; margin-top: 15px;">
-                    <input type="checkbox" id="status-hide-seen" style="width:auto;">
-                    <label for="status-hide-seen" style="font-size:12px; color:var(--text-sec);">Ficha wanaoiona (Blue Ticks)</label>
-                </div>
-                <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top: 10px;">* Picha itaonekana kwa sekunde 15. Video itachezwa hadi sekunde 30 (au sekunde 90 kwa Activists).</small>
-            `;
-            
-            openModal("New Status", html, false, async () => {
-                if (!statusMediaBase64) return showToast("Kosa la kupakia. Rudi nyuma uchague tena.");
-                
-                const btn = document.getElementById('modal-ok');
-                btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
-                
-                const hideFrom = Array.from(document.getElementById('status-hide-from').selectedOptions).map(o => o.value);
-                const hideSeen = document.getElementById('status-hide-seen').checked;
-                const caption = document.getElementById('status-caption').value.trim();
-                const duration = 24;
-                
-               let maxPlayDuration = 30; 
-               if (statusMediaType === 'video') { 
-               // KAMA NI ACTIVIST, CHEZA SEKUNDE 90. KAMA HAJAIDHINISHWA, CHEZA SEKUNDE 30.
-               maxPlayDuration = isVerified ? 90 : 30; 
-             }
-                
-                const newStatus = {
-                    id: 'st_' + Date.now() + u.phone_number,
-                    sender_phone: u.phone_number,
-                    sender_name: u.full_name,
-                    media_base64: statusMediaBase64,
-                    media_type: statusMediaType,
-                    caption: caption,
-                    max_play_duration: maxPlayDuration,
-                    timestamp: new Date().toISOString(),
-                    expiry: new Date(Date.now() + (duration * 3600000)).toISOString(), 
-                    hide_from: hideFrom,
-                    hide_seen_receipts: hideSeen,
-                    seen_by: []
-                };
-                
-                let myStorage = getStatusFromStorage();
-                myStorage.push(newStatus);
-                
-                try { saveStatusToStorage(myStorage); } catch(e) {
-                    btn.innerHTML = 'Weka Status'; btn.disabled = false;
-                    return showToast("Hifadhi ya simu imejaa.");
-                }
-                
-                closeModal(); showToast("Status imewekwa!"); loadStatusUI();
-                if (statusNetworkChannel) statusNetworkChannel.untrack().then(() => statusNetworkChannel.track({ phone: u.phone_number, name: u.full_name }));
-                statusMediaBase64 = null;
-            });
-            // ONGEZA HII MISTARI HAPA CHINI YA OPENMODAL
-        const cancelBtn = document.getElementById('modal-cancel');
-        if (cancelBtn) {
-            cancelBtn.onclick = async () => {
-                // KAMA AMEPAKIA VIDEO CLOUDINARY KISHA AMEGHAIRI, IFUTE KWENYE CLOUDINARY
-                if (statusMediaBase64 && statusMediaBase64.startsWith('http')) {
-                    showToast("Inafuta video iliyoachwa...");
-                    await deleteCloudinaryAsset(statusMediaBase64);
-                }
-                statusMediaBase64 = null;
-                statusMediaType = null;
-                closeModal();
-            };
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    const citizensList = activeCitizens.filter(c => c.role !== 'system_admin');
+    const isVerified = u.is_activist;
+    const videoLimitText = isVerified ? "dakika 3" : "sekunde 40";
+    
+    const html = `
+        <!-- WHATSAPP STYLE PREVIEW -->
+        <div style="width: 100%; height: 250px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 15px; background: #000;">
+            ${statusMediaType === 'video' ? 
+                `<video src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:contain;" controls></video>` : 
+                `<img src="${statusMediaBase64}" style="width:100%; height:100%; object-fit:cover;">`
+            }
+        </div>
+        
+        <!-- CAPTION INPUT -->
+        <div class="form-g">
+            <input type="text" id="status-caption" class="modal-input" placeholder="Add a caption..." style="padding-left: 16px; margin-bottom: 0;">
+        </div>
+        
+        <!-- PRIVACY SETTINGS (Hidden by default, shows on click) -->
+        <div id="privacy-toggle" style="display: flex; align-items: center; gap: 8px; margin-top: 15px; cursor: pointer;" onclick="document.getElementById('status-hide-from').style.display = document.getElementById('status-hide-from').style.display === 'none' ? 'block' : 'none';">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-sec)" stroke-width="2"><path d="M17 98l4 4M9 17l-5-5m12-4l5 5-5 5M3 7l5 5"/></svg>
+            <span style="font-size: 13px; color: var(--text-sec); font-weight: 600;">Mfichie nani? (Privacy)</span>
+        </div>
+        
+        <!-- TUMIA CHECKBOXES BADALA YA SELECT MULTIPLE -->
+        <div id="status-hide-from" style="display: none; max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 5px; margin-top: 5px; background: var(--bg);">
+            ${citizensList.map(c => `<label style="display:flex; align-items:center; gap:10px; padding:8px; cursor:pointer; border-bottom: 1px solid var(--border);"><input type="checkbox" value="${c.phone_number}" style="width:20px; height:20px;"> ${c.full_name}</label>`).join('')}
+        </div>
+        
+        <div class="form-g" style="display:flex; align-items:center; gap:8px; margin-top: 15px;">
+            <input type="checkbox" id="status-hide-seen" style="width:auto;">
+            <label for="status-hide-seen" style="font-size:12px; color:var(--text-sec);">Ficha wanaoiona (Blue Ticks)</label>
+        </div>
+        <small style="color: var(--text-sec); font-size: 11px; display:block; margin-top: 10px;">* Picha itaonekana kwa sekunde 15. Video itachezwa hadi sekunde 30 (au sekunde 90 kwa Activists).</small>
+    `;
+    
+    openModal("New Status", html, false, async () => {
+        if (!statusMediaBase64) return showToast("Kosa la kupakia. Rudi nyuma uchague tena.");
+        
+        const btn = document.getElementById('modal-ok');
+        btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
+        
+        // SOSA: Soma viboksi vilivyotikiwa
+        const hideFrom = Array.from(document.querySelectorAll('#status-hide-from input:checked')).map(cb => cb.value);
+        const hideSeen = document.getElementById('status-hide-seen').checked;
+        const caption = document.getElementById('status-caption').value.trim();
+        const duration = 24;
+        
+        let maxPlayDuration = 30; 
+        if (statusMediaType === 'video') { 
+            maxPlayDuration = isVerified ? 90 : 30; 
         }
+        
+        const newStatus = {
+            id: 'st_' + Date.now() + u.phone_number,
+            sender_phone: u.phone_number,
+            sender_name: u.full_name,
+            media_base64: statusMediaBase64,
+            media_type: statusMediaType,
+            caption: caption,
+            max_play_duration: maxPlayDuration,
+            timestamp: new Date().toISOString(),
+            expiry: new Date(Date.now() + (duration * 3600000)).toISOString(), 
+            hide_from: hideFrom,
+            hide_seen_receipts: hideSeen,
+            seen_by: []
+        };
+        
+        let myStorage = getStatusFromStorage();
+        myStorage.push(newStatus);
+        
+        try { saveStatusToStorage(myStorage); } catch(e) {
+            btn.innerHTML = 'Weka Status'; btn.disabled = false;
+            return showToast("Hifadhi ya simu imejaa.");
         }
+        
+        closeModal(); showToast("Status imewekwa!"); loadStatusUI();
+        if (statusNetworkChannel) statusNetworkChannel.untrack().then(() => statusNetworkChannel.track({ phone: u.phone_number, name: u.full_name }));
+        statusMediaBase64 = null;
+    });
+    
+    const cancelBtn = document.getElementById('modal-cancel');
+    if (cancelBtn) {
+        cancelBtn.onclick = async () => {
+            if (statusMediaBase64 && statusMediaBase64.startsWith('http')) {
+                showToast("Inafuta video iliyoachwa...");
+                await deleteCloudinaryAsset(statusMediaBase64);
+            }
+            statusMediaBase64 = null;
+            statusMediaType = null;
+            closeModal();
+        };
+    }
+}
     
                async function viewOfficialStatus(id) {
             try {
@@ -8155,81 +8163,85 @@ function toggleKitamaFriend(phone) {
         reader.readAsDataURL(file);
     }
 }
-            function openTextStatusModal() {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            const citizensList = activeCitizens.filter(c => c.role !== 'system_admin');
-            const colors = ['#1E293B', '#7F1D1D', '#14532D', '#581C87', '#155E75', '#92400E'];
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            
-            const html = `
-                <!-- WHATSAPP TEXT STATUS UI -->
-                <div style="width: 100%; height: 200px; border-radius: 12px; background: ${randomColor}; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid var(--border);">
-                    <textarea id="text-status-input" placeholder="Andika ujumbe hapa..." style="width: 90%; height: 80%; background: transparent; border: none; outline: none; color: white; font-size: 18px; font-weight: 600; text-align: center; resize: none;"></textarea>
-                </div>
-                
-                <div class="form-g">
-                    <input type="text" id="status-caption" class="modal-input" placeholder="Add a caption..." style="padding-left: 16px; margin-bottom: 0;">
-                </div>
-                
-                <div id="privacy-toggle" style="display: flex; align-items: center; gap: 8px; margin-top: 15px; cursor: pointer;" onclick="document.getElementById('status-hide-from').style.display = document.getElementById('status-hide-from').style.display === 'none' ? 'block' : 'none';">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-sec)" stroke-width="2"><path d="M17 98l4 4M9 17l-5-5m12-4l5 5-5 5M3 7l5 5"/></svg>
-                    <span style="font-size: 13px; color: var(--text-sec); font-weight: 600;">Mfichie nani? (Privacy)</span>
-                </div>
-                <select id="status-hide-from" multiple class="modal-input" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); display: none; margin-top: 5px;">
-                    ${citizensList.map(c => `<option value="${c.phone_number}">${c.full_name}</option>`).join('')}
-                </select>
-                <div class="form-g" style="display:flex; align-items:center; gap:8px; margin-top: 15px;">
-                    <input type="checkbox" id="status-hide-seen" style="width:auto;">
-                    <label for="status-hide-seen" style="font-size:12px; color:var(--text-sec);">Ficha wanaoiona (Blue Ticks)</label>
-                </div>
-            `;
-            
-            openModal("Text Status", html, false, async () => {
-                const textContent = document.getElementById('text-status-input').value.trim();
-                const caption = document.getElementById('status-caption').value.trim();
-                if(!textContent) return showToast("Andika kitu kwanza.");
-                
-                const btn = document.getElementById('modal-ok');
-                btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
-                
-                statusMediaBase64 = textContent; // Hifadhi maandishi
-                statusMediaType = 'text'; // Tia aina ya status kuwa 'text'
-                
-                const hideFrom = Array.from(document.getElementById('status-hide-from').selectedOptions).map(o => o.value);
-                const hideSeen = document.getElementById('status-hide-seen').checked;
-                const duration = 24;
-                
-                const newStatus = {
-                    id: 'st_' + Date.now() + u.phone_number,
-                    sender_phone: u.phone_number,
-                    sender_name: u.full_name,
-                    media_base64: statusMediaBase64,
-                    media_type: statusMediaType,
-                    caption: caption,
-                    max_play_duration: 30, // Text status itakaa sekunde 30
-                    timestamp: new Date().toISOString(),
-                    expiry: new Date(Date.now() + (duration * 3600000)).toISOString(), 
-                    hide_from: hideFrom,
-                    hide_seen_receipts: hideSeen,
-                    seen_by: []
-                };
-                
-                let myStorage = getStatusFromStorage();
-                myStorage.push(newStatus);
-                
-                try { saveStatusToStorage(myStorage); } catch(e) {
-                    btn.innerHTML = 'Weka Status'; btn.disabled = false;
-                    return showToast("Hifadhi ya simu imejaa.");
-                }
-                
-                closeModal(); showToast("Text Status imewekwa!"); loadStatusUI();
-                if (statusNetworkChannel) statusNetworkChannel.untrack().then(() => statusNetworkChannel.track({ phone: u.phone_number, name: u.full_name }));
-                statusMediaBase64 = null;
-                statusMediaType = null;
-            });
+    function openTextStatusModal() {
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    const citizensList = activeCitizens.filter(c => c.role !== 'system_admin');
+    const colors = ['#1E293B', '#7F1D1D', '#14532D', '#581C87', '#155E75', '#92400E'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    
+    const html = `
+        <!-- WHATSAPP TEXT STATUS UI -->
+        <div style="width: 100%; height: 200px; border-radius: 12px; background: ${randomColor}; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid var(--border);">
+            <textarea id="text-status-input" placeholder="Andika ujumbe hapa..." style="width: 90%; height: 80%; background: transparent; border: none; outline: none; color: white; font-size: 18px; font-weight: 600; text-align: center; resize: none;"></textarea>
+        </div>
+        
+        <div class="form-g">
+            <input type="text" id="status-caption" class="modal-input" placeholder="Add a caption..." style="padding-left: 16px; margin-bottom: 0;">
+        </div>
+        
+        <div id="privacy-toggle" style="display: flex; align-items: center; gap: 8px; margin-top: 15px; cursor: pointer;" onclick="document.getElementById('status-hide-from').style.display = document.getElementById('status-hide-from').style.display === 'none' ? 'block' : 'none';">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-sec)" stroke-width="2"><path d="M17 98l4 4M9 17l-5-5m12-4l5 5-5 5M3 7l5 5"/></svg>
+            <span style="font-size: 13px; color: var(--text-sec); font-weight: 600;">Mfichie nani? (Privacy)</span>
+        </div>
+        
+        <!-- TUMIA CHECKBOXES BADALA YA SELECT MULTIPLE -->
+        <div id="status-hide-from" style="display: none; max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 5px; margin-top: 5px; background: var(--bg);">
+            ${citizensList.map(c => `<label style="display:flex; align-items:center; gap:10px; padding:8px; cursor:pointer; border-bottom: 1px solid var(--border);"><input type="checkbox" value="${c.phone_number}" style="width:20px; height:20px;"> ${c.full_name}</label>`).join('')}
+        </div>
+        
+        <div class="form-g" style="display:flex; align-items:center; gap:8px; margin-top: 15px;">
+            <input type="checkbox" id="status-hide-seen" style="width:auto;">
+            <label for="status-hide-seen" style="font-size:12px; color:var(--text-sec);">Ficha wanaoiona (Blue Ticks)</label>
+        </div>
+    `;
+    
+    openModal("Text Status", html, false, async () => {
+        const textContent = document.getElementById('text-status-input').value.trim();
+        const caption = document.getElementById('status-caption').value.trim();
+        if(!textContent) return showToast("Andika kitu kwanza.");
+        
+        const btn = document.getElementById('modal-ok');
+        btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
+        
+        statusMediaBase64 = textContent;
+        statusMediaType = 'text';
+        
+        // SOSA: Soma viboksi vilivyotikiwa
+        const hideFrom = Array.from(document.querySelectorAll('#status-hide-from input:checked')).map(cb => cb.value);
+        const hideSeen = document.getElementById('status-hide-seen').checked;
+        const duration = 24;
+        
+        const newStatus = {
+            id: 'st_' + Date.now() + u.phone_number,
+            sender_phone: u.phone_number,
+            sender_name: u.full_name,
+            media_base64: statusMediaBase64,
+            media_type: statusMediaType,
+            caption: caption,
+            max_play_duration: 30,
+            timestamp: new Date().toISOString(),
+            expiry: new Date(Date.now() + (duration * 3600000)).toISOString(), 
+            hide_from: hideFrom,
+            hide_seen_receipts: hideSeen,
+            seen_by: []
+        };
+        
+        let myStorage = getStatusFromStorage();
+        myStorage.push(newStatus);
+        
+        try { saveStatusToStorage(myStorage); } catch(e) {
+            btn.innerHTML = 'Weka Status'; btn.disabled = false;
+            return showToast("Hifadhi ya simu imejaa.");
         }
+        
+        closeModal(); showToast("Text Status imewekwa!"); loadStatusUI();
+        if (statusNetworkChannel) statusNetworkChannel.untrack().then(() => statusNetworkChannel.track({ phone: u.phone_number, name: u.full_name }));
+        statusMediaBase64 = null;
+        statusMediaType = null;
+    });
+}
 
-        function renderStatusSegments() {
+    function renderStatusSegments() {
     const barContainer = document.getElementById('status-progress-bar');
     if(!barContainer) return;
     barContainer.innerHTML = '';
