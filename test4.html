@@ -7686,6 +7686,22 @@ async function cancelBodaRide(rideId) {
                     if (document.getElementById('status-sec').classList.contains('active')) loadStatusUI();
                 }
             })
+            .on('broadcast', { event: 'delete_status' }, payload => {
+                const u = JSON.parse(localStorage.getItem('kitama_user'));
+                if (payload.payload.to !== u.phone_number) return;
+                
+                let myStorage = getStatusFromStorage();
+                const initialLength = myStorage.length;
+                
+                // Futa status hiyo kwenye simu ya mtu anayeipokea ujumbe
+                myStorage = myStorage.filter(s => s.id !== payload.payload.status_id);
+                
+                if (myStorage.length !== initialLength) {
+                    saveStatusToStorage(myStorage);
+                    // Kama yupo kwenye ukurasa wa status, mwelekeze apake upya
+                    if (document.getElementById('status-sec').classList.contains('active')) loadStatusUI();
+                }
+            })
             .on('broadcast', { event: 'status_seen' }, payload => {
                 const u = JSON.parse(localStorage.getItem('kitama_user'));
                 if (payload.payload.to !== u.phone_number) return;
@@ -7758,10 +7774,35 @@ async function cancelBodaRide(rideId) {
             if (phone.startsWith('255')) return '0' + phone.substring(3);
             return phone;
         }
-
+// FUNCTION MPYA YA KUSAFISHA STATUS ZILIZOFUTWA
+async function cleanDeletedStatuses() {
+    try {
+        // Angalia zilizofutwa ndani ya masaa 24 yaliyopita
+        const twentyFourHoursAgo = new Date(Date.now() - (24 * 60 * 60 * 1000)).toISOString();
+        const { data: deletedIds, error } = await sb.from('deleted_statuses')
+            .select('id')
+            .gt('deleted_at', twentyFourHoursAgo);
+            
+        if (error) throw error;
+        
+        if (deletedIds && deletedIds.length > 0) {
+            let myStorage = getStatusFromStorage();
+            const initialLength = myStorage.length;
+            const idSet = new Set(deletedIds.map(d => d.id));
+            
+            // Futa zote zilizopo kwenye orodha ya zilizofutwa
+            myStorage = myStorage.filter(s => !idSet.has(s.id));
+            
+            if (myStorage.length !== initialLength) {
+                saveStatusToStorage(myStorage);
+            }
+        }
+    } catch(e) { console.error("Clean deleted error:", e); }
+}
         // --- MAIN UI LOADER (With Error Catching) ---
     async function loadStatusUI() {
     try {
+        await cleanDeletedStatuses();
         cleanExpiredStatuses();
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if (!u || !u.phone_number) return;
@@ -8539,25 +8580,35 @@ async function deleteCurrentStatus() {
     const currentStatus = currentStatusList[currentViewingIndex];
     if (!currentStatus) return;
     
-    // TUMIA CONFIRM YA SIMU ILI IFUNGUE JUU KABISA YA PANEL
     if (confirm("Una uhakika unataka kufuta status hii?")) {
         try {
-            // 1. Futa picha/video kwenye Cloudinary kama ipo
+            // 1. Futa picha/video kwenye Cloudinary kama ilikuwepo
             if (currentStatus.media_base64 && currentStatus.media_base64.startsWith('http')) {
                 await deleteCloudinaryAsset(currentStatus.media_base64);
             }
             
-            // 2. Futa kwenye simu (Local Storage)
+            // 2. ANDIKA KWENYE DATABASE YA SUPABASE KUWA STATUS IMEFUTWA
+            sb.from('deleted_statuses').insert([{ id: currentStatus.id }]).then(() => {}).catch(e => console.error("Insert deleted err:", e));
+            
+            // 3. Futa kwenye simu yako
             let myStorage = getStatusFromStorage();
             myStorage = myStorage.filter(s => s.id !== currentStatus.id);
             saveStatusToStorage(myStorage);
             
+            // 4. TUMA UJUMBE KWENYE MTANDAO WA P2P KUWAFUTIA WALIPO ONLINE
+            if (statusNetworkChannel) {
+                statusNetworkChannel.send({ 
+                    type: 'broadcast', 
+                    event: 'delete_status', 
+                    payload: { to: 'all', status_id: currentStatus.id } 
+                });
+            }
+            
             showToast("Status imefutwa kikamilifu!");
             playBeep();
-            
-            // 3. Funga panel na ukurasa wa status
             hideViewersPanel(); 
             closeStatusViewer();
+            loadStatusUI();
             
         } catch(e) {
             alert("Kosa: " + e.message);
