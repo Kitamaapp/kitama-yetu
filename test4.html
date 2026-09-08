@@ -7903,7 +7903,7 @@ async function cancelBodaRide(rideId) {
     
     activeCitizens.forEach(c => {
         let isFriend = kitamaFriends.includes(normalizePhone(c.phone_number));
-        let btnText = isFriend ? '✓ Mfriende' : '+ Ongeza';
+        let btnText = isFriend ? '✓ Marafiki' : '+ Ongeza';
         let btnColor = isFriend ? 'var(--accent)' : 'var(--bg)';
         let btnTxtColor = isFriend ? 'white' : 'var(--accent)';
         let btnBorder = isFriend ? 'none' : '1px solid var(--accent)';
