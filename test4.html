@@ -1161,7 +1161,7 @@ img[src*="kitama-logo"] { background: #ffffff !important; padding: 4px !importan
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                     </button>
                     <div>
-                        <h2>Chumb cha Viongozi</h2>
+                        <h2>LEADERS OFFICIAL CHATROOM</h2>
                         <small style="font-size:11px; color:var(--text-sec); margin-top:2px; display:block; font-weight:500;">Mazungumzo ya faragha ya Viongozi</small>
                     </div>
                 </div>
@@ -8391,24 +8391,17 @@ async function showStatusViewer(status) {
         footerEl.style.display = 'none';
         footerEl.onclick = null;
         if (u.phone_number !== window.adminPhone) {
-            if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
-                
-                // TUMIA ALERT ILI IONEKANE JUU KABISA YA KIOO
-                alert("Status ID: " + status.id + "\nNamba yako: " + u.phone_number);
-                
-                sb.from('status_views').insert([{
-                    status_id: status.id,
-                    viewer_phone: u.phone_number,
-                    sender_phone: status.sender_phone
-                }]).then(() => {
-                    alert("Imefanikiwa kuandikwa DB!");
-                    let myStorage = getStatusFromStorage();
-                    const s = myStorage.find(x => x.id === status.id);
-                    if (s) { if (!s.seen_by) s.seen_by = []; s.seen_by.push(u.phone_number); saveStatusToStorage(myStorage); }
-                }).catch(e => {
-                    alert("Kosa DB: " + e.message);
-                });
-            }
+            // ANDIKA MOJA KWA MOJA KWENYE DB BILA KUANGALIA SEEN_BY YA SIMU
+            // Hii inahakikisha hata kama simu haikupata P2P, DB ina record
+            sb.from('status_views').insert([{
+                status_id: status.id,
+                viewer_phone: u.phone_number,
+                sender_phone: status.sender_phone
+            }]).then(() => {
+                let myStorage = getStatusFromStorage();
+                const s = myStorage.find(x => x.id === status.id);
+                if (s) { if (!s.seen_by) s.seen_by = []; s.seen_by.push(u.phone_number); saveStatusToStorage(myStorage); }
+            }).catch(e => console.error("DB View Insert Error:", e));
         }
     }
     
@@ -8544,7 +8537,7 @@ async function showViewersPanel() {
     if (!status) return;
     
     try {
-        // SOMA WALIOTAZAMA KUTOKA KWENYE DATABASE
+        // 1. SOMA WALIOTAZAMA KUTOKA KWENYE DATABASE
         const { data: views, error } = await sb.from('status_views').select('viewer_phone').eq('status_id', status.id);
         if (error) throw error;
         
@@ -8552,7 +8545,7 @@ async function showViewersPanel() {
         if (views && views.length > 0) {
             const viewerPhones = views.map(v => v.viewer_phone);
             
-            // TAFUTA MAJINA NA PICHA ZAO
+            // 2. TAFUTA MAJINA NA PICHA ZAO
             const { data: viewersData, error: usrErr } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', viewerPhones);
             if (usrErr) throw usrErr;
             
