@@ -8391,8 +8391,7 @@ async function showStatusViewer(status) {
         footerEl.style.display = 'none';
         footerEl.onclick = null;
         if (u.phone_number !== window.adminPhone) {
-            // ANDIKA MOJA KWA MOJA KWENYE DB BILA KUANGALIA SEEN_BY YA SIMU
-            // Hii inahakikisha hata kama simu haikupata P2P, DB ina record
+            // ANDIKA KIMYAKIMYA KWENYE DB
             sb.from('status_views').insert([{
                 status_id: status.id,
                 viewer_phone: u.phone_number,
@@ -8401,7 +8400,7 @@ async function showStatusViewer(status) {
                 let myStorage = getStatusFromStorage();
                 const s = myStorage.find(x => x.id === status.id);
                 if (s) { if (!s.seen_by) s.seen_by = []; s.seen_by.push(u.phone_number); saveStatusToStorage(myStorage); }
-            }).catch(e => console.error("DB View Insert Error:", e));
+            }).catch(e => console.error("DB View Error:", e));
         }
     }
     
@@ -8537,11 +8536,10 @@ async function showViewersPanel() {
     if (!status) return;
     
     try {
-        // 1. ANGALIA WALIOTAZAMA WALIOHIFADHIWA KWENYE SIMU (Local)
         let localViewers = status.seen_by || [];
-        
-        // 2. SOMA WALIOTAZAMA KUTOKA KWENYE DATABASE
         let dbViewers = [];
+        
+        // SOMA WALIOTAZAMA KUTOKA KWENYE DATABASE
         const { data: views, error } = await sb.from('status_views').select('viewer_phone').eq('status_id', status.id);
         if (error) throw error;
         
@@ -8549,12 +8547,11 @@ async function showViewersPanel() {
             dbViewers = views.map(v => v.viewer_phone);
         }
         
-        // 3. UNGANISHA WALIOTAZAMA WOTE (KUTOKA DB NA SIMU) BILA KURUDIA-RUDIA
+        // UNGANISHA WALIOTAZAMA WOTE (KUTOKA DB NA SIMU) BILA KURUDIA-RUDIA
         const allViewers = [...new Set([...localViewers, ...dbViewers])];
         
         let html = '';
         if (allViewers.length > 0) {
-            // TAFUTA MAJINA NA PICHA ZA WALIOTAZAMA WOTE
             const { data: viewersData, error: usrErr } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', allViewers);
             if (usrErr) throw usrErr;
             
