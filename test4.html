@@ -8393,18 +8393,20 @@ async function showStatusViewer(status) {
         if (u.phone_number !== window.adminPhone) {
             if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
                 
-                // HAPA: ONYESHA TOAST YA KUFAHAMISHA MTU AMEANGALIA
+                // TUMIA ALERT ILI IONEKANE JUU KABISA YA KIOO
+                alert("Status ID: " + status.id + "\nNamba yako: " + u.phone_number);
+                
                 sb.from('status_views').insert([{
                     status_id: status.id,
                     viewer_phone: u.phone_number,
                     sender_phone: status.sender_phone
                 }]).then(() => {
-                    showToast("Ujumbe umetumwa DB!"); // KAMA IMEFANIKIWA
+                    alert("Imefanikiwa kuandikwa DB!");
                     let myStorage = getStatusFromStorage();
                     const s = myStorage.find(x => x.id === status.id);
                     if (s) { if (!s.seen_by) s.seen_by = []; s.seen_by.push(u.phone_number); saveStatusToStorage(myStorage); }
                 }).catch(e => {
-                    showToast("Kosa DB: " + e.message); // KAMA DB IMEKATAA
+                    alert("Kosa DB: " + e.message);
                 });
             }
         }
