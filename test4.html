@@ -7847,34 +7847,26 @@ async function cancelBodaRide(rideId) {
         if (kitamaFriends.length === 0) {
             let hasOtherUsers = otherUsers.some(phone => phone !== window.adminPhone); 
             if(permContainer && hasOtherUsers) {
-                permContainer.innerHTML = `<div class="contacts-permission-box">
-                    <div class="icon-box">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                permContainer.innerHTML = `
+                    <div onclick="openAddFriendModal()" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:12px; margin: 0 0 15px 0; border-radius:12px; background:rgba(16, 185, 129, 0.1); border:1px dashed var(--accent); color:var(--accent); font-weight:700; cursor:pointer; font-size:14px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Ongeza Rafiki
                     </div>
-                    <div class="text-box">
-                        <h4>Ona Status za Marafiki</h4>
-                        <p>Ongeza watu unaowafahamu ili uweze kuona Status.</p>
-                    </div>
-                    <button onclick="openAddFriendModal()">Ongeza Rafiki</button>
-                </div>`;
+                `;
             }
             
             let adminP2P = otherUsers.filter(phone => phone === window.adminPhone);
             renderP2PStatuses(adminP2P);
             
         } else {
-            // SOSA: Badala ya kuficha kitufe, weka kitufe cha kuongeza rafiki mwingine muda wowote
+            // KAMA ANA MARAFIKI, ONYESHA KITUFE CHA KUONGEZA WENGYNE MUDA WOWOTE
             if(permContainer) {
-                permContainer.innerHTML = `<div class="contacts-permission-box">
-                    <div class="icon-box">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                permContainer.innerHTML = `
+                    <div onclick="openAddFriendModal()" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:12px; margin: 0 0 15px 0; border-radius:12px; background:rgba(16, 185, 129, 0.1); border:1px dashed var(--accent); color:var(--accent); font-weight:700; cursor:pointer; font-size:14px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Ongeza Rafiki
                     </div>
-                    <div class="text-box">
-                        <h4>Ongeza Marafiki Wengine</h4>
-                        <p>Kama kuna wenzako ambao hawapo kwenye orodha, ongeza hapa.</p>
-                    </div>
-                    <button onclick="openAddFriendModal()">Ongeza Rafiki</button>
-                </div>`;
+                `;
             }
             
             let visiblePhones = otherUsers.filter(phone => {
