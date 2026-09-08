@@ -8341,14 +8341,14 @@ async function showStatusViewer(status) {
     captionEl.innerText = status.caption || '';
     captionEl.style.display = status.caption ? 'block' : 'none';
     
-        if (status.sender_phone === u.phone_number) {
+    if (status.sender_phone === u.phone_number) {
         footerEl.style.display = 'flex';
         footerEl.style.cursor = 'pointer';
         
-        // BADALA YA openStatusViewersModal, IITE showViewersPanel
+        // HAPA: INAITA FUNCTION MPYA YA DATABASE
         footerEl.onclick = showViewersPanel; 
         
-        // TUMIA BACKGROUND NZURI BADALA YA KUANDIKA MAJINA CHINI YA PICHA
+        // HAPA: ALAMA YA JICHO IMEWEKWA
         viewersEl.innerHTML = '<small style="display:flex; align-items:center; gap:5px; justify-content:center; padding:8px; background:rgba(0,0,0,0.3); border-radius:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Bonyeza hapa kuona waliotazama</small>';
     } else {
         footerEl.style.display = 'none';
@@ -8487,7 +8487,6 @@ async function showViewersPanel() {
     if (!listEl) return;
     
     listEl.innerHTML = `
-        <!-- HEADER MPYA: DUSTBIN KUSHOTO, WALIOTAZAMA KATIKATI, X KULIA -->
         <div style="display:flex; justify-content:space-between; align-items:center; padding:15px 20px; border-bottom: 1px solid var(--border);">
             <div onclick="deleteCurrentStatus()" style="cursor:pointer; color:#EF4444; display:flex; align-items:center;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -8495,8 +8494,6 @@ async function showViewersPanel() {
             <div style="font-weight:700; font-size:18px; color:var(--text);">Waliotazama</div>
             <div onclick="hideViewersPanel()" style="cursor:pointer; color:var(--text-sec); font-size:28px; line-height:1; padding: 0 5px;">✕</div>
         </div>
-        
-        <!-- ORODHA YA WALIOTAZAMA -->
         <div id="viewers-list-items" style="padding:20px; display: flex; flex-direction: column; gap: 10px;">
             <div style="display: flex; justify-content: center; padding: 30px;"><div class="spinner"></div></div>
         </div>
@@ -8506,7 +8503,7 @@ async function showViewersPanel() {
     if (!status) return;
     
     try {
-        // 1. SOMA WALIOTAZAMA KUTOKA KWENYE DATABASE
+        // SOMA WALIOTAZAMA KUTOKA KWENYE DATABASE
         const { data: views, error } = await sb.from('status_views').select('viewer_phone').eq('status_id', status.id);
         if (error) throw error;
         
@@ -8514,7 +8511,7 @@ async function showViewersPanel() {
         if (views && views.length > 0) {
             const viewerPhones = views.map(v => v.viewer_phone);
             
-            // 2. TAFUTA MAJINA NA PICHA ZAO
+            // TAFUTA MAJINA NA PICHA ZAO
             const { data: viewersData, error: usrErr } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', viewerPhones);
             if (usrErr) throw usrErr;
             
