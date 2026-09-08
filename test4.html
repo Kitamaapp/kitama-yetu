@@ -8350,14 +8350,20 @@ async function showStatusViewer(status) {
                 viewersEl.innerHTML = '<small>Hakuna aliyetazama bado (Bonyeza hapa)</small>';
             }
         } catch(e) { viewersEl.innerHTML = '<small>Hakuna aliyetazama</small>'; }
-    } else {
+        } else {
         footerEl.style.display = 'none';
         footerEl.onclick = null;
         if (u.phone_number !== window.adminPhone) {
             if (!status.seen_by || !status.seen_by.includes(u.phone_number)) {
-                statusNetworkChannel.send({ type: 'broadcast', event: 'status_seen', payload: { 
-                    to: status.sender_phone, status_id: status.id, seen_by: u.phone_number, hide_seen_receipts: status.hide_seen_receipts 
-                }});
+                
+                // 1. HIFADHI KWENYE DATABASE YA SUPABASE (Permanent Fix)
+                sb.from('status_views').insert([{
+                    status_id: status.id,
+                    viewer_phone: u.phone_number,
+                    sender_phone: status.sender_phone
+                }]).then(() => {}).catch(e => console.error("View insert error:", e));
+
+                // 2. HIFADHI KWENYE SIMU (Local cache)
                 let myStorage = getStatusFromStorage();
                 const s = myStorage.find(x => x.id === status.id);
                 if (s) { if (!s.seen_by) s.seen_by = []; s.seen_by.push(u.phone_number); saveStatusToStorage(myStorage); }
@@ -8472,13 +8478,11 @@ function prevStatus() {
     }
 }
 
-    async function showViewersPanel() {
+async function showViewersPanel() {
     const panel = document.getElementById('viewers-panel');
     if (!panel) return;
     
     panel.style.transform = 'translateY(0%)';
-    
-    // ANDIKA HEADER MPYA NA ORODHA MOJA KWA MOJA KWENYE VIEWERS-LIST-CONTENT
     const listEl = document.getElementById('viewers-list-content');
     if (!listEl) return;
     
@@ -8502,10 +8506,17 @@ function prevStatus() {
     if (!status) return;
     
     try {
+        // 1. SOMA WALIOTAZAMA KUTOKA KWENYE DATABASE
+        const { data: views, error } = await sb.from('status_views').select('viewer_phone').eq('status_id', status.id);
+        if (error) throw error;
+        
         let html = '';
-        if (status.seen_by && status.seen_by.length > 0) {
-            const { data: viewersData, error } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', status.seen_by);
-            if (error) throw error;
+        if (views && views.length > 0) {
+            const viewerPhones = views.map(v => v.viewer_phone);
+            
+            // 2. TAFUTA MAJINA NA PICHA ZAO
+            const { data: viewersData, error: usrErr } = await sb.from('users').select('full_name, phone_number, avatar_url').in('phone_number', viewerPhones);
+            if (usrErr) throw usrErr;
             
             html = viewersData.map(v => `
                 <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg);border-radius:12px;border:1px solid var(--border);">
