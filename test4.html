@@ -4361,7 +4361,7 @@ if (data) data.reverse();
 
     async function checkUserShop() { const u = JSON.parse(localStorage.getItem('kitama_user')); try { const { data: shop } = await sb.from('shops').select('*').eq('owner_phone', u.phone_number).maybeSingle(); if(shop) { document.getElementById('shop-select-box').style.display = 'block'; const select = document.getElementById('item-shop'); select.innerHTML = `<option value="">- Ni bidhaa ya kibinafsi -</option><option value="${shop.id}|${shop.shop_name}">${shop.shop_name}</option>`; } } catch(e) { console.error(e); } }
     
-        async function viewMyShop() {
+    async function viewMyShop() {
     const u = JSON.parse(localStorage.getItem('kitama_user'));
     if (!navigator.onLine) {
         const cachedShop = JSON.parse(localStorage.getItem('kitama_my_shop') || 'null');
@@ -4396,12 +4396,152 @@ if (data) data.reverse();
             else { myShopLogo.style.display = 'none'; document.getElementById('my-shop-initial').style.display = 'flex'; document.getElementById('my-shop-initial').innerText = shop.shop_name.charAt(0); }
             fetchShopProducts(shop, 'my-shop-products');
             fetchShopReviews(shop.id, 'my-shop-reviews-list');
+            
+            // ONGEZA KITUFE CHA KUHARIRI NA KUFUTA DUKA HAPA
+            let actionsBox = document.getElementById('my-shop-actions');
+            if (!actionsBox) {
+                actionsBox = document.createElement('div');
+                actionsBox.id = 'my-shop-actions';
+                const infoDiv = document.querySelector('.shop-info-text');
+                if(infoDiv && infoDiv.parentNode) {
+                    infoDiv.parentNode.insertBefore(actionsBox, infoDiv.nextSibling);
+                } else {
+                    document.getElementById('my-shop-products').parentNode.insertBefore(actionsBox, document.getElementById('my-shop-products'));
+                }
+            }
+            actionsBox.style.cssText = 'display:flex; gap:10px; margin: 20px 20px 0 20px;';
+            actionsBox.innerHTML = `
+                <button onclick='openEditShopModal(${JSON.stringify(shop).replace(/'/g, "&#39;")})' class="btn-p" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--bg); color:var(--accent); border:1px solid var(--accent);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    
+                </button>
+                <button onclick="deleteMyShop('${shop.id}')" class="btn-p" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--danger); color:white;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    
+                </button>
+            `;
+
             showSec('my-shop-sec');
         }
     } catch(e) { openModal("Kosa", e.message); }
 }
+// FUNCTION YA KUHARIRI DUKA
+function openEditShopModal(shop) {
+    const html = `
+        <div class="form-g">
+            <label class="form-l">Jina la Duka</label>
+            <input type="text" id="edit-shop-name" class="modal-input" value="${shop.shop_name}">
+        </div>
+        <div class="form-g">
+            <label class="form-l">Maelezo ya Duka</label>
+            <textarea id="edit-shop-desc" class="modal-input" style="min-height: 80px;">${shop.description || ''}</textarea>
+        </div>
+        <div class="form-g">
+            <label class="form-l">Logo Mpya (Hiari)</label>
+            <input type="file" id="edit-shop-logo" accept="image/*" class="modal-input">
+        </div>
+        <div class="form-g">
+            <label class="form-l">Cover Mpya (Hiari)</label>
+            <input type="file" id="edit-shop-cover" accept="image/*" class="modal-input">
+        </div>
+    `;
+    
+    openModal("Hariri Duka", html, false, async () => {
+        const name = document.getElementById('edit-shop-name').value.trim();
+        const desc = document.getElementById('edit-shop-desc').value.trim();
+        if(!name) return showToast("Weka jina la duka.");
+        
+        const btn = document.getElementById('modal-ok');
+        btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
+        
+        let logoUrl = shop.logo_url;
+        let coverUrl = shop.cover_url;
+        
+        try {
+            // KAMA AMEBADILISHA LOGO
+            const logoFile = document.getElementById('edit-shop-logo').files[0];
+            if (logoFile) {
+                if (shop.logo_url) await deleteCloudinaryAsset(shop.logo_url); // Futa ya zamani
+                logoUrl = await uploadToCloudinary(logoFile);
+            }
+            
+            // KAMA AMEBADILISHA COVER
+            const coverFile = document.getElementById('edit-shop-cover').files[0];
+            if (coverFile) {
+                if (shop.cover_url) await deleteCloudinaryAsset(shop.cover_url); // Futa ya zamani
+                coverUrl = await uploadToCloudinary(coverFile);
+            }
+            
+            // SASISHA KWENYE DATABASE
+            const { error } = await sb.from('shops').update({
+                shop_name: name,
+                description: desc,
+                logo_url: logoUrl,
+                cover_url: coverUrl
+            }).eq('id', shop.id);
+            
+            if (error) throw error;
+            
+            showToast("Duka limerekebishwa!");
+            playBeep();
+            closeModal();
+            viewMyShop(); // Pakia upya
+        } catch(e) {
+            openModal("Kosa", e.message);
+            btn.innerHTML = 'Hifadhi'; btn.disabled = false;
+        }
+    });
+}
 
-        async function viewShopById(id) {
+// FUNCTION YA KUFUTA DUKA
+async function deleteMyShop(shopId) {
+    openModal("Futa Duka", "Una uhakika unataka kufuta duka hili kabisa? Bidhaa zote, Ujumbe, na Ushuhuda vitafutika.", false, async () => {
+        try {
+            const shop = JSON.parse(localStorage.getItem('kitama_my_shop'));
+            
+            // 1. FUTA PICHA ZA CLOUDINARY
+            if (shop && shop.logo_url) await deleteCloudinaryAsset(shop.logo_url);
+            if (shop && shop.cover_url) await deleteCloudinaryAsset(shop.cover_url);
+            
+            // 2. FUTA BIDHAA ZOTE NA PICHA ZAO
+            const { data: items } = await sb.from('marketplace').select('image_url').eq('shop_id', shopId);
+            if (items && items.length > 0) {
+                for (const item of items) {
+                    if (item.image_url) await deleteCloudinaryAsset(item.image_url);
+                }
+                await sb.from('marketplace').delete().eq('shop_id', shopId);
+            }
+            
+            // 3. FUTA USHUHUDA (REVIEWS) WA DUKA HILI
+            await sb.from('shop_reviews').delete().eq('shop_id', shopId);
+            
+            // 4. FUTA MAJUMUIKISHO (COMMENTS) YA BIDHAA ZA DUKA HILI
+            if (items && items.length > 0) {
+                const itemIds = items.map(i => i.id);
+                await sb.from('shop_item_comments').delete().in('item_id', itemIds);
+            }
+            
+            // 5. FUTA MESSAGE (UJUMBE) WA DUKA HILI (HII NDIO ILIKUWA INALETA KOSA)
+            await sb.from('shop_messages').delete().eq('shop_id', shopId);
+            
+            // 6. SASA FUTA DUKA LENYEWE
+            const { error } = await sb.from('shops').delete().eq('id', shopId);
+            if (error) throw error;
+            
+            // 7. ONDOA KWENYE SIMU
+            localStorage.removeItem('kitama_my_shop');
+            
+            showToast("Duka limefutwa kikamilifu!");
+            playBeep();
+            closeModal();
+            enterApp(); // Rudi nyumbani kupakia upya
+        } catch(e) {
+            openModal("Kosa", e.message);
+        }
+    });
+}
+
+async function viewShopById(id) {
     try {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
         if (!navigator.onLine) {
@@ -6456,7 +6596,7 @@ function openFeedbackModal() {
     handleNav('help-feedback-sec');
 }
 
-function loadHelpFeedbackUI() {
+async function loadHelpFeedbackUI() {
     const div = document.getElementById('help-feedback-content');
     if (!div) return;
     
@@ -6466,44 +6606,45 @@ function loadHelpFeedbackUI() {
         adminHtml = `<button onclick="handleNav('admin-feedback-sec')" class="btn-p" style="background:var(--bg); color:var(--accent); border:1px solid var(--accent); margin-bottom: 20px;">Soma Maoni ya Watu (Admin)</button>`;
     }
     
-    const faqs = [
-        { q: "Kwa nini picha zangu hazionekani kwenye simu?", a: "Hakikisha una mtandao wa kawaida. Mfumo unatumia hifadhi ya wingu (Cloudinary) ili kuhifadhi picha, hivyo inaweza kuchukua muda kidogo kupakia." },
-        { q: "Je, ninaweza kufuta akaunti yangu?", a: "Kwa sasa, unaweza kuwasiliana na Admin wa App ili akufutie akaunti kwenye mfumo. Namba yako na taarifa zote zitaondolewa." },
-        { q: "Kwa nini Status yangu haionekana kwa wengine?", a: "Mfumo wa Status unataka uwe umeongeza marafiki zako kwenye orodha ili uweze kuona status zao." },
-        { q: "Vipi naweza kuwa Activist (Verified)?", a: "Nenda kwenye Profaili yako, bonyeza 'Pata Uthibitisho', fuatilia maelekezo kulipia na kusubiri kuidhinishwa na Admin." }
-    ];
-    
-    let faqsHtml = faqs.map(f => `
-        <div class="faq-item" onclick="toggleFAQ(this)">
-            <div class="faq-header">
-                <b>${f.q}</b>
-                <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-sec)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    // FOMU ITAONEKANA KWA WATUMIAJI WA KAWAIDA TU, SIO ADMIN
+    let feedbackFormHtml = '';
+    if (u.role !== 'system_admin') {
+        feedbackFormHtml = `
+            <h3 style="font-size: 16px; font-weight: 700; margin: 25px 0 15px 4px;">Tuma Maoni au Kero kwa Developer</h3>
+            <div class="list-i" style="margin: 0;">
+                <textarea id="kitama-feedback-input" class="modal-input" style="min-height: 120px; border: none; background: transparent; padding: 5px 0; margin: 0;" placeholder="Andika maoni yako, kero, au ushauri hapa..."></textarea>
             </div>
-            <div class="faq-body">
-                <p>${f.a}</p>
-            </div>
-        </div>
-    `).join('');
+            <button onclick="sendHelpFeedback()" class="btn-p" style="margin-top: 15px;">Tuma Maoni</button>
+        `;
+    }
     
     div.innerHTML = `
         ${adminHtml}
-        <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 15px 4px;">Maswali Yanayoulizwa Mara kwa Mara</h3>
-        ${faqsHtml}
-        <h3 style="font-size: 16px; font-weight: 700; margin: 25px 0 15px 4px;">Tuma Maoni au Kero kwa Developer</h3>
-        <div class="list-i" style="margin: 0;">
-            <textarea id="dev-feedback-input" class="modal-input" style="min-height: 120px; border: none; background: transparent; padding: 5px 0; margin: 0;" placeholder="Andika maoni yako, kero, au ushauri hapa..."></textarea>
+        <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 15px 4px; display:flex; justify-content:space-between; align-items:center;">
+            <span>Maswali Yanayoulizwa Mara k wa Mara</span>
+            ${u.role === 'system_admin' ? `<button onclick="openAddFaqModal()" style="background:var(--accent); color:white; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">+ Ongeza Swali</button>` : ''}
+        </h3>
+        <div id="faqs-list-container" style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:center; padding:20px;"><div class="spinner"></div></div>
         </div>
-        <button onclick="sendHelpFeedback()" class="btn-p" style="margin-top: 15px;">Tuma Maoni</button>
+        ${feedbackFormHtml}
     `;
-}
-
-function toggleFAQ(el) {
-    el.classList.toggle('active');
+    
+    if (u.role === 'system_admin') {
+        await fetchFaqs(true);
+    } else {
+        await fetchFaqs(false);
+    }
 }
 
 async function sendHelpFeedback() {
     const u = JSON.parse(localStorage.getItem('kitama_user'));
-    const content = document.getElementById('dev-feedback-input').value.trim();
+    
+    // TUMIA ID MPYA AMBAYO HAIKWARUZANA NA DIRISHA LAINGINE
+    const inputEl = document.getElementById('kitama-feedback-input');
+    if (!inputEl) return showToast("Kosa: Sehemu ya kuandikia haijapatikana.");
+    
+    const content = inputEl.value.trim();
     if(!content) return showToast("Tafadhali andika maoni yako.");
     
     const btn = document.querySelector('#help-feedback-content .btn-p');
@@ -6516,7 +6657,7 @@ async function sendHelpFeedback() {
         if(error) throw error;
         
         showToast("Asante! Maoni yako yamepokewa na Developer.");
-        document.getElementById('dev-feedback-input').value = '';
+        inputEl.value = '';
         handleNav('home-sec');
     } catch(e) { 
         openModal("Kosa", e.message); 
@@ -6524,6 +6665,86 @@ async function sendHelpFeedback() {
         if(btn) { btn.innerHTML = 'Tuma Maoni'; btn.disabled = false; } 
     }
 }
+
+// FUNCTION MPYA YA KUSOMA FAQs KUTOKA DB
+async function fetchFaqs(isAdmin) {
+    const container = document.getElementById('faqs-list-container');
+    if (!container) return;
+    
+    try {
+        const { data: faqs, error } = await sb.from('faqs').select('*').order('created_at', { ascending: true });
+        if (error) throw error;
+        
+        if (faqs.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hakuna maswali kwa sasa.</p>';
+            return;
+        }
+        
+        container.innerHTML = faqs.map(f => `
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-header">
+                    <b>${f.question}</b>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        ${isAdmin ? `<svg onclick="event.stopPropagation(); deleteFaq('${f.id}')" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" style="cursor:pointer;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>` : ''}
+                        <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-sec)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                </div>
+                <div class="faq-body">
+                    <p>${f.answer}</p>
+                </div>
+            </div>
+        `).join('');
+    } catch(e) {
+        container.innerHTML = `<p style="color:red; text-align:center;">${e.message}</p>`;
+    }
+}
+// FUNCTION YA KUFUNGUA DIRISHA LA KUONGEZA SWALI
+function openAddFaqModal() {
+    const html = `
+        <div class="form-g">
+            <label class="form-l">Swali (Question)</label>
+            <input type="text" id="faq-question-input" class="modal-input" placeholder="Andika swali hapa...">
+        </div>
+        <div class="form-g">
+            <label class="form-l">Jibu (Answer)</label>
+            <textarea id="faq-answer-input" class="modal-input" style="min-height: 100px;" placeholder="Andika jibu hapa..."></textarea>
+        </div>
+    `;
+    openModal("Ongeza Swali Jipya", html, false, async () => {
+        const q = document.getElementById('faq-question-input').value.trim();
+        const a = document.getElementById('faq-answer-input').value.trim();
+        if(!q || !a) return showToast("Jaza swali na jibu.");
+        
+        try {
+            const { error } = await sb.from('faqs').insert([{ question: q, answer: a }]);
+            if(error) throw error;
+            showToast("Swali limeongezwa!");
+            closeModal();
+            fetchFaqs(true); // Pakia upya orodha
+        } catch(e) {
+            openModal("Kosa", e.message);
+        }
+    });
+}
+
+// FUNCTION YA KUFUTA SWALI
+async function deleteFaq(id) {
+    if (confirm("Una uhakika unataka kufuta swali hili?")) {
+        try {
+            await sb.from('faqs').delete().eq('id', id);
+            showToast("Swali limefutwa!");
+            fetchFaqs(true); // Pakia upya orodha
+        } catch(e) {
+            openModal("Kosa", e.message);
+        }
+    }
+}
+
+function toggleFAQ(el) {
+    el.classList.toggle('active');
+}
+
+
 
     // --- ADMIN GLOBAL BROADCAST FUNCTION (IMEBORESHWA) ---
     function openBroadcastModal() {
@@ -7124,36 +7345,8 @@ async function sendHelpFeedback() {
             icon.style.transform = 'rotate(180deg)';
         }
     }
-            
 
-    async function sendHelpFeedback() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        const content = document.getElementById('help-feedback-input').value.trim();
-        if(!content) return showToast("Tafadhali andika maoni yako.");
-        
-        const btn = document.getElementById('btn-help-feedback');
-        btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true;
-        
-        try {
-            const { error } = await sb.from('developer_feedback').insert([{ 
-                user_name: u.full_name, 
-                phone: u.phone_number, 
-                content: content,
-                feedback_type: 'Pendekezo',
-                status: 'pending'
-            }]);
-            if(error) throw error;
-            
-            showToast("Asante! Maoni yako yamepokewa na Developer.");
-            document.getElementById('help-feedback-input').value = '';
-        } catch(e) { 
-            openModal("Kosa", e.message); 
-        } finally { 
-            btn.innerHTML = 'Tuma Maoni'; 
-            btn.disabled = false; 
-        }
-    }
-            function openVerificationModal() {
+     function openVerificationModal() {
             const html = `
                 <!-- HEADER YA KITAASISI -->
                 <div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
