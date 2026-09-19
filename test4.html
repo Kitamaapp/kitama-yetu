@@ -2117,9 +2117,8 @@ async function deleteCloudinaryAsset(url) {
                   if(document.getElementById('market-sec').classList.contains('active')) fetchMarket();
                   if(document.getElementById('admin-moderation-sec').classList.contains('active')) fetchModeration();
               })
-                      // REALTIME YA BODA INSERT (Ombi Mpya)
+                           // REALTIME YA BODA INSERT (Ombi Mpya)
               .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'boda_requests' }, payload => {
-                  // KAMA DEREVA YUPO UKURASA WA MAOMBI, ITUMIE SAUTI NA PAKIA UPYA
                   if(document.getElementById('boda-driver-sec') && document.getElementById('boda-driver-sec').classList.contains('active')) {
                       playBeep(); 
                       fetchBodaRequests();
@@ -2129,13 +2128,14 @@ async function deleteCloudinaryAsset(url) {
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_requests' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   
-                  // 1. KWA DEREVA: YUPO UKURASA WA MAOMBI? BASI PAKIA UPYA ILI OMBI LILOKUBALIWA/KUGHAIRIWA LITOWEKE
+                  // 1. KWA DEREVA: YUPO UKURASA WA MAOMBI? BASI PAKIA UPYA ILI OMBI LILOKUBALIWA/KUGHAIRIWA LITOWEKE MOJA KWA MOJA
                   if (document.getElementById('boda-driver-sec') && document.getElementById('boda-driver-sec').classList.contains('active')) {
                       fetchBodaRequests();
                   }
 
                   // 2. KUMUARIFU DEREVA: KAMA ABIRIA AMEGHAIRI SAFARI BAADA YA DEREVA KUKUBALI
-                  if (payload.new.driver_phone === currentUser.phone_number && payload.new.status === 'cancelled') {
+                  // TUMIA activeBodaTrip.reqId KUHAKIKISHA NI SAFARI YAKE
+                  if (activeBodaTrip && payload.new.id === activeBodaTrip.reqId && payload.new.status === 'cancelled') {
                       activeBodaTrip = null; // FUTA TAARIFA ZA ABIRIA (ROUTE, DEST, N.K)
                       renderActiveTripCard(); // FUTA KADI
                       showToast("⚠️ Abiria ameghairi safari! Taarifa zote zimefutika.");
@@ -2955,7 +2955,7 @@ startSmartPolling();
     if(id==='activist-hub-sec') fetchActivistArticles();
     if(id==='admin-activists-sec') fetchActivistsControl();
     if(id==='boda-sec') { checkDriverStatus(); setTimeout(() => initBodaMap(), 100); requestLocationOnEnter(); }
-    if(id==='boda-driver-sec') fetchBodaRequests();
+    if(id==='boda-driver-sec') checkDriverStatus();
     if(id==='opportunities-sec') fetchOpportunities();
     if(id==='admin-feedback-sec') fetchAdminFeedbacks();
     if(id==='campaign-sec' && (u.role === 'mtendaji_kata' || u.role === 'diwani' || u.role === 'system_admin')) document.getElementById('project-form-box').style.display = 'block';
@@ -6359,72 +6359,82 @@ async function cancelAcceptedBodaRide(rideId) {
 }
 
         async function fetchBodaRequests() {
-            const div = document.getElementById('boda-requests-list');
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            // KAGUA KAMA KADI YA SAFARI ILIYOKUBALIWA BADO IPo HALALI
-            if (activeBodaTrip) {
-            const { data: tripStatus } = await sb.from('boda_requests').select('status').eq('id', activeBodaTrip.reqId).maybeSingle();
-            if (!tripStatus || tripStatus.status === 'completed' || tripStatus.status === 'cancelled') {
+    const div = document.getElementById('boda-requests-list');
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    
+    // KAGUA KAMA KADI YA SAFARI ILIYOKUBALIWA BADO IPo HALALI
+    if (activeBodaTrip) {
+        const { data: tripStatus } = await sb.from('boda_requests').select('status').eq('id', activeBodaTrip.reqId).maybeSingle();
+        if (!tripStatus || tripStatus.status === 'completed' || tripStatus.status === 'cancelled') {
             activeBodaTrip = null;
-           renderActiveTripCard();
+            renderActiveTripCard();
         }
-      }
-            window.lastBodaReqTime = null; // Seti upya ili kuchunguza ombi jipya
-            const { data: driver } = await sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle();
-            
-            if (!driver || driver.status !== 'active') {
-                div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hujaidhinishwa bado kama Dereva. Subiri Admin kukuidhinishwa.</p>';
-                return;
-            }
-            
-            div.innerHTML = '<div class="skeleton" style="height:80px; margin-bottom:10px;"></div>';
-            try {
-                const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-                await sb.from('boda_requests').update({ status: 'expired' }).eq('status', 'searching').lt('created_at', tenMinsAgo);
-                
-                const { data: reqs, error } = await sb.from('boda_requests').select('*').eq('status', 'searching').gte('created_at', tenMinsAgo).order('created_at', { ascending: false });
-                const { data: drivers } = await sb.from('boda_drivers').select('lat, lng, phone');
-                
-                if(error) throw error;
+    }
+    
+    window.lastBodaReqTime = null; 
+    
+    const cleanPhone = u.phone_number.replace(/\s+/g, '');
+    let phoneQuery = cleanPhone;
+    if (cleanPhone.startsWith('0')) {
+        phoneQuery = `255${cleanPhone.substring(1)}`;
+    }
+    
+    const { data: driver } = await sb.from('boda_drivers').select('*').or(`phone.eq.${cleanPhone},phone.eq.${phoneQuery},phone.ilike.${cleanPhone},phone.ilike.${phoneQuery}`).maybeSingle();
+    
+    if (!driver || driver.status !== 'active') {
+        div.innerHTML = '<p style="color:var(--text-sec); text-align:center; padding:20px;">Hujaidhinishwa bado kama Dereva. Subiri Admin kukuidhinishwa.</p>';
+        return;
+    }
+    
+    div.innerHTML = '<div class="skeleton" style="height:80px; margin-bottom:10px;"></div>';
+    try {
+        const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+        await sb.from('boda_requests').update({ status: 'expired' }).eq('status', 'searching').lt('created_at', tenMinsAgo);
+        
+        // SOSA: INASOMA 'searching' TU. HIVI OMBI LILOKUBALIWA AU LOGHAIRIWA HATALIONEKANA HAPA
+        const { data: reqs, error } = await sb.from('boda_requests').select('*').eq('status', 'searching').gte('created_at', tenMinsAgo).order('created_at', { ascending: false });
+        const { data: drivers } = await sb.from('boda_drivers').select('lat, lng, phone');
+        
+        if(error) throw error;
 
-                let html = '';
-                if (reqs.length > 0) {
-                    html = reqs.map(r => {
-                        let priorityBadge = '';
-                        if (drivers && drivers.length > 0) {
-                            const nearbyDrivers = drivers.map(d => {
-                                if (!d.lat || !d.lng) return { ...d, dist: Infinity };
-                                const dist = getDistance(parseFloat(r.pickup_lat), parseFloat(r.pickup_lng), parseFloat(d.lat), parseFloat(d.lng));
-                                return { ...d, dist };
-                            }).sort((a, b) => a.dist - b.dist);
+        let html = '';
+        if (reqs.length > 0) {
+            html = reqs.map(r => {
+                let priorityBadge = '';
+                if (drivers && drivers.length > 0) {
+                    const nearbyDrivers = drivers.map(d => {
+                        if (!d.lat || !d.lng) return { ...d, dist: Infinity };
+                        const dist = getDistance(parseFloat(r.pickup_lat), parseFloat(r.pickup_lng), parseFloat(d.lat), parseFloat(d.lng));
+                        return { ...d, dist };
+                    }).sort((a, b) => a.dist - b.dist);
 
-                            if (nearbyDrivers.length > 0 && nearbyDrivers[0].dist !== Infinity) {
-                                const nearest = nearbyDrivers[0];
-                                if (nearest.phone === u.phone_number) priorityBadge = `<span class="driver-priority-badge">Karumi Nawe! (${nearest.dist.toFixed(1)} km)</span>`;
-                                else priorityBadge = `<span class="driver-priority-badge">Karibu Zaidi: ${nearest.dist.toFixed(1)} km</span>`;
-                            }
-                        }
-
-                        return `
-                        <div class="list-i" style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <b>${r.rider_name}</b><br>
-                                <small>Nauli: <b style="color:var(--accent);">${r.fare ? r.fare.toLocaleString() : 'Agana'} Tsh (${r.payment_method ? r.payment_method.toUpperCase() : 'CASH'})</b></small><br>
-                                ${priorityBadge}<br>
-                                <small>Simu: ${r.rider_phone}</small>
-                            </div>
-                            <div style="display:flex; flex-direction:column; gap:5px;">
-                  <button onclick="viewBodaLocation('${r.id}', '${r.pickup_lat}', '${r.pickup_lng}', '${r.dest_lat}', '${r.dest_lng}')" class="m-btn m-btn-secondary" style="flex:none; padding:8px 12px; font-size:11px;">Ramani</button>
-                  <button onclick="acceptBoda('${r.id}', '${r.rider_phone}', '${r.pickup_lat}', '${r.pickup_lng}', '${r.dest_lat}', '${r.dest_lng}')" class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:11px;">Kubali</button>
-                  </div>
-                        </div>`;
-                    }).join('');
-                } else {
-                    html = '<p style="color:var(--text-sec); text-align:center;">Hakuna maombi ya boda sasa.</p>';
+                    if (nearbyDrivers.length > 0 && nearbyDrivers[0].dist !== Infinity) {
+                        const nearest = nearbyDrivers[0];
+                        if (nearest.phone === u.phone_number) priorityBadge = `<span class="driver-priority-badge">Karumi Nawe! (${nearest.dist.toFixed(1)} km)</span>`;
+                        else priorityBadge = `<span class="driver-priority-badge">Karibu Zaidi: ${nearest.dist.toFixed(1)} km</span>`;
+                    }
                 }
-                div.innerHTML = html;
-            } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+
+                return `
+                <div class="list-i" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <b>${r.rider_name}</b><br>
+                        <small>Nauli: <b style="color:var(--accent);">${r.fare ? r.fare.toLocaleString() : 'Agana'} Tsh (${r.payment_method ? r.payment_method.toUpperCase() : 'CASH'})</b></small><br>
+                        ${priorityBadge}<br>
+                        <small>Simu: ${r.rider_phone}</small>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:5px;">
+                        <button onclick="viewBodaLocation('${r.id}', '${r.pickup_lat}', '${r.pickup_lng}', '${r.dest_lat}', '${r.dest_lng}')" class="m-btn m-btn-secondary" style="flex:none; padding:8px 12px; font-size:11px;">Ramani</button>
+                        <button onclick="acceptBoda('${r.id}', '${r.rider_phone}', '${r.pickup_lat}', '${r.pickup_lng}', '${r.dest_lat}', '${r.dest_lng}')" class="m-btn m-btn-primary" style="flex:none; padding:8px 12px; font-size:11px;">Kubali</button>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            html = '<p style="color:var(--text-sec); text-align:center;">Hakuna maombi ya boda sasa.</p>';
         }
+        div.innerHTML = html;
+    } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+}
 
             function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
             openModal("Ramani & Njia ya Kwenda", `<div id="boda-req-map-${reqId}" style="height: 300px; width: 100%; border-radius: 12px;"></div>`, false);
