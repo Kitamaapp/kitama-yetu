@@ -569,6 +569,60 @@ img[src*="kitama-logo"] { background: #ffffff !important; padding: 4px !importan
 .faq-item.active .faq-body {
     max-height: 200px; /* Nafasi ya kutosha kwa jibu */
 }
+/* REPLY BOX KWA STATUS (WhatsApp Style) - IMBORESHWA */
+#status-reply-box {
+    position: fixed; /* Badala ya absolute, tumia fixed ili ihakikishe inakaa chini ya screen */
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px; /* Ifanane na upana wa App */
+    padding: 15px 20px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+    display: none;
+    gap: 10px;
+    z-index: 9999; /* Z-index kubwa ili ikae juu kabisa ya picha/video */
+    box-sizing: border-box;
+    align-items: center;
+}
+#status-reply-input {
+    flex: 1;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 24px;
+    padding: 12px 18px;
+    color: white;
+    font-size: 15px;
+    outline: none;
+}
+#status-reply-input::placeholder { color: rgba(255,255,255,0.6); }
+#status-reply-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 5px;
+}
+/* CSS YA KUANDIKA UJUMBE MREFU (TEXTAREA) */
+.chat-textarea {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 20px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    resize: none; /* Funga kuexpand */
+    min-height: 40px;
+    max-height: 100px; * Isishuke sana */
+    overflow-y: auto;
+    line-height: 1.4;
+}
 </style>
 </head>
 <body>
@@ -626,6 +680,7 @@ img[src*="kitama-logo"] { background: #ffffff !important; padding: 4px !importan
             </div>
             
             <button onclick="handleLogin()" class="btn-p" id="btn-login">Ingia</button>
+            <button onclick="enterAsGuest()" class="btn-p" style="background: transparent; color: var(--accent); border: 1px solid var(--accent); margin-top: 10px;">Ingia kama Mgeni</button>
         </div>
         
         <div id="signup-form" style="display:none;">
@@ -1019,7 +1074,7 @@ img[src*="kitama-logo"] { background: #ffffff !important; padding: 4px !importan
 
             <div class="chat-input-box">
                 <button onclick="openTagModal()" class="tag-icon-btn">@</button>
-                <input type="text" id="citizen-chat-input" placeholder="Andika ujumbe...">
+                <textarea id="citizen-chat-input" class="chat-textarea" placeholder="Andika ujumbe..." rows="1"></textarea>
                 <button onclick="postCitizenChat()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:20px; font-weight:700;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
             </div>
         </div>
@@ -1038,7 +1093,7 @@ img[src*="kitama-logo"] { background: #ffffff !important; padding: 4px !importan
                 <button onclick="cancelDmReply()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--bg); border: none; color: var(--danger); cursor: pointer; font-weight: bold; width: 24px; height: 24px; border-radius: 50%;">X</button>
             </div>
             <div class="chat-input-box">
-                <input type="text" id="dm-chat-input" placeholder="Andika ujumbe...">
+                <textarea id="dm-chat-input" class="chat-textarea" placeholder="Andika ujumbe..." rows="1"></textarea>
                 <button onclick="postDmChat()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:20px; font-weight:700;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
             </div>
         </div>
@@ -1228,7 +1283,7 @@ img[src*="kitama-logo"] { background: #ffffff !important; padding: 4px !importan
             </div>
             
             <div class="chat-input-box">
-                <input type="text" id="chat-input" placeholder="Andika ujumbe...">
+                <textarea id="chat-input" class="chat-textarea" placeholder="Andika ujumbe..." rows="1"></textarea>
                 <button onclick="postChat()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:20px; font-weight:700;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
             </div>
         </div>
@@ -1588,7 +1643,7 @@ async function deleteCloudinaryAsset(url) {
     let endedBodaRides = JSON.parse(localStorage.getItem('ended_boda_rides') || '[]');
     
     const BAD_WORDS = ['litoko', 'kuma', 'matako', 'ushenzi', 'pumbu', 'mpumbavu', 'pumbavu', 'nikutombe', 'kumamako', 'kumamayo', 'unatombwa', 'unafilwa', 'unafirwa', 'lipyanda', 'vanakutomba', 'vanakufila', 'lyanyoko', 'kubabayo', 'kumamyoko', 'malaya', 'unafilimbwa', 'unafirimbwa', 'vanakudinya', 'lyanyoko', 'makuma', 'makuma tu', 'unanyanduliwa', 'ananyanduliwa', 'fala', 'kamfire', 'kanfile', 'anibanga', 'unibanga', 'mpyanda', 'usenge tu', 'mxenge', 'maku', 'toko', 'wanatombwa', 'msenge', 'fuck', 'shit', 'asshole', 'bitch', 'idiot'];
-    function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => lowerText.includes(word)); }
+    function containsBadWords(text) { const lowerText = text.toLowerCase(); return BAD_WORDS.some(word => { const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); const regex = new RegExp(`(^|[^a-zA-ZÀ-ÿ])${escapedWord}([^a-zA-ZÀ-ÿ]|$)`, 'i'); return regex.test(lowerText); }); }
     
     const ICONS = {
         store: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg>',
@@ -2520,6 +2575,7 @@ startSmartPolling();
         const content = document.getElementById('home-content'), nav = document.getElementById('b-nav');
         
         let isPending = u.status === 'pending' && u.role === 'citizen';
+        let isGuest = u.role === 'guest';
         let roleText = u.role === 'system_admin' ? 'Admin wa Mfumo' : u.role.replace(/_/g, ' ');
         let initial = u.full_name.charAt(0).toUpperCase();
         
@@ -2559,7 +2615,7 @@ startSmartPolling();
         }
 
         // LEADER STATS
-        if(u.role !== 'system_admin' && u.role !== 'citizen' && !isPending) {
+        if(u.role !== 'system_admin' && u.role !== 'citizen' && u.role !== 'guest' && !isPending) {
             html += `<div class="premium-stats">
                 <div class="premium-stat-card"><h3 id="stat-pending" style="color: #f59e0b;">0</h3><p>Wanaosubiri</p></div>
                 <div class="premium-stat-card"><h3 id="stat-reports" style="color: #ef4444;">0</h3><p>Malalamishi</p></div>
@@ -2568,7 +2624,32 @@ startSmartPolling();
         }
 
         // MWANANCHI WA KAWAIDA
-        if (isPending) {
+        if (isGuest) {
+            html += `<div class="warning-box" style="margin: 0 16px 20px 16px;">Wewe uko kwenye mfumo wa Mgeni. Unaweza kutazama baadhi ya kurasa tu. <b onclick="handleLogout()" style="cursor:pointer; text-decoration:underline;">Bonyeza hapa kujisajili</b> ili kupata uwezo wote.</div>`;
+            html += `
+                <div class="home-section">
+                    <h3 class="home-section-title">Vinjari App</h3>
+                    <div class="home-grid">
+                        <div class="home-card" onclick="handleNav('market-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div>
+                            <div class="home-card-text"><h4>Soko la Kitama</h4><p>Angalia bidhaa na maduka</p></div>
+                        </div>
+                        <div class="home-card" onclick="handleNav('schools-public-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+                            <div class="home-card-text"><h4>Shule za Kitama</h4><p>Taarifa za Wanafunzi</p></div>
+                        </div>
+                        <div class="home-card" onclick="handleNav('opportunities-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                            <div class="home-card-text"><h4>Fursa & Michango</h4><p>Tazama Tangazo</p></div>
+                        </div>
+                        <div class="home-card" onclick="handleNav('kitama-map-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+                            <div class="home-card-text"><h4>Ramani ya Kitama</h4><p>Tazama Maeneo</p></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (isPending) {
             html += `<div class="warning-box" style="margin: 0 16px 20px 16px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Akaunti yako inasubiri kuidhinishwa na Kiongozi wako wa Kijiji cha ${u.village}.</div>`;
             html += `
                 <div class="home-section">
@@ -2764,19 +2845,40 @@ startSmartPolling();
         } catch(e) { console.error(e); }
     }
 
-    function handleLogout() { localStorage.removeItem('kitama_user'); location.reload(); }
+    function handleLogout() { 
+    localStorage.removeItem('kitama_user'); 
+    
+    // KAMA NI APK (Capacitor), USIFANYE RELOAD (Inasababisha Blank Screen)
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+        document.getElementById('app-c').style.display = 'none';
+        document.getElementById('auth-c').style.display = 'flex';
+    } else {
+        // KAMA NI KIVINJARI (Web), FANYA RELOAD KAWAIDA
+        location.reload(); 
+    }
+}
 
     function handleNav(sec) {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        if(u.role === 'citizen' && u.status === 'pending') {
-            const allowedForPending = ['home-sec', 'market-sec', 'shops-directory-sec', 'profile-sec', 'schools-public-sec', 'status-sec'];
-            if(!allowedForPending.includes(sec)) {
-                openModal("Akaunti Inasubiri", "Huduma hii inahitaji akaunti yako kuidhinishwa na Kiongozi wako wa Kijiji cha " + u.village + " kwanza. Tafadhali subiri.");
-                return;
-            }
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    
+    // KAMA NI MGENI, ZUIA KURISA ZENYE UTENDAJI (FORUM, INBOX, KERO, BODA)
+    if (u.role === 'guest') {
+        const allowedForGuest = ['home-sec', 'market-sec', 'shops-directory-sec', 'schools-public-sec', 'opportunities-sec', 'events-sec', 'campaign-sec', 'solidarity-sec', 'kitama-map-sec', 'profile-sec', 'help-feedback-sec'];
+        if (!allowedForGuest.includes(sec)) {
+            openModal("Mfumo wa Mgeni", "Unaweza kutazama kurasa chache tu kama mgeni. Ili kupata uwezo wote (kama Forum, Tuma Kero, na Kitama Boda), jiunge na App kwa kujisajili akaunti yako.");
+            return;
         }
-        showSec(sec);
     }
+    
+    if(u.role === 'citizen' && u.status === 'pending') {
+        const allowedForPending = ['home-sec', 'market-sec', 'shops-directory-sec', 'profile-sec', 'schools-public-sec', 'status-sec'];
+        if(!allowedForPending.includes(sec)) {
+            openModal("Akaunti Inasubiri", "Huduma hii inahitaji akaunti yako kuidhinishwa na Kiongozi wako wa Kijiji cha " + u.village + " kwanza. Tafadhali subiri.");
+            return;
+        }
+    }
+    showSec(sec);
+}
 
        function showSec(id, isBack = false) {
     document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
@@ -2889,6 +2991,19 @@ startSmartPolling();
     }
     
         if(id==='add-item-sec') checkUserShop();
+        
+        // ONGEZA HII: FICHA VITUFE KWA MGENI
+        const usr = JSON.parse(localStorage.getItem('kitama_user'));
+        if (usr.role === 'guest') {
+            const marketAddBtn = document.getElementById('market-add-btn');
+            if (marketAddBtn) marketAddBtn.style.display = 'none';
+            
+            const oppAddBtn = document.getElementById('opp-add-btn');
+            if (oppAddBtn) oppAddBtn.style.display = 'none';
+            
+            const activistAddBtn = document.getElementById('activist-add-btn');
+            if (activistAddBtn) activistAddBtn.style.display = 'none';
+        }
         if(id==='help-feedback-sec') loadHelpFeedbackUI(); // ONGEZA HII
 }
 
@@ -2923,6 +3038,7 @@ startSmartPolling();
                     let deleteBtn = (isAuthor || u.role === 'system_admin') ? `<button onclick="deleteArticle('${a.id}')" style="background:rgba(239,68,68,0.1); border:none; color:var(--danger); padding:8px 12px; border-radius:8px; font-weight:600; font-size:11px; margin-top:10px; cursor:pointer;">Futa Makala</button>` : '';
                     
                     let cleanContent = a.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    cleanContent = cleanContent.replace(/\n/g, "<br>"); // HII NDIO INAHIFADHI MISTARI (PARAGRAPHS)
                     cleanContent = cleanContent.replace(/\[IMG\](.*?)\[\/IMG\]/g, (match, url) => {
                         return `<div style="text-align:center; margin: 10px 0;"><img src="${url}" style="width:100%; max-height: 400px; object-fit:cover; border-radius:12px; cursor: pointer;" onclick="openFullScreenImage('${url}')"></div>`;
                     });
@@ -3399,7 +3515,7 @@ if (data) data.reverse();
                         replyHtml = `<div class="reply-quote"><b>${displayName}</b><small>${replyText.substring(0, 50)}</small></div>`;
                     }
                     
-                    let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
+                    let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
                     let actionsHtml = `<div class="chat-actions">
                         <button class="chat-action-btn" onclick="event.stopPropagation(); setCitizenReply('${c.id}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')">${ICONS.reply} Reply</button>
                         ${!isSelf ? `<button class="chat-action-btn" onclick="event.stopPropagation(); replyPrivately('${c.sender_phone}', '${c.sender_name}', '${c.content ? c.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}')" title="Reply Privately"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Private</button>` : ''}
@@ -3656,7 +3772,7 @@ if (data) data.reverse();
         }
         return `<div class="list-i">
             <h4>${r.title}</h4>
-            <p>${r.description}</p>
+            <p>${r.description.replace(/\n/g, "<br>")}</p>
             ${imgHtml}${resImgHtml}${resNoteHtml}
             <div class="list-meta">
                 <span class="badge b-info">${r.category}</span>
@@ -4037,7 +4153,7 @@ if (data) data.reverse();
                         let sharedHtml = c.shared_report_id ? `<div class="reply-quote" style="border-left-color: var(--text-sec);"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
                         let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
                         
-                        let cleanContent = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                        let cleanContent = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
                         let safeContent = cleanContent.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                         let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
 
@@ -5038,108 +5154,120 @@ async function viewShopById(id) {
         });
     }
 
-            async function fetchMyInbox() {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            const div = document.getElementById('my-inbox-list');
-            
-            // ONYESHA KITUFU CHA ADMIN KAMA NI ADMIN TU
-            const adminBtn = document.getElementById('admin-new-chat-btn');
-            if (adminBtn) {
-                adminBtn.style.display = (u.role === 'system_admin') ? 'flex' : 'none';
-            }
-            
-            if (!navigator.onLine) {
-                const cached = getFromCache('inbox_html');
-                div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona ujumbe wako.</p>';
-                return;
-            }
-            
-            div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
-            try {
-                const { data, error } = await sb.from('shop_messages')
-                    .select('*, shops(shop_name, owner_phone)')
-                    .or(`sender_phone.eq.${u.phone_number},recipient_phone.eq.${u.phone_number}`)
-                    .order('created_at', { ascending: false })
-                    .limit(50);
-                if(error) throw error;
-                
-                const convos = {};
-                for(const msg of data) {
-                    let key = msg.shop_id ? msg.shop_id : 'dm_' + (msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone);
-                    if(!convos[key]) {
-                        let name, phone, type;
-                        if (msg.shop_id) {
-                        name = msg.shops.shop_name; 
+    async function fetchMyInbox() {
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    const div = document.getElementById('my-inbox-list');
+    
+    // ONYESHA KITUFU CHA ADMIN KAMA NI ADMIN TU
+    const adminBtn = document.getElementById('admin-new-chat-btn');
+    if (adminBtn) {
+        adminBtn.style.display = (u.role === 'system_admin') ? 'flex' : 'none';
+    }
+    
+    if (!navigator.onLine) {
+        const cached = getFromCache('inbox_html');
+        div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao. Washa intaneti kuona ujumbe wako.</p>';
+        return;
+    }
+    
+    div.innerHTML = '<div class="skeleton" style="height:60px; margin: 0 20px 10px 20px;"></div>';
+    try {
+        const { data, error } = await sb.from('shop_messages')
+            .select('*, shops(shop_name, owner_phone)')
+            .or(`sender_phone.eq.${u.phone_number},recipient_phone.eq.${u.phone_number}`)
+            .order('created_at', { ascending: false })
+            .limit(50);
+        if(error) throw error;
+        
+        const convos = {};
+        for(const msg of data) {
+            let key = msg.shop_id ? msg.shop_id : 'dm_' + (msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone);
+            if(!convos[key]) {
+                let name, phone, type;
+                if (msg.shop_id) {
+                    name = msg.shops.shop_name; 
                     // HII NDIO MUHIMU: Tumia namba ya MTEJA (aliyeandikia) sio ya mmiliki wa duka
-                     phone = msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone; 
-                     type = 'shop';
-                    } else {
-                            let otherPhone = msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone;
-                            let otherName = msg.sender_name;
-                            name = (msg.sender_phone === u.phone_number ? 'Mtumiaji' : otherName) + ' ' + getActivistBadgeForPhone(otherPhone);
-                            phone = otherPhone; type = 'dm';
-                        }
-                        // Hifadhi taarifa za mwanzo kabisa ( zitatumika kwa snippet)
-                        convos[key] = { type, id: msg.shop_id || phone, name, phone, lastMsg: msg.content, time: msg.created_at, unread: 0, isUnread: false };
-                    }
-                    
-                    // Hesabu messages zisizosomwa
-                    if (msg.recipient_phone === u.phone_number && !msg.is_read) {
-                        convos[key].unread++;
-                        convos[key].isUnread = true;
-                    }
+                    phone = msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone; 
+                    type = 'shop';
+                } else {
+                    let otherPhone = msg.sender_phone === u.phone_number ? msg.recipient_phone : msg.sender_phone;
+                    let otherName = msg.sender_name;
+                    name = (msg.sender_phone === u.phone_number ? 'Mtumiaji' : otherName) + ' ' + getActivistBadgeForPhone(otherPhone);
+                    phone = otherPhone; type = 'dm';
                 }
-
-                const convoList = Object.values(convos);
-                
-                // PANGA (SORT): ZISIZOSOMWA ZIKA JUU KABISA, KISHA ZINGINE ZIFUATE MWANDO WA MUDA
-                convoList.sort((a, b) => {
-                    if (a.isUnread && !b.isUnread) return -1; // A ni unread, B ni read -> A iwe juu
-                    if (!a.isUnread && b.isUnread) return 1;  // A ni read, B ni unread -> B iwe juu
-                    return new Date(b.time) - new Date(a.time); // Vinginevyo zikae kulingana na muda
-                });
-                
-                const newHtml = convoList.length > 0 ? convoList.map(c => {
-                let cleanName = c.name.replace(/<[^>]*>/g, '').trim();
-                // TUMIA NAMBA YA SIMU KWENYE ONCLICK KUEPUKA MAKOSA YA QUOTES
-                let clickAction = c.type === 'shop' 
-                    ? `fetchDmChat('${c.phone}', '${c.phone}', '${c.id}')`
-                    : `fetchDmChat('${c.phone}', '${c.phone}', null)`;
-                    
-                    let isSystem = (c.phone === window.adminPhone && u.phone_number !== window.adminPhone);
-                    let systemAvatar = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`;
-                    let normalAvatar = `<div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${cleanName.charAt(0)}</div>`;
-                    let displayAvatar = isSystem ? systemAvatar : normalAvatar;
-                    let displayName = isSystem ? `Mfumo wa Kitama ${getWhatsAppVerifiedBadge()}` : c.name;
-                    
-                    let isSystemReturnLink = c.lastMsg && c.lastMsg.includes("Bonyeza kitufe hapa chini kuungana");
-                    let snippetText = isSystemReturnLink ? "Karibu kurudi kwenye KITAMA FORUM! Bonyeza ki..." : ((c.lastMsg ? c.lastMsg.substring(0, 30) : '...') + '...');
-                    let timeStr = new Date(c.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-                    return `
-                    <div class="fb-convo-card ${c.isUnread ? 'unread-card' : ''}" onclick="${clickAction}" style="align-items: center;">
-                        <div style="display: flex; align-items: center; flex: 1; overflow: hidden;">
-                            ${displayAvatar}
-                            <div class="fb-convo-info" style="margin-left: 10px; overflow: hidden;">
-                                <b style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: ${c.isUnread ? '800' : '700'};">${displayName}</b>
-                                <small style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: ${c.isUnread ? '600' : '400'}; color: ${c.isUnread ? 'var(--text)' : 'var(--text-sec)'};">${snippetText}</small>
-                            </div>
-                        </div>
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; margin-left: 10px;">
-                            <small style="color: ${c.isUnread ? 'var(--accent)' : 'var(--text-sec)'}; font-weight: ${c.isUnread ? '700' : '500'}; font-size: 11px;">${timeStr}</small>
-                            ${c.unread > 0 ? `<span class="unread-badge">${c.unread}</span>` : ''}
-                        </div>
-                    </div>`;
-                }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna ujumbe wowote bado.</p>';
-                
-                div.innerHTML = newHtml;
-                saveToCache('inbox_html', newHtml);
-            } catch(e) { 
-                const cached = getFromCache('inbox_html');
-                div.innerHTML = cached || `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+                // Hifadhi taarifa za mwanzo kabisa ( zitatumika kwa snippet)
+                convos[key] = { type, id: msg.shop_id || phone, name, phone, lastMsg: msg.content, time: msg.created_at, unread: 0, isUnread: false };
             }
-            updateBadges();
+            
+            // Hesabu messages zisizosomwa
+            if (msg.recipient_phone === u.phone_number && !msg.is_read) {
+                convos[key].unread++;
+                convos[key].isUnread = true;
+            }
         }
+
+        const convoList = Object.values(convos);
+        
+        // PANGA (SORT): ZISIZOSOMWA ZIKA JUU KABISA, KISHA ZINGINE ZIFUATE MWANDO WA MUDA
+        convoList.sort((a, b) => {
+            if (a.isUnread && !b.isUnread) return -1; // A ni unread, B ni read -> A iwe juu
+            if (!a.isUnread && b.isUnread) return 1;  // A ni read, B ni unread -> B iwe juu
+            return new Date(b.time) - new Date(a.time); // Vinginevyo zikae kulingana na muda
+        });
+        
+        const newHtml = convoList.length > 0 ? convoList.map(c => {
+            let cleanName = c.name.replace(/<[^>]*>/g, '').trim();
+            // TUMIA NAMBA YA SIMU KWENYE ONCLICK KUEPUKA MAKOSA YA QUOTES
+            let clickAction = c.type === 'shop' 
+                ? `fetchDmChat('${c.phone}', '${c.phone}', '${c.id}')`
+                : `fetchDmChat('${c.phone}', '${c.phone}', null)`;
+                
+            let isSystem = (c.phone === window.adminPhone && u.phone_number !== window.adminPhone);
+            let systemAvatar = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`;
+            let normalAvatar = `<div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">${cleanName.charAt(0)}</div>`;
+            let displayAvatar = isSystem ? systemAvatar : normalAvatar;
+            let displayName = isSystem ? `Mfumo wa Kitama ${getWhatsAppVerifiedBadge()}` : c.name;
+            
+            let isSystemReturnLink = c.lastMsg && c.lastMsg.includes("Bonyeza kitufe hapa chini kuungana");
+            
+            // FIX YA INBOX SNIPPET: ONDOA PREFIX YA STATUS REPLY ILI ISIONEKANE KWENYE ORODHA
+            let rawLastMsg = c.lastMsg || '';
+            let snippetText = '';
+            if (rawLastMsg.startsWith('[STATUS_REPLY:')) {
+                const endBracket = rawLastMsg.indexOf(']');
+                snippetText = rawLastMsg.substring(endBracket + 1).trim().substring(0, 30) + '...';
+            } else if (isSystemReturnLink) {
+                snippetText = "Karibu kurudi kwenye KITAMA FORUM! Bonyeza ki...";
+            } else {
+                snippetText = rawLastMsg.substring(0, 30) + '...';
+            }
+            
+            let timeStr = new Date(c.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            return `
+            <div class="fb-convo-card ${c.isUnread ? 'unread-card' : ''}" onclick="${clickAction}" style="align-items: center;">
+                <div style="display: flex; align-items: center; flex: 1; overflow: hidden;">
+                    ${displayAvatar}
+                    <div class="fb-convo-info" style="margin-left: 10px; overflow: hidden;">
+                        <b style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: ${c.isUnread ? '800' : '700'};">${displayName}</b>
+                        <small style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: ${c.isUnread ? '600' : '400'}; color: ${c.isUnread ? 'var(--text)' : 'var(--text-sec)'};">${snippetText}</small>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; margin-left: 10px;">
+                    <small style="color: ${c.isUnread ? 'var(--accent)' : 'var(--text-sec)'}; font-weight: ${c.isUnread ? '700' : '500'}; font-size: 11px;">${timeStr}</small>
+                    ${c.unread > 0 ? `<span class="unread-badge">${c.unread}</span>` : ''}
+                </div>
+            </div>`;
+        }).join('') : '<p style="color:var(--text-sec); text-align:center; padding:40px 20px; margin: 0 20px;">Hakuna ujumbe wowote bado.</p>';
+        
+        div.innerHTML = newHtml;
+        saveToCache('inbox_html', newHtml);
+    } catch(e) { 
+        const cached = getFromCache('inbox_html');
+        div.innerHTML = cached || `<p style="color:red; margin: 0 20px;">${e.message}</p>`;
+    }
+    updateBadges();
+}
 
     async function openCitizenChat(shopId, shopName, ownerPhone) {
         const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -5269,7 +5397,7 @@ async function viewShopById(id) {
         <div class="market-body" style="padding: 15px;">
             <h4 style="margin-bottom: 5px;">${m.item_name}</h4>
             <div class="market-price" style="margin-bottom: 10px;">${m.price || 'Agana'}</div>
-            ${m.description ? `<p style="font-size: 14px; color: var(--text-sec); line-height: 1.5; margin-bottom: 10px;">${m.description}</p>` : ''}
+             ${m.description ? `<p style="font-size: 14px; color: var(--text-sec); line-height: 1.5; margin-bottom: 10px;">${m.description.replace(/\n/g, "<br>")}</p>` : ''}
             <div class="list-meta" style="margin-top:0; margin-bottom:0;">
                 <span class="badge b-info" style="font-size:9px;">${m.category || 'Mengineyo'}</span>
             </div>
@@ -6168,7 +6296,14 @@ async function cancelBodaRide(rideId) {
             if(!regBox || !reqList) return;
             
             try {
-                const { data, error } = await sb.from('boda_drivers').select('*').eq('phone', u.phone_number).maybeSingle();
+             // TAFUTA DEREVA KWA KUANGALIA NAMBA IANZE NA 0 AU 255
+            const cleanPhone = u.phone_number.replace(/\s+/g, '');
+            let phoneQuery = cleanPhone;
+            if (cleanPhone.startsWith('0')) {
+                phoneQuery = `255${cleanPhone.substring(1)}`;
+            }
+            
+            const { data, error } = await sb.from('boda_drivers').select('*').or(`phone.eq.${cleanPhone},phone.eq.${phoneQuery},phone.ilike.${cleanPhone},phone.ilike.${phoneQuery}`).maybeSingle();
                 if (error) throw error;
                 
                 if (!data) {
@@ -6994,7 +7129,7 @@ function toggleFAQ(el) {
         currentMsgElement = null;
     }
 
-        async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
+    async function fetchDmChat(phone, name, shopId = null, isIncoming = false) {
     dmOtherPhone = phone; 
     dmShopId = shopId;
     const dmTitleEl = document.getElementById('dm-chat-title');
@@ -7098,8 +7233,36 @@ function toggleFAQ(el) {
                 const isSelf = (u.phone_number === c.sender_phone);
                 let msgClass = isSelf ? 'self' : '';
                 let actionsHtml = '';
-                // FIX: Ensure content is not null
-                let content = (c.content || '').replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
+                
+                // FIX YA STATUS REPLY: GUNDUA PREFIX NA UUNGEZE REPLY QUOTE
+                let rawContent = (c.content || '');
+                let content = '';
+                let replyQuoteHtml = '';
+                const statusPrefix = '[STATUS_REPLY:';
+                
+                if (rawContent.startsWith(statusPrefix)) {
+                    const endBracket = rawContent.indexOf(']');
+                    if (endBracket > -1) {
+                        const metaStr = rawContent.substring(statusPrefix.length, endBracket);
+                        const metaParts = metaStr.split('|');
+                        const statusId = metaParts[0];
+                        const statusType = metaParts[1] || 'image';
+                        const statusCaption = metaParts.slice(2).join('|') || 'Hakuna caption';
+                        const actualText = rawContent.substring(endBracket + 1).trim();
+                        
+                        let icon = statusType === 'image' ? '📷 Picha' : (statusType === 'video' ? '🎥 Video' : '📝 Maandishi');
+                        // ONGEZA ONCLICK KUITA viewRepliedStatus(statusId)
+                        replyQuoteHtml = `<div class="reply-quote" onclick="event.stopPropagation(); viewRepliedStatus('${statusId}')" style="cursor: pointer; background: rgba(0,0,0,0.05); padding: 6px 10px; border-radius: 6px; margin-bottom: 5px; font-size: 12px; border-left: 3px solid var(--accent); display: flex; flex-direction: column;">
+                            <b style="font-size: 12px; color: var(--accent); margin-bottom: 2px;">Status ya ${c.sender_name}</b>
+                            <small style="font-size: 11px; color: var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${icon} - ${statusCaption.substring(0, 40)}</small>
+                        </div>`;
+                        content = actualText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    } else {
+                        content = rawContent.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
+                    }
+                } else {
+                    content = rawContent.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
+                }
                 
                 let isSystemAccount = (c.sender_phone === window.adminPhone);
                 if (isSystemAccount && !isSelf) {
@@ -7134,7 +7297,8 @@ function toggleFAQ(el) {
                 }
                 let swipeHandlers = `ontouchstart="startDmSwipe(event, '${c.id}', '${safeSenderName}', '${safeContentForAttr}')" ontouchmove="moveSwipe(event)" ontouchend="endDmSwipe()"`;
                 
-                chatHtml += `<div id="msg-${c.id}" class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayName} ${badgeHtml}</b><p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                // ONGEZA ${replyQuoteHtml} HAPA KABLA YA <p>
+                chatHtml += `<div id="msg-${c.id}" class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayName} ${badgeHtml}</b>${replyQuoteHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
             });
         } else {
             chatHtml += '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna ujumbe bado.</p>';
@@ -7227,58 +7391,90 @@ function toggleFAQ(el) {
             } catch(e) { openModal("Kosa", e.message); }
         });
         }
-            async function fetchAdminUsers() {
-        const div = document.getElementById('admin-users-list');
-        
-        // OFFLINE MODE
-        if (!navigator.onLine) {
-            const cached = getFromCache('admin_users_html');
-            div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao.</p>';
-            return;
-        }
-        
-        div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>';
-        try {
-            const { data, error } = await sb.from('users').select('*').neq('role', 'system_admin').order('created_at', { ascending: false });
-            if(error) throw error;
-            
-            const newHtml = data.length > 0 ? data.map(u => {
-                let statusBadge = u.status === 'active' ? '<span class="badge b-succ">Active</span>' : u.status === 'restricted' ? '<span class="badge b-warn">View Only</span>' : '<span class="badge b-err">Banned</span>';
-                let actions = '';
-                if(u.status === 'active') {
-                    actions = `<button onclick="updateUserStatus('${u.id}', 'restricted')" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; margin-right:5px;">Zuia (View-Only)</button>
-                               <button onclick="updateUserStatus('${u.id}', 'rejected')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Funga (Ban)</button>`;
-                } else {
-                    actions = `<button onclick="updateUserStatus('${u.id}', 'active')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:11px;">Ruhusu</button>`;
-                }
-                
-                // KITUFU CHA KUMTEUA KUHARIRI RAMANI
-                let mapEditorBtn = u.can_edit_map 
-                    ? `<button onclick="toggleMapEditor('${u.id}', false)" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px; margin-top:5px; width:100%;">Ondoa Uwezo wa Ramani</button>` 
-                    : `<button onclick="toggleMapEditor('${u.id}', true)" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; background:#6366f1; color:white; margin-top:5px; width:100%;">Ruhusu Kuhariri Ramani</button>`;
-                
-                // ONYESHA TAARIFA ZOTE IKIWEMO PASSWORD
-                return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 15px;">
-                    <div style="flex: 1; min-width: 200px;">
-                        <b>${u.full_name}</b> ${statusBadge}<br>
-                        <small>Simu: <b style="color:var(--accent);">${u.phone_number}</b></small><br>
-                        <small>Password: <b style="color:var(--danger);">${u.password || 'Hakuna'}</b></small><br>
-                        <small>Hadhi: ${u.role.replace(/_/g, ' ')}</small>
-                    </div>
-                    <div style="display:flex; gap:5px; flex-direction:column; align-items:flex-end;">
-                        <div style="display:flex; gap:5px;">${actions}</div>
-                        ${mapEditorBtn}
-                    </div>
-                </div>`;
-            }).join('') : '<p style="color:var(--text-sec); padding:0 20px;">Hakuna watumiaji.</p>';
-            
-            div.innerHTML = newHtml;
-            saveToCache('admin_users_html', newHtml);
-        } catch(e) {
-            const cached = getFromCache('admin_users_html');
-            div.innerHTML = cached || `<p style="color:red; margin:0 20px;">${e.message}</p>`;
-        }
+        async function fetchAdminUsers() {
+    const div = document.getElementById('admin-users-list');
+    
+    // OFFLINE MODE
+    if (!navigator.onLine) {
+        const cached = getFromCache('admin_users_html');
+        div.innerHTML = cached || '<p style="color:var(--text-sec); text-align:center; padding:40px 20px;">Huna mtandao.</p>';
+        return;
     }
+    
+    div.innerHTML = '<div class="skeleton" style="height:60px; margin-bottom:10px;"></div>';
+    try {
+        const { data, error } = await sb.from('users').select('*').neq('role', 'system_admin').order('created_at', { ascending: false });
+        if(error) throw error;
+        
+        const newHtml = data.length > 0 ? data.map(u => {
+            let statusBadge = u.status === 'active' ? '<span class="badge b-succ">Active</span>' : u.status === 'restricted' ? '<span class="badge b-warn">View Only</span>' : '<span class="badge b-err">Banned</span>';
+            let actions = '';
+            if(u.status === 'active') {
+                actions = `<button onclick="updateUserStatus('${u.id}', 'restricted')" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; margin-right:5px;">Zuia (View-Only)</button>
+                           <button onclick="updateUserStatus('${u.id}', 'rejected')" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px;">Funga (Ban)</button>`;
+            } else {
+                actions = `<button onclick="updateUserStatus('${u.id}', 'active')" class="m-btn m-btn-primary" style="padding:8px 12px; font-size:11px;">Ruhusu</button>`;
+            }
+            
+            // KITUFE CHA KUMTEUA KUHARIRI RAMANI
+            let mapEditorBtn = u.can_edit_map 
+                ? `<button onclick="toggleMapEditor('${u.id}', false)" class="m-btn m-btn-danger" style="padding:8px 12px; font-size:11px; margin-top:5px; width:100%;">Ondoa Uwezo wa Ramani</button>` 
+                : `<button onclick="toggleMapEditor('${u.id}', true)" class="m-btn m-btn-secondary" style="padding:8px 12px; font-size:11px; background:#6366f1; color:white; margin-top:5px; width:100%;">Ruhusu Kuhariri Ramani</button>`;
+            
+            // DROPDOWN YA KUBADILISHA HADHI (ROLE)
+            let roleDropdownHtml = '';
+            if (u.role !== 'system_admin') {
+                roleDropdownHtml = `
+                    <div style="margin-top: 10px; width: 100%;">
+                        <small style="color:var(--text-sec); font-weight:700; display:block; margin-bottom:4px;">Badilisha Hadhi:</small>
+                        <select onchange="changeUserRole('${u.id}', this.value)" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit;">
+                            <option value="citizen" ${u.role === 'citizen' ? 'selected' : ''}>Mwananchi</option>
+                            <option value="mwenyekiti_kitongoji" ${u.role === 'mwenyekiti_kitongoji' ? 'selected' : ''}>Mwenyekiti Kitongoji</option>
+                            <option value="mwenyekiti_kijiji" ${u.role === 'mwenyekiti_kijiji' ? 'selected' : ''}>Mwenyekiti Kijiji</option>
+                            <option value="mtendaji_kijiji" ${u.role === 'mtendaji_kijiji' ? 'selected' : ''}>Mtendaji Kijiji</option>
+                            <option value="mtendaji_kata" ${u.role === 'mtendaji_kata' ? 'selected' : ''}>Mtendaji Kata</option>
+                            <option value="diwani" ${u.role === 'diwani' ? 'selected' : ''}>Diwani</option>
+                        </select>
+                    </div>
+                `;
+            } else {
+                roleDropdownHtml = `<div style="margin-top: 10px; width: 100%; padding: 10px; background: rgba(37, 99, 235, 0.1); color: #2563EB; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 700;">Admin wa Mfumo (IT)</div>`;
+            }
+            
+            return `<div class="list-i" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:15px; margin-bottom: 15px;">
+                <div style="flex: 1; min-width: 200px;">
+                    <b>${u.full_name}</b> ${statusBadge}<br>
+                    <small>Simu: <b style="color:var(--accent);">${u.phone_number}</b></small><br>
+                    <small>Password: <b style="color:var(--danger);">${u.password || 'Hakuna'}</b></small><br>
+                    <small>Hadhi ya Sasa: <b>${u.role.replace(/_/g, ' ')}</b></small>
+                    ${roleDropdownHtml}
+                </div>
+                <div style="display:flex; gap:5px; flex-direction:column; align-items:flex-end;">
+                    <div style="display:flex; gap:5px;">${actions}</div>
+                    ${mapEditorBtn}
+                </div>
+            </div>`;
+        }).join('') : '<p style="color:var(--text-sec); padding:0 20px;">Hakuna watumiaji.</p>';
+        
+        div.innerHTML = newHtml;
+        saveToCache('admin_users_html', newHtml);
+    } catch(e) {
+        const cached = getFromCache('admin_users_html');
+        div.innerHTML = cached || `<p style="color:red; margin:0 20px;">${e.message}</p>`;
+    }
+}
+    // FUNCTION YA KUBADILISHA HADHI YA MTUMIAJI
+async function changeUserRole(userId, newRole) {
+    try {
+        const { error } = await sb.from('users').update({ role: newRole }).eq('id', userId);
+        if (error) throw error;
+        
+        showToast("Hadhi ya mtumiaji imebadilishwa!");
+        playBeep();
+    } catch(e) {
+        openModal("Kosa", "Imeshindwa kubadilisha hadhi: " + e.message);
+    }
+}
         // --- ADMIN FEEDBACK FULL SCREEN FUNCTIONS ---
         async function fetchAdminFeedbacks() {
         const div = document.getElementById('admin-feedback-list');
@@ -8643,6 +8839,24 @@ async function showStatusViewer(status) {
     pausedStatus = false;
     
     document.getElementById('status-viewer-overlay').style.display = 'flex';
+    
+    // KUUNDA REPLY BOX KAMA HAIJAUNDWA
+    if (!document.getElementById('status-reply-box')) {
+        const replyBox = document.createElement('div');
+        replyBox.id = 'status-reply-box';
+        replyBox.innerHTML = `
+            <input type="text" id="status-reply-input" placeholder="Jibu status hii..." />
+            <button type="button" id="status-reply-btn" style="padding: 5px; background: transparent; border: none; color: white; cursor: pointer;">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        `;
+        document.getElementById('status-viewer-overlay').appendChild(replyBox);
+    }
+    
+    const replyBox = document.getElementById('status-reply-box');
+    const replyInput = document.getElementById('status-reply-input');
+    if(replyInput) replyInput.value = ''; 
+    
     const imgEl = document.getElementById('status-viewer-img');
     const captionEl = document.getElementById('sv-caption');
     const footerEl = document.getElementById('sv-footer');
@@ -8712,11 +8926,35 @@ async function showStatusViewer(status) {
         footerEl.style.cursor = 'pointer';
         footerEl.onclick = showViewersPanel; 
         viewersEl.innerHTML = '<small style="display:flex; align-items:center; gap:5px; justify-content:center; padding:8px; background:rgba(0,0,0,0.3); border-radius:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Bonyeza hapa kuona waliotazama</small>';
+        
+        if (replyBox) replyBox.style.display = 'none';
+        
     } else {
         footerEl.style.display = 'none';
         footerEl.onclick = null;
+        
+        if (replyBox) {
+            replyBox.style.display = 'none';
+            
+            // FIX YA APK: TUMIA touchend BADALA YA click ILI ANDROID IPATE EVENT
+            const oldBtn = document.getElementById('status-reply-btn');
+            const newBtn = oldBtn.cloneNode(true);
+            oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+            
+            newBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                sendStatusReply(status);
+            }, { passive: false });
+            
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                sendStatusReply(status);
+            });
+        }
+
         if (u.phone_number !== window.adminPhone) {
-            // ANDIKA KIMYAKIMYA KWENYE DB
             sb.from('status_views').insert([{
                 status_id: status.id,
                 viewer_phone: u.phone_number,
@@ -8737,7 +8975,208 @@ async function showStatusViewer(status) {
         statusTimer = setTimeout(() => { nextStatus(); }, duration);
     }
 }
+async function showStatusViewer(status) {
+    clearTimeout(statusTimer);
+    pausedStatus = false;
+    
+    document.getElementById('status-viewer-overlay').style.display = 'flex';
+    
+    // KUUNDA REPLY BOX KAMA HAIJAUNDWA
+    if (!document.getElementById('status-reply-box')) {
+        const replyBox = document.createElement('div');
+        replyBox.id = 'status-reply-box';
+        replyBox.innerHTML = `
+            <input type="text" id="status-reply-input" placeholder="Jibu status hii..." />
+            <button type="button" id="status-reply-btn" style="padding: 5px; background: transparent; border: none; color: white; cursor: pointer;">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        `;
+        document.getElementById('status-viewer-overlay').appendChild(replyBox);
+        
+        // FOREVER FIX: ZUIA KIOO KISIPITISHE TOUCH EVENTS KWENYE REPLY BOX
+        replyBox.addEventListener('touchstart', function(e) { e.stopPropagation(); }, { passive: true });
+        replyBox.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
+        replyBox.addEventListener('click', function(e) { e.stopPropagation(); }, { passive: true });
+        
+        // ONGEZA EVENT LISTENER KWA KITUFE CHA SEND
+        document.getElementById('status-reply-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            sendStatusReply(status);
+        });
+    }
+    
+    // SASISHA STATUS YA SASA KWA AJILI YA REPLY
+    window.currentViewingStatus = status;
+    
+    const replyBox = document.getElementById('status-reply-box');
+    const replyInput = document.getElementById('status-reply-input');
+    if(replyInput) replyInput.value = ''; 
+    
+    const imgEl = document.getElementById('status-viewer-img');
+    const captionEl = document.getElementById('sv-caption');
+    const footerEl = document.getElementById('sv-footer');
+    const viewersEl = document.getElementById('sv-viewers');
+    
+    imgEl.style.background = ''; 
+    imgEl.innerHTML = ''; 
+    
+    const progressFill = statusSegments[currentViewingIndex];
+    if (progressFill) {
+        progressFill.style.transition = 'none';
+        progressFill.style.width = '0%';
+    }
+    
+    let duration = 30000; 
+    if (status.media_type === 'video') {
+        const video = document.createElement('video');
+        video.src = status.media_base64;
+        video.style.cssText = 'width:100%; height:100%; object-fit:contain; background:#000;';
+        video.playsInline = true;
+        imgEl.appendChild(video);
+        
+        let effectiveDuration = status.max_play_duration;
+        video.addEventListener('loadedmetadata', () => {
+            effectiveDuration = Math.min(video.duration, status.max_play_duration);
+            video.play().catch(e => console.error("Video play error:", e));
+        });
+        video.addEventListener('timeupdate', () => {
+            const percentage = (video.currentTime / effectiveDuration) * 100;
+            if (progressFill) { progressFill.style.transition = 'none'; progressFill.style.width = Math.min(percentage, 100) + '%'; }
+            if (video.currentTime >= effectiveDuration) { video.pause(); nextStatus(); }
+        });
+        video.addEventListener('ended', () => nextStatus());
+    } else if (status.media_type === 'text') {
+        const colors = ['#1E293B', '#7F1D1D', '#14532D', '#581C87', '#155E75', '#92400E'];
+        const bgColor = colors[status.id.length % colors.length]; 
+        imgEl.style.background = bgColor;
+        imgEl.innerHTML = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><p style="color:white; font-size:20px; font-weight:600; padding:20px; text-align:center;">${status.media_base64}</p></div>`;
+    } else {
+        imgEl.style.background = `url('${status.media_base64}') center/contain no-repeat`;
+    }
+    
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    
+    let isSystemStatus = (status.sender_phone === window.adminPhone);
+    const svAvatar = document.getElementById('sv-avatar');
+    const svName = document.getElementById('sv-name');
+    
+    if (isSystemStatus) {
+        svAvatar.innerHTML = `<img src="https://okzqfkghhuymrzgpfxua.supabase.co/storage/v1/object/public/kitama-logo/kitama%20logo.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        svName.innerHTML = `Kitama Yetu ${getWhatsAppVerifiedBadge()}`;
+    } else if (status.sender_phone === u.phone_number) {
+        svAvatar.innerText = u.full_name.charAt(0);
+        svName.innerText = "My Status";
+    } else {
+        svAvatar.innerText = status.sender_name.charAt(0);
+        svName.innerText = status.sender_name;
+    }
+    
+    document.getElementById('sv-time').innerText = getStatusTimeLabel(status.timestamp);
+    
+    captionEl.innerText = status.caption || '';
+    captionEl.style.display = status.caption ? 'block' : 'none';
+    
+    if (status.sender_phone === u.phone_number) {
+        footerEl.style.display = 'flex';
+        footerEl.style.cursor = 'pointer';
+        footerEl.onclick = showViewersPanel; 
+        viewersEl.innerHTML = '<small style="display:flex; align-items:center; gap:5px; justify-content:center; padding:8px; background:rgba(0,0,0,0.3); border-radius:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Bonyeza hapa kuona waliotazama</small>';
+        
+        if (replyBox) replyBox.style.display = 'none';
+        
+    } else {
+        footerEl.style.display = 'none';
+        footerEl.onclick = null;
+        
+        if (replyBox) {
+            replyBox.style.display = 'none';
+        }
 
+        if (u.phone_number !== window.adminPhone) {
+            sb.from('status_views').insert([{
+                status_id: status.id,
+                viewer_phone: u.phone_number,
+                sender_phone: status.sender_phone
+            }]).then(() => {
+                let myStorage = getStatusFromStorage();
+                const s = myStorage.find(x => x.id === status.id);
+                if (s) { if (!s.seen_by) s.seen_by = []; s.seen_by.push(u.phone_number); saveStatusToStorage(myStorage); }
+            }).catch(e => console.error("DB View Error:", e));
+        }
+    }
+    
+    if (status.media_type !== 'video' && progressFill) {
+        setTimeout(() => { 
+            progressFill.style.transition = `width ${duration}ms linear`; 
+            progressFill.style.width = '100%'; 
+        }, 100);
+        statusTimer = setTimeout(() => { nextStatus(); }, duration);
+    }
+}
+    async function sendStatusReply() {
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    const input = document.getElementById('status-reply-input');
+    if (!input) return;
+    
+    const text = input.value.trim();
+    if (!text) return showToast("Andika jibu kwanza.");
+    
+    const status = window.currentViewingStatus;
+    if (!status) return showToast("Kosa: Status haijapatikana.");
+    
+    try {
+        // 1. TENGENEZA PREFIX YA STATUS (Tumia | kama separator kwa usalama)
+        const statusId = status.id || '';
+        const statusType = status.media_type || 'image';
+        const statusCaption = status.caption || 'Hakuna caption';
+        const statusContext = `[STATUS_REPLY:${statusId}|${statusType}|${statusCaption}] `;
+        
+        const finalContent = statusContext + text;
+        
+        const { error } = await sb.from('shop_messages').insert([{
+            sender_phone: u.phone_number,
+            sender_name: u.full_name,
+            recipient_phone: status.sender_phone,
+            content: finalContent,
+            shop_id: null,
+            is_read: false
+        }]);
+        
+        if (error) throw error;
+        
+        showToast("Jibu limetumwa!");
+        playBeep();
+        
+        input.value = '';
+        input.blur(); 
+        const replyBox = document.getElementById('status-reply-box');
+        if (replyBox) replyBox.style.display = 'none';
+        
+        nextStatus(); 
+    } catch(e) {
+        showToast("Kosa: " + e.message);
+    }
+}
+    function viewRepliedStatus(statusId) {
+    const allStatuses = getStatusFromStorage();
+    const status = allStatuses.find(s => s.id === statusId);
+    
+    if (status) {
+        // Tafuta status zote za mtu huyu na upangilie katikati ya hii aliyoi-reply
+        const myStatuses = allStatuses.filter(s => s.sender_phone === status.sender_phone);
+        const index = myStatuses.findIndex(s => s.id === statusId);
+        
+        if (index !== -1) {
+            currentViewingPhone = status.sender_phone;
+            currentStatusList = myStatuses;
+            currentViewingIndex = index;
+            renderStatusSegments();
+            showStatusViewer(currentStatusList[currentViewingIndex]);
+        }
+    } else {
+        showToast("Status hii haipatikani au muda wake umekwisha.");
+    }
+}
         function pauseStatus() {
             if (!pausedStatus) {
                 pausedStatus = true;
@@ -9100,40 +9539,56 @@ async function fetchAndSaveContacts(Contacts) {
     if (syncBtn) syncBtn.style.display = 'none';
     loadStatusUI();
 }
-        function handleSwipeEnd(endY) {
-            const diffY = touchStartY - endY;
-            const duration = Date.now() - touchStartTime;
-            const panel = document.getElementById('viewers-panel');
-            const isPanelOpen = panel.style.transform === 'translateY(0%)';
+    function handleSwipeEnd(endY) {
+    const diffY = touchStartY - endY;
+    const duration = Date.now() - touchStartTime;
+    const panel = document.getElementById('viewers-panel');
+    const replyBox = document.getElementById('status-reply-box');
+    const isPanelOpen = panel && panel.style.transform === 'translateY(0%)';
+    const isReplyOpen = replyBox && replyBox.style.display === 'flex';
+    
+    const status = currentStatusList[currentViewingIndex];
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    const isOwner = status && status.sender_phone === u.phone_number;
 
-            // 1. Kama ni Tap tu (haikufinya sana wala kukaa muda mrefu)
-            if (Math.abs(diffY) < 10 && duration < 300) {
-                if (!isPanelOpen) resumeStatus();
-            } 
-            // 2. Kama amefinya juu (Swipe Up)
-            else if (diffY > 50) {
-                const status = currentStatusList[currentViewingIndex];
-                const u = JSON.parse(localStorage.getItem('kitama_user'));
-                // Fungua paneli tu kama ni status yake mwenyewe
-                if (status && status.sender_phone === u.phone_number) {
-                    showViewersPanel();
-                } else {
-                    resumeStatus();
+    // 1. Kama ni Tap tu (haikufinya sana wala kukaa muda mrefu)
+    if (Math.abs(diffY) < 10 && duration < 300) {
+        if (!isPanelOpen && !isReplyOpen) resumeStatus();
+    } 
+    // 2. Kama amefinya juu (Swipe Up)
+    else if (diffY > 50) {
+        if (isOwner) {
+            // MMILIKI AKISWIPE UP, ONYESHA WALIOTAZAMA
+            showViewersPanel();
+        } else {
+            // MTAZAMAJI AKISWIPE UP, ONYESHA REPLY BOX NA FOCUS INPUT
+            if (replyBox) {
+                replyBox.style.display = 'flex';
+                const replyInput = document.getElementById('status-reply-input');
+                if (replyInput) {
+                    replyInput.focus(); // Hii italeta keyboard moja kwa moja
                 }
-            } 
-            // 3. Kama amefinya chini (Swipe Down)
-            else if (diffY < -50) {
-                if (isPanelOpen) {
-                    hideViewersPanel(); // Funga paneli tu
-                } else {
-                    closeStatusViewer(); // Funga status yote
-                }
-            } 
-            // 4. Kama hakuna kitu, endelea kucheza
-            else {
-                if (!isPanelOpen) resumeStatus();
+            } else {
+                resumeStatus();
             }
         }
+    } 
+    // 3. Kama amefinya chini (Swipe Down)
+    else if (diffY < -50) {
+        if (isPanelOpen) {
+            hideViewersPanel(); // Funga panel la waliotazama
+        } else if (isReplyOpen) {
+            if (replyBox) replyBox.style.display = 'none'; // Funga reply box
+            resumeStatus();
+        } else {
+            closeStatusViewer(); // Funga status nzima
+        }
+    } 
+    // 4. Kama hakuna kitu, endelea kucheza
+    else {
+        if (!isPanelOpen && !isReplyOpen) resumeStatus();
+    }
+}
 
         function hideViewersPanel() {
             document.getElementById('viewers-panel').style.transform = 'translateY(100%)';
@@ -10555,6 +11010,7 @@ async function rejectBodaDriver(phone, photoUrl) {
             const textarea = document.getElementById('article-content');
             const previewBox = document.getElementById('article-preview-box');
             let text = textarea.value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            text = text.replace(/\n/g, '<br>'); // HII ITAONYESHA MISTARI KWENYE LIVE PREVIEW
             
             // BADILISHA [IMG]LINK[/IMG] KUWA PICHA HALISI
             text = text.replace(/\[IMG\](.*?)\[\/IMG\]/g, (match, url) => {
@@ -10847,7 +11303,19 @@ async function rejectBodaDriver(phone, photoUrl) {
                 openModal("Kosa", e.message);
             }
         }
-
+function enterAsGuest() {
+    const guestUser = {
+        id: 'guest_' + Date.now(),
+        full_name: "Mgeni",
+        phone_number: "guest",
+        role: "guest",
+        status: "restricted",
+        village: "Kata Yote",
+        is_activist: false
+    };
+    localStorage.setItem('kitama_user', JSON.stringify(guestUser));
+    enterApp();
+}
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
 </script>
 </body>
