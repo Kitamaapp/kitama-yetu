@@ -2128,16 +2128,15 @@ async function deleteCloudinaryAsset(url) {
               .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'boda_requests' }, payload => {
                   const currentUser = JSON.parse(localStorage.getItem('kitama_user'));
                   
-                  // 1. KWA DEREVA: YUPO UKURASA WA MAOMBI? BASI PAKIA UPYA ILI OMBI LILOKUBALIWA/KUGHAIRIWA LITOWEKE MOJA KWA MOJA
+                  // 1. KWA DEREVA: YUPO UKURASA WA MAOMBI? PAKIA UPYA
                   if (document.getElementById('boda-driver-sec') && document.getElementById('boda-driver-sec').classList.contains('active')) {
                       fetchBodaRequests();
                   }
 
-                  // 2. KUMUARIFU DEREVA: KAMA ABIRIA AMEGHAIRI SAFARI BAADA YA DEREVA KUKUBALI
-                  // TUMIA activeBodaTrip.reqId KUHAKIKISHA NI SAFARI YAKE
+                  // 2. KUMUARIFU DEREVA: KAMA ABIRIA AMEGHAIRI SAFARI
                   if (activeBodaTrip && payload.new.id === activeBodaTrip.reqId && payload.new.status === 'cancelled') {
-                      activeBodaTrip = null; // FUTA TAARIFA ZA ABIRIA (ROUTE, DEST, N.K)
-                      renderActiveTripCard(); // FUTA KADI
+                      activeBodaTrip = null; 
+                      renderActiveTripCard();
                       showToast("⚠️ Abiria ameghairi safari! Taarifa zote zimefutika.");
                       playBeep();
                   }
@@ -3372,7 +3371,41 @@ startSmartPolling();
     function toggleMsgActions(el) {
         el.classList.toggle('show-actions');
     }
-
+// FUNCTION YA KURUKIA UJUMBE ULIOTAGIWA (WhatsApp Style)
+function jumpToMessage(msgId) {
+    if (!msgId) return;
+    
+    // Tafuta ujumme kwenye kurasa zote tatu za chat
+    const chatBodies = [
+        document.getElementById('citizen-chat-list'),
+        document.getElementById('chat-list'),
+        document.getElementById('dm-chat-list')
+    ];
+    
+    let targetEl = null;
+    let container = null;
+    
+    chatBodies.forEach(body => {
+        if (body) {
+            const el = document.getElementById(`msg-${msgId}`);
+            if (el) {
+                targetEl = el;
+                container = body;
+            }
+        }
+    });
+    
+    if (targetEl && container) {
+        // Sogeza kwenye ujumbe
+        container.scrollTo({ top: targetEl.offsetTop - 60, behavior: 'smooth' });
+        // Piga kelele (Highlight) kwa rangi ya kijani kwa sekunde 1.5
+        targetEl.style.transition = 'background 0.5s';
+        targetEl.style.background = 'rgba(16, 185, 129, 0.2)';
+        setTimeout(() => { targetEl.style.background = ''; }, 1500);
+    } else {
+        showToast("Ujumbe haujapatikani kwenye screen. Scroll juu kuangalia zaidi.");
+    }
+}
     async function viewReadBy(msgId) {
         try {
             const { data: msg, error } = await sb.from('citizen_chat').select('read_by').eq('id', msgId).single();
@@ -3519,11 +3552,23 @@ if (data) data.reverse();
                     
                     let replyHtml = '';
                     if (c.reply_to) {
-                        let parts = c.reply_to.split('|');
-                        let replyName = parts[0];
-                        let replyText = parts.slice(1).join('|');
-                        let displayName = replyName === u.full_name ? 'Wewe' : replyName;
-                        replyHtml = `<div class="reply-quote"><b>${displayName}</b><small>${replyText.substring(0, 50)}</small></div>`;
+                        try {
+                            // JARIBU KUSOMA KAMA JSON (Kwa replies mpya)
+                            let parsedReply = JSON.parse(c.reply_to);
+                            let replyName = parsedReply.name || 'Mtu';
+                            let replyText = parsedReply.text || '';
+                            let replyId = parsedReply.id || '';
+                            let displayName = replyName === u.full_name ? 'Wewe' : replyName;
+                            let safeReplyText = replyText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                            replyHtml = `<div class="reply-quote" onclick="event.stopPropagation(); jumpToMessage('${replyId}')" style="cursor:pointer;"><b>${displayName}</b><small>${safeReplyText.substring(0, 50)}</small></div>`;
+                        } catch(e) {
+                            // KAMA NI FORMAT YA ZAMANI (Name|Text)
+                            let parts = c.reply_to.split('|');
+                            let replyName = parts[0];
+                            let replyText = parts.slice(1).join('|');
+                            let displayName = replyName === u.full_name ? 'Wewe' : replyName;
+                            replyHtml = `<div class="reply-quote"><b>${displayName}</b><small>${replyText.substring(0, 50)}</small></div>`;
+                        }
                     }
                     
                     let content = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
@@ -3600,60 +3645,64 @@ if (data) data.reverse();
         }
     }
 
-        async function postCitizenChat() {
-        const u = JSON.parse(localStorage.getItem('kitama_user'));
-        if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma ujumbe kwa sasa.");
-        if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
-        const content = document.getElementById('citizen-chat-input').value.trim();
-        if(!content) return;
-        if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
-        
-        let replyToData = null;
-        if(citizenReplyTo) {
-            replyToData = `${citizenReplyName}|${citizenReplyText}`;
-        }
-
-            try {
-            const msgData = { 
-                sender_name: u.full_name, 
-                sender_phone: u.phone_number,
-                sender_role: u.role,
-                sender_village: u.village, 
-                content: content,
-                reply_to: replyToData,
-                read_by: [u.phone_number],
-                is_activist: u.is_activist || false
-            };
-            
-            if (!navigator.onLine) {
-                addToMsgQueue('citizen_chat', msgData);
-                document.getElementById('citizen-chat-input').value = '';
-                cancelCitizenReply();
-                showToast("Huna mtandao. Ujumbe umewekwa kwenye foleni na utatumwa ukisha washwa intaneti.");
-                
-                // Onyesha ujumbe kama umetumwa (kama WhatsApp clock icon)
-                const div = document.getElementById('citizen-chat-list');
-                const el = document.createElement('div');
-                el.className = 'chat-msg self';
-                el.style.opacity = '0.6';
-                el.innerHTML = `<b>Wewe</b><p>${content}</p><div class="msg-time"><span class="ticks sent">🕒</span></div>`;
-                div.appendChild(el);
-                div.scrollTop = div.scrollHeight;
-                return;
-            }
-            
-            const { error } = await sb.from('citizen_chat').insert([msgData]);
-            if (error) throw error;
-
-            document.getElementById('citizen-chat-input').value = '';
-            cancelCitizenReply();
-            playBeep();
-            isAtBottom = true;
-            fetchCitizenChat(false);
-        } catch(e) { 
-            openModal("Kosa la Kutuma", e.message); 
-        }
+async function postCitizenChat() {
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma ujumbe kwa sasa.");
+    if(u.status === 'pending') return openModal("Kosa", "Akaunti yako haijaidhinishwa bado.");
+    
+    const inputEl = document.getElementById('citizen-chat-input');
+    const content = inputEl.value.trim();
+    if(!content) return;
+    if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+    
+    let replyToData = null;
+    if(citizenReplyTo) {
+        // HIFADHI ID, JINA NA MANENO KAMA JSON
+        replyToData = JSON.stringify({ id: citizenReplyTo, name: citizenReplyName, text: citizenReplyText });
     }
+
+    // 1. ONYESHA UJUMBE MARA MOJA NA FUTA INPUT
+    inputEl.value = '';
+    cancelCitizenReply();
+    playBeep();
+    isAtBottom = true;
+    
+    const div = document.getElementById('citizen-chat-list');
+    let replyHtml = '';
+    if (replyToData) {
+        let parsedReply = JSON.parse(replyToData);
+        let safeReplyName = (parsedReply.name === u.full_name ? 'Wewe' : parsedReply.name) || 'Mtu';
+        let safeReplyText = (parsedReply.text || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        // ONGEZA ONCLICK KUITA jumpToMessage
+        replyHtml = `<div class="reply-quote" onclick="event.stopPropagation(); jumpToMessage('${parsedReply.id}')" style="cursor:pointer;"><b>${safeReplyName}</b><small>${safeReplyText.substring(0, 40)}</small></div>`;
+    }
+    let safeContent = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
+    const tempMsgHtml = `<div class="chat-msg self"><b>Wewe</b>${replyHtml}<p>${safeContent}</p><div class="msg-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} <span class="ticks sent">🕒</span></div></div>`;
+    div.insertAdjacentHTML('beforeend', tempMsgHtml);
+    div.scrollTop = div.scrollHeight;
+
+    // 2. MTUMIE DATABASE KWA KIMYAKIMYA BACKGROUND
+    const msgData = { 
+        sender_name: u.full_name, 
+        sender_phone: u.phone_number,
+        sender_role: u.role,
+        sender_village: u.village, 
+        content: content,
+        reply_to: replyToData,
+        read_by: [u.phone_number],
+        is_activist: u.is_activist || false
+    };
+    
+    if (!navigator.onLine) {
+        addToMsgQueue('citizen_chat', msgData);
+        showToast("Huna mtandao. Ujumbe umewekwa kwenye foleni.");
+        return;
+    }
+    
+    sb.from('citizen_chat').insert([msgData]).then(() => {}).catch(e => { 
+        openModal("Kosa la Kutuma", e.message); 
+    });
+}
 
     async function deleteCitizenChat(id) {
         openModal("Futa Ujumbe", "Una uhakika unataka kufuta ujumbe huu kabisa?", false, async () => {
@@ -4219,49 +4268,52 @@ if (data) data.reverse();
             }
         }
 
-            async function postChat() { 
-            const u = JSON.parse(localStorage.getItem('kitama_user')); 
-            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
-            const content = document.getElementById('chat-input').value.trim(); 
-            if(!content) return; 
-            if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
-            
-            try { 
-                const msgData = { 
-                    sender_name: u.full_name, 
-                    sender_role: u.role, 
-                    sender_village: u.village, 
-                    content: content, 
-                    reply_to: leaderReplyTo 
-                };
-                
-                // OFFLINE MODE: Weka kwenye foleni na onyesha kama WhatsApp
-                if (!navigator.onLine) {
-                    addToMsgQueue('leader_chat', msgData);
-                    document.getElementById('chat-input').value = '';
-                    cancelLeaderReply();
-                    showToast("Huna mtandao. Ujumbe umewekwa kwenye foleni na utatumwa ukisha washwa intaneti.");
-                    
-                    const div = document.getElementById('chat-list');
-                    const el = document.createElement('div');
-                    el.className = 'chat-msg self';
-                    el.style.opacity = '0.6';
-                    el.innerHTML = `<b>Wewe (Viongozi)</b><p>${content}</p><div class="msg-time"><span class="ticks sent">🕒</span></div>`;
-                    div.appendChild(el);
-                    div.scrollTop = div.scrollHeight;
-                    return;
-                }
-                
-                await sb.from('leader_chat').insert([msgData]); 
-                document.getElementById('chat-input').value = ''; 
-                cancelLeaderReply(); 
-                playBeep(); 
-                leaderIsAtBottom = true; 
-                fetchLeaderChat(false); 
-            } catch(e) { 
-                openModal("Kosa", e.message); 
-            } 
-        }
+    async function postChat() { 
+    const u = JSON.parse(localStorage.getItem('kitama_user')); 
+    if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma chochote kwa sasa.");
+    
+    const inputEl = document.getElementById('chat-input');
+    const content = inputEl.value.trim(); 
+    if(!content) return; 
+    if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+    
+    // 1. ONYESHA UJUMBE MARA MOJA NA FUTA INPUT (Optimistic UI)
+    inputEl.value = '';
+    cancelLeaderReply();
+    playBeep();
+    leaderIsAtBottom = true;
+    
+    const div = document.getElementById('chat-list');
+    let replyHtml = '';
+    if (leaderReplyTo) {
+        // KUFUNGA MANENO KWA USALAMA (Safe HTML Encoding)
+        let safeReplyText = (leaderReplyTo || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        replyHtml = `<div class="reply-quote"><small>Unajibu:</small><br>${safeReplyText.substring(0, 50)}</div>`;
+    }
+    let safeContent = content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const tempMsgHtml = `<div class="chat-msg self"><b>Wewe (Viongozi)</b>${replyHtml}<p>${safeContent}</p><div class="msg-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} <span class="ticks sent">🕒</span></div></div>`;
+    div.insertAdjacentHTML('beforeend', tempMsgHtml);
+    div.scrollTop = div.scrollHeight;
+    
+    // 2. MTUMIE DATABASE KWA KIMYAKIMYA BACKGROUND
+    const msgData = { 
+        sender_name: u.full_name, 
+        sender_role: u.role, 
+        sender_village: u.village, 
+        content: content, 
+        reply_to: leaderReplyTo 
+    };
+    if (!navigator.onLine) {
+        addToMsgQueue('leader_chat', msgData);
+        showToast("Huna mtandao. Ujumbe umewekwa kwenye foleni na utatumwa ukisha washwa intaneti.");
+        return;
+    }
+    sb.from('leader_chat').insert([msgData]).then(() => {
+        // Realtime itafanya kazi ya kusasisha ikiwa ipo
+    }).catch(e => { 
+        openModal("Kosa", e.message); 
+    }); 
+}
     async function editLeaderChat(id, oldText) {
         openModal("Hariri Ujumbe", "Badilisha ujumbe wako hapa chini.", true, async (newText) => {
             if(!newText || newText === oldText) return;
@@ -6351,13 +6403,38 @@ async function cancelAcceptedBodaRide(rideId) {
             reqList.style.display = 'block';
             reqList.innerHTML = '<div class="skeleton" style="height:80px; margin-bottom:10px;"></div>';
             
-            fetchBodaRequests();
+            fetchBodaRequests(); // PAKIA MWANZO
+            
+            // ONGEZA HII: ANZISHA SMART POLLING YA SEKUNDE 5 ILI MAOMBI YAKUWE LIVE 100%
+            startBodaDriverPolling();
         }
     } catch(e) {
         console.error("Driver status check error:", e);
     }
 }
-
+// SMART POLLING YA DEREVA (Inakagua maombi mapya kila sekunde 5)
+let bodaPollInterval = null;
+function startBodaDriverPolling() {
+    if (bodaPollInterval) clearInterval(bodaPollInterval);
+    bodaPollInterval = setInterval(async () => {
+        // KAMA DEREVA HAYUPO UKURASA WA MAOMBI, USIFANYE CHOCHOTE
+        if (!document.getElementById('boda-driver-sec').classList.contains('active')) return;
+        
+        // KAGUA KAMA KADI YA SAFARI ILIYOKUBALIWA BADO IPO HALALI
+        if (activeBodaTrip) {
+            const { data: tripStatus } = await sb.from('boda_requests').select('status').eq('id', activeBodaTrip.reqId).maybeSingle();
+            if (!tripStatus || tripStatus.status === 'completed' || tripStatus.status === 'cancelled') {
+                activeBodaTrip = null;
+                renderActiveTripCard();
+                showToast("⚠️ Abiria ameghairi safari! Taarifa zote zimefutika.");
+                playBeep();
+            }
+        }
+        
+        // PAKIA UPYA MAOMBI MAPYA
+        fetchBodaRequests();
+    }, 5000); // KILA SEKUNDE 5
+}
         async function fetchBodaRequests() {
     const div = document.getElementById('boda-requests-list');
     const u = JSON.parse(localStorage.getItem('kitama_user'));
@@ -7347,58 +7424,56 @@ function toggleFAQ(el) {
     }
 }
 
-         async function postDmChat() {
-            const u = JSON.parse(localStorage.getItem('kitama_user'));
-            if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma ujumbe kwa sasa.");
-            const content = document.getElementById('dm-chat-input').value.trim();
-            if(!content) return;
-            if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
-            
-            const sendBtn = document.querySelector('#dm-chat-sec .chat-input-box button');
-            const originalBtn = sendBtn ? sendBtn.innerHTML : '';
-            if(sendBtn) { sendBtn.innerHTML = '<div class="spinner"></div>'; sendBtn.disabled = true; }
-            
-            try {
-                const msgData = { 
-                    sender_phone: u.phone_number, 
-                    sender_name: u.full_name, 
-                    content: content,
-                    recipient_phone: dmOtherPhone
-                };
-                if(dmShopId) msgData.shop_id = dmShopId;
-                
-                // OFFLINE MODE: Weka kwenye foleni na onyesha kama WhatsApp
-                if (!navigator.onLine) {
-                    addToMsgQueue('shop_messages', msgData);
-                    document.getElementById('dm-chat-input').value = '';
-                    cancelDmReply();
-                    showToast("Huna mtandao. Ujumbe umewekwa kwenye foleni na utatumwa ukisha washwa intaneti.");
-                    
-                    const div = document.getElementById('dm-chat-list');
-                    const el = document.createElement('div');
-                    el.className = 'chat-msg self';
-                    el.style.opacity = '0.6';
-                    el.innerHTML = `<b>Wewe</b><p>${content}</p><div class="msg-time"><span class="ticks sent">🕒</span></div>`;
-                    div.appendChild(el);
-                    div.scrollTop = div.scrollHeight;
-                    if(sendBtn) { sendBtn.innerHTML = originalBtn; sendBtn.disabled = false; }
-                    return;
-                }
-                
-                const { error } = await sb.from('shop_messages').insert([msgData]);
-                if(error) throw error;
-                
-                document.getElementById('dm-chat-input').value = '';
-                cancelDmReply();
-                playBeep();
-                dmIsAtBottom = true;
-                await fetchDmChat(dmOtherPhone, document.getElementById('dm-chat-title').innerText, dmShopId);
-            } catch(e) { 
-                openModal("Kosa la Kutuma", e.message); 
-            } finally {
-                if(sendBtn) { sendBtn.innerHTML = originalBtn; sendBtn.disabled = false; }
-            }
-        }
+    async function postDmChat() {
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    if(u.status === 'restricted') return openModal("Akaunti Imezuiwa", "Akaunti yako ipo kwenye View-Only. Huwezi kutuma ujumbe kwa sasa.");
+    
+    const inputEl = document.getElementById('dm-chat-input');
+    const content = inputEl.value.trim();
+    if(!content) return;
+    if(containsBadWords(content)) return openModal("Onyo", "Ujumbe wako una maneno yasiyoruhusiwa.");
+    
+    // 1. ONYESHA UJUMBE MARA MOJA NA FUTA INPUT (Optimistic UI)
+    inputEl.value = '';
+    cancelDmReply();
+    playBeep();
+    dmIsAtBottom = true;
+    
+    const div = document.getElementById('dm-chat-list');
+    let replyHtml = '';
+    if (dmReplyTo) {
+        let parts = dmReplyTo.split('|');
+        let replyName = parts[0];
+        let replyText = parts.slice(1).join('|');
+        let displayName = replyName === u.full_name ? 'Wewe' : replyName;
+        replyHtml = `<div class="reply-quote"><b>${displayName}</b><small>${replyText.substring(0, 40)}</small></div>`;
+    }
+    let safeContent = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
+    const tempMsgHtml = `<div class="chat-msg self"><b>Wewe</b>${replyHtml}<p>${safeContent}</p><div class="msg-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} <span class="ticks sent">🕒</span></div></div>`;
+    div.insertAdjacentHTML('beforeend', tempMsgHtml);
+    div.scrollTop = div.scrollHeight;
+    
+    // 2. MTUMIE DATABASE KWA KIMYAKIMYA BACKGROUND
+    const msgData = { 
+        sender_phone: u.phone_number, 
+        sender_name: u.full_name, 
+        content: content,
+        recipient_phone: dmOtherPhone
+    };
+    if(dmShopId) msgData.shop_id = dmShopId;
+    
+    if (!navigator.onLine) {
+        addToMsgQueue('shop_messages', msgData);
+        showToast("Huna mtandao. Ujumbe umewekwa kwenye foleni na utatumwa ukisha washwa intaneti.");
+        return;
+    }
+    
+    sb.from('shop_messages').insert([msgData]).then(() => {
+        // Realtime itafanya kazi ya kusasisha ikiwa ipo
+    }).catch(e => { 
+        openModal("Kosa la Kutuma", e.message); 
+    });
+}
 
         async function deleteDmMessage(id) {
         openModal("Futa Ujumbe", "Una uhakika unataka kufuta ujumbe huu?", false, async () => {
