@@ -3368,40 +3368,37 @@ startSmartPolling();
         fetchDmChat(phone, cleanName, null);
     }
 
-    function toggleMsgActions(el) {
-        el.classList.toggle('show-actions');
+    function toggleMsgActions(e, el) {
+    // KAMA MTU AMEBONYEZA NDANI YA REPLY-QUOTE, USIONESHE OPTIONS (ZIRUHUSU jumpToMessage IFANYE KAZI)
+    if (e && e.target && e.target.closest('.reply-quote')) {
+        return;
     }
+    el.classList.toggle('show-actions');
+}
 // FUNCTION YA KURUKIA UJUMBE ULIOTAGIWA (WhatsApp Style)
 function jumpToMessage(msgId) {
-    if (!msgId) return;
+    if (!msgId || msgId === 'undefined' || msgId === 'null') {
+        return showToast("Ujumbe haujapatikana.");
+    }
     
-    // Tafuta ujumme kwenye kurasa zote tatu za chat
-    const chatBodies = [
-        document.getElementById('citizen-chat-list'),
-        document.getElementById('chat-list'),
-        document.getElementById('dm-chat-list')
-    ];
-    
-    let targetEl = null;
+    let targetEl = document.getElementById(`msg-${msgId}`);
     let container = null;
     
-    chatBodies.forEach(body => {
-        if (body) {
-            const el = document.getElementById(`msg-${msgId}`);
-            if (el) {
-                targetEl = el;
-                container = body;
-            }
+    if (targetEl) {
+        // TAMBUA NI CHAT GANI
+        if (targetEl.closest('#citizen-chat-list')) container = document.getElementById('citizen-chat-list');
+        else if (targetEl.closest('#chat-list')) container = document.getElementById('chat-list');
+        else if (targetEl.closest('#dm-chat-list')) container = document.getElementById('dm-chat-list');
+        
+        if (container) {
+            // RUKIA KWENYE UJUMBE
+            container.scrollTo({ top: targetEl.offsetTop - 60, behavior: 'smooth' });
+            // PIGA KELELE (HIGHLIGHT)
+            targetEl.style.transition = 'background 0.5s';
+            targetEl.style.background = 'rgba(16, 185, 129, 0.2)';
+            setTimeout(() => { targetEl.style.background = ''; }, 1500);
+            return;
         }
-    });
-    
-    if (targetEl && container) {
-        // Sogeza kwenye ujumbe
-        container.scrollTo({ top: targetEl.offsetTop - 60, behavior: 'smooth' });
-        // Piga kelele (Highlight) kwa rangi ya kijani kwa sekunde 1.5
-        targetEl.style.transition = 'background 0.5s';
-        targetEl.style.background = 'rgba(16, 185, 129, 0.2)';
-        setTimeout(() => { targetEl.style.background = ''; }, 1500);
     } else {
         showToast("Ujumbe haujapatikani kwenye screen. Scroll juu kuangalia zaidi.");
     }
@@ -3553,21 +3550,21 @@ if (data) data.reverse();
                     let replyHtml = '';
                     if (c.reply_to) {
                         try {
-                            // JARIBU KUSOMA KAMA JSON (Kwa replies mpya)
                             let parsedReply = JSON.parse(c.reply_to);
                             let replyName = parsedReply.name || 'Mtu';
                             let replyText = parsedReply.text || '';
                             let replyId = parsedReply.id || '';
                             let displayName = replyName === u.full_name ? 'Wewe' : replyName;
                             let safeReplyText = replyText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                            
+                            // HAPA: HAKIKISHA UNAWEKA EVENT NA FUNCTION VYEMA
                             replyHtml = `<div class="reply-quote" onclick="event.stopPropagation(); jumpToMessage('${replyId}')" style="cursor:pointer;"><b>${displayName}</b><small>${safeReplyText.substring(0, 50)}</small></div>`;
                         } catch(e) {
-                            // KAMA NI FORMAT YA ZAMANI (Name|Text)
                             let parts = c.reply_to.split('|');
                             let replyName = parts[0];
                             let replyText = parts.slice(1).join('|');
                             let displayName = replyName === u.full_name ? 'Wewe' : replyName;
-                            replyHtml = `<div class="reply-quote"><b>${displayName}</b><small>${replyText.substring(0, 50)}</small></div>`;
+                            replyHtml = `<div class="reply-quote" onclick="event.stopPropagation()"><b>${displayName}</b><small>${replyText.substring(0, 50)}</small></div>`;
                         }
                     }
                     
@@ -3586,7 +3583,7 @@ if (data) data.reverse();
                     } else {
                         let badgeHtml = getActivistBadgeForPhone(c.sender_phone, c);
                         let displayNameWithBadge = isSelf ? 'Wewe' : c.sender_name + ' ' + badgeHtml;
-                        chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayNameWithBadge}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
+                        chatMsgHtml = `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" ${swipeHandlers} onclick="toggleMsgActions(event, this)"><b>${displayNameWithBadge}</b>${replyHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${ticksHtml}</div>${actionsHtml}</div>`;
                     }
                     chatHtml += chatMsgHtml;
                 });
@@ -3673,8 +3670,10 @@ async function postCitizenChat() {
         let parsedReply = JSON.parse(replyToData);
         let safeReplyName = (parsedReply.name === u.full_name ? 'Wewe' : parsedReply.name) || 'Mtu';
         let safeReplyText = (parsedReply.text || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        // ONGEZA ONCLICK KUITA jumpToMessage
-        replyHtml = `<div class="reply-quote" onclick="event.stopPropagation(); jumpToMessage('${parsedReply.id}')" style="cursor:pointer;"><b>${safeReplyName}</b><small>${safeReplyText.substring(0, 40)}</small></div>`;
+        let safeReplyId = parsedReply.id || '';
+        
+        // HAPA: HAKIKISHA UNAWEKA EVENT NA FUNCTION VYEMA
+        replyHtml = `<div class="reply-quote" onclick="event.stopPropagation(); jumpToMessage('${safeReplyId}')" style="cursor:pointer;"><b>${safeReplyName}</b><small>${safeReplyText.substring(0, 40)}</small></div>`;
     }
     let safeContent = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/@(\w+)/g, '<b style="color:var(--accent);">@$1</b>');
     const tempMsgHtml = `<div class="chat-msg self"><b>Wewe</b>${replyHtml}<p>${safeContent}</p><div class="msg-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} <span class="ticks sent">🕒</span></div></div>`;
@@ -4211,14 +4210,14 @@ async function postCitizenChat() {
                         }
                         
                         let sharedHtml = c.shared_report_id ? `<div class="reply-quote" style="border-left-color: var(--text-sec);"><small>Ripoti Iliyoshirikiwa:</small><br><a onclick="viewSharedReport('${c.shared_report_id}')" style="color:var(--accent); font-weight:700; cursor:pointer;">Bonyeza kusoma Ripoti</a></div>` : ''; 
-                        let replyHtml = c.reply_to ? `<div class="reply-quote"><small>Unajibu:</small><br>${c.reply_to}</div>` : '';
+                        let replyHtml = c.reply_to ? `<div class="reply-quote" onclick="event.stopPropagation()"><small>Unajibu:</small><br>${c.reply_to.substring(0, 50)}</div>` : '';
                         
                         let cleanContent = c.content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
                         let safeContent = cleanContent.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                         let actionsHtml = `<div class="chat-actions"><button class="chat-action-btn" onclick="setLeaderReply('${c.id}', '${safeContent}')">${ICONS.reply} Reply</button>${isSelf ? `<button class="chat-action-btn" onclick="editLeaderChat('${c.id}', '${safeContent}')">${ICONS.edit} Edit</button>` : ''}</div>`;
 
                         let displayName = `<span style="cursor:pointer;" onclick="event.stopPropagation(); viewUserProfile('${c.sender_phone}')">${c.sender_name}</span> (${c.sender_role.replace(/_/g,' ')})`;
-                        chatHtml += `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(this)"><b>${displayName}</b>${replyHtml}<p>${cleanContent}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                        chatHtml += `<div id="msg-${c.id}" class="chat-msg ${isSelf ? 'self' : ''}" onclick="toggleMsgActions(event, this)"><b>${displayName}</b>${replyHtml}<p>${cleanContent}</p>${sharedHtml}<div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
                     });
                 } else {
                     chatHtml = '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna majadiliano bado.</p>';
@@ -6431,11 +6430,11 @@ function startBodaDriverPolling() {
             }
         }
         
-        // PAKIA UPYA MAOMBI MAPYA
-        fetchBodaRequests();
+        // PAKIA UPYA MAOMBI MAPYA LAKINI KWA KIMYAKIMYA (isPolling = true)
+        fetchBodaRequests(true);
     }, 5000); // KILA SEKUNDE 5
 }
-        async function fetchBodaRequests() {
+    async function fetchBodaRequests(isPolling = false) {
     const div = document.getElementById('boda-requests-list');
     const u = JSON.parse(localStorage.getItem('kitama_user'));
     
@@ -6463,12 +6462,15 @@ function startBodaDriverPolling() {
         return;
     }
     
-    div.innerHTML = '<div class="skeleton" style="height:80px; margin-bottom:10px;"></div>';
+    // HAPA NDIO FIX: USIWEKE SKELETON KAMA NI POLLING (Ili screen isicheze)
+    if (!isPolling) {
+        div.innerHTML = '<div class="skeleton" style="height:80px; margin-bottom:10px;"></div>';
+    }
+    
     try {
         const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
         await sb.from('boda_requests').update({ status: 'expired' }).eq('status', 'searching').lt('created_at', tenMinsAgo);
         
-        // SOSA: INASOMA 'searching' TU. HIVI OMBI LILOKUBALIWA AU LOGHAIRIWA HATALIONEKANA HAPA
         const { data: reqs, error } = await sb.from('boda_requests').select('*').eq('status', 'searching').gte('created_at', tenMinsAgo).order('created_at', { ascending: false });
         const { data: drivers } = await sb.from('boda_drivers').select('lat, lng, phone');
         
@@ -6509,8 +6511,14 @@ function startBodaDriverPolling() {
         } else {
             html = '<p style="color:var(--text-sec); text-align:center;">Hakuna maombi ya boda sasa.</p>';
         }
-        div.innerHTML = html;
-    } catch(e) { div.innerHTML = `<p style="color:red;">${e.message}</p>`; }
+        
+        // BADILISHA TU KAMA HTML IMEBADILIKA (Kuepuka kukwaruza isiyohitajika)
+        if (div.innerHTML !== html) {
+            div.innerHTML = html;
+        }
+    } catch(e) { 
+        if (!isPolling) div.innerHTML = `<p style="color:red;">${e.message}</p>`;
+    }
 }
 
             function viewBodaLocation(reqId, pLat, pLng, dLat, dLng) {
@@ -7393,7 +7401,7 @@ function toggleFAQ(el) {
                 let swipeHandlers = `ontouchstart="startDmSwipe(event, '${c.id}', '${safeSenderName}', '${safeContentForAttr}')" ontouchmove="moveSwipe(event)" ontouchend="endDmSwipe()"`;
                 
                 // ONGEZA ${replyQuoteHtml} HAPA KABLA YA <p>
-                chatHtml += `<div id="msg-${c.id}" class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(this)"><b>${displayName} ${badgeHtml}</b>${replyQuoteHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
+                chatHtml += `<div id="msg-${c.id}" class="chat-msg ${msgClass}" ${swipeHandlers} onclick="toggleMsgActions(event, this)"><b>${displayName} ${badgeHtml}</b>${replyQuoteHtml}<p>${content}</p><div class="msg-time">${new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>${actionsHtml}</div>`;
             });
         } else {
             chatHtml += '<p style="color:var(--text-sec); text-align:center; padding:20px; margin: 0 20px;">Hakuna ujumbe bado.</p>';
