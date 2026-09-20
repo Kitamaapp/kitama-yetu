@@ -2631,7 +2631,22 @@ startSmartPolling();
                 <div class="premium-stat-card"><h3 id="stat-resolved" style="color: #10b981;">0</h3><p>Yaliyokamilika</p></div>
             </div>`;
         }
-
+        // ONGEZA HII: KITUFE CHA KUSPIN KWA KILA MTU
+        html += `
+        <div class="home-section" style="margin-top: 0; margin-bottom: 20px;">
+            <div class="home-grid" style="grid-template-columns: 1fr;">
+                <div class="home-card" onclick="handleNav('spin-sec')" style="flex-direction: row; justify-content: flex-start; padding: 15px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1)); border: 1px solid var(--accent);">
+                    <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                    </div>
+                    <div class="home-card-text" style="text-align: left;">
+                        <h4 style="color: #d97706;">🎡 Zungusha na Ushinde</h4>
+                        <p>Pata Tsh 2,000 Bure Leo!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
         // MWANANCHI WA KAWAIDA
         if (isGuest) {
             html += `<div class="warning-box" style="margin: 0 16px 20px 16px;">Wewe uko kwenye mfumo wa Mgeni. Unaweza kutazama baadhi ya kurasa tu. <b onclick="handleLogout()" style="cursor:pointer; text-decoration:underline;">Bonyeza hapa kujisajili</b> ili kupata uwezo wote.</div>`;
@@ -2642,6 +2657,10 @@ startSmartPolling();
                         <div class="home-card" onclick="handleNav('market-sec')">
                             <div class="home-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 22V12h6v10"/></svg></div>
                             <div class="home-card-text"><h4>Soko la Kitama</h4><p>Angalia bidhaa na maduka</p></div>
+                        </div>
+                      <div class="home-card" onclick="handleNav('spin-sec')">
+                            <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></div>
+                            <div class="home-card-text"><h4>Zungusha & Ushinde</h4><p>Pata Tsh 100 Bure</p></div>
                         </div>
                         <div class="home-card" onclick="handleNav('schools-public-sec')">
                             <div class="home-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
@@ -2937,6 +2956,7 @@ startSmartPolling();
 
     if(id==='hub-sec') fetchHub();
     if(id==='market-sec') fetchMarket();
+    if(id==='spin-sec') loadSpinUI();
     if(id==='shops-directory-sec') fetchShopsDirectory();
     if(id==='progress-sec') fetchPublicProgress();
     if(id==='leader-reports-sec') fetchLeaderReports();
@@ -11436,6 +11456,366 @@ function enterAsGuest() {
     enterApp();
 }
     window.onload = () => { if(localStorage.getItem('kitama_user')) enterApp();};
+
+    // ================================================== */
+// MCHEZO WA KUZUNGUSHA (SPIN & WIN) - CATALYST
+// ================================================== */
+
+// 1. JIUNGEZE UKURASA WA SPIN KWENYE APP
+if (!document.getElementById('spin-sec')) {
+    const spinSec = document.createElement('div');
+    spinSec.className = 'sec';
+    spinSec.id = 'spin-sec';
+    spinSec.innerHTML = `
+        <div class="sec-h">
+            <h2>🎡 Zungusha na Ushinde</h2>
+            <span onclick="handleNav('home-sec')" style="flex-shrink: 0; cursor: pointer;">Nyumbani</span>
+        </div>
+        <div id="spin-content" style="padding: 20px; text-align: center; min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center;"></div>
+    `;
+    const mainEl = document.querySelector('main') || document.querySelector('.app-c');
+    if (mainEl) mainEl.appendChild(spinSec);
+}
+// --- Sauti za Kucheza na Kushinda ---
+let spinAudioCtx = null;
+function playTickSound() {
+    if (!soundEnabled) return;
+    try {
+        if (!spinAudioCtx) spinAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = spinAudioCtx.createOscillator(); const g = spinAudioCtx.createGain();
+        o.connect(g); g.connect(spinAudioCtx.destination);
+        o.frequency.value = 1200; o.type = 'square';
+        g.gain.setValueAtTime(0.05, spinAudioCtx.currentTime);
+        o.start(); o.stop(spinAudioCtx.currentTime + 0.02);
+    } catch(e){}
+}
+
+function playWinFanfare() {
+    if (!soundEnabled) return;
+    try {
+        if (!spinAudioCtx) spinAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C, E, G, C
+        notes.forEach((freq, i) => {
+            const o = spinAudioCtx.createOscillator(); const g = spinAudioCtx.createGain();
+            o.connect(g); g.connect(spinAudioCtx.destination);
+            o.type = 'sine'; o.frequency.value = freq;
+            const t = spinAudioCtx.currentTime + i * 0.15;
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(0.3, t + 0.05);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+            o.start(t); o.stop(t + 0.5);
+        });
+    } catch(e){}
+}
+
+// --- Pop-up ya Ushinde na Maua (Confetti) ---
+function showWinPopup(text, color) {
+    // CSS ya Maua (Confetti) kama hayajaletwa
+    if (!document.getElementById('confetti-style')) {
+        const style = document.createElement('style');
+        style.id = 'confetti-style';
+        style.innerHTML = `@keyframes fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0.5; } }`;
+        document.head.appendChild(style);
+    }
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; animation: pop 0.3s ease;';
+    
+    let confettiHtml = '';
+    for(let i=0; i<40; i++) {
+        confettiHtml += `<div style="position:absolute; width:10px; height:10px; background:${['#f44336','#e91e63','#9c27b0','#3f51b5','#03a9f4','#009688','#4caf50','#ffeb3b','#ff9800'][i%9]}; top:-20px; left:${Math.random()*100}%; animation: fall ${2+Math.random()*2}s linear ${Math.random()*1}s infinite;"></div>`;
+    }
+    
+    overlay.innerHTML = `
+        ${confettiHtml}
+        <div style="background: var(--surface); padding: 40px 30px; border-radius: 24px; text-align: center; z-index: 10; box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-width: 320px;">
+            <h1 style="font-size: 26px; font-weight: 800; color: ${color}; margin-bottom: 20px; line-height: 1.4;">${text}</h1>
+            <button onclick="this.parentNode.parentNode.remove()" class="btn-p" style="width: auto; padding: 10px 40px; margin-top: 0;">Endelea</button>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+async function loadSpinUI() {
+    const div = document.getElementById('spin-content');
+    if (!div) return;
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    
+    // 1. TAYARISHA DATA YA GURUDUMU MARA MOJA
+    window.kitamaWheelData = [
+        { value: 0, color: "#3B82F6" }, { value: 20, color: "#10B981" }, { value: 50, color: "#F59E0B" }, { value: 100, color: "#EF4444" },
+        { value: 500, color: "#8B5CF6" }, { value: 1000, color: "#3B82F6" }, { value: 2500, color: "#10B981" }, { value: "Spin", color: "#F59E0B" }, { value: 5000, color: "#EF4444" }
+    ];
+    window.kitamaWheelLabels = ["0", "20", "50", "100", "500", "1000", "2500", "Spin", "5000"];
+    
+    let gradStops = [];
+    let currentAngle = 0;
+    const sliceAngle = 360 / window.kitamaWheelData.length;
+    window.kitamaWheelData.forEach(slice => {
+        gradStops.push(`${slice.color} ${currentAngle}deg ${currentAngle + sliceAngle}deg`);
+        currentAngle += sliceAngle;
+    });
+    const conicGrad = `conic-gradient(${gradStops.join(', ')})`;
+    
+    let labelsHtml = '';
+    window.kitamaWheelData.forEach((slice, index) => {
+        let rotation = (index * sliceAngle) + (sliceAngle / 2);
+        labelsHtml += `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(${rotation}deg) translateY(-100px); font-weight: 800; font-size: 18px; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">${window.kitamaWheelLabels[index]}</div>`;
+    });
+
+    // 2. ONYESHA GURUDUMU NA SEHEMU YA SALIO MARA MOJA
+    div.innerHTML = `
+        <div style="display: flex; align-items: stretch; gap: 10px; margin-bottom: 30px; width: 100%; max-width: 320px;">
+            <div style="flex: 1; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: white; padding: 15px 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(16,185,129,0.3); display: flex; flex-direction: column; justify-content: center;">
+                <small style="opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; font-size: 11px;">Salio lako</small>
+                <h2 id="wallet-balance" style="font-size: 28px; font-weight: 800; margin: 2px 0 0 0;">Tsh 0</h2>
+            </div>
+            <button onclick="openWithdrawModal()" style="background: var(--surface); border: 1px solid var(--border); padding: 10px; border-radius: 16px; cursor: pointer; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--accent); box-shadow: var(--shadow-sm);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <small style="font-size: 9px; font-weight: 700;">TOA PESA</small>
+            </button>
+        </div>
+        
+        <div style="position: relative; width: 280px; height: 280px; margin-bottom: 40px;">
+            <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid var(--danger); z-index: 10;"></div>
+            <div id="spin-wheel" style="width: 100%; height: 100%; border-radius: 50%; border: 8px solid var(--surface); box-shadow: 0 10px 30px rgba(0,0,0,0.2); background: ${conicGrad}; position: relative; overflow: hidden;">
+                ${labelsHtml}
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: var(--surface); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; color: var(--accent); z-index: 2;">K</div>
+            </div>
+        </div>
+        
+        <button id="spin-btn" disabled class="btn-p" style="max-width: 280px; font-size: 18px; padding: 15px; opacity: 0.5;">
+            Inapakia...
+        </button>
+    `;
+
+    // 3. SASA NENDA MTANDAO KULETA SALIO NA SPINS
+    try {
+        let { data: wallet } = await sb.from('user_wallets').select('*').eq('user_phone', u.phone_number).maybeSingle();
+        if (!wallet) {
+            const { data: newWallet } = await sb.from('user_wallets').insert([{
+                user_phone: u.phone_number, user_name: u.full_name, balance: 0, spins_today: 0, last_spin_date: new Date().toISOString().split('T')[0]
+            }]).select().single();
+            wallet = newWallet;
+        }
+        
+        const today = new Date().toISOString().split('T')[0];
+        if (wallet.last_spin_date !== today) {
+            await sb.from('user_wallets').update({ spins_today: 0, last_spin_date: today }).eq('user_phone', u.phone_number);
+            wallet.spins_today = 0;
+        }
+        
+        const balanceEl = document.getElementById('wallet-balance');
+        if(balanceEl) balanceEl.innerText = `Tsh ${wallet.balance.toLocaleString()}`;
+        
+        const spinsLeft = Math.max(0, 2 - wallet.spins_today);
+        const spinBtn = document.getElementById('spin-btn');
+        
+        if(spinBtn) {
+            spinBtn.disabled = spinsLeft === 0;
+            spinBtn.style.opacity = spinsLeft === 0 ? '0.5' : '1';
+            spinBtn.style.background = spinsLeft === 0 ? 'var(--text-sec)' : '';
+            spinBtn.innerText = spinsLeft > 0 ? `Zungusha (${spinsLeft} Zimebaki)` : 'Spins za Leo Zimeshaisha!';
+            spinBtn.setAttribute('onclick', 'doSpin()');
+        }
+    } catch(e) {
+        const spinBtn = document.getElementById('spin-btn');
+        if(spinBtn) spinBtn.innerText = "Kosa la mtandao. Rudi tena.";
+    }
+}
+
+async function doSpin() {
+    const u = JSON.parse(localStorage.getItem('kitama_user'));
+    const spinBtn = document.getElementById('spin-btn');
+    const wheel = document.getElementById('spin-wheel');
+    
+    spinBtn.disabled = true;
+    spinBtn.innerText = "Inazunguka...";
+    
+    try {
+        const { data: wallet } = await sb.from('user_wallets').select('*').eq('user_phone', u.phone_number).single();
+        const spinsLeft = Math.max(0, 2 - wallet.spins_today);
+        if (spinsLeft === 0) { showToast("Spins za leo zimeshaisha!"); loadSpinUI(); return; }
+        
+        // SIRI YA GURUDUMU
+        let possibleOutcomes = [0, 20, 50, "Spin"];
+        const last100Date = wallet.last_100_win_date ? new Date(wallet.last_100_win_date) : null;
+        const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        const canWin100 = !last100Date || last100Date < oneWeekAgo;
+        
+        if (canWin100) possibleOutcomes.push(100);
+        
+        let winAmount = possibleOutcomes[Math.floor(Math.random() * possibleOutcomes.length)];
+        
+        // PATA INDEX YA GURUDUMU
+        const wheelData = window.kitamaWheelData;
+        const sliceAngle = 360 / wheelData.length;
+        let matchingIndices = [];
+        wheelData.forEach((slice, index) => {
+            if (slice.value === winAmount) matchingIndices.push(index);
+        });
+        
+        let winningIndex = matchingIndices[Math.floor(Math.random() * matchingIndices.length)];
+        const centerAngle = (winningIndex * sliceAngle) + (sliceAngle / 2);
+        const jitter = (Math.random() * (sliceAngle - 10)) - (sliceAngle/2);
+        const finalRotation = 1800 + (360 - centerAngle) + jitter;
+        
+        wheel.style.transition = 'transform 4s cubic-bezier(0.2, 0.8, 0.3, 1)';
+        wheel.style.transform = `rotate(${finalRotation}deg)`;
+        
+        // CHEZA SAUTI YA KUTIKITIKA WAKATI UNGEENDA
+        const tickInterval = setInterval(() => {
+            playTickSound();
+        }, 150);
+        
+        setTimeout(async () => {
+            clearInterval(tickInterval); // Sitisha sauti
+            let updateData = { spins_today: wallet.spins_today + 1 };
+            
+            // KAMA AMEISHIA "SPIN" (Extra Spin)
+            if (winAmount === "Spin") {
+                updateData.spins_today = wallet.spins_today; // Usiongeze spins, apate bure
+                playWinFanfare();
+                showWinPopup("Hongera! 🎁<br>Umeipata Spin Moja", "var(--accent)");
+            } 
+            // KAMA AMESHINDA HELA
+            else if (winAmount > 0) {
+                updateData.balance = wallet.balance + winAmount;
+                if (winAmount === 100) updateData.last_100_win_date = new Date().toISOString().split('T')[0];
+                
+                playWinFanfare();
+                // ANDIKO KAMILI: "Hongera! 🎉 Umeshinda Tsh 50"
+                showWinPopup("Hongera! 🎉<br>Umeshinda Tsh " + winAmount, "var(--accent)");
+            } 
+            // KAMA AMEKOSA (0)
+            else {
+                // ANDIKO KAMILI: "Pole! Hujashinda, jaribu tena"
+                showToast("Pole! Hujashinda, jaribu tena.");
+            }
+            
+            await sb.from('user_wallets').update(updateData).eq('user_phone', u.phone_number);
+            
+            setTimeout(() => {
+                wheel.style.transition = 'none';
+                const normalizedRotation = finalRotation % 360;
+                wheel.style.transform = `rotate(${normalizedRotation}deg)`;
+                loadSpinUI();
+            }, 4000); // Subiri pop-up ionekane sekunde 4
+            
+        }, 4000);
+    } catch(e) {
+        showToast("Kosa: " + e.message);
+        loadSpinUI();
+    }
+}
+
+// ===== MFUMO WA KUTOA HELA =====
+function openWithdrawModal() {
+    const html = `
+        <div class="form-g">
+            <label class="form-l">Chagua Aina ya Kutoa</label>
+            <div style="display:flex; gap:10px; margin-bottom: 15px;">
+                <button type="button" onclick="selectWithdrawType('vocha')" id="btn-vocha" class="m-btn m-btn-secondary" style="flex:1;">Vocha</button>
+                <button type="button" onclick="selectWithdrawType('pesa')" id="btn-pesa" class="m-btn m-btn-secondary" style="flex:1;">Pesa</button>
+            </div>
+        </div>
+        
+        <div id="withdraw-vocha-section" style="display:none;">
+            <div class="form-g">
+                <label class="form-l">Namba ya Simu ya Kupokelea Vocha</label>
+                <input type="tel" id="withdraw-phone-vocha" class="modal-input" placeholder="0712345678">
+            </div>
+        </div>
+        
+        <div id="withdraw-pesa-section" style="display:none;">
+            <div class="form-g">
+                <label class="form-l">Mtandao</label>
+                <select id="withdraw-network" class="modal-input">
+                    <option value="HaloPesa">HaloPesa</option>
+                    <option value="M-Pesa">M-Pesa</option>
+                    <option value="AirtelMoney">AirtelMoney</option>
+                    <option value="Mixx by Yas">Mixx by Yas</option>
+                </select>
+            </div>
+            <div class="form-g">
+                <label class="form-l">Namba ya Simu</label>
+                <input type="tel" id="withdraw-phone-pesa" class="modal-input" placeholder="0712345678">
+            </div>
+        </div>
+        
+        <div class="form-g">
+            <label class="form-l">Kiasi unachotaka kutoa (Chini ya Tsh 2,000 hairuhusiwi)</label>
+            <input type="number" id="withdraw-amount" class="modal-input" placeholder="Mfano: 2000">
+        </div>
+    `;
+    
+    openModal("Omba Utoaji wa Hela", html, false, async () => {
+        const amount = parseInt(document.getElementById('withdraw-amount').value);
+        if(!amount || amount < 2000) return showToast("Kiwango cha chini kutoa ni Tsh 2,000.");
+        
+        let wType = window.selectedWithdrawType;
+        if(!wType) return showToast("Chagua Vocha au Pesa.");
+        
+        let phoneNumber = '';
+        let network = null;
+        
+        if(wType === 'vocha') {
+            phoneNumber = document.getElementById('withdraw-phone-vocha').value.trim();
+        } else {
+            phoneNumber = document.getElementById('withdraw-phone-pesa').value.trim();
+            network = document.getElementById('withdraw-network').value;
+        }
+        
+        if(!phoneNumber) return showToast("Weka namba ya simu.");
+        
+        const u = JSON.parse(localStorage.getItem('kitama_user'));
+        
+        try {
+            // 1. ANGALIA SALIO
+            const { data: wallet } = await sb.from('user_wallets').select('balance').eq('user_phone', u.phone_number).single();
+            if(wallet.balance < amount) return showToast("Huna salio kutosha!");
+            
+            // 2. TUMA OMBI KWENYE ADMIN
+            await sb.from('withdrawals').insert([{
+                user_phone: u.phone_number,
+                user_name: u.full_name,
+                amount: amount,
+                withdrawal_type: wType,
+                network: network,
+                phone_number: phoneNumber,
+                status: 'pending'
+            }]);
+            
+            // 3. PUNGUZA SALIO LA MTUMIAJI
+            await sb.from('user_wallets').update({ balance: wallet.balance - amount }).eq('user_phone', u.phone_number);
+            
+            showToast("Ombi limewasilishwa! Fedha zitaingia ndani ya masaa matano (5).");
+            playBeep();
+            closeModal();
+            loadSpinUI();
+        } catch(e) {
+            showToast("Kosa: " + e.message);
+        }
+    });
+}
+
+function selectWithdrawType(type) {
+    window.selectedWithdrawType = type;
+    const vochaBtn = document.getElementById('btn-vocha');
+    const pesaBtn = document.getElementById('btn-pesa');
+    const vochaSec = document.getElementById('withdraw-vocha-section');
+    const pesaSec = document.getElementById('withdraw-pesa-section');
+    
+    if(type === 'vocha') {
+        vochaBtn.style.background = 'var(--accent)'; vochaBtn.style.color = 'white';
+        pesaBtn.style.background = 'var(--bg)'; pesaBtn.style.color = 'var(--text-sec)';
+        vochaSec.style.display = 'block'; pesaSec.style.display = 'none';
+    } else {
+        pesaBtn.style.background = 'var(--accent)'; pesaBtn.style.color = 'white';
+        vochaBtn.style.background = 'var(--bg)'; vochaBtn.style.color = 'var(--text-sec)';
+        pesaSec.style.display = 'block'; vochaSec.style.display = 'none';
+    }
+}
+
 </script>
 </body>
 </html>
